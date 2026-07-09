@@ -1,0 +1,122 @@
+<section class="w-full flex flex-col items-center">
+  <div class="text-center mb-10 max-w-2xl mx-auto">
+    <h1 class="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight drop-shadow-sm">
+      Remove Backgrounds in Seconds
+    </h1>
+    <p class="text-lg text-slate-500 font-medium">
+      100% free, automatic, and processed securely on your device.
+    </p>
+  </div>
+
+  <!-- Upload Area -->
+  <div 
+    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
+    [ngClass]="{
+      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
+      'border-slate-200': !isDragging()
+    }"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    *ngIf="!originalImageUrl() && !isProcessing()"
+  >
+    <div class="flex flex-col items-center justify-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
+        <svg class="w-10 h-10 text-teal-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+      </div>
+      <label class="cursor-pointer bg-teal-600 hover:bg-teal-700 text-white text-lg font-bold py-4 px-10 rounded-2xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 mb-6 inline-block">
+        Upload an Image
+        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+      </label>
+      <p class="text-slate-500 font-medium text-sm">or drag and drop your image here</p>
+    </div>
+  </div>
+
+  <!-- Processing State -->
+  <div *ngIf="isProcessing()" class="w-full max-w-md mx-auto bg-white p-10 rounded-3xl shadow-lg border border-slate-100 text-center flex flex-col items-center justify-center mt-8">
+    <div class="w-16 h-16 border-4 border-slate-100 border-t-teal-600 rounded-full animate-spin mb-6"></div>
+    <h3 class="text-xl font-bold text-slate-800 mb-2">Extracting Subject</h3>
+    <p class="text-slate-500 text-sm mb-6">Running AI model locally...</p>
+    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+      <div class="bg-teal-600 h-2.5 rounded-full transition-all duration-300 ease-out" [style.width.%]="progress()"></div>
+    </div>
+    <p class="text-xs font-bold text-teal-700 mt-3">{{ progress() }}%</p>
+  </div>
+
+  <!-- Results Area -->
+  <div *ngIf="originalImageUrl() && !isProcessing()" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start mt-8">
+    
+    <!-- Left Side: Image Viewer -->
+    <div class="flex-grow w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+      <!-- Tabs -->
+      <div class="flex items-center justify-center border-b border-slate-100 bg-slate-50 p-4 gap-2 sm:gap-4">
+        <button 
+          (click)="activeTab.set('processed')"
+          [ngClass]="{
+            'bg-white shadow-sm border-slate-200 text-slate-800': activeTab() === 'processed',
+            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': activeTab() !== 'processed'
+          }"
+          class="px-6 py-2 rounded-full font-bold text-sm border transition-all">
+          Fundo Removido
+        </button>
+        <button 
+          (click)="activeTab.set('original')"
+          [ngClass]="{
+            'bg-white shadow-sm border-slate-200 text-slate-800': activeTab() === 'original',
+            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': activeTab() !== 'original'
+          }"
+          class="px-6 py-2 rounded-full font-bold text-sm border transition-all">
+          Original
+        </button>
+      </div>
+
+      <!-- Image Display -->
+      <div 
+        class="relative aspect-[4/3] w-full flex items-center justify-center p-6 transition-colors duration-300"
+        [style.backgroundColor]="activeTab() === 'processed' ? (backgroundColor() === 'transparent' ? '' : backgroundColor()) : '#f8fafc'"
+        [ngClass]="{'bg-checkerboard': activeTab() === 'processed' && backgroundColor() === 'transparent'}"
+      >
+        <img *ngIf="activeTab() === 'original'" [src]="originalImageUrl()" class="max-w-full max-h-full object-contain rounded-lg shadow-sm">
+        <img *ngIf="activeTab() === 'processed' && processedImageUrl()" [src]="processedImageUrl()" class="max-w-full max-h-full object-contain drop-shadow-xl transition-all">
+      </div>
+
+      <!-- Background Color Picker -->
+      <div *ngIf="activeTab() === 'processed'" class="border-t border-slate-100 p-4 bg-slate-50">
+        <div class="flex items-center justify-center gap-3 flex-wrap">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Cor de fundo:</span>
+          <button *ngFor="let color of bgColors"
+            (click)="backgroundColor.set(color)"
+            [class.ring-2]="backgroundColor() === color"
+            [class.ring-offset-2]="backgroundColor() === color"
+            [class.ring-teal-500]="backgroundColor() === color"
+            [style.backgroundColor]="color === 'transparent' ? '' : color"
+            [ngClass]="{
+              'bg-checkerboard': color === 'transparent', 
+              'border-slate-300': color === '#ffffff'
+            }"
+            class="w-8 h-8 rounded-full border border-slate-200 shadow-sm transition-transform hover:scale-110"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Actions -->
+    <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
+      <button 
+        (click)="downloadImage()"
+        class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download
+      </button>
+      <div class="text-center text-xs text-slate-400 font-medium mb-4">Salva em alta resolução</div>
+
+      <button 
+        (click)="reset()"
+        class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
+      >
+        Upload de Nova Imagem
+      </button>
+    </div>
+  </div>
+</section>
