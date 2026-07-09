@@ -1,0 +1,139 @@
+<section class="w-full flex flex-col items-center">
+  <div class="text-center mb-10 space-y-4">
+    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
+      {{ i18n.t()['compress.title'] }}
+    </h1>
+    <p class="text-xl text-slate-500 font-medium">
+      {{ i18n.t()['compress.subtitle'] }}
+    </p>
+  </div>
+
+  <!-- Upload Area -->
+  <div 
+    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
+    [ngClass]="{
+      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
+      'border-slate-200': !isDragging()
+    }"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    *ngIf="!originalUrl()"
+  >
+    <div class="flex flex-col items-center justify-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
+        <svg class="w-12 h-12 text-teal-500 mb-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+        </svg>
+      </div>
+      <span class="text-2xl font-bold text-slate-700">{{ i18n.t()['hero.drag'] }}</span>
+      <span class="text-slate-400 font-medium mt-2">{{ i18n.t()['hero.or'] }}</span>
+      <label class="mt-6 cursor-pointer bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1">
+        {{ i18n.t()['hero.upload_btn'] }}
+        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
+      </label>
+    </div>
+  </div>
+
+  <!-- Editor Area -->
+  <div *ngIf="originalUrl()" class="w-full max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mt-4">
+    
+    <div class="flex flex-col md:flex-row">
+      
+      <!-- Preview Section -->
+      <div class="flex-grow p-8 bg-slate-50 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-200 min-h-[400px]">
+        <div class="relative max-w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200/50 bg-white">
+          <img [src]="compressedUrl() || originalUrl()" class="block max-h-[60vh] object-contain">
+          
+          <!-- Loading Overlay -->
+          <div *ngIf="isCompressing()" class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Section -->
+      <div class="w-full md:w-96 shrink-0 p-8 flex flex-col gap-8 bg-white">
+        
+        <!-- Slider Control -->
+        <div class="space-y-4">
+          <div class="flex justify-between items-center font-bold text-slate-700">
+            <span>{{ i18n.t()['compress.quality'] }}</span>
+            <span class="text-teal-600">{{ qualitySlider() }}%</span>
+          </div>
+          <input 
+            type="range" 
+            min="10" 
+            max="100" 
+            step="5"
+            [ngModel]="qualitySlider()" 
+            (ngModelChange)="qualitySlider.set($event)"
+            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600"
+          >
+          <div class="flex justify-between text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            <span>{{ i18n.t()['compress.quality.low'] }}</span>
+            <span>{{ i18n.t()['compress.quality.high'] }}</span>
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- Stats -->
+        <div class="space-y-4">
+          <div class="flex justify-between items-center text-slate-500 font-medium">
+            <span>{{ i18n.t()['compress.original_size'] }}</span>
+            <span class="text-slate-800 font-bold" *ngIf="originalFile()">{{ formatBytes(originalFile()!.size) }}</span>
+          </div>
+          
+          <div class="flex justify-between items-center text-slate-500 font-medium">
+            <span>{{ i18n.t()['compress.new_size'] }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-emerald-500 font-black text-lg" *ngIf="compressedFile()">{{ formatBytes(compressedFile()!.size) }}</span>
+              <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full" *ngIf="compressedFile() && getSavings() !== '0%'">
+                -{{ getSavings() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-auto space-y-4">
+          <button 
+            *ngIf="!compressedUrl()"
+            (click)="compress()"
+            [disabled]="isCompressing()"
+            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+            {{ i18n.t()['compress.btn'] }}
+          </button>
+
+          <button 
+            *ngIf="compressedUrl()"
+            (click)="continueEditing()"
+            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-all hover:-translate-y-0.5"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            {{ i18n.t()['results.continue'] }}
+          </button>
+
+          <button 
+            *ngIf="compressedUrl()"
+            (click)="download()"
+            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all hover:-translate-y-0.5"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            {{ i18n.t()['results.download'] }}
+          </button>
+
+          <button 
+            (click)="reset()"
+            class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
+          >
+            {{ i18n.t()['results.start_over'] }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
