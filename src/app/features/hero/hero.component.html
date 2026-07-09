@@ -1,122 +1,74 @@
 <section class="w-full flex flex-col items-center">
-  <div class="text-center mb-10 max-w-2xl mx-auto">
-    <h1 class="text-5xl font-extrabold text-slate-900 mb-4 tracking-tight drop-shadow-sm">
-      Remove Backgrounds in Seconds
+  <div class="text-center mb-16 space-y-4">
+    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
+      {{ i18n.t()['hero.title'] }}
     </h1>
-    <p class="text-lg text-slate-500 font-medium">
-      100% free, automatic, and processed securely on your device.
+    <p class="text-xl text-slate-500 font-medium">
+      {{ i18n.t()['hero.subtitle'] }}
     </p>
   </div>
 
-  <!-- Upload Area -->
-  <div 
-    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
-    [ngClass]="{
-      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
-      'border-slate-200': !isDragging()
-    }"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
-    *ngIf="!originalImageUrl() && !isProcessing()"
-  >
-    <div class="flex flex-col items-center justify-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
-        <svg class="w-10 h-10 text-teal-600 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+  <div *ngIf="imageState.currentFile() as file" class="w-full max-w-4xl bg-teal-50 border border-teal-200 rounded-2xl p-4 mb-10 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="bg-teal-100 p-2 rounded-lg">
+        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
       </div>
-      <label class="cursor-pointer bg-teal-600 hover:bg-teal-700 text-white text-lg font-bold py-4 px-10 rounded-2xl shadow-lg shadow-teal-600/30 transition-all transform hover:-translate-y-0.5 mb-6 inline-block">
-        Upload an Image
-        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
-      </label>
-      <p class="text-slate-500 font-medium text-sm">or drag and drop your image here</p>
+      <div>
+        <h4 class="font-bold text-teal-800 tracking-tight">Imagem em edição:</h4>
+        <p class="text-teal-600 text-sm font-medium">{{ file.name }}</p>
+      </div>
     </div>
+    <button (click)="clearImage()" class="px-4 py-2 bg-white text-slate-600 rounded-xl shadow-sm text-sm font-bold hover:bg-slate-50 transition-colors">
+      {{ i18n.t()['results.start_over'] }}
+    </button>
   </div>
 
-  <!-- Processing State -->
-  <div *ngIf="isProcessing()" class="w-full max-w-md mx-auto bg-white p-10 rounded-3xl shadow-lg border border-slate-100 text-center flex flex-col items-center justify-center mt-8">
-    <div class="w-16 h-16 border-4 border-slate-100 border-t-teal-600 rounded-full animate-spin mb-6"></div>
-    <h3 class="text-xl font-bold text-slate-800 mb-2">Extracting Subject</h3>
-    <p class="text-slate-500 text-sm mb-6">Running AI model locally...</p>
-    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-      <div class="bg-teal-600 h-2.5 rounded-full transition-all duration-300 ease-out" [style.width.%]="progress()"></div>
-    </div>
-    <p class="text-xs font-bold text-teal-700 mt-3">{{ progress() }}%</p>
-  </div>
-
-  <!-- Results Area -->
-  <div *ngIf="originalImageUrl() && !isProcessing()" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start mt-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
     
-    <!-- Left Side: Image Viewer -->
-    <div class="flex-grow w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-      <!-- Tabs -->
-      <div class="flex items-center justify-center border-b border-slate-100 bg-slate-50 p-4 gap-2 sm:gap-4">
-        <button 
-          (click)="activeTab.set('processed')"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800': activeTab() === 'processed',
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': activeTab() !== 'processed'
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all">
-          Fundo Removido
-        </button>
-        <button 
-          (click)="activeTab.set('original')"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800': activeTab() === 'original',
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': activeTab() !== 'original'
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all">
-          Original
-        </button>
+    <!-- Remove BG -->
+    <a routerLink="/remove-bg" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
       </div>
+      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.remove_bg'] }}</h3>
+      <p class="text-slate-500 font-medium">{{ i18n.t()['bg.subtitle'] }}</p>
+    </a>
 
-      <!-- Image Display -->
-      <div 
-        class="relative aspect-[4/3] w-full flex items-center justify-center p-6 transition-colors duration-300"
-        [style.backgroundColor]="activeTab() === 'processed' ? (backgroundColor() === 'transparent' ? '' : backgroundColor()) : '#f8fafc'"
-        [ngClass]="{'bg-checkerboard': activeTab() === 'processed' && backgroundColor() === 'transparent'}"
-      >
-        <img *ngIf="activeTab() === 'original'" [src]="originalImageUrl()" class="max-w-full max-h-full object-contain rounded-lg shadow-sm">
-        <img *ngIf="activeTab() === 'processed' && processedImageUrl()" [src]="processedImageUrl()" class="max-w-full max-h-full object-contain drop-shadow-xl transition-all">
+    <!-- Crop -->
+    <a routerLink="/crop" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v4a1 1 0 001 1h4M5 8v8a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4m-4 0a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
       </div>
+      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.crop'] }}</h3>
+      <p class="text-slate-500 font-medium">{{ i18n.t()['crop.subtitle'] }}</p>
+    </a>
 
-      <!-- Background Color Picker -->
-      <div *ngIf="activeTab() === 'processed'" class="border-t border-slate-100 p-4 bg-slate-50">
-        <div class="flex items-center justify-center gap-3 flex-wrap">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Cor de fundo:</span>
-          <button *ngFor="let color of bgColors"
-            (click)="backgroundColor.set(color)"
-            [class.ring-2]="backgroundColor() === color"
-            [class.ring-offset-2]="backgroundColor() === color"
-            [class.ring-teal-500]="backgroundColor() === color"
-            [style.backgroundColor]="color === 'transparent' ? '' : color"
-            [ngClass]="{
-              'bg-checkerboard': color === 'transparent', 
-              'border-slate-300': color === '#ffffff'
-            }"
-            class="w-8 h-8 rounded-full border border-slate-200 shadow-sm transition-transform hover:scale-110"
-          ></button>
-        </div>
+    <!-- Compress -->
+    <a routerLink="/compress" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
       </div>
-    </div>
+      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.compress'] }}</h3>
+      <p class="text-slate-500 font-medium">{{ i18n.t()['compress.subtitle'] }}</p>
+    </a>
 
-    <!-- Right Side: Actions -->
-    <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-      <button 
-        (click)="downloadImage()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        Download
-      </button>
-      <div class="text-center text-xs text-slate-400 font-medium mb-4">Salva em alta resolução</div>
+    <!-- Resize -->
+    <a routerLink="/resize" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+      </div>
+      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.resize'] }}</h3>
+      <p class="text-slate-500 font-medium">{{ i18n.t()['resize.subtitle'] }}</p>
+    </a>
 
-      <button 
-        (click)="reset()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
-      >
-        Upload de Nova Imagem
-      </button>
-    </div>
+    <!-- Convert -->
+    <a routerLink="/convert" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
+      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+      </div>
+      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.convert'] }}</h3>
+      <p class="text-slate-500 font-medium">{{ i18n.t()['convert.subtitle'] }}</p>
+    </a>
+
   </div>
 </section>

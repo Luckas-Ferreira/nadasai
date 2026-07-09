@@ -1,49 +1,29 @@
-<div class="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-teal-200 selection:text-teal-900">
+<div class="h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-teal-200 selection:text-teal-900 overflow-hidden">
   
-  <!-- Global Header -->
-  <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-200/60">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2 group cursor-pointer">
-          <div class="bg-teal-600 p-2 rounded-xl group-hover:scale-105 transition-transform shadow-md shadow-teal-600/20">
-            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-1.96-2.36L6.5 17h11l-3.54-4.71z"/></svg>
-          </div>
-          <span class="text-2xl font-black tracking-tight text-slate-900">IMGWORK</span>
-        </div>
-        <span class="hidden md:inline-block text-sm font-semibold tracking-wide text-slate-400 border-l-2 border-slate-200 pl-4">PRO BACKGROUND REMOVER</span>
-      </div>
-      <div class="flex items-center">
-        <button class="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full">
-          <span>🌐 EN</span>
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-        </button>
-      </div>
+  <!-- Top Header -->
+  <header class="bg-white/80 backdrop-blur-md shadow-sm h-20 flex items-center justify-between px-6 sm:px-12 shrink-0 z-30">
+    
+    <!-- Logo -->
+    <a routerLink="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+      <img src="logo.webp" alt="Logo" class="w-10 h-10 object-contain drop-shadow-md">
+      <h2 class="text-2xl font-black text-slate-800 tracking-tight bg-gradient-to-r from-teal-600 to-emerald-500 bg-clip-text text-transparent hidden sm:block">
+        ImgWork<span class="text-teal-400">.</span>
+      </h2>
+    </a>
+    
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+      <button (click)="i18n.toggleLanguage()" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-slate-100 hover:bg-slate-200 px-5 py-2.5 rounded-full shadow-sm">
+        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span>{{ i18n.t()['app.lang.btn'] }}</span>
+      </button>
     </div>
   </header>
 
-  <main class="flex-grow flex w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 gap-8">
-    
-    <!-- Left / Center Content -->
-    <div class="flex-grow flex flex-col w-full">
-      <!-- Hero Component (Background Removal) -->
-      <app-hero></app-hero>
+  <!-- Scrollable Workspace -->
+  <main class="flex-grow overflow-y-auto overflow-x-hidden p-4 sm:p-8">
+    <div class="max-w-6xl mx-auto flex flex-col pb-8 h-full">
+      <router-outlet></router-outlet>
     </div>
-
   </main>
-
-  <!-- Global Footer -->
-  <footer class="bg-white border-t border-slate-200 mt-auto pb-safe">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex flex-col sm:flex-row items-center justify-between text-sm text-slate-500">
-      <div class="flex gap-6 font-medium">
-        <a href="#" class="hover:text-teal-600 transition-colors">ABOUT</a>
-        <a href="#" class="hover:text-teal-600 transition-colors">PRIVACY</a>
-        <a href="#" class="hover:text-teal-600 transition-colors">TERMS</a>
-      </div>
-      <div class="mt-4 sm:mt-0 font-bold tracking-wide flex items-center gap-2 text-teal-700 bg-teal-50 px-4 py-2 rounded-full border border-teal-100">
-        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-        100% SECURE & CLIENT-SIDE
-      </div>
-    </div>
-  </footer>
-
 </div>
