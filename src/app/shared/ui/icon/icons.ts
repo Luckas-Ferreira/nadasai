@@ -1,0 +1,30 @@
+/**
+ * Central icon registry. Every path is drawn on a 24x24 grid with a 1.5 stroke,
+ * rendered at 16-20px. Inline <svg> blocks are not allowed in templates — add
+ * the path here and use <app-icon name="..."> so weight stays consistent.
+ */
+export const ICONS = {
+  'remove-bg': 'M4 16.5 8.6 12a2 2 0 0 1 2.8 0l4.6 4.5M14 13.5l1.6-1.6a2 2 0 0 1 2.8 0L21 15M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z',
+  crop: 'M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14',
+  compress: 'M12 4v7m0 0 3-3m-3 3L9 8m-5 8v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2',
+  convert: 'M4 8h13m0 0-3.5-3.5M17 8l-3.5 3.5M20 16H7m0 0 3.5 3.5M7 16l3.5-3.5',
+  resize: 'M4 9V4h5M4 4l5.5 5.5M20 15v5h-5m5 0-5.5-5.5',
+  upload: 'M12 16V4m0 0L8 8m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2',
+  download: 'M12 4v12m0 0 4-4m-4 4-4-4M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1',
+  image: 'M4 16.5 8.6 12a2 2 0 0 1 2.8 0l4.6 4.5M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Zm8.5-11.5h.01',
+  arrowRight: 'M4 12h15m0 0-5.5-5.5M19 12l-5.5 5.5',
+  check: 'M4.5 12.5 9 17l10.5-10.5',
+  close: 'M6 6l12 12M18 6 6 18',
+  alert: 'M12 8v5m0 3h.01M12 3.5 2.8 19.5h18.4L12 3.5Z',
+  refresh: 'M20 5v5h-5M4 19v-5h5m10.5-1a7.5 7.5 0 0 1-13.6 3.4M4.5 11a7.5 7.5 0 0 1 13.6-3.4',
+  lock: 'M7 10V8a5 5 0 0 1 10 0v2M6 10h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z',
+  unlock: 'M7 10V8a5 5 0 0 1 9.6-2M6 10h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z',
+  rotate: 'M15 4.5h4.5V9m-.5-4a8 8 0 1 0 1.4 8',
+  flip: 'M12 3v18M8 7 4 12l4 5V7Zm8 0 4 5-4 5V7Z',
+  language: 'M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  sun: 'M12 4V2m0 20v-2m8-8h2M2 12h2m13.7-5.7 1.4-1.4M4.9 19.1l1.4-1.4m0-11.4L4.9 4.9m14.2 14.2-1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+  moon: 'M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z',
+  home: 'M4 10.5 12 4l8 6.5M6 9.5V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9.5',
+} as const;
+
+export type IconName = keyof typeof ICONS;

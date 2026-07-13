@@ -1,144 +1,110 @@
-<section class="w-full flex flex-col items-center">
-  <div class="text-center mb-10 space-y-4">
-    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
-      {{ i18n.t()['resize.title'] }}
-    </h1>
-    <p class="text-xl text-slate-500 font-medium">
-      {{ i18n.t()['resize.subtitle'] }}
-    </p>
-  </div>
-
-  <!-- Upload Area -->
-  <div 
-    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
-    [ngClass]="{
-      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
-      'border-slate-200': !isDragging()
-    }"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
-    *ngIf="!originalUrl()"
-  >
-    <div class="flex flex-col items-center justify-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
-        <svg class="w-12 h-12 text-teal-500 mb-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-        </svg>
-      </div>
-      <span class="text-2xl font-bold text-slate-700">{{ i18n.t()['hero.drag'] }}</span>
-      <span class="text-slate-400 font-medium mt-2">{{ i18n.t()['hero.or'] }}</span>
-      <label class="mt-6 cursor-pointer bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1">
-        {{ i18n.t()['hero.upload_btn'] }}
-        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
-      </label>
+<app-tool-page [toolId]="'resize'">
+  @if (errorKey(); as key) {
+    <div banner class="mb-5">
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
     </div>
+  }
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else {
+      <app-preview-surface
+        [src]="resultUrl() ?? sourceUrl()"
+        [busy]="busy()"
+        checkerboard
+        [alt]="resultUrl() ? i18n.t()['common.result'] : i18n.t()['common.original']"
+      />
+    }
   </div>
 
-  <!-- Editor Area -->
-  <div *ngIf="originalUrl()" class="w-full max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mt-4">
-    <div class="flex flex-col md:flex-row">
-      
-      <!-- Preview Section -->
-      <div class="flex-grow p-8 bg-slate-50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-200 min-h-[400px]">
-        <div class="relative max-w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200/50 bg-white p-2">
-          <img [src]="originalUrl()" class="block max-h-[50vh] object-contain rounded-xl">
-        </div>
-        
-        <div class="mt-6 font-semibold text-slate-500 bg-white px-6 py-2 rounded-full shadow-sm border border-slate-200 text-sm flex items-center gap-2">
-          <span>{{ i18n.t()['resize.original_dim'] }}</span>
-          <span class="text-slate-800 font-bold">{{ origWidth() }} &times; {{ origHeight() }} px</span>
-        </div>
-      </div>
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['resize.title']">
+        <div class="flex items-end gap-2">
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['resize.width'] }}</span>
+            <input
+              type="number"
+              min="1"
+              [ngModel]="width()"
+              (ngModelChange)="setWidth($event)"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
 
-      <!-- Controls Section -->
-      <div class="w-full md:w-96 shrink-0 p-8 flex flex-col gap-8 bg-white relative">
-        <!-- Loading Overlay -->
-        <div *ngIf="isProcessing()" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-r-3xl">
-          <div class="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600 mb-4"></div>
-          <span class="font-bold text-slate-700">Processando...</span>
+          <span class="pb-2.5 text-faint">×</span>
+
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['resize.height'] }}</span>
+            <input
+              type="number"
+              min="1"
+              [ngModel]="height()"
+              (ngModelChange)="setHeight($event)"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
         </div>
 
-        <div class="space-y-6">
-          
-          <div class="flex gap-4">
-            <div class="w-1/2 space-y-2">
-              <label class="block text-xs font-bold text-slate-400 uppercase">{{ i18n.t()['resize.width'] }}</label>
-              <input 
-                type="number" 
-                [ngModel]="targetWidth()"
-                (ngModelChange)="updateWidth($event)"
-                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-              >
-            </div>
-            <div class="w-1/2 space-y-2">
-              <label class="block text-xs font-bold text-slate-400 uppercase">{{ i18n.t()['resize.height'] }}</label>
-              <input 
-                type="number" 
-                [ngModel]="targetHeight()"
-                (ngModelChange)="updateHeight($event)"
-                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
-              >
-            </div>
+        <button
+          appButton
+          [variant]="lockAspect() ? 'secondary' : 'ghost'"
+          size="sm"
+          block
+          class="mt-2.5"
+          [attr.aria-pressed]="lockAspect()"
+          (click)="toggleLock()"
+        >
+          <app-icon [name]="lockAspect() ? 'lock' : 'unlock'" [size]="14" />
+          {{ lockAspect() ? i18n.t()['resize.lock_on'] : i18n.t()['resize.lock_off'] }}
+        </button>
+
+        <div class="mt-4 border-t border-line pt-3">
+          <span class="mb-2 block text-2xs font-medium uppercase text-faint">
+            {{ i18n.t()['resize.presets'] }}
+          </span>
+
+          <div class="grid grid-cols-4 gap-1.5">
+            @for (preset of presets; track preset) {
+              <button appButton variant="secondary" size="sm" (click)="applyPreset(preset)">
+                {{ preset }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['resize.original_dim'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ sourceWidth() }} × {{ sourceHeight() }}</dd>
           </div>
 
-          <div class="flex items-center justify-center gap-2 text-xs font-semibold text-teal-600 bg-teal-50 py-2 rounded-lg border border-teal-100">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            Proporção Bloqueada
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['resize.new_dim'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ width() }} × {{ height() }}
+              @if (resultBlob()) {
+                <span class="text-faint">· {{ resultSize() }}</span>
+              }
+            </dd>
           </div>
+        </dl>
+      </app-panel>
 
-          <hr class="border-slate-100">
-
-          <div class="space-y-3">
-            <span class="font-bold text-slate-700 block text-sm">{{ i18n.t()['resize.presets'] }}</span>
-            <div class="grid grid-cols-2 gap-2">
-              <button (click)="applyPreset(1920)" class="px-3 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-teal-50 hover:text-teal-700 rounded-lg border border-slate-200 transition-colors">1920px</button>
-              <button (click)="applyPreset(1280)" class="px-3 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-teal-50 hover:text-teal-700 rounded-lg border border-slate-200 transition-colors">1280px</button>
-              <button (click)="applyPreset(800)" class="px-3 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-teal-50 hover:text-teal-700 rounded-lg border border-slate-200 transition-colors">800px</button>
-              <button (click)="applyPreset(400)" class="px-3 py-2 text-sm font-semibold text-slate-600 bg-slate-50 hover:bg-teal-50 hover:text-teal-700 rounded-lg border border-slate-200 transition-colors">400px</button>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="mt-auto space-y-4">
-          <button 
-            *ngIf="!processedUrl()"
-            (click)="resize()"
-            [disabled]="isProcessing() || targetWidth() <= 0"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            Aplicar Redimensionamento
-          </button>
-
-          <button 
-            *ngIf="processedUrl()"
-            (click)="continueEditing()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            {{ i18n.t()['results.continue'] }}
-          </button>
-
-          <button 
-            *ngIf="processedUrl()"
-            (click)="download()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            {{ i18n.t()['results.download'] }}
-          </button>
-
-          <button 
-            (click)="reset()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
-          >
-            {{ i18n.t()['results.start_over'] }}
-          </button>
-        </div>
-
-      </div>
-    </div>
+      <app-action-bar
+        [primaryLabel]="i18n.t()['resize.btn']"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultUrl()"
+        [canContinue]="!!resultUrl()"
+        (primary)="run()"
+        (download)="download()"
+        (continueEdit)="continueEdit()"
+        (reset)="reset()"
+      />
+    }
   </div>
-</section>
+</app-tool-page>

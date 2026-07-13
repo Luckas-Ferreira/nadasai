@@ -1,116 +1,73 @@
-<section class="w-full flex flex-col items-center">
-  <div class="text-center mb-10 space-y-4">
-    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
-      {{ i18n.t()['convert.title'] }}
-    </h1>
-    <p class="text-xl text-slate-500 font-medium">
-      {{ i18n.t()['convert.subtitle'] }}
-    </p>
-  </div>
-
-  <!-- Upload Area -->
-  <div 
-    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
-    [ngClass]="{
-      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
-      'border-slate-200': !isDragging()
-    }"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
-    *ngIf="!originalUrl()"
-  >
-    <div class="flex flex-col items-center justify-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
-        <svg class="w-12 h-12 text-teal-500 mb-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-        </svg>
-      </div>
-      <span class="text-2xl font-bold text-slate-700">{{ i18n.t()['hero.drag'] }}</span>
-      <span class="text-slate-400 font-medium mt-2">{{ i18n.t()['hero.or'] }}</span>
-      <label class="mt-6 cursor-pointer bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1">
-        {{ i18n.t()['hero.upload_btn'] }}
-        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
-      </label>
+<app-tool-page [toolId]="'convert'">
+  @if (errorKey(); as key) {
+    <div banner class="mb-5">
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
     </div>
+  }
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else {
+      <app-preview-surface
+        [src]="previewUrl()"
+        [busy]="busy()"
+        checkerboard
+        [alt]="i18n.t()['common.original']"
+      />
+    }
   </div>
 
-  <!-- Editor Area -->
-  <div *ngIf="originalUrl()" class="w-full max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden mt-4">
-    <div class="flex flex-col md:flex-row">
-      
-      <!-- Preview Section -->
-      <div class="flex-grow p-8 bg-slate-50 flex items-center justify-center border-b md:border-b-0 md:border-r border-slate-200 min-h-[400px]">
-        <div class="relative max-w-full rounded-2xl overflow-hidden shadow-lg border border-slate-200/50 bg-white">
-          <img *ngIf="processedUrl() && selectedFormat() !== 'PDF'" [src]="processedUrl()" class="block max-h-[60vh] object-contain">
-          <img *ngIf="!processedUrl() || selectedFormat() === 'PDF'" [src]="originalUrl()" class="block max-h-[60vh] object-contain">
-          
-          <div *ngIf="isConverting()" class="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600"></div>
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['convert.select_format']">
+        <app-segmented
+          [options]="formatOptions"
+          [value]="format()"
+          (valueChange)="onFormatChange($event)"
+          [columns]="3"
+          [ariaLabel]="i18n.t()['convert.select_format']"
+        />
+
+        @if (format() === 'PDF') {
+          <div class="mt-4 border-t border-line pt-3">
+            <span class="mb-2 block text-2xs font-medium uppercase text-faint">
+              {{ i18n.t()['convert.pdf_bg'] }}
+            </span>
+
+            <app-segmented
+              [options]="backdropOptions"
+              [value]="pdfBackground()"
+              (valueChange)="pdfBackground.set($event)"
+              [ariaLabel]="i18n.t()['convert.pdf_bg']"
+            />
           </div>
-        </div>
-      </div>
+        }
 
-      <!-- Controls Section -->
-      <div class="w-full md:w-96 shrink-0 p-8 flex flex-col gap-8 bg-white relative">
-        
-        <div class="space-y-4" *ngIf="!processedUrl()">
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">
-            {{ i18n.t()['convert.select_format'] }}
-          </label>
-          <div class="grid grid-cols-2 gap-3">
-            <button 
-              *ngFor="let fmt of formats"
-              (click)="selectedFormat.set(fmt)"
-              [ngClass]="{
-                'bg-teal-50 border-teal-500 text-teal-700 ring-2 ring-teal-500/20': selectedFormat() === fmt,
-                'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300': selectedFormat() !== fmt
-              }"
-              class="px-4 py-3 rounded-xl border font-bold transition-all text-sm shadow-sm"
-            >
-              {{ fmt }}
-            </button>
+        @if (isTerminal()) {
+          <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+            {{ i18n.t()['convert.terminal_note'] }}
+          </p>
+        }
+
+        @if (resultSize(); as size) {
+          <div class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
+            <span class="text-muted">{{ i18n.t()['common.result'] }}</span>
+            <span class="font-mono text-text tabular">{{ size }}</span>
           </div>
-        </div>
+        }
+      </app-panel>
 
-        <div class="mt-auto space-y-4">
-          <button 
-            *ngIf="!processedUrl()"
-            (click)="convert()"
-            [disabled]="isConverting()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-            Converter Formato
-          </button>
-
-          <button 
-            *ngIf="processedUrl()"
-            (click)="continueEditing()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            {{ i18n.t()['results.continue'] }}
-          </button>
-
-          <button 
-            *ngIf="processedUrl()"
-            (click)="download()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all hover:-translate-y-0.5"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            {{ i18n.t()['results.download'] }}
-          </button>
-
-          <button 
-            (click)="reset()"
-            class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
-          >
-            {{ i18n.t()['results.start_over'] }}
-          </button>
-        </div>
-
-      </div>
-    </div>
+      <app-action-bar
+        [primaryLabel]="i18n.t()['convert.btn']"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        [canContinue]="!!resultBlob() && !isTerminal()"
+        (primary)="run()"
+        (download)="download()"
+        (continueEdit)="continueEdit()"
+        (reset)="reset()"
+      />
+    }
   </div>
-</section>
+</app-tool-page>

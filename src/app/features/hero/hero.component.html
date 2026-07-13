@@ -1,74 +1,52 @@
-<section class="w-full flex flex-col items-center">
-  <div class="text-center mb-16 space-y-4">
-    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
-      {{ i18n.t()['hero.title'] }}
-    </h1>
-    <p class="text-xl text-slate-500 font-medium">
-      {{ i18n.t()['hero.subtitle'] }}
-    </p>
-  </div>
+<section class="mx-auto w-full max-w-[1240px]">
+  <header class="mb-6">
+    <h1 class="text-3xl">{{ i18n.t()['hero.title'] }}</h1>
+    <p class="mt-1.5 max-w-2xl text-md text-muted">{{ i18n.t()['hero.subtitle'] }}</p>
+  </header>
 
-  <div *ngIf="imageState.currentFile() as file" class="w-full max-w-4xl bg-teal-50 border border-teal-200 rounded-2xl p-4 mb-10 flex items-center justify-between shadow-sm">
-    <div class="flex items-center gap-3">
-      <div class="bg-teal-100 p-2 rounded-lg">
-        <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-      </div>
-      <div>
-        <h4 class="font-bold text-teal-800 tracking-tight">Imagem em edição:</h4>
-        <p class="text-teal-600 text-sm font-medium">{{ file.name }}</p>
-      </div>
+  @if (errorKey(); as key) {
+    <div class="mb-5">
+      <app-alert [message]="i18n.t()[key]" dismissible (dismiss)="errorKey.set(null)" />
     </div>
-    <button (click)="clearImage()" class="px-4 py-2 bg-white text-slate-600 rounded-xl shadow-sm text-sm font-bold hover:bg-slate-50 transition-colors">
-      {{ i18n.t()['results.start_over'] }}
-    </button>
+  }
+
+  @if (!state.currentFile()) {
+    <app-dropzone (fileSelected)="onFile($event)" />
+  }
+
+  <div class="mt-8 mb-3 flex items-baseline gap-2">
+    <h2 class="text-2xs font-medium uppercase text-faint">
+      {{ state.currentFile() ? i18n.t()['hero.next_step'] : i18n.t()['hero.pick_tool'] }}
+    </h2>
+    <span class="h-px flex-1 bg-line"></span>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-    
-    <!-- Remove BG -->
-    <a routerLink="/remove-bg" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-      </div>
-      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.remove_bg'] }}</h3>
-      <p class="text-slate-500 font-medium">{{ i18n.t()['bg.subtitle'] }}</p>
-    </a>
+  <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    @for (tool of tools; track tool.id) {
+      <li>
+        <a
+          [routerLink]="'/' + tool.path"
+          class="group flex h-full items-start gap-3 rounded-lg border border-line bg-surface p-4
+                 shadow-panel transition-colors hover:border-accent hover:bg-raised"
+        >
+          <span
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line
+                   bg-raised text-muted transition-colors group-hover:border-accent
+                   group-hover:bg-accent group-hover:text-on-accent"
+          >
+            <app-icon [name]="tool.icon" [size]="17" />
+          </span>
 
-    <!-- Crop -->
-    <a routerLink="/crop" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3v4a1 1 0 001 1h4M5 8v8a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4m-4 0a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-      </div>
-      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.crop'] }}</h3>
-      <p class="text-slate-500 font-medium">{{ i18n.t()['crop.subtitle'] }}</p>
-    </a>
+          <span class="min-w-0">
+            <span class="block text-md font-medium text-text">{{ i18n.t()[tool.navKey] }}</span>
+            <span class="mt-0.5 block text-sm text-muted">{{ i18n.t()[tool.descKey] }}</span>
+          </span>
 
-    <!-- Compress -->
-    <a routerLink="/compress" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-      </div>
-      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.compress'] }}</h3>
-      <p class="text-slate-500 font-medium">{{ i18n.t()['compress.subtitle'] }}</p>
-    </a>
-
-    <!-- Resize -->
-    <a routerLink="/resize" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-      </div>
-      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.resize'] }}</h3>
-      <p class="text-slate-500 font-medium">{{ i18n.t()['resize.subtitle'] }}</p>
-    </a>
-
-    <!-- Convert -->
-    <a routerLink="/convert" class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-300 transition-all hover:-translate-y-1 cursor-pointer flex flex-col items-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 group-hover:bg-teal-50 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-10 h-10 text-slate-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-      </div>
-      <h3 class="text-2xl font-black text-slate-800 mb-2">{{ i18n.t()['nav.convert'] }}</h3>
-      <p class="text-slate-500 font-medium">{{ i18n.t()['convert.subtitle'] }}</p>
-    </a>
-
-  </div>
+          <span class="ml-auto self-center text-faint opacity-0 transition-opacity group-hover:opacity-100">
+            <app-icon name="arrowRight" [size]="16" />
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
 </section>

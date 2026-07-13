@@ -1,192 +1,148 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslationService } from '../../core/services/translation.service';
-import { ImageStateService } from '../../core/services/image-state.service';
 import { Router } from '@angular/router';
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '../../core/image/converters';
+import { saveBlob } from '../../core/image/download';
+import { formatBytes, suffixedName } from '../../core/image/image-file.util';
+import { ObjectUrlScope } from '../../core/image/object-url';
+import { toMessageKey } from '../../core/errors';
+import { ImageStateService } from '../../core/services/image-state.service';
+import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { toolById } from '../../core/tools/tools';
+import { ActionBarComponent } from '../../shared/ui/action-bar.component';
+import { AlertComponent } from '../../shared/ui/alert.component';
+import { CompareSliderComponent } from '../../shared/ui/compare-slider.component';
+import { DropzoneComponent } from '../../shared/ui/dropzone.component';
+import { PanelComponent } from '../../shared/ui/panel.component';
+import { PreviewSurfaceComponent } from '../../shared/ui/preview-surface.component';
+import { ToolPageComponent } from '../../shared/ui/tool-page.component';
 
 @Component({
   selector: 'app-compress',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ObjectUrlScope],
+  imports: [
+    FormsModule,
+    ToolPageComponent,
+    DropzoneComponent,
+    PreviewSurfaceComponent,
+    CompareSliderComponent,
+    PanelComponent,
+    ActionBarComponent,
+    AlertComponent,
+  ],
   templateUrl: './compress.component.html',
 })
-export class CompressComponent implements OnInit {
-  public i18n = inject(TranslationService);
-  public imageState = inject(ImageStateService);
-  private router = inject(Router);
-  
-  public originalFile = signal<File | null>(null);
-  public originalUrl = signal<string | null>(null);
-  
-  public compressedFile = signal<File | null>(null);
-  public compressedUrl = signal<string | null>(null);
-  
-  public isDragging = signal(false);
-  public isCompressing = signal(false);
-  
-  // Settings
-  public qualitySlider = signal<number>(75);
-  public maxMb = signal<number>(1);
-  public quality = signal<number>(0.8);
-  public autoResize = signal<boolean>(true); // Reduces dimension if extremely large
+export class CompressComponent {
+  private readonly urls = inject(ObjectUrlScope);
+  private readonly router = inject(Router);
+  private readonly tool = toolById('compress');
 
-  public originalSizeStr = computed(() => {
-    const f = this.originalFile();
-    return f ? (f.size / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB';
+  protected readonly state = inject(ImageStateService);
+  protected readonly i18n = inject(TranslationService);
+
+  protected readonly sourceUrl = signal<string | null>(null);
+  protected readonly resultBlob = signal<Blob | null>(null);
+  protected readonly resultUrl = signal<string | null>(null);
+  protected readonly busy = signal(false);
+  protected readonly errorKey = signal<TranslationKey | null>(null);
+
+  /** Maps straight onto WebP encoder quality. No guesswork about target size. */
+  protected readonly quality = signal(75);
+
+  protected readonly sourceFile = this.state.currentFile;
+
+  protected readonly originalSize = computed(() => {
+    const file = this.sourceFile();
+    return file ? formatBytes(file.size) : '—';
   });
 
-  public compressedSizeStr = computed(() => {
-    const f = this.compressedFile();
-    return f ? (f.size / (1024 * 1024)).toFixed(2) + ' MB' : '0 MB';
+  protected readonly resultSize = computed(() => {
+    const blob = this.resultBlob();
+    return blob ? formatBytes(blob.size) : '—';
   });
 
-  public savingsStr = computed(() => {
-    const orig = this.originalFile()?.size || 0;
-    const comp = this.compressedFile()?.size || 0;
-    if (orig === 0 || comp === 0) return '0%';
-    const save = ((orig - comp) / orig) * 100;
-    return save > 0 ? save.toFixed(0) + '%' : '0%';
+  /** Null when compression made the file bigger, which happens on small images. */
+  protected readonly savings = computed(() => {
+    const original = this.sourceFile()?.size;
+    const compressed = this.resultBlob()?.size;
+    if (!original || !compressed) return null;
+
+    const saved = ((original - compressed) / original) * 100;
+    return saved > 0 ? `${saved.toFixed(0)}%` : null;
   });
 
-  ngOnInit() {
-    const file = this.imageState.currentFile();
-    if (file) {
-      this.handleFile(file);
+  constructor() {
+    const file = this.sourceFile();
+    if (file) this.sourceUrl.set(this.urls.create(file));
+  }
+
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.state.load(file);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+      return;
     }
+
+    this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
+    this.clearResult();
   }
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(true);
-  }
-
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(false);
-  }
-
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(false);
-    const file = event.dataTransfer?.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      this.handleFile(file);
-    }
-  }
-
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.handleFile(input.files[0]);
-    }
-  }
-
-  private handleFile(file: File) {
-    this.originalFile.set(file);
-    this.imageState.setFile(file);
-    const url = URL.createObjectURL(file);
-    this.originalUrl.set(url);
-    this.compressedFile.set(null);
-    this.compressedUrl.set(null);
-  }
-
-  public async compress() {
-    const file = this.originalFile();
+  protected async run(): Promise<void> {
+    const file = this.sourceFile();
     if (!file) return;
 
-    this.isCompressing.set(true);
+    this.busy.set(true);
+    this.errorKey.set(null);
+
     try {
-      const q = this.qualitySlider();
-      const fraction = q / 100;
-      
-      const origMB = file.size / (1024 * 1024);
-      // Aggressive target: if slider is at 50%, target is 25% of original size.
-      // If slider is 10%, target is 1% of original size (min 50KB).
-      const targetMB = Math.max(0.05, origMB * fraction * fraction);
-      
-      // Also scale down resolution slightly at lower qualities
-      const maxRes = Math.floor(1000 + (3000 * fraction));
-
-      const options = {
-        maxSizeMB: targetMB,
-        maxWidthOrHeight: maxRes, 
-        useWebWorker: true,
-        initialQuality: fraction,
-        fileType: 'image/webp', // WebP yields MUCH better compression
-        alwaysKeepResolution: q >= 90 // Only keep original resolution at high quality
-      };
-
-      const compressed = await imageCompression(file, options);
-      
-      // Cleanup old url
-      const oldUrl = this.compressedUrl();
-      if (oldUrl) URL.revokeObjectURL(oldUrl);
-
-      this.compressedFile.set(compressed);
-      this.compressedUrl.set(URL.createObjectURL(compressed));
-    } catch (error) {
-      console.error('Compression error:', error);
+      const blob = await compressImage(file, this.quality() / 100);
+      this.resultBlob.set(blob);
+      this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+    } catch (err) {
+      console.error('Compression failed:', err);
+      this.errorKey.set(toMessageKey(err));
     } finally {
-      this.isCompressing.set(false);
+      this.busy.set(false);
     }
   }
 
-  public download() {
-    const file = this.compressedFile();
-    const url = this.compressedUrl();
-    if (!file || !url) return;
+  protected download(): void {
+    const blob = this.resultBlob();
+    const session = this.state.session();
+    if (!blob || !session) return;
 
-    const originalName = this.originalFile()?.name || 'image';
-    const baseName = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `compressed-${baseName}.webp`; // Always save as webp since we converted it
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, 'webp'));
   }
 
-  public continueEditing() {
-    const file = this.compressedFile();
-    if (file) {
-      this.imageState.setFile(file);
+  protected continueEdit(): void {
+    const blob = this.resultBlob();
+    if (!blob) return;
+
+    try {
+      this.state.apply('compress', blob, this.tool.suffix, 'webp');
       this.router.navigate(['/']);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
     }
   }
 
-  public reset() {
-    const oldOrigUrl = this.originalUrl();
-    if (oldOrigUrl) URL.revokeObjectURL(oldOrigUrl);
-    
-    const oldCompUrl = this.compressedUrl();
-    if (oldCompUrl) URL.revokeObjectURL(oldCompUrl);
-
-    this.originalFile.set(null);
-    this.originalUrl.set(null);
-    this.compressedFile.set(null);
-    this.compressedUrl.set(null);
-    this.imageState.clear();
+  protected reset(): void {
+    this.urls.releaseAll();
+    this.sourceUrl.set(null);
+    this.resultBlob.set(null);
+    this.resultUrl.set(null);
+    this.errorKey.set(null);
+    this.state.clear();
   }
 
-  public formatBytes(bytes: number, decimals = 2): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }
-
-  public getSavings(): string {
-    const orig = this.originalFile()?.size;
-    const comp = this.compressedFile()?.size;
-    if (!orig || !comp) return '0%';
-    const saved = ((orig - comp) / orig) * 100;
-    // if compressed is larger (happens sometimes with small files), return 0%
-    if (saved < 0) return '0%';
-    return saved.toFixed(0) + '%';
+  private clearResult(): void {
+    this.urls.revoke(this.resultUrl());
+    this.resultBlob.set(null);
+    this.resultUrl.set(null);
   }
 }

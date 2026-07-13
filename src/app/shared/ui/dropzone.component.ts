@@ -1,0 +1,129 @@
+import { ChangeDetectionStrategy, Component, ElementRef, booleanAttribute, inject, input, output, signal, viewChild } from '@angular/core';
+import { ACCEPT_ATTR } from '../../core/image/image-file.util';
+import { TranslationService } from '../../core/services/translation.service';
+import { IconComponent } from './icon/icon.component';
+
+/**
+ * The single upload surface for the whole app. Replaces five identical
+ * drag-and-drop blocks plus five copies of onDragOver/onDragLeave/onDrop/
+ * onFileSelected.
+ *
+ * Validation is the caller's job (ImageStateService / assertUsableImage) — this
+ * only emits the File. `accept` is a filter, not a guarantee: the OS picker lets
+ * users switch to "All files", which is how a .txt used to reach the tools.
+ */
+@Component({
+  selector: 'app-dropzone',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [IconComponent],
+  template: `
+    <div
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="i18n.t()['common.upload_btn']"
+      (click)="open()"
+      (keydown.enter)="open()"
+      (keydown.space)="$event.preventDefault(); open()"
+      (dragenter)="onDragEnter($event)"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      class="group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden
+             rounded-xl border-2 border-dashed bg-stage text-center transition-all duration-200"
+      [class.border-stage-line]="!dragging()"
+      [class.border-accent]="dragging()"
+      [class.px-6]="compact()"
+      [class.py-10]="compact()"
+      [class.px-8]="!compact()"
+      [class.py-20]="!compact()"
+      [style.box-shadow]="dragging() ? 'inset 0 0 60px var(--accent-line)' : null"
+    >
+      <span
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06] text-white/70
+               transition-colors group-hover:bg-accent group-hover:text-on-accent"
+        [class.bg-accent]="dragging()"
+        [class.text-on-accent]="dragging()"
+      >
+        <app-icon name="upload" [size]="20" />
+      </span>
+
+      <p class="mt-4 text-lg font-medium text-white">{{ i18n.t()['common.drag'] }}</p>
+
+      <p class="mt-1 text-sm text-white/50">
+        {{ i18n.t()['common.or'] }}
+        <span class="font-medium text-accent underline underline-offset-2">
+          {{ i18n.t()['common.upload_btn'] }}
+        </span>
+      </p>
+
+      @if (!compact()) {
+        <p class="mt-6 text-xs text-white/30 tabular">{{ i18n.t()['common.drag_hint'] }}</p>
+      }
+
+      <input
+        #input
+        type="file"
+        class="hidden"
+        [accept]="accept()"
+        (change)="onSelected($event)"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+  `,
+})
+export class DropzoneComponent {
+  protected readonly i18n = inject(TranslationService);
+
+  readonly accept = input(ACCEPT_ATTR);
+  readonly compact = input(false, { transform: booleanAttribute });
+
+  readonly fileSelected = output<File>();
+
+  private readonly input = viewChild.required<ElementRef<HTMLInputElement>>('input');
+  protected readonly dragging = signal(false);
+
+  /**
+   * dragenter/dragleave fire for every child element the cursor crosses, so a
+   * naive boolean flickers. Counting entries against leaves is the fix.
+   */
+  private depth = 0;
+
+  protected open(): void {
+    this.input().nativeElement.click();
+  }
+
+  protected onDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    this.depth++;
+    this.dragging.set(true);
+  }
+
+  protected onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+  }
+
+  protected onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.depth = Math.max(0, this.depth - 1);
+    if (this.depth === 0) this.dragging.set(false);
+  }
+
+  protected onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.depth = 0;
+    this.dragging.set(false);
+
+    const file = event.dataTransfer?.files?.[0];
+    if (file) this.fileSelected.emit(file);
+  }
+
+  protected onSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.fileSelected.emit(file);
+    // Allow re-selecting the same file immediately after a reset.
+    input.value = '';
+  }
+}
