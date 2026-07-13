@@ -1,35 +1,43 @@
-import { Injectable, signal } from '@angular/core';
-import { removeBackground, Config } from '@imgly/background-removal';
+import { Injectable } from '@angular/core';
+import { removeBackground } from '@imgly/background-removal';
+import { AppError } from '../errors';
 
-@Injectable({
-  providedIn: 'root'
-})
+/**
+ * Stateless on purpose.
+ *
+ * This used to be a root singleton holding isProcessing/progress/processedImageUrl
+ * signals, which meant: (a) the previous image's result was still in the signal
+ * when you re-entered the tool, and (b) nothing guarded re-entrancy, so leaving
+ * mid-run and coming back kicked off a SECOND concurrent model run that fought
+ * the first one for the same signals — the progress bar could even go backwards.
+ *
+ * State now lives in the component, which Angular destroys on navigation. The
+ * cache keeps that from costing anything: coming back to an already-processed
+ * file returns instantly instead of re-running a multi-second WASM model.
+ */
+@Injectable({ providedIn: 'root' })
 export class BackgroundRemovalService {
-  public isProcessing = signal<boolean>(false);
-  public progress = signal<number>(0);
-  public processedImageUrl = signal<string | null>(null);
+  private readonly cache = new WeakMap<File, Blob>();
 
-  async processImage(file: File) {
-    this.isProcessing.set(true);
-    this.progress.set(0);
-    this.processedImageUrl.set(null);
-
-    const config: Config = {
-      progress: (key: string, current: number, total: number) => {
-        const percentage = Math.round((current / total) * 100);
-        this.progress.set(percentage);
-      }
-    };
+  async removeBackground(file: File, onProgress?: (percent: number) => void): Promise<Blob> {
+    const cached = this.cache.get(file);
+    if (cached) {
+      onProgress?.(100);
+      return cached;
+    }
 
     try {
-      // O imgly já lida com WASM e processamento local pesado internamente
-      const imageBlob = await removeBackground(file, config);
-      const url = URL.createObjectURL(imageBlob);
-      this.processedImageUrl.set(url);
-    } catch (error) {
-      console.error('Erro ao remover fundo:', error);
-    } finally {
-      this.isProcessing.set(false);
+      const blob = await removeBackground(file, {
+        progress: (_key, current, total) => {
+          onProgress?.(total > 0 ? Math.round((current / total) * 100) : 0);
+        },
+      });
+
+      this.cache.set(file, blob);
+      return blob;
+    } catch (err) {
+      console.error('Background removal failed:', err);
+      throw new AppError('model_failed', err);
     }
   }
 }

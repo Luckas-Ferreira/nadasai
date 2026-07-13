@@ -1,166 +1,211 @@
-import { Component, ElementRef, inject, signal, ViewChild, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TranslationService } from '../../core/services/translation.service';
-import { ImageStateService } from '../../core/services/image-state.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import Cropper from 'cropperjs';
+import { toMessageKey } from '../../core/errors';
+import { saveBlob } from '../../core/image/download';
+import { canvasToBlob, extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
+import { ObjectUrlScope } from '../../core/image/object-url';
+import { ImageStateService } from '../../core/services/image-state.service';
+import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { toolById } from '../../core/tools/tools';
+import { ActionBarComponent } from '../../shared/ui/action-bar.component';
+import { AlertComponent } from '../../shared/ui/alert.component';
+import { ButtonDirective } from '../../shared/ui/button.directive';
+import { DropzoneComponent } from '../../shared/ui/dropzone.component';
+import { IconComponent } from '../../shared/ui/icon/icon.component';
+import { PanelComponent } from '../../shared/ui/panel.component';
+import { ToolPageComponent } from '../../shared/ui/tool-page.component';
+
+/** GIF and BMP have no lossy encoder here; PNG keeps their alpha and quality. */
+const ALPHA_SAFE = new Set(['image/png', 'image/webp', 'image/gif', 'image/bmp']);
 
 @Component({
   selector: 'app-crop',
   standalone: true,
-  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ObjectUrlScope],
+  imports: [
+    ToolPageComponent,
+    DropzoneComponent,
+    PanelComponent,
+    ActionBarComponent,
+    AlertComponent,
+    ButtonDirective,
+    IconComponent,
+  ],
   templateUrl: './crop.component.html',
 })
-export class CropComponent implements OnInit, OnDestroy {
-  public i18n = inject(TranslationService);
-  public imageState = inject(ImageStateService);
-  private router = inject(Router);
-  
-  @ViewChild('imageElement') imageElement!: ElementRef<HTMLImageElement>;
-  
-  public originalFile = signal<File | null>(null);
-  public originalUrl = signal<string | null>(null);
-  public croppedUrl = signal<string | null>(null);
-  
-  public isDragging = signal(false);
-  public currentRatio = signal<number | null>(null); // null = free
-  
+export class CropComponent implements OnDestroy {
+  private readonly urls = inject(ObjectUrlScope);
+  private readonly router = inject(Router);
+  private readonly tool = toolById('crop');
+
+  protected readonly state = inject(ImageStateService);
+  protected readonly i18n = inject(TranslationService);
+
+  private readonly imageRef = viewChild<ElementRef<HTMLImageElement>>('image');
   private cropper: Cropper | null = null;
-  private fileType: string = 'image/png';
 
-  ngOnInit() {
-    const file = this.imageState.currentFile();
-    if (file) {
-      this.handleFile(file);
-    }
-  }
+  protected readonly sourceUrl = signal<string | null>(null);
+  protected readonly resultBlob = signal<Blob | null>(null);
+  protected readonly resultUrl = signal<string | null>(null);
+  protected readonly busy = signal(false);
+  protected readonly errorKey = signal<TranslationKey | null>(null);
+  protected readonly ratio = signal<number | null>(null);
 
-  ngOnDestroy() {
-    this.cleanupCropper();
-  }
+  protected readonly sourceFile = this.state.currentFile;
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(true);
-  }
+  protected readonly ratioOptions = [
+    { value: null, label: '' },
+    { value: 1, label: '1:1' },
+    { value: 16 / 9, label: '16:9' },
+    { value: 4 / 3, label: '4:3' },
+    { value: 3 / 2, label: '3:2' },
+  ];
 
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(false);
-  }
+  protected readonly resultSize = computed(() => {
+    const blob = this.resultBlob();
+    return blob ? formatBytes(blob.size) : null;
+  });
 
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    this.isDragging.set(false);
-    const file = event.dataTransfer?.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      this.handleFile(file);
-    }
-  }
+  constructor() {
+    const file = this.sourceFile();
+    if (file) this.sourceUrl.set(this.urls.create(file));
 
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.handleFile(input.files[0]);
-    }
-  }
+    // The <img> only exists once a source is set, so attach the Cropper when the
+    // view child appears. It then stays mounted for the life of the component —
+    // the old code hid it behind *ngIf after cropping, orphaning the instance
+    // (its window listeners survived) and making a second crop impossible.
+    effect(() => {
+      const element = this.imageRef()?.nativeElement;
+      if (!element || this.cropper) return;
 
-  private handleFile(file: File) {
-    this.originalFile.set(file);
-    this.imageState.setFile(file);
-    const url = URL.createObjectURL(file);
-    this.originalUrl.set(url);
-    this.croppedUrl.set(null);
-    
-    // We need to wait for Angular to render the img tag before init cropper
-    setTimeout(() => {
-      this.initCropper();
-    }, 0);
-  }
-
-  private initCropper() {
-    if (this.cropper) {
-      this.cropper.destroy();
-    }
-    if (this.imageElement?.nativeElement) {
-      this.cropper = new Cropper(this.imageElement.nativeElement, {
-        viewMode: 2, // Restrict crop box to not exceed the canvas
+      this.cropper = new Cropper(element, {
+        viewMode: 2,
         background: false,
-        autoCropArea: 0.8,
-        responsive: true
+        autoCropArea: 0.9,
+        responsive: true,
       });
-    }
-  }
-
-  public setAspectRatio(ratio: number | null) {
-    this.currentRatio.set(ratio);
-    if (this.cropper) {
-      this.cropper.setAspectRatio(ratio || NaN);
-    }
-  }
-
-  public crop() {
-    if (!this.cropper) return;
-    
-    // Get a high quality canvas
-    const canvas = this.cropper.getCroppedCanvas({
-      imageSmoothingEnabled: true,
-      imageSmoothingQuality: 'high',
     });
-
-    const file = this.originalFile();
-    if (!file) return;
-
-    // Use original type if possible, otherwise default to jpeg to avoid huge files
-    const type = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-    const dataUrl = canvas.toDataURL(type, 0.9);
-    this.croppedUrl.set(dataUrl);
   }
 
-  public download() {
-    const url = this.croppedUrl();
-    if (!url) return;
-
-    const file = this.originalFile();
-    const originalName = file?.name || 'image.jpg';
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cropped-${originalName}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  ngOnDestroy(): void {
+    this.destroyCropper();
   }
 
-  public continueEditing() {
-    const url = this.croppedUrl();
-    if (!url) return;
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
 
-    fetch(url)
-      .then(res => res.blob())
-      .then(blob => {
-        const file = new File([blob], `cropped-${this.originalFile()?.name || 'image.jpg'}`, { type: blob.type });
-        this.imageState.setFile(file);
-        this.router.navigate(['/']);
+    try {
+      this.state.load(file);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+      return;
+    }
+
+    this.clearResult();
+    this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
+
+    // Same <img> element, new source: swap it in place rather than rebuilding.
+    const element = this.imageRef()?.nativeElement;
+    if (this.cropper && element) this.cropper.replace(this.sourceUrl()!);
+  }
+
+  protected setRatio(value: number | null): void {
+    this.ratio.set(value);
+    this.cropper?.setAspectRatio(value ?? NaN);
+  }
+
+  protected rotate(): void {
+    this.cropper?.rotate(90);
+  }
+
+  protected flip(): void {
+    const data = this.cropper?.getData();
+    this.cropper?.scaleX((data?.scaleX ?? 1) * -1);
+  }
+
+  protected resetBox(): void {
+    this.cropper?.reset();
+  }
+
+  protected async run(): Promise<void> {
+    const file = this.sourceFile();
+    if (!file || !this.cropper) return;
+
+    this.busy.set(true);
+    this.errorKey.set(null);
+
+    try {
+      const canvas = this.cropper.getCroppedCanvas({
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
       });
+
+      // Preserve transparency for any alpha-capable source. The old code only
+      // did this for PNG, so cropping a WebP silently flattened it to JPEG.
+      const mime = ALPHA_SAFE.has(file.type) ? 'image/png' : 'image/jpeg';
+      const blob = await canvasToBlob(canvas, mime, mime === 'image/jpeg' ? 0.92 : undefined);
+
+      this.resultBlob.set(blob);
+      this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+    } catch (err) {
+      console.error('Crop failed:', err);
+      this.errorKey.set(toMessageKey(err));
+    } finally {
+      this.busy.set(false);
+    }
   }
 
-  public reset() {
-    if (this.cropper) {
-      this.cropper.destroy();
-      this.cropper = null;
-    }
-    this.originalFile.set(null);
-    this.originalUrl.set(null);
-    this.croppedUrl.set(null);
-    this.imageState.clear();
-    this.currentRatio.set(null);
+  protected download(): void {
+    const blob = this.resultBlob();
+    const session = this.state.session();
+    if (!blob || !session) return;
+
+    saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, extForMime(blob.type)));
   }
 
-  private cleanupCropper() {
-    if (this.cropper) {
-      this.cropper.destroy();
-      this.cropper = null;
+  protected continueEdit(): void {
+    const blob = this.resultBlob();
+    if (!blob) return;
+
+    try {
+      this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
+      this.router.navigate(['/']);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
     }
+  }
+
+  protected reset(): void {
+    this.destroyCropper();
+    this.urls.releaseAll();
+    this.sourceUrl.set(null);
+    this.resultBlob.set(null);
+    this.resultUrl.set(null);
+    this.errorKey.set(null);
+    this.ratio.set(null);
+    this.state.clear();
+  }
+
+  private clearResult(): void {
+    this.urls.revoke(this.resultUrl());
+    this.resultBlob.set(null);
+    this.resultUrl.set(null);
+  }
+
+  private destroyCropper(): void {
+    this.cropper?.destroy();
+    this.cropper = null;
   }
 }

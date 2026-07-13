@@ -1,0 +1,56 @@
+import { ChangeDetectionStrategy, Component, booleanAttribute, inject, input } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslationService } from '../../core/services/translation.service';
+import { TOOLS } from '../../core/tools/tools';
+import { IconComponent } from './icon/icon.component';
+
+const LINK =
+  'relative flex shrink-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors';
+const ACTIVE = `${LINK} bg-white/10 text-white`;
+const IDLE = `${LINK} text-white/50 hover:bg-white/5 hover:text-white/90`;
+
+/**
+ * The sidebar rail (and, on mobile, a scrollable strip).
+ *
+ * Active state is resolved in TS rather than with an arbitrary `[&.is-active]:`
+ * Tailwind variant — the CSS parser silently DROPS those rules, which would
+ * leave the current tool with no highlight at all.
+ */
+@Component({
+  selector: 'app-tool-nav',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive, IconComponent],
+  template: `
+    <nav
+      class="flex gap-0.5"
+      [class.flex-col]="!horizontal()"
+      [attr.aria-label]="i18n.t()['nav.tools']"
+    >
+      @for (tool of tools; track tool.id) {
+        <a
+          [routerLink]="'/' + tool.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
+          [class]="rla.isActive ? active : idle"
+        >
+          @if (rla.isActive && !horizontal()) {
+            <span class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent"></span>
+          }
+
+          <app-icon [name]="tool.icon" [size]="16" />
+          {{ i18n.t()[tool.navKey] }}
+        </a>
+      }
+    </nav>
+  `,
+})
+export class ToolNavComponent {
+  protected readonly i18n = inject(TranslationService);
+  protected readonly tools = TOOLS;
+  protected readonly active = ACTIVE;
+  protected readonly idle = IDLE;
+
+  readonly horizontal = input(false, { transform: booleanAttribute });
+}

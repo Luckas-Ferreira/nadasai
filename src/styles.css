@@ -1,13 +1,254 @@
 @import "tailwindcss";
 
-/* 
-  Custom styles for ImgWork
-*/
-.bg-checkerboard {
-  background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
-                    linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
-                    linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+/* =============================================================================
+   ImgWork design tokens. Tailwind v4 — there is no tailwind.config.js.
+
+   The `--<namespace>-*: initial` resets delete Tailwind's stock scales, so
+   utilities outside this palette (bg-teal-600, rounded-3xl, text-6xl,
+   font-black, shadow-xl) generate no CSS at all. Deliberate: it keeps the old
+   generated-looking design from creeping back.
+
+   Colours are SEMANTIC and resolve through CSS variables that flip with the
+   theme. Never hardcode a hex in a component — add a token here.
+   ========================================================================== */
+
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --shadow-*: initial;
+
+  --color-white: #fff;
+  --color-black: #000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Semantic surfaces — resolved per theme below. */
+  --color-base: var(--base);           /* app background */
+  --color-surface: var(--surface);     /* panels, cards */
+  --color-raised: var(--raised);       /* inputs, hover, inset controls */
+  --color-rail: var(--rail);           /* sidebar */
+
+  /* The image stage. Dark in BOTH themes: a light surround visibly distorts how
+     you judge an image's brightness and colour. Every serious editor does this. */
+  --color-stage: #0b0c0e;
+  --color-stage-line: #26292e;
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-text: var(--text);           /* primary copy, headings */
+  --color-muted: var(--muted);         /* secondary copy */
+  --color-faint: var(--faint);         /* labels, hints */
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-on-accent: var(--on-accent);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-line: var(--danger-line);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-line: var(--success-line);
+
+  --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.04em;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.375rem;
+  --text-md: 0.9375rem;
+  --text-md--line-height: 1.5rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.75rem;
+  --text-2xl--letter-spacing: -0.015em;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 2.125rem;
+  --text-3xl--letter-spacing: -0.02em;
+
+  /* Weights stop at 600. There is no font-black. */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25);
+  --shadow-panel: 0 1px 3px rgb(0 0 0 / 0.2), 0 0 0 1px rgb(0 0 0 / 0.04);
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.45);
+  --shadow-glow: 0 0 0 3px var(--accent-line);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dark is the default: this is an image editor.                              */
+/* -------------------------------------------------------------------------- */
+:root,
+:root[data-theme="dark"] {
+  --base: #0e1013;
+  --surface: #16191d;
+  --raised: #1e2228;
+  --rail: #121418;
+
+  --line: #262b31;
+  --line-strong: #363c44;
+
+  --text: #eef1f4;
+  --muted: #9aa3ad;
+  --faint: #6b747e;
+
+  --accent: #4c8dff;
+  --accent-hover: #6ba0ff;
+  --accent-soft: #172336;
+  --accent-line: #4c8dff40;
+  --on-accent: #08111f;
+
+  --danger: #ff6b5e;
+  --danger-soft: #2a1613;
+  --danger-line: #ff6b5e40;
+  --success: #3ecf8e;
+  --success-soft: #10251c;
+  --success-line: #3ecf8e40;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --base: #eceef1;
+  --surface: #ffffff;
+  --raised: #f3f5f7;
+  --rail: #1a1d21;          /* the rail stays dark in light mode — it anchors the layout */
+
+  --line: #dcdfe4;
+  --line-strong: #c2c7ce;
+
+  --text: #14171a;
+  --muted: #5c646d;
+  --faint: #838b94;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eaf0fe;
+  --accent-line: #2563eb33;
+  --on-accent: #ffffff;
+
+  --danger: #c2352a;
+  --danger-soft: #fdf1f0;
+  --danger-line: #c2352a33;
+  --success: #06794a;
+  --success-soft: #eafaf2;
+  --success-line: #06794a33;
+
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-base);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.375rem;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  /* Range inputs read as system chrome otherwise. */
+  input[type="range"] {
+    accent-color: var(--color-accent);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button {
+    opacity: 0.35;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Transparency backdrop. Tuned per theme so it never glares on the dark stage. */
+@utility checkerboard {
+  background-image:
+    linear-gradient(45deg, #ffffff0d 25%, transparent 25%),
+    linear-gradient(-45deg, #ffffff0d 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ffffff0d 75%),
+    linear-gradient(-45deg, transparent 75%, #ffffff0d 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+/* File sizes, dimensions, percentages. Stops digits jittering as they update. */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  /* cropperjs ships its own CSS (loaded globally via angular.json). Re-skin it so
+     the editor doesn't look like a bolted-on third-party widget. */
+  .cropper-view-box {
+    outline: 1px solid var(--color-accent);
+  }
+
+  .cropper-line,
+  .cropper-point {
+    background-color: var(--color-accent);
+  }
+
+  .cropper-point {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    opacity: 1;
+  }
+
+  .cropper-modal {
+    background-color: #05060a;
+    opacity: 0.72;
+  }
+
+  .cropper-dashed {
+    border-color: rgb(255 255 255 / 0.28);
+  }
 }

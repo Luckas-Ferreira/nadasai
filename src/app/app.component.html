@@ -1,29 +1,86 @@
-<div class="h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-teal-200 selection:text-teal-900 overflow-hidden">
-  
-  <!-- Top Header -->
-  <header class="bg-white/80 backdrop-blur-md shadow-sm h-20 flex items-center justify-between px-6 sm:px-12 shrink-0 z-30">
-    
-    <!-- Logo -->
-    <a routerLink="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-      <img src="logo.webp" alt="Logo" class="w-10 h-10 object-contain drop-shadow-md">
-      <h2 class="text-2xl font-black text-slate-800 tracking-tight bg-gradient-to-r from-teal-600 to-emerald-500 bg-clip-text text-transparent hidden sm:block">
-        ImgWork<span class="text-teal-400">.</span>
-      </h2>
+<div class="flex min-h-dvh bg-base">
+  <!-- Rail. Stays dark in both themes: it anchors the layout and frames the stage. -->
+  <aside class="sticky top-0 hidden h-dvh w-[228px] shrink-0 flex-col bg-rail md:flex">
+    <a routerLink="/" class="flex h-14 items-center gap-2.5 px-4">
+      <img src="logo.webp" alt="" class="h-6 w-6 object-contain" />
+      <span class="text-md font-semibold text-white">ImgWork</span>
     </a>
-    
-    <!-- Actions -->
-    <div class="flex items-center gap-4">
-      <button (click)="i18n.toggleLanguage()" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors bg-slate-100 hover:bg-slate-200 px-5 py-2.5 rounded-full shadow-sm">
-        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <span>{{ i18n.t()['app.lang.btn'] }}</span>
+
+    <div class="px-3 py-2">
+      <p class="px-2.5 pb-2 text-2xs font-medium uppercase text-white/35">
+        {{ i18n.t()['nav.tools'] }}
+      </p>
+      <app-tool-nav />
+    </div>
+
+    <div class="mt-auto flex items-center justify-between gap-2 border-t border-white/[0.07] p-3">
+      <app-segmented
+        [options]="languages"
+        [value]="i18n.currentLang()"
+        (valueChange)="i18n.setLanguage($event)"
+        [ariaLabel]="i18n.t()['app.lang_switch']"
+        [onDark]="true"
+      />
+
+      <button
+        type="button"
+        (click)="themes.toggle()"
+        [attr.aria-label]="i18n.t()['app.theme_switch']"
+        class="flex h-8 w-8 items-center justify-center rounded-md text-white/55
+               transition-colors hover:bg-white/[0.08] hover:text-white"
+      >
+        <app-icon [name]="themes.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
       </button>
     </div>
-  </header>
+  </aside>
 
-  <!-- Scrollable Workspace -->
-  <main class="flex-grow overflow-y-auto overflow-x-hidden p-4 sm:p-8">
-    <div class="max-w-6xl mx-auto flex flex-col pb-8 h-full">
-      <router-outlet></router-outlet>
-    </div>
-  </main>
+  <div class="flex min-w-0 flex-1 flex-col">
+    <!-- Mobile bar: the rail collapses, so the tools move into a scrollable strip. -->
+    <header class="sticky top-0 z-30 border-b border-line bg-surface md:hidden">
+      <div class="flex h-14 items-center gap-3 px-4">
+        <a routerLink="/" class="flex items-center gap-2">
+          <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
+          <span class="text-md font-semibold">ImgWork</span>
+        </a>
+
+        <button
+          type="button"
+          (click)="themes.toggle()"
+          [attr.aria-label]="i18n.t()['app.theme_switch']"
+          class="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-raised"
+        >
+          <app-icon [name]="themes.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
+        </button>
+
+        <app-segmented
+          [options]="languages"
+          [value]="i18n.currentLang()"
+          (valueChange)="i18n.setLanguage($event)"
+          [ariaLabel]="i18n.t()['app.lang_switch']"
+        />
+      </div>
+
+      <div class="overflow-x-auto bg-rail px-3 py-2">
+        <app-tool-nav horizontal />
+      </div>
+    </header>
+
+    <app-current-file-bar />
+
+    <main class="flex-1 px-5 py-6 md:px-8 md:py-8">
+      <router-outlet />
+    </main>
+
+    <footer class="border-t border-line px-5 py-4 md:px-8">
+      <div class="flex flex-col gap-1.5 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
+        <p>{{ i18n.t()['app.footer.secure'] }}</p>
+
+        <nav class="flex gap-4">
+          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
+          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
+          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
 </div>

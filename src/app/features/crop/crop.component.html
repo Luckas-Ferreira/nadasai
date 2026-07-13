@@ -1,141 +1,78 @@
-<section class="w-full flex flex-col items-center">
-  <div class="text-center mb-10 space-y-4">
-    <h1 class="text-5xl sm:text-6xl font-black text-slate-800 tracking-tight">
-      {{ i18n.t()['crop.title'] }}
-    </h1>
-    <p class="text-xl text-slate-500 font-medium">
-      {{ i18n.t()['crop.subtitle'] }}
-    </p>
-  </div>
-
-  <!-- Upload Area -->
-  <div 
-    class="w-full max-w-4xl bg-white border-2 border-dashed rounded-3xl p-16 transition-all duration-300 relative shadow-sm hover:shadow-md"
-    [ngClass]="{
-      'border-teal-400 bg-teal-50/50 scale-[1.02]': isDragging(),
-      'border-slate-200': !isDragging()
-    }"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)"
-    *ngIf="!originalUrl()"
-  >
-    <div class="flex flex-col items-center justify-center text-center">
-      <div class="w-20 h-20 mb-6 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
-        <svg class="w-16 h-16 text-teal-500 mb-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 3v4a1 1 0 001 1h4M5 8v8a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4m-4 0a2 2 0 11-4 0 2 2 0 014 0z"></path>
-        </svg>
-      </div>
-      <span class="text-2xl font-bold text-slate-700">{{ i18n.t()['hero.drag'] }}</span>
-      <span class="text-slate-400 font-medium mt-2">{{ i18n.t()['hero.or'] }}</span>
-      <label class="mt-6 cursor-pointer bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1">
-        {{ i18n.t()['hero.upload_btn'] }}
-        <input type="file" class="hidden" accept="image/*" (change)="onFileSelected($event)">
-      </label>
+<app-tool-page [toolId]="'crop'">
+  @if (errorKey(); as key) {
+    <div banner class="mb-5">
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
     </div>
+  }
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else {
+      <div class="flex min-h-[420px] items-center justify-center overflow-hidden rounded-xl border border-stage-line bg-stage p-4">
+        <!-- Stays mounted after cropping so the selection can be adjusted and re-applied. -->
+        <img #image [src]="sourceUrl()" [alt]="i18n.t()['common.original']" class="block max-w-full" />
+      </div>
+    }
   </div>
 
-  <!-- Editor Area -->
-  <div *ngIf="originalUrl()" class="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-start mt-8">
-    
-    <!-- Left Side: Cropper Workspace -->
-    <div class="flex-grow w-full bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
-      <!-- Toolbar -->
-      <div *ngIf="!croppedUrl()" class="flex items-center justify-center border-b border-slate-100 bg-slate-50 p-4 gap-2 sm:gap-4 flex-wrap">
-        <button 
-          (click)="setAspectRatio(null)"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800 ring-2 ring-teal-500': currentRatio() === null,
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': currentRatio() !== null
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all">
-          {{ i18n.t()['crop.ratio.free'] }}
-        </button>
-        <button 
-          (click)="setAspectRatio(1)"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800 ring-2 ring-teal-500': currentRatio() === 1,
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': currentRatio() !== 1
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all flex items-center gap-2">
-          <div class="w-3 h-3 border-2 border-current"></div>
-          {{ i18n.t()['crop.ratio.square'] }} (1:1)
-        </button>
-        <button 
-          (click)="setAspectRatio(16/9)"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800 ring-2 ring-teal-500': currentRatio() === 16/9,
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': currentRatio() !== 16/9
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all flex items-center gap-2">
-          <div class="w-4 h-2.5 border-2 border-current"></div>
-          16:9
-        </button>
-        <button 
-          (click)="setAspectRatio(4/3)"
-          [ngClass]="{
-            'bg-white shadow-sm border-slate-200 text-slate-800 ring-2 ring-teal-500': currentRatio() === 4/3,
-            'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100': currentRatio() !== 4/3
-          }"
-          class="px-6 py-2 rounded-full font-bold text-sm border transition-all flex items-center gap-2">
-          <div class="w-3.5 h-2.5 border-2 border-current"></div>
-          4:3
-        </button>
-      </div>
-
-      <!-- Cropper Canvas -->
-      <div *ngIf="!croppedUrl()" class="relative w-full h-[600px] bg-slate-900 flex items-center justify-center p-6">
-        <div class="w-full h-full">
-          <img #imageElement [src]="originalUrl()" class="block max-w-full">
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['crop.aspect']">
+        <div class="grid grid-cols-3 gap-1.5">
+          @for (option of ratioOptions; track option.label) {
+            <button
+              appButton
+              [variant]="ratio() === option.value ? 'secondary' : 'ghost'"
+              size="sm"
+              [attr.aria-pressed]="ratio() === option.value"
+              (click)="setRatio(option.value)"
+            >
+              {{ option.label || i18n.t()['crop.ratio.free'] }}
+            </button>
+          }
         </div>
-      </div>
 
-      <!-- Result Preview -->
-      <div *ngIf="croppedUrl()" class="relative w-full min-h-[400px] bg-checkerboard flex items-center justify-center p-6">
-        <img [src]="croppedUrl()" class="max-w-full max-h-[500px] object-contain drop-shadow-xl">
-      </div>
-    </div>
+        <div class="mt-4 grid grid-cols-3 gap-1.5 border-t border-line pt-3">
+          <button appButton variant="ghost" size="sm" (click)="rotate()">
+            <app-icon name="rotate" [size]="14" />
+            {{ i18n.t()['crop.rotate'] }}
+          </button>
 
-    <!-- Right Side: Actions -->
-    <div class="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-      
-      <!-- Pre-crop actions -->
-      <button 
-        *ngIf="!croppedUrl()"
-        (click)="crop()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-0.5"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-        Aplicar Corte
-      </button>
+          <button appButton variant="ghost" size="sm" (click)="flip()">
+            <app-icon name="flip" [size]="14" />
+            {{ i18n.t()['crop.flip'] }}
+          </button>
 
-      <!-- Post-crop actions -->
-      <button 
-        *ngIf="croppedUrl()"
-        (click)="continueEditing()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-teal-700 bg-teal-50 border border-teal-200 hover:bg-teal-100 transition-all hover:-translate-y-0.5"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-        {{ i18n.t()['results.continue'] }}
-      </button>
+          <button appButton variant="ghost" size="sm" (click)="resetBox()">
+            <app-icon name="refresh" [size]="14" />
+            {{ i18n.t()['crop.reset_box'] }}
+          </button>
+        </div>
+      </app-panel>
 
-      <button 
-        *ngIf="croppedUrl()"
-        (click)="download()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-5 rounded-2xl font-bold text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all hover:-translate-y-0.5"
-      >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        {{ i18n.t()['crop.download'] }}
-      </button>
+      @if (resultUrl(); as result) {
+        <app-panel [heading]="i18n.t()['common.result']">
+          <div class="checkerboard flex items-center justify-center rounded-md border border-line bg-stage p-2">
+            <img [src]="result" [alt]="i18n.t()['common.result']" class="max-h-44 max-w-full object-contain" />
+          </div>
 
-      <div *ngIf="croppedUrl()" class="text-center text-xs text-slate-400 font-medium mb-4">{{ i18n.t()['results.download_hint'] }}</div>
+          @if (resultSize(); as size) {
+            <p class="mt-2.5 text-center font-mono text-xs text-faint tabular">{{ size }}</p>
+          }
+        </app-panel>
+      }
 
-      <button 
-        (click)="reset()"
-        class="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"
-      >
-        {{ i18n.t()['results.start_over'] }}
-      </button>
-    </div>
+      <app-action-bar
+        [primaryLabel]="i18n.t()['crop.btn']"
+        [busy]="busy()"
+        [canDownload]="!!resultUrl()"
+        [canContinue]="!!resultUrl()"
+        (primary)="run()"
+        (download)="download()"
+        (continueEdit)="continueEdit()"
+        (reset)="reset()"
+      />
+    }
   </div>
-</section>
+</app-tool-page>
