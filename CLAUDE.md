@@ -14,7 +14,13 @@ npm run build             # production build → dist/imgwork
 npm test                  # Karma + Jasmine in Chrome (watch mode)
 npm test -- --watch=false --browsers=ChromeHeadless   # single CI-style run
 ng test --include='**/converters.spec.ts'             # run one spec file
+
+npm run e2e               # Playwright, HEADED — drives all five tools in a real window
+npm run e2e -- 04-convert # one spec file
+npm run e2e:ui            # interactive runner
 ```
+
+E2E lives in `e2e/`. It uploads a real image, runs each tool and asserts on the actual `download` event (the suggested filename is what proves both the encode and the naming rules). `e2e/fixtures/generate.ts` synthesises the fixtures at startup — a hand-rolled PNG encoder, so no binaries in the repo. **The grain in that PNG is load-bearing**: a flat synthetic image compresses smaller as lossless PNG than as lossy WebP, so `compress` legitimately produces a bigger file and the savings badge never renders.
 
 ## Architecture
 
@@ -75,13 +81,21 @@ Hand-rolled, not `@angular/localize`. `TranslationService` derives `TranslationK
 
 `src/styles.css` is the whole thing — there is no `tailwind.config.js`. It resets Tailwind's stock scales (`--color-*: initial`, `--radius-*`, `--text-*`, `--font-weight-*`, `--shadow-*`) and redefines only what the product uses. **`bg-teal-600`, `font-black`, `rounded-3xl`, `text-6xl` and `shadow-xl` therefore generate no CSS at all.** That is deliberate: the previous design read as machine-generated, and this makes the old look unreachable rather than merely discouraged.
 
+The palette is Tailwind's **slate** ramp with a **blue** accent, on **Inter** (self-hosted via `@fontsource/inter` — a webfont CDN would be a network request on every load, which contradicts the footer's privacy claim and breaks the app offline).
+
 Rules the tokens enforce:
 
 - Headings cap at 28px; font weights cap at 600.
 - Containers are separated by `border border-line` (1px), not shadows.
-- The primary button is `ink-950` (near-black). The accent (`accent-500`) appears **only** on focus rings, active nav, selection, progress and links — never as a large fill or a gradient.
 - Numbers (sizes, dimensions, percentages) use `font-mono tabular`.
 - Radii: 6px controls, 8px panels, 10px the preview stage.
+
+Four things about the colour tokens are load-bearing:
+
+- **`accent` and `accent-fill` are different jobs.** `accent` is the foreground blue (links, active tool, focus rings) and *lightens* in dark mode to stay legible on slate. `accent-fill` is the solid blue behind white text (primary button) and stays saturated in both themes. Using `bg-accent` as a fill turns the button pastel in dark mode.
+- **Dark mode lifts its surfaces** (rail `slate-950` → base `slate-900` → panel `slate-800` → input `slate-700`). Depth comes from the steps *between* surfaces, not from pushing everything toward black — that was the "escuro demais" complaint.
+- **The rail flips with the theme**, so anything rendered on it must use the `rail-*` tokens (`text-rail-muted`, `bg-rail-hover`, …), never `text-white/50`. Literal white on the light rail is invisible. `<app-segmented onRail>` exists for this.
+- **The image stage (`bg-stage`) stays dark in both themes** — a light surround visibly skews how you judge an image's brightness. But it is only for surfaces that actually *contain the image*: the empty dropzone is themed, because a black slab on a light page is just a black slab.
 
 Icons go in `shared/ui/icon/icons.ts` and render via `<app-icon>`; inline `<svg>` in a template is not the pattern.
 

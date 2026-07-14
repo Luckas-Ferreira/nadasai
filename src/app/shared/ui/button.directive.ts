@@ -8,7 +8,7 @@ const BASE =
   'transition-colors disabled:opacity-40 disabled:pointer-events-none select-none';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-on-accent hover:bg-accent-hover',
+  primary: 'bg-accent-fill text-on-accent hover:bg-accent-fill-hover',
   secondary: 'bg-raised text-text border border-line hover:border-line-strong',
   ghost: 'text-muted hover:bg-raised hover:text-text',
   danger: 'text-danger border border-danger-line hover:bg-danger-soft',

@@ -41,32 +41,30 @@ export class SegmentedComponent<T> {
   readonly ariaLabel = input<string>('');
   /** When > 0, lays the options out on a grid instead of a pill-style row. */
   readonly columns = input(0);
-  /** Rendered on the dark rail, where the themed tokens would vanish. */
-  readonly onDark = input(false, { transform: booleanAttribute });
+  /** Rendered on the rail, whose surface and foreground are a separate ramp. */
+  readonly onRail = input(false, { transform: booleanAttribute });
 
   private readonly pill = 'h-7 rounded-sm px-2.5 text-sm font-medium transition-colors';
   private readonly cell = 'h-9 rounded-md border px-2 text-sm font-medium transition-colors';
 
   protected readonly containerClass = computed(() => {
     if (this.columns() > 0) return 'grid gap-1.5';
-    return this.onDark()
-      ? 'flex gap-0.5 rounded-md bg-white/10 p-0.5'
+    return this.onRail()
+      ? 'flex gap-0.5 rounded-md bg-rail-hover p-0.5'
       : 'flex gap-0.5 rounded-md bg-raised p-0.5';
   });
 
   protected readonly selectedClass = computed(() => {
     if (this.columns() > 0) return `${this.cell} border-accent bg-accent-soft text-accent`;
-    return this.onDark()
-      ? `${this.pill} bg-white text-black`
-      : `${this.pill} bg-accent text-on-accent`;
+    return `${this.pill} bg-accent-fill text-on-accent`;
   });
 
   protected readonly idleClass = computed(() => {
     if (this.columns() > 0) {
       return `${this.cell} border-line bg-raised text-muted hover:border-line-strong hover:text-text`;
     }
-    return this.onDark()
-      ? `${this.pill} text-white/55 hover:text-white`
+    return this.onRail()
+      ? `${this.pill} text-rail-muted hover:text-rail-text`
       : `${this.pill} text-muted hover:text-text`;
   });
 }

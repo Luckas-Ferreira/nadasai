@@ -8,6 +8,10 @@ import { IconComponent } from './icon/icon.component';
  * drag-and-drop blocks plus five copies of onDragOver/onDragLeave/onDrop/
  * onFileSelected.
  *
+ * Themed, NOT on the dark stage. The stage is dark because a light surround
+ * skews how you judge an image's brightness — but an empty dropzone has no
+ * image in it, so on the light theme it was just a black slab.
+ *
  * Validation is the caller's job (ImageStateService / assertUsableImage) — this
  * only emits the File. `accept` is a filter, not a guarantee: the OS picker lets
  * users switch to "All files", which is how a .txt used to reach the tools.
@@ -30,8 +34,8 @@ import { IconComponent } from './icon/icon.component';
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)"
       class="group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden
-             rounded-xl border-2 border-dashed bg-stage text-center transition-all duration-200"
-      [class.border-stage-line]="!dragging()"
+             rounded-xl border-2 border-dashed bg-surface text-center transition-all duration-200"
+      [class.border-line-strong]="!dragging()"
       [class.border-accent]="dragging()"
       [class.px-6]="compact()"
       [class.py-10]="compact()"
@@ -40,17 +44,17 @@ import { IconComponent } from './icon/icon.component';
       [style.box-shadow]="dragging() ? 'inset 0 0 60px var(--accent-line)' : null"
     >
       <span
-        class="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.06] text-white/70
-               transition-colors group-hover:bg-accent group-hover:text-on-accent"
-        [class.bg-accent]="dragging()"
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-raised text-muted
+               transition-colors group-hover:bg-accent-fill group-hover:text-on-accent"
+        [class.bg-accent-fill]="dragging()"
         [class.text-on-accent]="dragging()"
       >
         <app-icon name="upload" [size]="20" />
       </span>
 
-      <p class="mt-4 text-lg font-medium text-white">{{ i18n.t()['common.drag'] }}</p>
+      <p class="mt-4 text-lg font-medium text-text">{{ i18n.t()['common.drag'] }}</p>
 
-      <p class="mt-1 text-sm text-white/50">
+      <p class="mt-1 text-sm text-muted">
         {{ i18n.t()['common.or'] }}
         <span class="font-medium text-accent underline underline-offset-2">
           {{ i18n.t()['common.upload_btn'] }}
@@ -58,7 +62,7 @@ import { IconComponent } from './icon/icon.component';
       </p>
 
       @if (!compact()) {
-        <p class="mt-6 text-xs text-white/30 tabular">{{ i18n.t()['common.drag_hint'] }}</p>
+        <p class="mt-6 text-xs text-faint tabular">{{ i18n.t()['common.drag_hint'] }}</p>
       }
 
       <input

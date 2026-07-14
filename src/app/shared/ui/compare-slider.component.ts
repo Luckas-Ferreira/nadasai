@@ -44,7 +44,7 @@ import { TranslationService } from '../../core/services/translation.service';
       >
         <span
           class="absolute top-1/2 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center
-                 rounded-full border-2 border-white bg-accent text-2xs text-white"
+                 rounded-full border-2 border-white bg-accent-fill text-2xs text-white"
         >
           ‹›
         </span>
