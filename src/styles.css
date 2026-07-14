@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Inter, self-hosted. A webfont CDN would be a network request on every load,
+   which contradicts the footer's "your images never leave your device" and
+   breaks the app offline. Only the weights the tokens can express are pulled. */
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
 /* =============================================================================
    ImgWork design tokens. Tailwind v4 — there is no tailwind.config.js.
 
@@ -10,6 +17,11 @@
 
    Colours are SEMANTIC and resolve through CSS variables that flip with the
    theme. Never hardcode a hex in a component — add a token here.
+
+   The palette is Tailwind's slate ramp with a blue accent, matched to the
+   sibling app (gerenciador-de-tarefas). The dark theme lifts its surfaces
+   (rail 950 → base 900 → panel 800) instead of sinking everything toward
+   black: the depth comes from the steps between surfaces, not from darkness.
    ========================================================================== */
 
 @theme {
@@ -28,7 +40,18 @@
   --color-base: var(--base);           /* app background */
   --color-surface: var(--surface);     /* panels, cards */
   --color-raised: var(--raised);       /* inputs, hover, inset controls */
-  --color-rail: var(--rail);           /* sidebar */
+
+  /* The rail. It used to be dark in BOTH themes, and its contents were painted
+     in literal white/xx utilities — which is exactly why light mode read as
+     broken. It now flips with the theme, so it needs its own foreground tokens:
+     the page's --text/--muted are wrong against it in dark mode. */
+  --color-rail: var(--rail);
+  --color-rail-text: var(--rail-text);
+  --color-rail-muted: var(--rail-muted);
+  --color-rail-faint: var(--rail-faint);
+  --color-rail-hover: var(--rail-hover);
+  --color-rail-active: var(--rail-active);
+  --color-rail-line: var(--rail-line);
 
   /* The image stage. Dark in BOTH themes: a light surround visibly distorts how
      you judge an image's brightness and colour. Every serious editor does this. */
@@ -42,10 +65,17 @@
   --color-muted: var(--muted);         /* secondary copy */
   --color-faint: var(--faint);         /* labels, hints */
 
+  /* Two accents, because one cannot do both jobs. `accent` is the FOREGROUND
+     blue — links, the active tool, focus rings — and has to stay legible on a
+     dark surface, so it lightens in dark mode. `accent-fill` is the SOLID blue
+     behind white text (the primary button), and must stay saturated in both
+     themes or the button turns pastel. */
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-line: var(--accent-line);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-fill-hover: var(--accent-fill-hover);
   --color-on-accent: var(--on-accent);
 
   --color-danger: var(--danger);
@@ -55,7 +85,7 @@
   --color-success-soft: var(--success-soft);
   --color-success-line: var(--success-line);
 
-  --font-sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
 
   --text-2xs: 0.6875rem;
@@ -92,9 +122,11 @@
   --radius-xl: 12px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25);
-  --shadow-panel: 0 1px 3px rgb(0 0 0 / 0.2), 0 0 0 1px rgb(0 0 0 / 0.04);
-  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.45);
+  /* Shadow strength flips with the theme: a shadow tuned for dark reads as dirt
+     on a light surface, and one tuned for light is invisible on a dark one. */
+  --shadow-sm: 0 1px 2px var(--shadow-tint);
+  --shadow-panel: 0 1px 3px var(--shadow-tint);
+  --shadow-pop: 0 12px 32px -8px var(--shadow-tint-strong);
   --shadow-glow: 0 0 0 3px var(--accent-line);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -105,59 +137,83 @@
 /* -------------------------------------------------------------------------- */
 :root,
 :root[data-theme="dark"] {
-  --base: #0e1013;
-  --surface: #16191d;
-  --raised: #1e2228;
-  --rail: #121418;
+  --base: #0f172a;          /* slate-900 */
+  --surface: #1e293b;       /* slate-800 — panels sit ABOVE the page, not below it */
+  --raised: #334155;        /* slate-700 — inputs, hover, inset controls */
+  --rail: #020617;          /* slate-950 — the one surface that recedes */
 
-  --line: #262b31;
-  --line-strong: #363c44;
+  --line: #334155;
+  --line-strong: #475569;
 
-  --text: #eef1f4;
-  --muted: #9aa3ad;
-  --faint: #6b747e;
+  --text: #e2e8f0;          /* slate-200 */
+  --muted: #94a3b8;         /* slate-400 */
+  --faint: #64748b;         /* slate-500 */
 
-  --accent: #4c8dff;
-  --accent-hover: #6ba0ff;
-  --accent-soft: #172336;
-  --accent-line: #4c8dff40;
-  --on-accent: #08111f;
+  --rail-text: #f1f5f9;
+  --rail-muted: #94a3b8;
+  --rail-faint: #64748b;
+  --rail-hover: #1e293b;
+  --rail-active: #1e293b;
+  --rail-line: #1e293b;
 
-  --danger: #ff6b5e;
-  --danger-soft: #2a1613;
-  --danger-line: #ff6b5e40;
-  --success: #3ecf8e;
-  --success-soft: #10251c;
-  --success-line: #3ecf8e40;
+  --accent: #60a5fa;        /* blue-400 — readable on slate, unlike blue-600 */
+  --accent-hover: #93c5fd;
+  --accent-soft: #1e3a8a;
+  --accent-line: #60a5fa40;
+  --accent-fill: #2563eb;   /* blue-600 */
+  --accent-fill-hover: #3b82f6;
+  --on-accent: #ffffff;
+
+  --danger: #f87171;
+  --danger-soft: #45161690;
+  --danger-line: #f8717140;
+  --success: #4ade80;
+  --success-soft: #14532d90;
+  --success-line: #4ade8040;
+
+  --shadow-tint: rgb(2 6 23 / 0.4);
+  --shadow-tint-strong: rgb(2 6 23 / 0.6);
 
   color-scheme: dark;
 }
 
 :root[data-theme="light"] {
-  --base: #eceef1;
+  --base: #f1f5f9;          /* slate-100 */
   --surface: #ffffff;
-  --raised: #f3f5f7;
-  --rail: #1a1d21;          /* the rail stays dark in light mode — it anchors the layout */
+  --raised: #f8fafc;        /* slate-50 */
+  --rail: #f8fafc;          /* light too: a dark rail beside a light page was the loudest defect */
 
-  --line: #dcdfe4;
-  --line-strong: #c2c7ce;
+  --line: #e2e8f0;          /* slate-200 */
+  --line-strong: #cbd5e1;   /* slate-300 */
 
-  --text: #14171a;
-  --muted: #5c646d;
-  --faint: #838b94;
+  --text: #1e293b;          /* slate-800 */
+  --muted: #64748b;         /* slate-500 */
+  --faint: #94a3b8;         /* slate-400 */
 
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: #eaf0fe;
+  --rail-text: #0f172a;
+  --rail-muted: #64748b;
+  --rail-faint: #94a3b8;
+  --rail-hover: #e2e8f0;
+  --rail-active: #dbeafe;   /* blue-100: the active tool is tinted, not just filled */
+  --rail-line: #e2e8f0;
+
+  --accent: #2563eb;        /* blue-600 */
+  --accent-hover: #1d4ed8;  /* blue-700 */
+  --accent-soft: #dbeafe;
   --accent-line: #2563eb33;
+  --accent-fill: #2563eb;
+  --accent-fill-hover: #1d4ed8;
   --on-accent: #ffffff;
 
-  --danger: #c2352a;
-  --danger-soft: #fdf1f0;
-  --danger-line: #c2352a33;
-  --success: #06794a;
-  --success-soft: #eafaf2;
-  --success-line: #06794a33;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --danger-line: #dc262633;
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --success-line: #15803d33;
+
+  --shadow-tint: rgb(15 23 42 / 0.06);
+  --shadow-tint-strong: rgb(15 23 42 / 0.16);
 
   color-scheme: light;
 }
@@ -187,7 +243,7 @@
   }
 
   ::selection {
-    background-color: var(--color-accent);
+    background-color: var(--color-accent-fill);
     color: var(--color-on-accent);
   }
 

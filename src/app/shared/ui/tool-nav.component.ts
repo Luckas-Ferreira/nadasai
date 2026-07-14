@@ -6,8 +6,10 @@ import { IconComponent } from './icon/icon.component';
 
 const LINK =
   'relative flex shrink-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors';
-const ACTIVE = `${LINK} bg-white/10 text-white`;
-const IDLE = `${LINK} text-white/50 hover:bg-white/5 hover:text-white/90`;
+// Rail tokens, not white/xx: the rail is light in the light theme, and literal
+// white text on it is invisible.
+const ACTIVE = `${LINK} bg-rail-active text-accent`;
+const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 
 /**
  * The sidebar rail (and, on mobile, a scrollable strip).
