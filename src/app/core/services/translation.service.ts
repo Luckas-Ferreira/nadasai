@@ -25,12 +25,20 @@ const EN = {
   'nav.convert': 'Convert',
   'nav.resize': 'Resize',
 
+  'nav.short.remove_bg': 'Cutout',
+  'nav.short.crop': 'Crop',
+  'nav.short.compress': 'Compress',
+  'nav.short.convert': 'Convert',
+  'nav.short.resize': 'Resize',
+
   'hero.title': 'Your files never leave your computer.',
   'hero.subtitle':
     'No upload, no server. Everything — including the AI — runs right here, inside your browser. You do not have to take our word for it: the counter below is live.',
   'hero.sample': 'Use a sample image',
   'hero.sample_hint': 'No file at hand? Start with ours.',
   'hero.module_image': 'Module: Image',
+  'hero.loaded': 'Image ready',
+  'hero.loaded_hint': 'Pick a tool below to get started.',
   'hero.soon_section': 'Coming next',
   'hero.soon.pdf': 'PDF',
   'hero.soon.pdf_desc': 'Merge, split, compress and sign.',
@@ -140,12 +148,20 @@ const PT: Record<TranslationKey, string> = {
   'nav.convert': 'Converter',
   'nav.resize': 'Redimensionar',
 
+  'nav.short.remove_bg': 'Fundo',
+  'nav.short.crop': 'Cortar',
+  'nav.short.compress': 'Comprimir',
+  'nav.short.convert': 'Converter',
+  'nav.short.resize': 'Tamanho',
+
   'hero.title': 'Seus arquivos não saem do seu computador.',
   'hero.subtitle':
     'Sem upload, sem servidor. Tudo — inclusive a inteligência artificial — roda aqui dentro, no seu navegador. E você não precisa acreditar: o contador abaixo é ao vivo.',
   'hero.sample': 'Usar uma imagem de exemplo',
   'hero.sample_hint': 'Sem arquivo à mão? Comece com a nossa.',
   'hero.module_image': 'Módulo: Imagem',
+  'hero.loaded': 'Imagem pronta',
+  'hero.loaded_hint': 'Escolha uma ferramenta abaixo para começar.',
   'hero.soon_section': 'Em breve',
   'hero.soon.pdf': 'PDF',
   'hero.soon.pdf_desc': 'Juntar, dividir, comprimir e assinar.',

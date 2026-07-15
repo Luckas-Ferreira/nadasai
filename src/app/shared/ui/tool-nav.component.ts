@@ -41,7 +41,14 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
             <span class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent"></span>
           }
 
-          <app-icon [name]="tool.icon" [size]="16" />
+          <!-- The icon keeps the tool's tone in both states, so the rail carries the
+               same colour coding as the home grid; the label stays a rail token. -->
+          <span
+            [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+            class="shrink-0 text-[color:var(--tone-fg)]"
+          >
+            <app-icon [name]="tool.icon" [size]="16" />
+          </span>
           {{ i18n.t()[tool.navKey] }}
         </a>
       }

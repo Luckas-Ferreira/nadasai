@@ -133,69 +133,35 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dark is the default: this is an image editor.                              */
+/* One theme, committed. The app used to ship a dark default + a sun/moon       */
+/* toggle; it now resolves to a single crisp LIGHT look (iLoveIMG-clean). The   */
+/* only surface that stays dark is the image stage (--color-stage above) — a    */
+/* light surround skews how you judge an image, so that rule outlives the theme.*/
+/*                                                                              */
+/* Not washed out: the page sits a shade below pure white so the white cards    */
+/* separate on their own, the 1px lines are strong enough to read, and body     */
+/* text is near-black. Depth is page-vs-card + a clear line, never a heavy      */
+/* shadow.                                                                       */
 /* -------------------------------------------------------------------------- */
-:root,
-:root[data-theme="dark"] {
-  --base: #0f172a;          /* slate-900 */
-  --surface: #1e293b;       /* slate-800 — panels sit ABOVE the page, not below it */
-  --raised: #334155;        /* slate-700 — inputs, hover, inset controls */
-  --rail: #020617;          /* slate-950 — the one surface that recedes */
+:root {
+  --base: #e9edf3;          /* cool off-white — a touch below the cards so they lift */
+  --surface: #ffffff;       /* cards, panels, the rail */
+  --raised: #f1f5f9;        /* inputs, hover, inset controls */
+  --rail: #ffffff;
 
-  --line: #334155;
-  --line-strong: #475569;
+  --line: #d7dfe9;          /* readable, unlike the old near-invisible slate-200 */
+  --line-strong: #bcc7d6;   /* dropzone dashes, dividers that must carry weight */
 
-  --text: #e2e8f0;          /* slate-200 */
-  --muted: #94a3b8;         /* slate-400 */
-  --faint: #64748b;         /* slate-500 */
-
-  --rail-text: #f1f5f9;
-  --rail-muted: #94a3b8;
-  --rail-faint: #64748b;
-  --rail-hover: #1e293b;
-  --rail-active: #1e293b;
-  --rail-line: #1e293b;
-
-  --accent: #60a5fa;        /* blue-400 — readable on slate, unlike blue-600 */
-  --accent-hover: #93c5fd;
-  --accent-soft: #1e3a8a;
-  --accent-line: #60a5fa40;
-  --accent-fill: #2563eb;   /* blue-600 */
-  --accent-fill-hover: #3b82f6;
-  --on-accent: #ffffff;
-
-  --danger: #f87171;
-  --danger-soft: #45161690;
-  --danger-line: #f8717140;
-  --success: #4ade80;
-  --success-soft: #14532d90;
-  --success-line: #4ade8040;
-
-  --shadow-tint: rgb(2 6 23 / 0.4);
-  --shadow-tint-strong: rgb(2 6 23 / 0.6);
-
-  color-scheme: dark;
-}
-
-:root[data-theme="light"] {
-  --base: #f1f5f9;          /* slate-100 */
-  --surface: #ffffff;
-  --raised: #f8fafc;        /* slate-50 */
-  --rail: #f8fafc;          /* light too: a dark rail beside a light page was the loudest defect */
-
-  --line: #e2e8f0;          /* slate-200 */
-  --line-strong: #cbd5e1;   /* slate-300 */
-
-  --text: #1e293b;          /* slate-800 */
-  --muted: #64748b;         /* slate-500 */
-  --faint: #94a3b8;         /* slate-400 */
+  --text: #0f172a;          /* slate-900 — strong, crisp body + headings */
+  --muted: #4a5a72;         /* secondary copy, still high-contrast */
+  --faint: #7b8aa1;         /* labels, hints */
 
   --rail-text: #0f172a;
-  --rail-muted: #64748b;
-  --rail-faint: #94a3b8;
-  --rail-hover: #e2e8f0;
-  --rail-active: #dbeafe;   /* blue-100: the active tool is tinted, not just filled */
-  --rail-line: #e2e8f0;
+  --rail-muted: #4a5a72;
+  --rail-faint: #7b8aa1;
+  --rail-hover: #eef2f7;
+  --rail-active: #dfeaff;   /* blue-100: the active tool is tinted, not just filled */
+  --rail-line: #d7dfe9;
 
   --accent: #2563eb;        /* blue-600 */
   --accent-hover: #1d4ed8;  /* blue-700 */
@@ -212,8 +178,16 @@
   --success-soft: #f0fdf4;
   --success-line: #15803d33;
 
-  --shadow-tint: rgb(15 23 42 / 0.06);
-  --shadow-tint-strong: rgb(15 23 42 / 0.16);
+  /* Per-tool tones on light: a saturated-but-darker foreground for contrast on
+     white, and the stock -100 tint as the soft badge fill. */
+  --tone-violet-fg: #7c3aed;  --tone-violet-bg: #ede9fe;
+  --tone-amber-fg: #b45309;   --tone-amber-bg: #fef3c7;
+  --tone-emerald-fg: #047857; --tone-emerald-bg: #d1fae5;
+  --tone-rose-fg: #e11d48;    --tone-rose-bg: #ffe4e6;
+  --tone-sky-fg: #0284c7;     --tone-sky-bg: #e0f2fe;
+
+  --shadow-tint: rgb(15 23 42 / 0.05);
+  --shadow-tint-strong: rgb(15 23 42 / 0.14);
 
   color-scheme: light;
 }
@@ -279,6 +253,12 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Per-tool colour is wired at the element via inline `--tone-fg`/`--tone-bg`
+   custom properties (see tools.ts + the badge markup), NOT a `tone-<name>`
+   utility: the tool name only exists as an interpolated binding, and Tailwind's
+   scanner never sees it, so a @utility here would be tree-shaken to nothing.
+   The theme-flipping source values are the `--tone-<name>-*` tokens above. */
 
 @layer components {
   /* cropperjs ships its own CSS (loaded globally via angular.json). Re-skin it so

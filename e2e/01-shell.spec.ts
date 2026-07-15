@@ -84,18 +84,6 @@ test.describe('Shell: home, nav, i18n, theme', () => {
     await expect(page.getByRole('heading', { name: 'Your files never leave your computer.' })).toBeVisible();
   });
 
-  test('theme toggle flips the document theme and persists it', async ({ page }) => {
-    await openApp(page);
-    const html = page.locator('html');
-    await expect(html).toHaveAttribute('data-theme', 'dark');
-
-    await page.getByRole('button', { name: 'Toggle theme' }).first().click();
-    await expect(html).toHaveAttribute('data-theme', 'light');
-
-    await page.reload();
-    await expect(html).toHaveAttribute('data-theme', 'light');
-  });
-
   test('a non-image is rejected at the door', async ({ page }) => {
     await openApp(page);
     await upload(page, NOT_AN_IMAGE);

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { toMessageKey } from '../../core/errors';
+import { ObjectUrlScope } from '../../core/image/object-url';
 import { ImageStateService } from '../../core/services/image-state.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { TOOLS } from '../../core/tools/tools';
@@ -9,6 +10,7 @@ import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import type { IconName } from '../../shared/ui/icon/icons';
 import { NetworkProofComponent } from '../../shared/ui/network-proof.component';
+import { PreviewSurfaceComponent } from '../../shared/ui/preview-surface.component';
 
 /**
  * The modules the same zero-upload engine is being extended to. Rendered inert:
@@ -52,10 +54,20 @@ const SAMPLE = { url: 'exemplo.jpg', name: 'exemplo.jpg', type: 'image/jpeg' } a
   selector: 'app-hero',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DropzoneComponent, IconComponent, AlertComponent, NetworkProofComponent],
+  providers: [ObjectUrlScope],
+  imports: [
+    RouterLink,
+    DropzoneComponent,
+    IconComponent,
+    AlertComponent,
+    NetworkProofComponent,
+    PreviewSurfaceComponent,
+  ],
   templateUrl: './hero.component.html',
 })
 export class HeroComponent {
+  private readonly urls = inject(ObjectUrlScope);
+
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
   protected readonly tools = TOOLS;
@@ -63,6 +75,30 @@ export class HeroComponent {
 
   protected readonly errorKey = signal<TranslationKey | null>(null);
   protected readonly loadingSample = signal(false);
+
+  /**
+   * A real preview of the loaded file, shown right where the dropzone was, so a
+   * fresh upload is unmistakably confirmed — the old page only surfaced a 32px
+   * thumbnail in the top bar, which read as "did anything happen?".
+   */
+  protected readonly previewUrl = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      const file = this.state.currentFile();
+      // Read untracked: tracking the signal we write would loop, minting a new
+      // object URL every pass (same trap as CurrentFileBarComponent).
+      const previous = untracked(this.previewUrl);
+
+      if (!file) {
+        this.urls.revoke(previous);
+        this.previewUrl.set(null);
+        return;
+      }
+
+      this.previewUrl.set(this.urls.replace(previous, file));
+    });
+  }
 
   /** The home page had no uploader at all: you had to pick a tool before you could load anything. */
   protected onFile(file: File): void {
