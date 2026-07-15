@@ -45,3 +45,9 @@ Thumbs.db
 /test-results
 /playwright-report
 /e2e/fixtures/assets
+
+# 42 MB de pesos do modelo, baixados por scripts/fetch-model.mjs
+public/model/
+
+# Terminal Paste Image folder
+.cp-images/

@@ -10,13 +10,13 @@ const STORAGE_KEY = 'imgwork.lang';
  * misspelled key is a compile error, not a silently blank button in the UI.
  */
 const EN = {
-  'app.tagline': 'Image tools that run entirely in your browser',
+  'app.tagline': 'File processing that never leaves your device',
   'app.lang_switch': 'Change language',
   'app.theme_switch': 'Toggle theme',
   'app.footer.about': 'About',
   'app.footer.privacy': 'Privacy',
   'app.footer.terms': 'Terms',
-  'app.footer.secure': 'Your images never leave your device.',
+  'app.footer.secure': 'Your files never leave your device.',
 
   'nav.tools': 'Tools',
   'nav.remove_bg': 'Remove background',
@@ -25,10 +25,30 @@ const EN = {
   'nav.convert': 'Convert',
   'nav.resize': 'Resize',
 
-  'hero.title': 'Image tools',
-  'hero.subtitle': 'Remove backgrounds, crop, compress, convert and resize — nothing is uploaded anywhere.',
-  'hero.pick_tool': 'Or pick a tool',
+  'hero.title': 'Your files never leave your computer.',
+  'hero.subtitle':
+    'No upload, no server. Everything — including the AI — runs right here, inside your browser. You do not have to take our word for it: the counter below is live.',
+  'hero.sample': 'Use a sample image',
+  'hero.sample_hint': 'No file at hand? Start with ours.',
+  'hero.module_image': 'Module: Image',
+  'hero.soon_section': 'Coming next',
+  'hero.soon.pdf': 'PDF',
+  'hero.soon.pdf_desc': 'Merge, split, compress and sign.',
+  'hero.soon.doc': 'Documents',
+  'hero.soon.doc_desc': 'Convert and compress without uploading.',
+  'hero.soon.audio': 'Audio',
+  'hero.soon.audio_desc': 'Trim, convert and compress locally.',
   'hero.next_step': 'What do you want to do with it?',
+
+  'proof.title': 'Network, monitored live',
+  'proof.sent': 'Bytes of your file sent to the network',
+  'proof.recipients': 'Servers that received your file',
+  'proof.zero_bytes': '0 bytes',
+  'proof.none': 'none',
+  'proof.disclosure':
+    'Measured live, in your browser: every send your file could physically take — fetch, XHR, beacon, WebSocket — is counted here. The page loads its own code, its own font and the AI model, and that is all it ever asks for. Open DevTools on the Network tab and check for yourself.',
+  'proof.try_offline': 'Do not believe it? Turn off your Wi-Fi and keep using the app.',
+  'proof.offline_ok': 'You are offline. Everything still works — that is the whole point.',
 
   'common.drag': 'Drop an image here',
   'common.or': 'or',
@@ -105,13 +125,13 @@ const EN = {
 export type TranslationKey = keyof typeof EN;
 
 const PT: Record<TranslationKey, string> = {
-  'app.tagline': 'Ferramentas de imagem que rodam inteiramente no seu navegador',
+  'app.tagline': 'Processamento de arquivos que nunca saem do seu dispositivo',
   'app.lang_switch': 'Mudar idioma',
   'app.theme_switch': 'Alternar tema',
   'app.footer.about': 'Sobre',
   'app.footer.privacy': 'Privacidade',
   'app.footer.terms': 'Termos',
-  'app.footer.secure': 'Suas imagens nunca saem do seu dispositivo.',
+  'app.footer.secure': 'Seus arquivos nunca saem do seu dispositivo.',
 
   'nav.tools': 'Ferramentas',
   'nav.remove_bg': 'Remover fundo',
@@ -120,10 +140,30 @@ const PT: Record<TranslationKey, string> = {
   'nav.convert': 'Converter',
   'nav.resize': 'Redimensionar',
 
-  'hero.title': 'Ferramentas de imagem',
-  'hero.subtitle': 'Remova fundos, corte, comprima, converta e redimensione — nada é enviado para lugar nenhum.',
-  'hero.pick_tool': 'Ou escolha uma ferramenta',
+  'hero.title': 'Seus arquivos não saem do seu computador.',
+  'hero.subtitle':
+    'Sem upload, sem servidor. Tudo — inclusive a inteligência artificial — roda aqui dentro, no seu navegador. E você não precisa acreditar: o contador abaixo é ao vivo.',
+  'hero.sample': 'Usar uma imagem de exemplo',
+  'hero.sample_hint': 'Sem arquivo à mão? Comece com a nossa.',
+  'hero.module_image': 'Módulo: Imagem',
+  'hero.soon_section': 'Em breve',
+  'hero.soon.pdf': 'PDF',
+  'hero.soon.pdf_desc': 'Juntar, dividir, comprimir e assinar.',
+  'hero.soon.doc': 'Documentos',
+  'hero.soon.doc_desc': 'Converter e comprimir sem enviar nada.',
+  'hero.soon.audio': 'Áudio',
+  'hero.soon.audio_desc': 'Cortar, converter e comprimir localmente.',
   'hero.next_step': 'O que você quer fazer com ela?',
+
+  'proof.title': 'Rede monitorada ao vivo',
+  'proof.sent': 'Bytes do seu arquivo enviados à rede',
+  'proof.recipients': 'Servidores que receberam seu arquivo',
+  'proof.zero_bytes': '0 bytes',
+  'proof.none': 'nenhum',
+  'proof.disclosure':
+    'Medido ao vivo, no seu navegador: toda saída que o seu arquivo poderia fisicamente tomar — fetch, XHR, beacon, WebSocket — é contada aqui. A página carrega o próprio código, a própria fonte e o modelo de IA, e é só isso que ela pede. Abra as ferramentas do navegador na aba Rede e confira você mesmo.',
+  'proof.try_offline': 'Não acredita? Desligue o Wi-Fi e continue usando.',
+  'proof.offline_ok': 'Você está sem internet. Tudo continua funcionando — é exatamente esse o ponto.',
 
   'common.drag': 'Solte uma imagem aqui',
   'common.or': 'ou',

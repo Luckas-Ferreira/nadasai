@@ -3,32 +3,32 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    title: 'ImgWork — Image tools',
+    title: 'Nada Sai — seus arquivos não saem do seu computador',
     loadComponent: () => import('./features/hero/hero.component').then((m) => m.HeroComponent),
   },
   {
     path: 'remove-bg',
-    title: 'Remove background — ImgWork',
+    title: 'Remover fundo — Nada Sai',
     loadComponent: () => import('./features/remove-bg/remove-bg.component').then((m) => m.RemoveBgComponent),
   },
   {
     path: 'crop',
-    title: 'Crop — ImgWork',
+    title: 'Cortar — Nada Sai',
     loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
   },
   {
     path: 'compress',
-    title: 'Compress — ImgWork',
+    title: 'Comprimir — Nada Sai',
     loadComponent: () => import('./features/compress/compress.component').then((m) => m.CompressComponent),
   },
   {
     path: 'convert',
-    title: 'Convert — ImgWork',
+    title: 'Converter — Nada Sai',
     loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
   },
   {
     path: 'resize',
-    title: 'Resize — ImgWork',
+    title: 'Redimensionar — Nada Sai',
     loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
   },
   { path: '**', redirectTo: '' },

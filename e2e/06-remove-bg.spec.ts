@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import { expectDownload, openApp, primary, upload } from './helpers';
 
 test.describe('Remove background', () => {
-  // The @imgly model is fetched and run as WASM in the browser: minutes, not seconds.
+  // IS-Net runs as WASM in the browser, and the first run also pulls 55 MB of
+  // weights and runtime off our own origin: minutes, not seconds.
   test.setTimeout(420_000);
 
   test('runs the model locally, offers backdrops and downloads the cutout', async ({ page }) => {

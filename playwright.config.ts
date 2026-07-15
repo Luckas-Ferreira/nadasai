@@ -29,10 +29,26 @@ export default defineConfig({
 
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
-  webServer: {
-    command: 'npm start',
-    url: 'http://localhost:4200',
-    reuseExistingServer: true,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      command: 'npm start',
+      url: 'http://localhost:4200',
+      reuseExistingServer: true,
+      timeout: 180_000,
+    },
+    /**
+     * The production build, for 09-offline.
+     *
+     * `ng serve` does not emit ngsw-worker.js, so under the dev server there is
+     * no service worker at all — the offline suite would be asserting against
+     * the one condition it exists to prove. It needs the real artifact, served
+     * the way a static host serves it.
+     */
+    {
+      command: 'npm run build && node e2e/preview-server.mjs 4300',
+      url: 'http://localhost:4300',
+      reuseExistingServer: true,
+      timeout: 240_000,
+    },
+  ],
 });
