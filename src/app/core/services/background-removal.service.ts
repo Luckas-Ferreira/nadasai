@@ -142,8 +142,10 @@ export class BackgroundRemovalService {
 
       // Fetch the weights ourselves so the download has a real progress bar;
       // handing the bytes to create() avoids a second fetch. int8, 42 MB —
-      // indistinguishable from the 168 MB fp32 on real portraits.
-      const model = await fetchWithProgress(new URL('model/isnet-q8.onnx', document.baseURI).href, onDownload);
+      // indistinguishable from the 168 MB fp32 on real portraits. The model
+      // ships as ~22 MiB parts (Cloudflare Pages caps single files at 25 MiB);
+      // fetchModel reassembles them into the original bytes.
+      const model = await fetchModel(onDownload);
       const session = await ort.InferenceSession.create(model, { executionProviders: ['wasm'] });
 
       return { ort, session };
@@ -153,41 +155,56 @@ export class BackgroundRemovalService {
   }
 }
 
+interface ModelManifest {
+  bytes: number;
+  parts: string[];
+}
+
 /**
- * Fetches a URL into memory while reporting download progress as a 0..1 fraction.
- * Falls back to a plain arrayBuffer() (progress jumps 0→1) when the response has
- * no Content-Length or no readable stream — a cache hit, typically, which is
- * instant anyway.
+ * Fetches the model and reassembles it, reporting download progress as a 0..1
+ * fraction across the WHOLE download.
+ *
+ * The weights ship as ~22 MiB parts (Cloudflare Pages rejects any single file
+ * over 25 MiB) listed in a manifest, so this reads the manifest, then streams
+ * each part straight into one preallocated buffer sized from `manifest.bytes`.
+ * Concatenation is byte-exact — the parts were sliced with no re-encoding — so
+ * the result is identical to the original .onnx. Progress tracks bytes against
+ * the manifest total, not part boundaries, so a two-part model still fills the
+ * bar smoothly. A cache hit (no readable body) just advances one part at a time.
  */
-async function fetchWithProgress(url: string, onProgress?: (fraction: number) => void): Promise<ArrayBuffer> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`model ${response.status}`);
+async function fetchModel(onProgress?: (fraction: number) => void): Promise<Uint8Array> {
+  const base = document.baseURI;
 
-  const total = Number(response.headers.get('Content-Length') ?? 0);
-  if (!response.body || !total) {
-    onProgress?.(1);
-    return response.arrayBuffer();
-  }
+  const manifestResponse = await fetch(new URL('model/isnet-q8.manifest.json', base).href);
+  if (!manifestResponse.ok) throw new Error(`model ${manifestResponse.status}`);
+  const manifest = (await manifestResponse.json()) as ModelManifest;
 
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let received = 0;
-
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    received += value.length;
-    onProgress?.(Math.min(1, received / total));
-  }
-
-  const bytes = new Uint8Array(received);
+  const bytes = new Uint8Array(manifest.bytes);
   let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.length;
+
+  for (const part of manifest.parts) {
+    const response = await fetch(new URL(`model/${part}`, base).href);
+    if (!response.ok) throw new Error(`model ${response.status}`);
+
+    if (!response.body) {
+      const buf = new Uint8Array(await response.arrayBuffer());
+      bytes.set(buf, offset);
+      offset += buf.length;
+      onProgress?.(Math.min(1, offset / manifest.bytes));
+      continue;
+    }
+
+    const reader = response.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes.set(value, offset);
+      offset += value.length;
+      onProgress?.(Math.min(1, offset / manifest.bytes));
+    }
   }
-  return bytes.buffer;
+
+  return bytes;
 }
 
 /** Letterbox-free square resize to 1024², normalised, in NCHW — what IS-Net expects. */
