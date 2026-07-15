@@ -1,0 +1,19 @@
+{
+  "name": "Nada Sai",
+  "short_name": "Nada Sai",
+  "description": "Processamento de arquivos que nunca saem do seu dispositivo.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "logo.webp",
+      "sizes": "256x256",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
+}

@@ -40,7 +40,8 @@ test.describe('The chain', () => {
     await expect(page.getByText('photo.png')).toBeVisible();
 
     await page.getByRole('button', { name: 'Clear' }).click();
-    await expect(page.getByText('Or pick a tool')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Module: Image' })).toBeVisible();
+    await expect(page.getByText('What do you want to do with it?')).toHaveCount(0);
 
     await rail(page).getByRole('link', { name: 'Crop' }).click();
     await expect(page.getByText('Drop an image here')).toBeVisible();

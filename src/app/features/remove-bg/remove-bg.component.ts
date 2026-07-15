@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
@@ -41,6 +41,15 @@ export class RemoveBgComponent {
   private readonly removal = inject(BackgroundRemovalService);
   private readonly tool = toolById('remove-bg');
 
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.stopTrickle());
+    const file = this.sourceFile();
+    if (file) this.sourceUrl.set(this.urls.create(file));
+    // Deliberately no auto-run here. Arriving with a file from another tool used
+    // to kick the model off immediately — including on already-transparent PNGs —
+    // and a second run would start every time the user navigated back.
+  }
+
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
 
@@ -58,13 +67,10 @@ export class RemoveBgComponent {
   protected readonly sourceFile = this.state.currentFile;
   protected readonly isTransparent = computed(() => this.backdrop() === TRANSPARENT);
 
-  constructor() {
-    const file = this.sourceFile();
-    if (file) this.sourceUrl.set(this.urls.create(file));
-    // Deliberately no auto-run here. Arriving with a file from another tool used
-    // to kick the model off immediately — including on already-transparent PNGs —
-    // and a second run would start every time the user navigated back.
-  }
+  /** Latest real milestone from the service; the trickle eases the shown bar toward it. */
+  private progressTarget = 0;
+  private displayed = 0;
+  private trickle?: ReturnType<typeof setInterval>;
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
@@ -89,17 +95,56 @@ export class RemoveBgComponent {
     if (!file || this.busy()) return;
 
     this.busy.set(true);
-    this.progress.set(0);
     this.errorKey.set(null);
+    this.startTrickle();
 
     try {
-      const blob = await this.removal.removeBackground(file, (pct) => this.progress.set(pct));
+      // The service reports real milestones (byte-accurate for the download); the
+      // trickle keeps the bar gliding between them so the long, unmeasurable
+      // inference never looks frozen.
+      const blob = await this.removal.removeBackground(file, (pct) => (this.progressTarget = pct));
       this.cutoutBlob.set(blob);
       this.cutoutUrl.set(this.urls.replace(this.cutoutUrl(), blob));
+      this.finishTrickle();
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
+      this.stopTrickle();
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /**
+   * A self-animating progress bar for an operation whose duration cannot be known.
+   * Each tick eases the shown value toward the latest real milestone, and — when
+   * that milestone sits still through the opaque WASM inference — keeps creeping
+   * asymptotically toward 95%, decelerating so it reads as "almost there" rather
+   * than stuck. finishTrickle() snaps it to 100.
+   */
+  private startTrickle(): void {
+    this.stopTrickle();
+    this.progress.set(0);
+    this.progressTarget = 0;
+
+    // Kept as a float so the easing does not stall on rounding; the display rounds.
+    this.displayed = 0;
+    this.trickle = setInterval(() => {
+      const toward = (this.progressTarget - this.displayed) * 0.15; // chase real milestones
+      const creep = (95 - this.displayed) * 0.02; // always inch forward, slowing near the cap
+      this.displayed = Math.min(95, this.displayed + Math.max(toward, creep, 0));
+      this.progress.set(Math.round(this.displayed));
+    }, 70);
+  }
+
+  private finishTrickle(): void {
+    this.stopTrickle();
+    this.progress.set(100);
+  }
+
+  private stopTrickle(): void {
+    if (this.trickle) {
+      clearInterval(this.trickle);
+      this.trickle = undefined;
     }
   }
 
@@ -145,6 +190,7 @@ export class RemoveBgComponent {
   }
 
   protected reset(): void {
+    this.stopTrickle();
     this.urls.releaseAll();
     this.sourceUrl.set(null);
     this.cutoutBlob.set(null);

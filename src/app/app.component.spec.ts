@@ -20,7 +20,7 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('ImgWork');
+    expect(compiled.textContent).toContain('Nada Sai');
   });
 
   it('should toggle the active language', () => {

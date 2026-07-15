@@ -5,13 +5,44 @@ test.describe('Shell: home, nav, i18n, theme', () => {
   test('home shows the uploader, the tool grid and the privacy claim', async ({ page }) => {
     await openApp(page);
 
-    await expect(page.getByRole('heading', { name: 'Image tools' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your files never leave your computer.' })).toBeVisible();
     await expect(page.getByText('Drop an image here')).toBeVisible();
-    await expect(page.getByText('Your images never leave your device.')).toBeVisible();
+    await expect(page.getByText('Your files never leave your device.')).toBeVisible();
 
     const rail = page.getByRole('navigation', { name: 'Tools' }).first();
     for (const name of ['Remove background', 'Crop', 'Compress', 'Resize', 'Convert']) {
       await expect(rail.getByRole('link', { name, exact: true })).toBeVisible();
+    }
+  });
+
+  /**
+   * The demo image is the shortest path to the first result, and the person most
+   * likely to click it — someone evaluating the product with no file to hand — is
+   * the one least likely to give it a second chance. If public/exemplo.jpg ever
+   * goes missing, the button stays on screen and throws. This is what catches that.
+   */
+  test('the sample image loads with one click and enters the chain', async ({ page }) => {
+    await openApp(page);
+
+    await page.getByRole('button', { name: 'Use a sample image' }).click();
+
+    await expect(page.getByText('exemplo.jpg')).toBeVisible();
+    await expect(page.getByText('What do you want to do with it?')).toBeVisible();
+
+    // No alert: a broken asset surfaces here, not in a console nobody reads.
+    await expect(page.getByRole('alert')).toHaveCount(0);
+  });
+
+  test('the home frames the tools as one module of a platform, not the whole product', async ({ page }) => {
+    await openApp(page);
+
+    await expect(page.getByRole('heading', { name: 'Module: Image' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Coming next' })).toBeVisible();
+
+    // The roadmap is inert: it must never look shippable.
+    for (const name of ['PDF', 'Documents', 'Audio']) {
+      await expect(page.getByText(name, { exact: true })).toBeVisible();
+      await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
     }
   });
 
@@ -43,14 +74,14 @@ test.describe('Shell: home, nav, i18n, theme', () => {
     const langs = page.getByRole('radiogroup', { name: 'Change language' }).first();
 
     await langs.getByRole('radio', { name: 'PT' }).click();
-    await expect(page.getByRole('heading', { name: 'Ferramentas de imagem' })).toBeVisible();
-    await expect(page.getByText('Suas imagens nunca saem do seu dispositivo.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' })).toBeVisible();
+    await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Ferramentas de imagem' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' })).toBeVisible();
 
     await page.getByRole('radiogroup', { name: 'Mudar idioma' }).first().getByRole('radio', { name: 'EN' }).click();
-    await expect(page.getByRole('heading', { name: 'Image tools' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your files never leave your computer.' })).toBeVisible();
   });
 
   test('theme toggle flips the document theme and persists it', async ({ page }) => {

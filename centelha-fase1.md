@@ -1,15 +1,17 @@
 # Centelha 3 Alagoas — Formulário da Fase 1
 
+> Edital nº 06/2026 (FAPEAL/SECTI-AL/SEBRAE-AL). **Submissão até 17/07/2026 às 18h (Brasília).**
 > Texto pronto para copiar e colar na plataforma.
 > Tudo marcado com **[PREENCHER]** exige informação que só você tem — não invente, e não deixe em branco.
 > Nota da Fase 1 = **(2×S + M + E + I) / 5**. Solução vale o dobro: é lá que a proposta ganha ou perde.
+> Desempate final é **data mais antiga de submissão** — submeta antes do dia 17.
 
 ---
 
 ## 1. Identificação da proposta
 
 **Nome do projeto:**
-ImgWork — edição de imagem com processamento 100% local (arquitetura zero-upload)
+Nada Sai — plataforma de processamento local de arquivos (arquitetura zero-upload)
 
 **Área do conhecimento da principal tecnologia:**
 Ciência da Computação — Engenharia de Software / Computação em Borda (edge) e Inteligência Artificial embarcada em navegador (WebAssembly)
@@ -21,7 +23,7 @@ Tecnologia da Informação e Comunicação — Software como Serviço (SaaS), co
 
 ## 2. Problema e oportunidade de mercado  *(critério M)*
 
-Para executar uma tarefa banal — remover o fundo de uma foto, comprimir um arquivo pesado demais para um sistema, converter um formato, cortar uma imagem — a pessoa recorre a ferramentas online gratuitas. **Todas elas funcionam do mesmo jeito: o arquivo é enviado para o servidor de um terceiro, processado lá e devolvido.**
+Para executar uma tarefa banal — remover o fundo de uma foto, comprimir um arquivo pesado demais para um sistema, converter um formato, juntar duas páginas de um PDF — a pessoa recorre a ferramentas online gratuitas. **Todas elas funcionam do mesmo jeito: o arquivo é enviado para o servidor de um terceiro, processado lá e devolvido.**
 
 O usuário não percebe o que acabou de fazer. Mas quando esse arquivo é a foto de um RG, um laudo médico, a ficha de um funcionário, uma procuração ou o documento de um cliente, o que aconteceu foi **transferência de dado pessoal para um operador não contratado, frequentemente sediado fora do Brasil, sem contrato, sem base legal e sem registro** — uma violação direta da LGPD, cometida por quem só queria diminuir o tamanho de um arquivo.
 
@@ -29,7 +31,7 @@ Esse comportamento é diário e invisível em profissões que lidam com document
 
 O custo desse hábito deixou de ser hipotético. Em fevereiro de 2026 a ANPD foi **transformada em agência reguladora** (Lei nº 15.352/2026), com autonomia financeira, ampliação de quadro e poder de fiscalização reforçado. Em **junho de 2026 ela abriu 19 processos administrativos sancionadores — a maior leva da sua história** — e o seu Mapa de Temas Prioritários 2026-2027 elege justamente inteligência artificial, dados de saúde e dados de crianças e adolescentes. As sanções chegam a **2% do faturamento, limitadas a R$ 50 milhões por infração**. A fiscalização frouxa dos primeiros anos acabou.
 
-A oportunidade é o encontro dessas duas curvas: **uma necessidade cotidiana e universal (editar arquivos) atendida hoje por uma arquitetura que se tornou um passivo jurídico.** Não existe, no mercado brasileiro, uma ferramenta de edição de arquivos que resolva o problema na raiz — eliminando o upload em vez de prometer, em política de privacidade, que "os arquivos são apagados em 1 hora". Promessa de exclusão exige confiança. Arquitetura que não envia nada dispensa confiança.
+A oportunidade é o encontro dessas duas curvas: **uma necessidade cotidiana e universal (manipular arquivos) atendida hoje por uma arquitetura que se tornou um passivo jurídico.** Não existe, no mercado brasileiro, uma ferramenta de manipulação de arquivos que resolva o problema na raiz — eliminando o upload em vez de prometer, em política de privacidade, que "os arquivos são apagados em 1 hora". Promessa de exclusão exige confiança. Arquitetura que não envia nada dispensa confiança.
 
 **Modelo de negócio:** freemium para o usuário individual (aquisição e prova de valor); assinatura B2B para escritórios e clínicas, com painel administrativo e relatório de conformidade; e licença corporativa/on-premise para órgãos públicos e empresas, instalável na própria intranet. Como o processamento roda na máquina do usuário, **o custo marginal de servidor por operação é praticamente zero** — a margem não se deteriora com escala, ao contrário de todo concorrente que processa em nuvem.
 
@@ -37,21 +39,29 @@ A oportunidade é o encontro dessas duas curvas: **uma necessidade cotidiana e u
 
 ## 3. Solução proposta e diferencial inovador  *(critério S — PESO 2)*
 
-O ImgWork é uma plataforma de edição de arquivos que **executa todo o processamento dentro do navegador do próprio usuário, via WebAssembly e Canvas. Não existe servidor de aplicação, não existe upload: o arquivo nunca trafega pela rede.**
+O **Nada Sai** é uma plataforma de manipulação de arquivos construída sobre uma única restrição, que ela nunca viola: **o arquivo nunca sai do dispositivo do usuário.** Todo o processamento executa dentro do próprio navegador, via WebAssembly e Canvas. Não existe servidor de aplicação, não existe upload, o arquivo não trafega pela rede.
 
-Já está implementado e funcionando um protótipo com cinco ferramentas encadeáveis — remoção de fundo, corte, compressão, conversão de formato e redimensionamento — em que o resultado de uma alimenta a seguinte sem que o arquivo saia da máquina em nenhum momento da cadeia.
+**Essa restrição — e não uma lista de funcionalidades — é o produto.** Ela independe do tipo de arquivo, e é por isso que a plataforma se estende sem mudar de tese.
+
+**Módulo já implementado (imagem).** Existe hoje um protótipo funcional com cinco ferramentas encadeáveis — remoção de fundo, corte, compressão, conversão de formato e redimensionamento — em que o resultado de uma alimenta a seguinte sem que o arquivo saia da máquina em nenhum momento da cadeia. [PREENCHER: link público, se já estiver no ar — muda a percepção de maturidade.]
 
 **O diferencial inovador está em três decisões de arquitetura, não em funcionalidade:**
 
-**1. Inteligência artificial executada no cliente.** A remoção de fundo é feita por um modelo de segmentação de imagem que roda **na máquina do usuário**, compilado para WebAssembly. Os pesos do modelo são baixados uma única vez e ficam em cache; **a imagem do usuário nunca é transmitida.** É a diferença essencial em relação a toda a concorrência (Adobe Express, Canva, iLoveIMG, TinyWow, remove.bg), que envia a imagem para GPUs em nuvem. Fazer IA de visão computacional rodar com desempenho aceitável no navegador do usuário final é o núcleo técnico do projeto.
+**1. Inteligência artificial executada no cliente.** A remoção de fundo é feita por um modelo de segmentação de imagem (IS-Net) que roda **na máquina do usuário**, sobre WebAssembly (motor ONNX Runtime). **A imagem do usuário nunca é transmitida** — nem para processamento, nem em momento algum. É a diferença essencial em relação a toda a concorrência (Adobe Express, Canva, iLoveIMG, TinyWow, remove.bg), que envia a imagem para GPUs em nuvem. Três decisões de engenharia sustentam essa garantia sem meia-medida:
 
-**2. Conformidade por arquitetura, não por promessa.** Os concorrentes tratam privacidade como cláusula contratual ("excluímos seu arquivo em 1 hora"). O ImgWork a trata como propriedade do sistema: **não há como vazar, sequestrar, subpoenar ou revender um arquivo que nunca foi enviado.** Isso materializa o princípio de *privacy by design* previsto no art. 46 da LGPD e elimina, para o usuário profissional, toda a cadeia de risco — não há operador, não há transferência internacional, não há necessidade de contrato de tratamento de dados.
+- **O próprio modelo é servido do nosso domínio, não de um CDN de terceiro.** Os pesos são baixados uma única vez e ficam em cache no navegador. Como não vêm de um servidor externo, nem mesmo o *download* do modelo revela a um terceiro que o usuário está usando a ferramenta — não há vazamento de IP nem de metadado de uso.
+- **Licenciamento permissivo (Apache-2.0 e MIT).** Tanto o modelo quanto o motor de execução são software livre de licença permissiva, sem cláusula de *copyleft*. Isso é o que permite licença comercial, assinatura B2B e instalação *on-premise* sem exigir a abertura do código do produto — condição direta do modelo de negócio.
+- **Funciona offline.** Depois do primeiro carregamento, a remoção de fundo roda com a internet desligada — o modelo já está em cache local (PWA). Isso é verificável ao vivo: basta desligar a conexão e continuar removendo fundos.
 
-**3. Custo marginal zero e operação offline.** Sem backend, o sistema funciona **mesmo sem conexão** após o primeiro carregamento (PWA) e não tem custo de infraestrutura por uso. Isso viabiliza tanto o modelo gratuito quanto o uso em regiões com conectividade instável e em ambientes de rede restrita — hospitais, escolas públicas, órgãos de governo.
+Fazer IA de visão computacional rodar com desempenho aceitável no navegador do usuário final, sem depender de infraestrutura de terceiros, é o núcleo técnico do projeto.
 
-**Estado atual (TRL):** protótipo funcional validado em ambiente relevante — **TRL 6**. As cinco ferramentas estão implementadas, com suíte automatizada de testes (unitários e ponta-a-ponta) cobrindo todo o fluxo. [PREENCHER: se você já colocou no ar em um domínio público, diga aqui — muda a percepção de maturidade.]
+**2. Conformidade por arquitetura, não por promessa.** Os concorrentes tratam privacidade como cláusula contratual ("excluímos seu arquivo em 1 hora"). O Nada Sai a trata como propriedade do sistema: **não há como vazar, sequestrar, subpoenar ou revender um arquivo que nunca foi enviado.** Isso materializa o princípio de *privacy by design* previsto no art. 46 da LGPD e elimina, para o usuário profissional, toda a cadeia de risco — não há operador, não há transferência internacional, não há necessidade de contrato de tratamento de dados.
 
-**Evolução planejada:** a arquitetura zero-upload é a plataforma, não a ferramenta. O mesmo motor de processamento local se estende a **PDF (juntar, dividir, comprimir, assinar), documentos e áudio** — categorias em que o dado é ainda mais sensível e o risco de LGPD, ainda maior. O objetivo é consolidar, em um único ambiente, as tarefas de manipulação de arquivos que hoje o profissional resolve espalhando documentos sigilosos por cinco sites diferentes — **com a garantia, inédita nessa categoria, de que nenhum deles sai do computador.**
+**3. Custo marginal zero e operação offline.** Sem backend, o sistema funciona **mesmo sem conexão** após o primeiro carregamento (PWA) — **inclusive a remoção de fundo por IA**, já que o modelo fica em cache local — e não tem custo de infraestrutura por uso. Isso viabiliza tanto o modelo gratuito quanto o uso em regiões com conectividade instável e em ambientes de rede restrita — hospitais, escolas públicas, órgãos de governo.
+
+**Estado atual (TRL):** protótipo funcional validado em ambiente relevante — **TRL 6**. As cinco ferramentas do módulo de imagem estão implementadas, com suíte automatizada de testes (unitários e ponta-a-ponta) cobrindo todo o fluxo.
+
+**Evolução planejada:** começamos por imagem porque é a tarefa mais frequente e a de menor atrito para provar a tese. **O mesmo motor de processamento local se estende a PDF (juntar, dividir, comprimir, assinar), documentos e áudio** — categorias em que o dado é ainda mais sensível e o risco de LGPD, ainda maior. É o mesmo problema, o mesmo motor e a mesma garantia; muda apenas o decodificador de formato. O objetivo é consolidar as tarefas de manipulação de arquivos que hoje o profissional resolve espalhando documentos sigilosos por cinco sites diferentes — **com a garantia, inédita nessa categoria, de que nenhum deles sai do computador.**
 
 ---
 
@@ -65,16 +75,37 @@ Já está implementado e funcionando um protótipo com cinco ferramentas encade�
 
 ---
 
-## 5. Equipe executora  *(critério E)*
+## 5. Equipe executora  *(critério E — domínio tecnológico e capacidade de execução)*
 
-**[PREENCHER — este critério vale nota. Não subestime.]**
+A equipe é formada por dois profissionais de Ciência da Computação da **Universidade Federal de Alagoas**, com histórico comprovado de levar software ao ar e mantê-lo em produção — inclusive em cliente público.
 
-Modelo do que escrever para cada integrante — nome, formação, experiência e **o que essa pessoa faz especificamente neste projeto**:
+> **José Lucas Ferreira dos Santos — Proponente e coordenador — Ciência da Computação (UFAL) — Arquitetura e desenvolvimento.**
+> Desenvolvedor full-stack com [PREENCHER: X] anos de experiência. É o autor do **IniPort** (`iniport.com.br`), plataforma de gestão de transporte universitário intermunicipal que integra prefeituras, motoristas e estudantes em um único sistema — com emissão de carteira digital, rastreamento em tempo real, controle de lotação e gestão de rotas. O IniPort é **vencedor do Startup Nordeste Alagoas** e opera hoje atendendo administração pública municipal, o que demonstra capacidade de entregar sistema em produção, com usuário real e cliente institucional — e não apenas protótipo.
+> Neste projeto, é responsável pela concepção e implementação integral da arquitetura zero-upload: pipeline de processamento em WebAssembly/Canvas, integração do modelo de IA de segmentação executado no cliente, e a suíte automatizada de testes (unitários e ponta-a-ponta) que cobre todo o fluxo. Portfólio: `jluckas.com.br`.
+> [PREENCHER: previsão de dedicação — o edital exige, no item 3.1.3(c), a função efetiva **e** a previsão de dedicação de cada membro. Ex.: 20h semanais.]
 
-> **Luckas Ferreira — [PREENCHER: formação] — Desenvolvimento e arquitetura.**
-> Desenvolvedor de software com [PREENCHER: X] anos de experiência em [PREENCHER: front-end/Angular/TypeScript/etc.]. Responsável pela concepção e implementação integral do protótipo atual do ImgWork: arquitetura zero-upload, pipeline de processamento de imagem em WebAssembly/Canvas, integração do modelo de IA de segmentação executado no cliente e suíte automatizada de testes. [PREENCHER: cite outros sistemas que você construiu e mantém em produção — isso comprova capacidade de execução, que é literalmente o que este critério mede.]
+> **Marcelly Beatriz — Ciência da Computação (UFAL) — Design de produto (UX/UI).**
+> [PREENCHER: 1 a 2 frases sobre experiência dela — onde trabalha/trabalhou, que produtos desenhou. Não deixe só o cargo: o critério mede *capacidade de execução*, e nome + cargo não comprovam nada.]
+> Neste projeto, é responsável pelo design da experiência e da interface do Nada Sai. Sua função é central e não cosmética: o produto compete com ferramentas gratuitas de uso imediato, e **a garantia de privacidade só gera valor se o usuário a percebe sem precisar entender a arquitetura.** Traduzir "o arquivo não sai do seu computador" em algo evidente na tela é um problema de design, e é o que determina a adoção.
+> [PREENCHER: previsão de dedicação semanal.]
 
-**Recomendação séria:** submeter sozinho penaliza a nota de Equipe (peso 1) e, principalmente, a Fase 2, que é um plano de negócios. Se houver **qualquer** pessoa do seu círculo com perfil comercial, jurídico (advogado/DPO ajuda demais nesta tese) ou de gestão disposta a entrar, some agora. Um time de dois com papéis complementares pontua muito acima de um time de um.
+**Complementaridade:** os dois papéis cobrem as duas frentes de risco do produto — a técnica (fazer IA de visão computacional rodar com desempenho aceitável dentro do navegador) e a de adoção (fazer o usuário perceber e confiar numa garantia que é invisível por natureza).
+
+---
+
+### ⚠️ Regras de equipe que o edital impõe — leia antes de submeter
+
+Extraídas do item 3 do Edital nº 06/2026. Duas delas são irreversíveis:
+
+1. **O proponente é o coordenador e NÃO pode ser alterado durante as fases de seleção, sob pena de desclassificação** (item 3.2). Quem submeter é quem fica. José Lucas deve ser o proponente.
+2. **Cada membro precisa estar cadastrado como usuário no Sistema Centelha do estado de Alagoas** (item 3.1.3(e)). **A Marcelly precisa fazer esse cadastro antes da submissão** — não deixe para o dia 17.
+3. **Cada membro precisa ter função efetiva descrita no formulário, junto à previsão de dedicação** (item 3.1.3(c)). Cargo sozinho não basta.
+4. A equipe pode ter **até 5 membros**, incluindo o proponente (item 3.4).
+5. Na Fase 2, cada membro apresenta **declaração de participação individual assinada**.
+
+**Sobre incluir uma terceira pessoa:** o edital prevê explicitamente a *retirada* de membros durante a Fase 2 (item 3.3.1), mas **não prevê a inclusão**. Ou seja: se você quiser um terceiro integrante — alguém com perfil comercial ou jurídico (um advogado/DPO seria devastadoramente útil nesta tese) — **inclua agora, na Fase 1.** Não conte em adicionar depois.
+
+Isso importa porque a Fase 2 dá **peso 2 à Consistência da Proposta (modelo de negócio + cronograma + orçamento), e nota abaixo de 2 nesse critério elimina a proposta**, por melhor que seja a solução. Dois desenvolvedores/designers cobrem a tecnologia; ninguém na equipe cobre, hoje, o plano de negócios que a Fase 2 vai exigir.
 
 ---
 
@@ -88,13 +119,25 @@ O roteiro tem um único momento que decide tudo — **desligue a internet, ao vi
 
 ## Checklist antes de enviar
 
+- [ ] Registrar `nadasai.com` e `nadasai.com.br`
+- [ ] Colocar a aplicação no ar no domínio e citar o link no formulário
+- [ ] **Marcelly cadastrada no Sistema Centelha AL** (exigência do item 3.1.3(e) — sem isso ela não pode constar na equipe)
+- [ ] José Lucas submeter como **proponente/coordenador** (não pode ser trocado depois)
+- [ ] Preencher a **previsão de dedicação semanal** de cada membro (exigência do item 3.1.3(c))
+- [ ] Decidir sobre um **terceiro membro** com perfil de negócio/jurídico — só dá para incluir agora
 - [ ] Comprovante de residência em Alagoas atualizado
 - [ ] Confirmar que não foi contratado no Centelha 1 ou 2
-- [ ] Preencher todos os **[PREENCHER]** — especialmente a Equipe
-- [ ] Colocar o ImgWork no ar em um domínio público e citar o link
+- [ ] Preencher todos os **[PREENCHER]** restantes
 - [ ] Gravar o vídeo pitch
-- [ ] **Enviar até 17/07/2026**
+- [ ] **Submeter antes de 17/07/2026, 18h** (data antiga é critério de desempate)
 
 ## O que deliberadamente NÃO está escrito aqui
 
-Não há uma linha dizendo que a proposta é "reunir várias ferramentas em um só lugar". Isso é agregação, não inovação, e cairia no critério de peso 2 — além de ser factualmente frágil, porque TinyWow, iLoveIMG e 123apps já são hubs com dezenas de ferramentas. O hub aparece apenas como **roadmap** da plataforma, sustentado pelo que de fato é inovador: **o arquivo nunca sai do dispositivo.**
+Não há uma linha dizendo que a proposta é "reunir várias ferramentas em um só lugar". Isso é agregação, não inovação, cairia no critério de peso 2 e é factualmente frágil — TinyWow, iLoveIMG e 123apps já são hubs com dezenas de ferramentas.
+
+A distinção que o texto sustenta o tempo todo:
+
+- Um **hub** se define pela **lista de ferramentas**. Cresce somando itens. Qualquer um copia.
+- Uma **plataforma** se define por uma **restrição que nunca viola**. Cresce aplicando a mesma restrição a novos formatos. Copiar exige refazer a arquitetura inteira.
+
+Por isso a amplitude (imagem → PDF → documento → áudio) aparece só como **consequência** da arquitetura, nunca como argumento de venda. O argumento é um só, e é o nome do projeto: **nada sai.**

@@ -16,7 +16,7 @@ export async function openApp(page: Page, path = '/'): Promise<void> {
     if (!localStorage.getItem('imgwork.lang')) localStorage.setItem('imgwork.lang', 'en');
   });
   await page.goto(path);
-  await expect(page.getByRole('link', { name: 'ImgWork' }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Nada Sai' }).first()).toBeVisible();
 }
 
 /** The dropzone's input is `hidden`; setInputFiles drives it anyway. */
