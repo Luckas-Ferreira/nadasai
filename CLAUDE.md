@@ -20,7 +20,11 @@ npm run e2e -- 04-convert # one spec file
 npm run e2e:ui            # interactive runner
 ```
 
-E2E lives in `e2e/`. It uploads a real image, runs each tool and asserts on the actual `download` event (the suggested filename is what proves both the encode and the naming rules). `e2e/fixtures/generate.ts` synthesises the fixtures at startup — a hand-rolled PNG encoder, so no binaries in the repo. **The grain in that PNG is load-bearing**: a flat synthetic image compresses smaller as lossless PNG than as lossy WebP, so `compress` legitimately produces a bigger file and the savings badge never renders.
+**The background-removal model is fetched at install/build time, not committed.** `scripts/fetch-model.mjs` runs on `postinstall` and `prebuild`; it downloads the 42 MB int8 IS-Net once into `public/model/`, sliced into ~22 MiB parts + a manifest, and is a no-op once the parts are on disk. So `npm ci && npm run build` on a fresh box produces a complete deploy — but if `public/model/` is empty and you skip install, the remove-bg tool 404s on its weights. Do **not** commit these files or swap the source to an RMBG/BRIA checkpoint (non-commercial licence only — see `fetch-model.mjs`).
+
+**Hosting requires COOP/COEP headers.** Remove-bg runs multithreaded WASM, which needs `SharedArrayBuffer`, which needs `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`. `ng serve` sends them (`angular.json` serve `headers`) and so does the e2e preview server; a static host that omits them silently drops inference to single-threaded (~6× slower), not broken. Anything you embed cross-origin must then be CORP-compatible.
+
+E2E lives in `e2e/`. It uploads a real image, runs each tool and asserts on the actual `download` event (the suggested filename is what proves both the encode and the naming rules). `e2e/fixtures/generate.ts` synthesises the fixtures at startup — a hand-rolled PNG encoder, so no binaries in the repo. **The grain in that PNG is load-bearing**: a flat synthetic image compresses smaller as lossless PNG than as lossy WebP, so `compress` legitimately produces a bigger file and the savings badge never renders. Playwright runs **two** web servers: `ng serve` on 4200 for most specs, and a real production build behind a static preview server on 4300 for `09-offline` — `ng serve` never emits `ngsw-worker.js`, so the offline/service-worker assertions need the actual build artifact.
 
 ## Architecture
 
@@ -68,6 +72,15 @@ Three constraints worth knowing before you "improve" this:
 - **AVIF is not an output format, deliberately.** `canvas.toBlob('image/avif')` is unsupported and, per the HTML spec, *silently falls back to PNG* — it does not throw or return null. The app used to ship PNG bytes in a `.avif` file. AVIF is still accepted as input. Adding real AVIF output needs a WASM encoder.
 - **Anything without an alpha channel (JPEG, PDF) must be flattened first**, or transparency serializes as black. `encodeImage`/`encodePdf` already do this; a pixel test guards it.
 - **`jspdf` is lazily imported** inside `encodePdf`. It drags in html2canvas (~350 kB); importing it statically put that in the convert chunk for everyone. Keep it dynamic.
+
+### Background removal (`background-removal.service.ts`)
+
+Unlike the other tools, this doesn't route through `core/image/` — it's a self-contained service, and the file's header comment is the real spec (read it before touching this). Four things carry the design:
+
+- **Two paths, chosen by the input.** `isFlatGraphic()` measures the image; a photo goes to the IS-Net model (`removeWithModel`), a logo/icon/flat graphic goes to a border-sampled chroma key (`removeFlatBackground`). The AI is the *worst* tool for flat art (out-of-distribution → speckle) and the key is the worst tool for hair, so neither is a fallback for the other — the routing thresholds (`FLAT_DOMINANCE`, `FLAT_BORDER_SHARE`) are tuned against real assets.
+- **`onnxruntime-web` is imported dynamically and must stay that way** — megabytes of WASM glue that would otherwise land in the initial bundle for someone who only came to crop.
+- **The service is stateless (`providedIn: 'root'` but holds no UI signals).** Per-run state lives in the component so Angular destroys it on navigation; it once was a root singleton and that caused stale results and a second concurrent model run fighting the first for the same progress signal. Keep progress/isProcessing in the component.
+- **The engine choice is a licence decision, not just a technical one.** It replaced `@imgly/background-removal` (AGPL-3.0 wrapper — copyleft that reaches a product sold B2B/on-prem, and it fetched weights from a third-party CDN at runtime, defeating the privacy claim). The IS-Net *model* was never the problem (Apache-2.0); only the wrapper was. Don't reintroduce an AGPL or phone-home dependency here.
 
 ### Errors
 
