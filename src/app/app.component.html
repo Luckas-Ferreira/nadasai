@@ -14,7 +14,7 @@
       <app-tool-nav />
     </div>
 
-    <div class="mt-auto flex items-center justify-between gap-2 border-t border-rail-line p-3">
+    <div class="mt-auto border-t border-rail-line p-3">
       <app-segmented
         [options]="languages"
         [value]="i18n.currentLang()"
@@ -22,53 +22,32 @@
         [ariaLabel]="i18n.t()['app.lang_switch']"
         onRail
       />
-
-      <button
-        type="button"
-        (click)="themes.toggle()"
-        [attr.aria-label]="i18n.t()['app.theme_switch']"
-        class="flex h-8 w-8 items-center justify-center rounded-full text-rail-muted
-               transition-colors hover:bg-rail-hover hover:text-rail-text"
-      >
-        <app-icon [name]="themes.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
-      </button>
     </div>
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col">
-    <!-- Mobile bar: the rail collapses, so the tools move into a scrollable strip. -->
-    <header class="sticky top-0 z-30 border-b border-line bg-surface md:hidden">
-      <div class="flex h-14 items-center gap-3 px-4">
-        <a routerLink="/" class="flex items-center gap-2">
-          <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
-          <span class="text-md font-semibold">Nada Sai</span>
-        </a>
+    <!-- Mobile top bar: one clean row. The tools no longer live here as a
+         cut-off scroll strip — they moved to the fixed bottom tab bar below,
+         so nothing gets clipped and the current tool is always visible. -->
+    <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 md:hidden">
+      <a routerLink="/" class="flex items-center gap-2">
+        <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
+        <span class="text-md font-semibold">Nada Sai</span>
+      </a>
 
-        <button
-          type="button"
-          (click)="themes.toggle()"
-          [attr.aria-label]="i18n.t()['app.theme_switch']"
-          class="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-raised"
-        >
-          <app-icon [name]="themes.theme() === 'dark' ? 'sun' : 'moon'" [size]="16" />
-        </button>
-
-        <app-segmented
-          [options]="languages"
-          [value]="i18n.currentLang()"
-          (valueChange)="i18n.setLanguage($event)"
-          [ariaLabel]="i18n.t()['app.lang_switch']"
-        />
-      </div>
-
-      <div class="overflow-x-auto bg-rail px-3 py-2">
-        <app-tool-nav horizontal />
-      </div>
+      <app-segmented
+        class="ml-auto"
+        [options]="languages"
+        [value]="i18n.currentLang()"
+        (valueChange)="i18n.setLanguage($event)"
+        [ariaLabel]="i18n.t()['app.lang_switch']"
+      />
     </header>
 
     <app-current-file-bar />
 
-    <main class="flex-1 px-5 py-6 md:px-8 md:py-8">
+    <!-- Extra bottom padding on mobile so the last controls clear the tab bar. -->
+    <main class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
       <router-outlet />
     </main>
 
@@ -84,4 +63,32 @@
       </div>
     </footer>
   </div>
+
+  <!-- Mobile tab bar. Fixed to the bottom, shows every tool at once (icon +
+       one-word label), so the 5th tool is never hidden behind a scroll. -->
+  <nav
+    class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface
+           pb-[env(safe-area-inset-bottom)] md:hidden"
+    [attr.aria-label]="i18n.t()['nav.tools']"
+  >
+    @for (tool of tools; track tool.id) {
+      <a
+        [routerLink]="'/' + tool.path"
+        routerLinkActive
+        #rla="routerLinkActive"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+        class="flex flex-col items-center gap-1 px-1 py-2 text-2xs font-medium transition-colors"
+        [class.text-accent]="rla.isActive"
+        [class.text-muted]="!rla.isActive"
+      >
+        <span
+          [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+          class="text-[color:var(--tone-fg)]"
+        >
+          <app-icon [name]="tool.icon" [size]="20" />
+        </span>
+        <span class="max-w-full truncate">{{ i18n.t()[tool.shortKey] }}</span>
+      </a>
+    }
+  </nav>
 </div>
