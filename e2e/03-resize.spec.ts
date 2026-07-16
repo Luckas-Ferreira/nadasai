@@ -4,7 +4,7 @@ import { expectDownload, openApp, primary, upload } from './helpers';
 const width = (page: import('@playwright/test').Page) => page.getByRole('spinbutton').first();
 const height = (page: import('@playwright/test').Page) => page.getByRole('spinbutton').last();
 
-test.describe('Resize', () => {
+test.describe('Redimensionar', () => {
   test('hydrates the real dimensions and keeps the aspect ratio locked', async ({ page }) => {
     await openApp(page, '/resize');
     await upload(page);
@@ -24,8 +24,8 @@ test.describe('Resize', () => {
     await openApp(page, '/resize');
     await upload(page);
 
-    await page.getByRole('button', { name: 'Aspect ratio locked' }).click();
-    await expect(page.getByRole('button', { name: 'Aspect ratio unlocked' })).toHaveAttribute(
+    await page.getByRole('button', { name: 'Proporção travada' }).click();
+    await expect(page.getByRole('button', { name: 'Proporção livre' })).toHaveAttribute(
       'aria-pressed',
       'false',
     );
@@ -34,7 +34,7 @@ test.describe('Resize', () => {
     await width(page).blur();
     await expect(height(page)).toHaveValue('600');
 
-    await page.getByRole('button', { name: 'Aspect ratio unlocked' }).click();
+    await page.getByRole('button', { name: 'Proporção livre' }).click();
     await page.getByRole('button', { name: '1280', exact: true }).click();
     await expect(width(page)).toHaveValue('1280');
     await expect(height(page)).toHaveValue('960');
@@ -45,14 +45,14 @@ test.describe('Resize', () => {
     await upload(page);
 
     await page.getByRole('button', { name: '400', exact: true }).click();
-    await primary(page, 'Resize').click();
+    await primary(page, 'Redimensionar').click();
 
-    await expect(page.getByRole('button', { name: 'Download' })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole('img', { name: 'Result' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('img', { name: 'Resultado' })).toBeVisible();
 
     // Upscaling must work too — the old maxWidthOrHeight path silently no-opped.
     await page.getByRole('button', { name: '1920', exact: true }).click();
-    await primary(page, 'Resize').click();
+    await primary(page, 'Redimensionar').click();
     await expect(page.getByText('1920 × 1440')).toBeVisible();
 
     await expectDownload(page, /^photo-resized\.png$/);

@@ -5,16 +5,11 @@ export const PHOTO = join(__dirname, 'fixtures', 'assets', 'photo.png');
 export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 
 /**
- * The dictionary is picked from navigator.language on first load, so pin EN in
- * storage before the app boots — otherwise every text assertion here is a
- * coin-flip against the machine's locale.
+ * The app is Portuguese-only, so there is nothing to pin: the language no longer
+ * depends on the machine's locale or on storage, and these assertions are against
+ * the one dictionary users actually see.
  */
 export async function openApp(page: Page, path = '/'): Promise<void> {
-  // Only seeds the first load: overwriting on every navigation would undo the
-  // language the test just picked, and reloads would silently pass.
-  await page.addInitScript(() => {
-    if (!localStorage.getItem('imgwork.lang')) localStorage.setItem('imgwork.lang', 'en');
-  });
   await page.goto(path);
   await expect(page.getByRole('link', { name: 'Nada Sai' }).first()).toBeVisible();
 }
@@ -28,7 +23,7 @@ export async function upload(page: Page, file = PHOTO): Promise<void> {
 export async function expectDownload(page: Page, namePattern: RegExp): Promise<string> {
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Download' }).click(),
+    page.getByRole('button', { name: 'Baixar' }).click(),
   ]);
 
   const name = download.suggestedFilename();

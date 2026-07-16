@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { expectDownload, openApp, primary, upload } from './helpers';
 
 const rail = (page: import('@playwright/test').Page) =>
-  page.getByRole('navigation', { name: 'Tools' }).first();
+  page.getByRole('navigation', { name: 'Ferramentas' }).first();
 
 /**
  * The product is one claim: the file never leaves the machine. Everything else —
@@ -43,13 +43,13 @@ test.describe('Zero-upload, asserted from outside the app', () => {
 
     // Drive real work through two tools — a leak would happen here, not at rest.
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Compress' }).click();
-    await primary(page, 'Compress').click();
-    await page.getByRole('button', { name: 'Keep editing' }).click();
+    await rail(page).getByRole('link', { name: 'Comprimir' }).click();
+    await primary(page, 'Comprimir').click();
+    await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    await rail(page).getByRole('link', { name: 'Resize' }).click();
+    await rail(page).getByRole('link', { name: 'Redimensionar' }).click();
     await page.getByRole('button', { name: '400', exact: true }).click();
-    await primary(page, 'Resize').click();
+    await primary(page, 'Redimensionar').click();
     await expectDownload(page, /^photo-resized\.webp$/);
 
     expect(requests, 'no requests seen at all — the listener is not attached').toBeGreaterThan(0);
@@ -61,7 +61,7 @@ test.describe('Zero-upload, asserted from outside the app', () => {
     await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     const proof = page.locator('app-network-proof');
     await expect(proof).toContainText('0 bytes');
-    await expect(proof).toContainText('none');
+    await expect(proof).toContainText('nenhum');
   });
 
 });

@@ -17,7 +17,7 @@ import { expectDownload, openApp, primary, upload } from './helpers';
  */
 test.use({ baseURL: 'http://localhost:4300' });
 
-const rail = (page: Page) => page.getByRole('navigation', { name: 'Tools' }).first();
+const rail = (page: Page) => page.getByRole('navigation', { name: 'Ferramentas' }).first();
 
 /**
  * The worker registers with registerWhenStable, then prefetches every asset
@@ -38,11 +38,11 @@ test.describe('Offline', () => {
     await upload(page);
     await context.setOffline(true);
 
-    await expect(page.locator('app-network-proof')).toContainText('You are offline');
+    await expect(page.locator('app-network-proof')).toContainText('Você está sem internet');
 
     // Navigating here is the exact thing that used to hang: a lazy chunk.
-    await rail(page).getByRole('link', { name: 'Compress' }).click();
-    await primary(page, 'Compress').click();
+    await rail(page).getByRole('link', { name: 'Comprimir' }).click();
+    await primary(page, 'Comprimir').click();
     await expectDownload(page, /^photo-min\.webp$/);
   });
 
@@ -63,18 +63,18 @@ test.describe('Offline', () => {
 
     // Pass one, online: this is what pulls the model weights into the cache.
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Remove background' }).click();
-    await primary(page, 'Remove background').click();
+    await rail(page).getByRole('link', { name: 'Remover fundo' }).click();
+    await primary(page, 'Remover fundo').click();
     // The model is tens of MB, fetched before the first run can even start.
-    await page.getByRole('button', { name: 'Download' }).waitFor({ timeout: 300_000 });
+    await page.getByRole('button', { name: 'Baixar' }).waitFor({ timeout: 300_000 });
 
     await context.setOffline(true);
 
     // Pass two, offline: a fresh file, so the model genuinely runs again.
-    await page.getByRole('button', { name: 'Start over' }).click();
+    await page.getByRole('button', { name: 'Recomeçar' }).click();
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Remove background' }).click();
-    await primary(page, 'Remove background').click();
+    await rail(page).getByRole('link', { name: 'Remover fundo' }).click();
+    await primary(page, 'Remover fundo').click();
 
     await expectDownload(page, /^photo-nobg\.png$/);
   });
