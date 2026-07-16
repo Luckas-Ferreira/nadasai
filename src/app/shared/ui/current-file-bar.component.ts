@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Router } from '@angular/router';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { formatBytes } from '../../core/image/image-file.util';
 import { ImageStateService } from '../../core/services/image-state.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
+import { IconComponent } from './icon/icon.component';
 
 /**
  * The file currently flowing through the tool chain, with a thumbnail and the
@@ -16,7 +18,7 @@ import { ButtonDirective } from './button.directive';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [ObjectUrlScope],
-  imports: [ButtonDirective],
+  imports: [ButtonDirective, IconComponent],
   template: `
     @if (state.session(); as session) {
       <div class="flex items-center gap-3 border-b border-line bg-surface px-5 py-2.5 md:px-8">
@@ -39,7 +41,14 @@ import { ButtonDirective } from './button.directive';
           }
         </div>
 
-        <button appButton variant="ghost" size="sm" (click)="state.clear()">
+        @if (undoLabel(); as label) {
+          <button appButton variant="ghost" size="sm" class="shrink-0" (click)="undo()">
+            <app-icon name="undo" [size]="14" />
+            {{ label }}
+          </button>
+        }
+
+        <button appButton variant="ghost" size="sm" class="shrink-0" (click)="state.clear()">
           {{ i18n.t()['common.clear'] }}
         </button>
       </div>
@@ -48,6 +57,7 @@ import { ButtonDirective } from './button.directive';
 })
 export class CurrentFileBarComponent {
   private readonly urls = inject(ObjectUrlScope);
+  private readonly router = inject(Router);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
@@ -62,6 +72,29 @@ export class CurrentFileBarComponent {
   protected readonly steps = computed(() =>
     this.state.history().map((id) => this.i18n.t()[toolById(id).navKey]),
   );
+
+  /**
+   * "Undo Crop", not "Undo" — the button sits right next to the breadcrumb, so it
+   * should name the step it is about to remove from it. Null when the file is an
+   * untouched upload and there is nothing to step back to.
+   */
+  protected readonly undoLabel = computed(() => {
+    const tool = this.state.undoableTool();
+    return tool ? `${this.i18n.t()['common.undo_tool']} ${this.i18n.t()[toolById(tool).navKey]}` : null;
+  });
+
+  /**
+   * Undo, then go home.
+   *
+   * The navigation is not decoration: a tool reads its source file once, when it
+   * is constructed, so reverting the chain while one is open would leave it
+   * showing the old image with no way to notice. Going home rebuilds from the
+   * restored file — the same reason continueEdit() routes here after apply().
+   */
+  protected undo(): void {
+    this.state.undo();
+    void this.router.navigate(['/']);
+  }
 
   constructor() {
     effect(() => {
