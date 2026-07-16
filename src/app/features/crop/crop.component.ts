@@ -78,6 +78,27 @@ export class CropComponent implements OnDestroy {
     return blob ? formatBytes(blob.size) : null;
   });
 
+  /** The current selection, and the one the result on screen was cut from. */
+  private readonly boxKey = signal('');
+  private readonly ranBox = signal<string | null>(null);
+
+  /**
+   * Cropping the same box twice yields the same image, so the button goes once the
+   * result matches the selection — and comes straight back on the next drag, ratio,
+   * rotate or flip, which is how this tool is actually used.
+   */
+  protected readonly stale = computed(() => this.ranBox() !== this.boxKey());
+
+  /**
+   * The box lives in cropper.js's own DOM state, not in a signal, so its `crop`
+   * event is the only way to hear about it. getData(true) rounds to natural pixels:
+   * a window resize reflows the box on screen without changing what it selects, and
+   * that must not read as an edit.
+   */
+  private readonly syncBox = (): void => {
+    this.boxKey.set(JSON.stringify(this.cropper?.getData(true) ?? null));
+  };
+
   constructor() {
     const file = this.sourceFile();
     if (file) this.sourceUrl.set(this.urls.create(file));
@@ -96,6 +117,10 @@ export class CropComponent implements OnDestroy {
         autoCropArea: 0.9,
         responsive: true,
       });
+
+      // `crop` fires for every route the box can move by — dragging, zooming, and
+      // the ratio/rotate/flip/reset buttons all rewrite the same data.
+      element.addEventListener('crop', this.syncBox);
     });
   }
 
@@ -147,6 +172,7 @@ export class CropComponent implements OnDestroy {
     this.errorKey.set(null);
 
     try {
+      const box = this.boxKey();
       const canvas = this.cropper.getCroppedCanvas({
         imageSmoothingEnabled: true,
         imageSmoothingQuality: 'high',
@@ -159,6 +185,7 @@ export class CropComponent implements OnDestroy {
 
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+      this.ranBox.set(box);
     } catch (err) {
       console.error('Crop failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -193,6 +220,7 @@ export class CropComponent implements OnDestroy {
     this.sourceUrl.set(null);
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranBox.set(null);
     this.errorKey.set(null);
     this.ratio.set(null);
     this.state.clear();
@@ -202,6 +230,7 @@ export class CropComponent implements OnDestroy {
     this.urls.revoke(this.resultUrl());
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranBox.set(null);
   }
 
   private destroyCropper(): void {

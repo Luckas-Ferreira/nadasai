@@ -78,6 +78,24 @@ export class ConvertComponent {
     return blob ? formatBytes(blob.size) : null;
   });
 
+  /**
+   * Everything the encode reads. The backdrop only reaches the output for PDF, so
+   * it is left out otherwise — recolouring it while WEBP is selected changes
+   * nothing and must not offer a re-run.
+   */
+  private readonly settings = computed(() =>
+    this.format() === 'PDF' ? `PDF:${this.pdfBackground()}` : this.format(),
+  );
+
+  /** The settings the result on screen was encoded with; null while there is no result. */
+  private readonly ranSettings = signal<string | null>(null);
+
+  /**
+   * Picking a format already clears the result, so without this the button sat
+   * there re-encoding the same bytes on every press.
+   */
+  protected readonly stale = computed(() => this.ranSettings() !== this.settings());
+
   constructor() {
     const file = this.sourceFile();
     if (file) this.sourceUrl.set(this.urls.create(file));
@@ -110,9 +128,11 @@ export class ConvertComponent {
     this.errorKey.set(null);
 
     try {
+      const settings = this.settings();
       const blob = await this.encode(file);
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+      this.ranSettings.set(settings);
     } catch (err) {
       console.error('Conversion failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -163,6 +183,7 @@ export class ConvertComponent {
     this.sourceUrl.set(null);
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranSettings.set(null);
     this.errorKey.set(null);
     this.format.set('WEBP');
     this.state.clear();
@@ -172,5 +193,6 @@ export class ConvertComponent {
     this.urls.revoke(this.resultUrl());
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranSettings.set(null);
   }
 }

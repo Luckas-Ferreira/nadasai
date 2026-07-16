@@ -27,7 +27,7 @@ Tecnologia da Informação e Comunicação — Software como Serviço (SaaS), co
 
 ## 2. Problema e oportunidade de mercado  *(critério M)*
 
-Para executar uma tarefa banal — remover o fundo de uma foto, comprimir um arquivo pesado demais para um sistema, converter um formato, juntar duas páginas de um PDF — a pessoa recorre a ferramentas online gratuitas. **Todas elas funcionam do mesmo jeito: o arquivo é enviado para o servidor de um terceiro, processado lá e devolvido.**
+Para executar uma tarefa banal — remover o fundo de uma foto, comprimir um arquivo pesado demais para um sistema, converter um formato, juntar duas páginas de um PDF — a pessoa recorre às ferramentas online gratuitas que conhece — iLoveIMG, TinyWow, Adobe Express, Canva, remove.bg. **Todas funcionam do mesmo jeito: o arquivo é enviado para o servidor de um terceiro, processado lá e devolvido.**
 
 O usuário não percebe o que acabou de fazer. Mas quando esse arquivo é a foto de um RG, um laudo médico, a ficha de um funcionário, uma procuração ou o documento de um cliente, o que aconteceu foi **transferência de dado pessoal para um operador não contratado, frequentemente sediado fora do Brasil, sem contrato, sem base legal e sem registro** — uma violação direta da LGPD, cometida por quem só queria diminuir o tamanho de um arquivo.
 
@@ -35,9 +35,13 @@ Esse comportamento é diário e invisível em profissões que lidam com document
 
 O custo desse hábito deixou de ser hipotético. Em fevereiro de 2026 a ANPD foi **transformada em agência reguladora** (Lei nº 15.352/2026), com autonomia financeira, ampliação de quadro e poder de fiscalização reforçado. Em **junho de 2026 ela abriu 19 processos administrativos sancionadores — a maior leva da sua história** — e o seu Mapa de Temas Prioritários 2026-2027 elege justamente inteligência artificial, dados de saúde e dados de crianças e adolescentes. As sanções chegam a **2% do faturamento, limitadas a R$ 50 milhões por infração**. A fiscalização frouxa dos primeiros anos acabou.
 
-A oportunidade é o encontro dessas duas curvas: **uma necessidade cotidiana e universal (manipular arquivos) atendida hoje por uma arquitetura que se tornou um passivo jurídico.** Não existe, no mercado brasileiro, uma ferramenta de manipulação de arquivos que resolva o problema na raiz — eliminando o upload em vez de prometer, em política de privacidade, que "os arquivos são apagados em 1 hora". Promessa de exclusão exige confiança. Arquitetura que não envia nada dispensa confiança.
+A oportunidade é o encontro dessas duas curvas: **uma necessidade cotidiana e universal (manipular arquivos) atendida hoje por uma arquitetura que se tornou um passivo jurídico.** Nenhum dos produtos que esse profissional efetivamente usa resolve o problema na raiz — todos prometem, em política de privacidade, que "os arquivos são apagados em 1 hora", em vez de eliminar o upload. **Promessa de exclusão exige confiança. Arquitetura que não envia nada dispensa confiança.** Existem, é verdade, ferramentas que processam no navegador (seção 3), mas são utilitários avulsos de nicho técnico: não encadeiam tarefas, não falam ao profissional brasileiro e não entregam evidência de conformidade. **O upload continua sendo o padrão de fato de toda a categoria.**
 
-**Modelo de negócio:** freemium para o usuário individual (aquisição e prova de valor); assinatura B2B para escritórios e clínicas, com painel administrativo e relatório de conformidade; e licença corporativa/on-premise para órgãos públicos e empresas, instalável na própria intranet. Como o processamento roda na máquina do usuário, **o custo marginal de servidor por operação é praticamente zero** — a margem não se deteriora com escala, ao contrário de todo concorrente que processa em nuvem.
+**Modelo de negócio.** A monetização não vem do usuário gratuito e **não vem de publicidade** — anúncio é infraestrutura de rastreamento e contradiria a própria tese do produto (a arquitetura, aliás, o bloqueia tecnicamente: ver seção 3). O uso gratuito na web é **canal de aquisição e prova pública da tese**, não receita.
+
+A receita vem de quem **responde juridicamente pelo vazamento**: escritórios, clínicas, departamentos de RH e órgãos públicos, para quem a exposição chega a 2% do faturamento, limitada a R$ 50 milhões por infração. Esse comprador não compra software — **compra a capacidade de provar conformidade.** Daí as três linhas: **assinatura B2B** para escritórios e clínicas, com painel administrativo e relatório de conformidade; **licença on-premise** para empresas e governo, instalável na própria intranet; e **suporte, SLA e implantação**.
+
+Duas consequências que sustentam esse modelo. Primeiro, **o custo marginal de servidor por operação é praticamente zero** — a margem não se deteriora com escala, ao contrário de todo concorrente que processa em nuvem. Segundo, a defensabilidade **não depende de esconder código**: o cliente corporativo compra contrato, nota fiscal, responsabilidade formal e evidência auditável — nada disso se obtém copiando o produto. O licenciamento permissivo do motor de IA (seção 3) é o que torna essa venda juridicamente possível, e é uma porta fechada para a principal alternativa livre do mercado, distribuída sob AGPL.
 
 ---
 
@@ -51,19 +55,35 @@ O **Nada Sai** é uma plataforma de manipulação de arquivos construída sobre 
 
 **A aplicação está no ar e é pública: `https://nadasai.com`** — não é maquete nem vídeo, é o produto rodando, aberto a qualquer avaliador, sem cadastro. A própria página traz um **contador de rede ao vivo** que mede, no navegador do avaliador, quantos bytes do arquivo dele saíram para a rede: a resposta é **0 bytes, nenhum servidor**. A tese do projeto não é argumentada no formulário — ela é verificável em dez segundos, na máquina de quem está lendo.
 
-**O diferencial inovador está em três decisões de arquitetura, não em funcionalidade:**
+### O estado da arte — e o que ele deixa em aberto
 
-**1. Inteligência artificial executada no cliente.** A remoção de fundo é feita por um modelo de segmentação de imagem (IS-Net) que roda **na máquina do usuário**, sobre WebAssembly (motor ONNX Runtime). **A imagem do usuário nunca é transmitida** — nem para processamento, nem em momento algum. É a diferença essencial em relação a toda a concorrência (Adobe Express, Canva, iLoveIMG, TinyWow, remove.bg), que envia a imagem para GPUs em nuvem. Três decisões de engenharia sustentam essa garantia sem meia-medida:
+Processamento de imagem dentro do navegador não é novidade, e **não é isso que reivindicamos como inovação.** Ser preciso aqui é o que sustenta o resto do argumento:
 
-- **O próprio modelo é servido do nosso domínio, não de um CDN de terceiro.** Os pesos são baixados uma única vez e ficam em cache no navegador. Como não vêm de um servidor externo, nem mesmo o *download* do modelo revela a um terceiro que o usuário está usando a ferramenta — não há vazamento de IP nem de metadado de uso.
-- **Licenciamento permissivo (Apache-2.0 e MIT).** Tanto o modelo quanto o motor de execução são software livre de licença permissiva, sem cláusula de *copyleft*. Isso é o que permite licença comercial, assinatura B2B e instalação *on-premise* sem exigir a abertura do código do produto — condição direta do modelo de negócio.
-- **Funciona offline.** Depois do primeiro carregamento, a remoção de fundo roda com a internet desligada — o modelo já está em cache local (PWA). Isso é verificável ao vivo: basta desligar a conexão e continuar removendo fundos.
+- O **Squoosh**, do Google Chrome Labs, comprime, converte e redimensiona inteiramente no navegador via WebAssembly, é PWA e funciona offline — desde 2018.
+- O **@imgly/background-removal** e o **bg-remove** (Transformers.js) fazem remoção de fundo por IA rodando no cliente.
 
-Fazer IA de visão computacional rodar com desempenho aceitável no navegador do usuário final, sem depender de infraestrutura de terceiros, é o núcleo técnico do projeto.
+Essas ferramentas provam que a tecnologia de base existe. Elas também mostram, com clareza, **o que ninguém fez com ela** — e é exatamente aí que o Nada Sai se coloca:
 
-**2. Conformidade por arquitetura, não por promessa.** Os concorrentes tratam privacidade como cláusula contratual ("excluímos seu arquivo em 1 hora"). O Nada Sai a trata como propriedade do sistema: **não há como vazar, sequestrar, subpoenar ou revender um arquivo que nunca foi enviado.** Isso materializa o princípio de *privacy by design* previsto no art. 46 da LGPD e elimina, para o usuário profissional, toda a cadeia de risco — não há operador, não há transferência internacional, não há necessidade de contrato de tratamento de dados.
+- **Toda ferramenta local existente é de propósito único.** O Squoosh comprime. O bg-remove tira fundo. **Nenhuma encadeia com a outra.** Para executar duas tarefas seguidas, o usuário exporta de uma e importa na outra, à mão.
+- **Todo produto que encadeia tarefas é em nuvem.** Os hubs que o profissional realmente usa (iLoveIMG, TinyWow, 123apps, Adobe Express, Canva) oferecem dezenas de ferramentas integradas — e **todos processam no servidor.**
+- **O cruzamento entre os dois está vazio:** um fluxo de trabalho *integrado e encadeado* que nunca envia o arquivo. É o espaço que este projeto ocupa.
+- E **nenhuma delas é um produto de conformidade.** O Squoosh é ferramenta de desenvolvedor feita para desenvolvedor; não sabe que a LGPD existe, não fala português, não gera evidência de conformidade e não se instala na intranet de um escritório. Processamento local, ali, é detalhe de implementação. Aqui, é a proposta de valor.
 
-**3. Custo marginal zero e operação offline.** Sem backend, o sistema funciona **mesmo sem conexão** após o primeiro carregamento (PWA) — **inclusive a remoção de fundo por IA**, já que o modelo fica em cache local — e não tem custo de infraestrutura por uso. Isso viabiliza tanto o modelo gratuito quanto o uso em regiões com conectividade instável e em ambientes de rede restrita — hospitais, escolas públicas, órgãos de governo.
+### O diferencial inovador está em quatro decisões de arquitetura, não em funcionalidade
+
+**1. A cadeia local — o núcleo da inovação.** O resultado de cada ferramenta alimenta a seguinte **sem nunca tocar a rede e sem nunca voltar ao disco**: remover o fundo, cortar, redimensionar e comprimir é uma sequência contínua, com um único estado de sessão em memória, do qual o usuário sai só quando baixa o arquivo final. É o que os hubs em nuvem entregam **ao custo de subir o documento a cada etapa** — cinco tarefas, cinco uploads, cinco operadores diferentes — e o que as ferramentas locais não entregam de jeito nenhum. **Fazer a cadeia inteira caber no navegador é o problema técnico que o projeto resolve.**
+
+**2. Inteligência artificial executada no cliente, sem meia-medida.** A remoção de fundo usa um modelo de segmentação (IS-Net) rodando na máquina do usuário sobre WebAssembly (ONNX Runtime): **a imagem nunca é transmitida.** Frente às alternativas locais que já existem, duas decisões nos separam — e ambas foram tomadas por causa do modelo de negócio, não por gosto:
+
+- **Os pesos são servidos do nosso próprio domínio, não de um CDN de terceiro.** A alternativa mais conhecida busca o modelo num CDN externo em tempo de execução — o que significa que, mesmo processando localmente, **o download revela a um terceiro o IP do usuário e o metadado de que ele está usando a ferramenta.** Aqui não há esse vazamento: o arquivo não sai, e a informação de uso também não.
+- **Licenciamento permissivo (Apache-2.0 e MIT), deliberadamente.** A alternativa mais madura do mercado é **AGPL-3.0** — copyleft que alcança produto vendido B2B e instalado on-premise. Nossa escolha de motor e modelo é o que **permite licença comercial e instalação na intranet do cliente sem abrir o código do produto.** É pré-condição direta do modelo de negócio, e é uma porta que o concorrente open source não consegue abrir.
+- **Funciona offline.** Após o primeiro carregamento o modelo fica em cache (PWA) e a remoção de fundo roda com a internet desligada — verificável ao vivo.
+
+**3. Conformidade por arquitetura, não por promessa — a ponto de recusar o próprio rastreador.** Os concorrentes em nuvem tratam privacidade como cláusula ("excluímos seu arquivo em 1 hora"). Aqui ela é propriedade do sistema: **não há como vazar, sequestrar, requisitar judicialmente ou revender um arquivo que nunca foi enviado.** Isso materializa o *privacy by design* do art. 46 da LGPD e elimina a cadeia de risco inteira — não há operador, não há transferência internacional, não há contrato de tratamento a firmar.
+
+E a garantia é estrutural, não editorial: a aplicação exige `Cross-Origin-Opener-Policy` e `Cross-Origin-Embedder-Policy` para habilitar o paralelismo da IA, e **esses cabeçalhos bloqueiam, no nível do navegador, qualquer script de terceiro que não seja explicitamente compatível — incluindo toda rede de anúncios e de analytics.** O sistema é tecnicamente incapaz de hospedar um rastreador sem abrir mão do próprio desempenho. A privacidade aqui não depende de boa conduta futura da empresa: **está travada na arquitetura.**
+
+**4. Custo marginal zero.** Sem backend, não há custo de infraestrutura por operação — a margem não se deteriora com escala, ao contrário de todo concorrente que processa em nuvem. Isso viabiliza ao mesmo tempo o acesso gratuito e o uso em rede instável ou restrita: hospitais, escolas públicas, órgãos de governo.
 
 **Estado atual (TRL):** protótipo funcional validado em ambiente relevante — **TRL 6**. As cinco ferramentas do módulo de imagem estão implementadas, com suíte automatizada de testes (unitários e ponta-a-ponta) cobrindo todo o fluxo.
 
@@ -90,7 +110,7 @@ A equipe é formada por dois profissionais de Ciência da Computação da **Univ
 > Neste projeto, é responsável pela concepção e implementação integral da arquitetura zero-upload: pipeline de processamento em WebAssembly/Canvas, integração do modelo de IA de segmentação executado no cliente, e a suíte automatizada de testes (unitários e ponta-a-ponta) que cobre todo o fluxo. Portfólio: `jluckas.com.br`.
 > **Previsão de dedicação: integral — 40h semanais.**
 
-> **Marcelly Beatriz — Ciência da Computação (UFAL) — Design de produto (UX/UI).**
+> **Marcelly Beatriz dos Santos Silva — Ciência da Computação (UFAL) — Design de produto (UX/UI).**
 > Formada em Ciência da Computação pela UFAL, com trajetória concentrada em experiência do usuário, interface e desenvolvimento front-end. A combinação é o que a torna eficaz aqui: **desenha a partir de dentro da engenharia** — conhece o custo de implementação do que propõe, e por isso o design chega ao código sem virar outra coisa no caminho. Soma a isso a atuação em visão de produto e condução estratégica, definindo não só como a tela se parece, mas o que o produto deve ser.
 > Neste projeto, é responsável pelo design da experiência e da interface do Nada Sai. Sua função é central e não cosmética: o produto compete com ferramentas gratuitas de uso imediato, e **a garantia de privacidade só gera valor se o usuário a percebe sem precisar entender a arquitetura.** Traduzir "o arquivo não sai do seu computador" em algo evidente na tela é um problema de design — e a resposta encontrada é o contador de rede ao vivo na página inicial, que não *explica* a privacidade, e sim a **demonstra**, medindo diante do usuário os 0 bytes que saíram da máquina dele. É design resolvendo o problema central do produto, não decorando a superfície.
 > **Previsão de dedicação: integral — 40h semanais.**
@@ -140,14 +160,14 @@ Item 4.2.1(f): **"Envio OPCIONAL de um documento PDF que ilustre ou apoie a apre
 
 - [x] ~~Registrar `nadasai.com`~~ — feito. **`nadasai.com.br` ainda não resolve** (opcional: o `.com` cobre o formulário)
 - [x] ~~Colocar a aplicação no ar no domínio e citar o link no formulário~~ — no ar em `https://nadasai.com`, link citado na seção 3
-- [ ] **PENDENTE — Deploy do `public/_headers` (COOP/COEP).** Verificado ao vivo em 16/07: `crossOriginIsolated: false` e `SharedArrayBuffer` indisponível — a versão no ar roda a IA **single-threaded**, usando 1 núcleo de 16. Arquivo já criado e buildado; falta commit + push (o Cloudflare Pages rebuilda sozinho)
-- [ ] **Marcelly cadastrada no Sistema Centelha AL** (exigência do item 3.1.3(e) — sem isso ela não pode constar na equipe)
-- [ ] José Lucas submeter como **proponente/coordenador** (não pode ser trocado depois)
+- [x] ~~Deploy do `public/_headers` (COOP/COEP)~~ — **resolvido e verificado ao vivo em 16/07.** `curl -I https://nadasai.com` devolve `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`, então `SharedArrayBuffer` existe e a IA roda multithread no ar. Commitado em `4ff1f5e` e já publicado
+- [ ] **Marcelly Beatriz dos Santos Silva cadastrada no Sistema Centelha AL** (exigência do item 3.1.3(e) — sem isso ela não pode constar na equipe). **Este é o único bloqueio real da submissão.**
+- [ ] José Lucas Ferreira dos Santos submeter como **proponente/coordenador** (não pode ser trocado depois)
 - [x] ~~Preencher a **previsão de dedicação semanal** de cada membro~~ — ambos com dedicação integral (40h)
 - [x] ~~Decidir sobre um **terceiro membro**~~ — decidido: **submeter com dois.** Ciente de que a Fase 2 dá peso 2 ao plano de negócios e nota < 2 elimina
-- [ ] Comprovante de residência em Alagoas atualizado (item 3.1.1(d) — obrigatório)
-- [ ] Confirmar que não foi sócio de empresa contratada no Centelha 1 ou 2 **nem em qualquer edição do Programa Tecnova** (item 3.1.1(g) — o Tecnova é fácil de esquecer e desclassifica igual)
-- [ ] **VERIFICAR — item 3.1.1(h): "Não ser sócio de outras empresas de atividade afim à proposta."** José Lucas é sócio/fundador do IniPort. Gestão de transporte universitário e processamento local de arquivos são atividades distintas, então a leitura provável é que não há conflito — mas quem decide isso é a FAPEAL, não nós. **Se houver qualquer dúvida, pergunte à FAPEAL antes de submeter**, porque isso é critério de elegibilidade, não de nota: não custa pontos, elimina.
+- [x] ~~Comprovante de residência em Alagoas atualizado~~ — **não é pendência de hoje.** O item 3.1.1(d) exige o comprovante, mas o item 14.1 fixa *quando*: *"Após a publicação do resultado final, para contratação dos projetos aprovados"*. Nada de documento se anexa na Fase 1 — o formulário é só texto (item 4.2.1). Providencie antes da contratação, não antes de submeter
+- [ ] Confirmar que não foi sócio de empresa contratada no Centelha 1 ou 2 **nem em qualquer edição do Programa Tecnova** (item 3.1.1(g) — o Tecnova é fácil de esquecer e desclassifica igual). Atenção à palavra **"contratada"**: ter *participado* não impede; ter sido sócio de empresa que foi *contratada* impede
+- [ ] **VERIFICAR — item 3.1.1(h): "Não ser sócio de outras empresas de atividade afim à proposta."** José Lucas é sócio/fundador do IniPort. Gestão de transporte universitário e processamento local de arquivos são atividades distintas, então a leitura provável é que não há conflito — mas quem decide isso é a FAPEAL, não nós. A **declaração** só é exigida *"caso a proposta seja aprovada"* (item 3.1.1(h) + 14.1), então **isto não trava a submissão de amanhã** — mas é critério de elegibilidade, não de nota: não custa pontos, elimina. Submeta agora e pergunte à FAPEAL em paralelo; não use a dúvida como motivo para atrasar o envio
 - [ ] **Se aprovado**, será preciso constituir empresa com sede em Alagoas (item 3.1.1(a)). Empresa já existente só serve se constituída após 28/05/2025 (item 3.1.2(a)) — o IniPort provavelmente não se enquadra, então o caminho é abrir uma nova. MEI e Empresário Individual **não são aceitos** (item 3.1.2.2)
 - [x] ~~Preencher todos os **[PREENCHER]** restantes~~ — nenhum restante
 - [ ] Gravar o vídeo pitch (YouTube "Não listado"/"Público" ou Vimeo compartilhado — item 4.2.1(e))
@@ -162,6 +182,10 @@ Não há uma linha dizendo que a proposta é "reunir várias ferramentas em um s
 A distinção que o texto sustenta o tempo todo:
 
 - Um **hub** se define pela **lista de ferramentas**. Cresce somando itens. Qualquer um copia.
-- Uma **plataforma** se define por uma **restrição que nunca viola**. Cresce aplicando a mesma restrição a novos formatos. Copiar exige refazer a arquitetura inteira.
+- Uma **plataforma** se define por uma **restrição que nunca viola**. Cresce aplicando a mesma restrição a novos formatos.
 
 Por isso a amplitude (imagem → PDF → documento → áudio) aparece só como **consequência** da arquitetura, nunca como argumento de venda. O argumento é um só, e é o nome do projeto: **nada sai.**
+
+**Também não está escrito que somos os únicos a processar no navegador** — não somos, e afirmar isso seria falso de um jeito que um avaliador técnico verifica em trinta segundos (Squoosh, imgly, bg-remove). O texto nomeia essas ferramentas de propósito único e sustenta a distinção real: **elas não encadeiam, e os produtos que encadeiam são todos em nuvem.** Reivindicar o que é verificável custa menos que reivindicar o máximo e perder credibilidade no critério de peso 2.
+
+**E não está escrito que o moat é o código.** Não é — um produto client-side entrega a implementação a quem abrir o DevTools, e o Squoosh é open source sem que isso tenha aberto espaço para concorrente. A defensabilidade é **contratual e regulatória**: licença permissiva que viabiliza on-premise (fechada para a alternativa AGPL), somada a contrato, responsabilidade formal e evidência auditável — que é o que o comprador B2B realmente adquire e o que copiar código não entrega.

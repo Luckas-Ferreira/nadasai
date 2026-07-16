@@ -95,7 +95,7 @@
       </app-panel>
 
       <app-action-bar
-        [primaryLabel]="i18n.t()['resize.btn']"
+        [primaryLabel]="stale() ? i18n.t()['resize.btn'] : null"
         [primaryDisabled]="!canRun()"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"

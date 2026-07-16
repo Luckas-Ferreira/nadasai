@@ -71,6 +71,18 @@ export class ResizeComponent {
     () => this.width() > 0 && this.height() > 0 && !!this.sourceFile(),
   );
 
+  /** The dimensions the result on screen was rendered at; null while there is no result. */
+  private readonly ranDimensions = signal<string | null>(null);
+
+  /**
+   * Width and height are the only inputs to the run, so resizing to the size that
+   * is already on screen just repeats it. The button returns as soon as a field
+   * or a preset changes the numbers.
+   */
+  protected readonly stale = computed(() => this.ranDimensions() !== this.dimensions());
+
+  private readonly dimensions = computed(() => `${this.width()}x${this.height()}`);
+
   constructor() {
     const file = this.sourceFile();
     if (file) void this.hydrate(file);
@@ -146,9 +158,11 @@ export class ResizeComponent {
     this.errorKey.set(null);
 
     try {
+      const dimensions = this.dimensions();
       const blob = await resizeImage(file, { width: this.width(), height: this.height() });
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+      this.ranDimensions.set(dimensions);
     } catch (err) {
       console.error('Resize failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -186,6 +200,7 @@ export class ResizeComponent {
     this.height.set(0);
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranDimensions.set(null);
     this.errorKey.set(null);
     this.state.clear();
   }
@@ -194,6 +209,7 @@ export class ResizeComponent {
     this.urls.revoke(this.resultUrl());
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranDimensions.set(null);
   }
 
   private clamp(value: number): number {

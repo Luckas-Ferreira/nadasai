@@ -51,6 +51,16 @@ export class CompressComponent {
   /** Maps straight onto WebP encoder quality. No guesswork about target size. */
   protected readonly quality = signal(75);
 
+  /** The quality the result on screen was encoded at; null while there is no result. */
+  private readonly ranQuality = signal<number | null>(null);
+
+  /**
+   * Quality is the only input to the run, so re-encoding at the quality already
+   * used just reproduces the same file. The button returns as soon as the slider
+   * moves — that is what it is for.
+   */
+  protected readonly stale = computed(() => this.ranQuality() !== this.quality());
+
   protected readonly sourceFile = this.state.currentFile;
 
   protected readonly originalSize = computed(() => {
@@ -100,9 +110,11 @@ export class CompressComponent {
     this.errorKey.set(null);
 
     try {
-      const blob = await compressImage(file, this.quality() / 100);
+      const quality = this.quality();
+      const blob = await compressImage(file, quality / 100);
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
+      this.ranQuality.set(quality);
     } catch (err) {
       console.error('Compression failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -136,6 +148,7 @@ export class CompressComponent {
     this.sourceUrl.set(null);
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranQuality.set(null);
     this.errorKey.set(null);
     this.state.clear();
   }
@@ -144,5 +157,6 @@ export class CompressComponent {
     this.urls.revoke(this.resultUrl());
     this.resultBlob.set(null);
     this.resultUrl.set(null);
+    this.ranQuality.set(null);
   }
 }

@@ -8,13 +8,23 @@
   <div stage>
     @if (!sourceUrl()) {
       <app-dropzone (fileSelected)="onFile($event)" />
-    } @else if (cutoutUrl() && isTransparent()) {
-      <app-compare-slider [before]="sourceUrl()!" [after]="cutoutUrl()!" checkerboard />
+    } @else if (editing() && cutoutBlob() && sourceFile()) {
+      <app-cutout-brush
+        [cutout]="cutoutBlob()!"
+        [original]="sourceFile()!"
+        [mode]="brushMode()"
+        [brushSize]="brushSize()"
+        [background]="isTransparent() ? null : backdrop()"
+      />
     } @else if (cutoutUrl()) {
-      <app-preview-surface
-        [src]="cutoutUrl()"
-        [background]="backdrop()"
-        [alt]="i18n.t()['common.result']"
+      <!-- One element for every backdrop, transparent included. Splitting it in two
+           remounted the reveal on each swatch, replaying the wipe: the animation is
+           the payoff of the run, not of picking a colour. -->
+      <app-cutout-reveal
+        [before]="sourceUrl()!"
+        [after]="cutoutUrl()!"
+        [background]="isTransparent() ? null : backdrop()"
+        [animate]="!wipePlayed()"
       />
     } @else {
       <app-preview-surface
@@ -28,7 +38,54 @@
   </div>
 
   <div panel class="flex flex-col gap-4">
-    @if (sourceUrl()) {
+    @if (editing()) {
+      <!-- Retouch takes over the panel while it is on. The backdrop swatches and the
+           export buttons act on a cutout that is still being painted, so offering
+           them here would only ask which version they meant. -->
+      <app-panel [heading]="i18n.t()['bg.retouch']">
+        <p class="mb-3 text-xs text-faint">{{ i18n.t()['bg.retouch_hint'] }}</p>
+
+        <app-segmented
+          [options]="brushModes()"
+          [(value)]="brushMode"
+          [columns]="2"
+          [ariaLabel]="i18n.t()['bg.retouch']"
+        />
+
+        <div class="mt-4 border-t border-line pt-3">
+          <div class="flex items-baseline justify-between">
+            <span class="text-sm text-muted">{{ i18n.t()['bg.brush_size'] }}</span>
+            <span class="font-mono text-sm text-text tabular">{{ brushSize() }} px</span>
+          </div>
+
+          <input
+            type="range"
+            min="8"
+            max="120"
+            step="4"
+            [ngModel]="brushSize()"
+            (ngModelChange)="brushSize.set($event)"
+            class="mt-2.5 w-full"
+            [attr.aria-label]="i18n.t()['bg.brush_size']"
+          />
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-1.5 border-t border-line pt-3">
+          <button appButton variant="ghost" size="sm" [disabled]="!brush()?.canUndo()" (click)="brush()?.undo()">
+            <app-icon name="undo" [size]="14" />
+            {{ i18n.t()['bg.undo_stroke'] }}
+          </button>
+
+          <button appButton variant="ghost" size="sm" [disabled]="!brush()?.canUndo()" (click)="brush()?.discard()">
+            {{ i18n.t()['bg.discard_strokes'] }}
+          </button>
+        </div>
+      </app-panel>
+
+      <button appButton variant="primary" size="lg" block (click)="finishRetouch()">
+        {{ i18n.t()['bg.done'] }}
+      </button>
+    } @else if (sourceUrl()) {
       @if (cutoutUrl()) {
         <app-panel [heading]="i18n.t()['bg.bg_color']">
           <div class="flex flex-wrap gap-2">
@@ -47,11 +104,20 @@
               ></button>
             }
           </div>
+
+          <!-- Sits with the backdrop rather than in the action bar: both are things
+               you do to a finished cutout, and neither produces one. -->
+          <div class="mt-4 border-t border-line pt-3">
+            <button appButton variant="secondary" size="sm" block (click)="startRetouch()">
+              <app-icon name="brush" [size]="14" />
+              {{ i18n.t()['bg.retouch'] }}
+            </button>
+          </div>
         </app-panel>
       }
 
       <app-action-bar
-        [primaryLabel]="i18n.t()['bg.btn']"
+        [primaryLabel]="stale() ? i18n.t()['bg.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!cutoutUrl()"
         [canContinue]="!!cutoutUrl()"

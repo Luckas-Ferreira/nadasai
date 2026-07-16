@@ -287,4 +287,34 @@
   .cropper-dashed {
     border-color: rgb(255 255 255 / 0.28);
   }
+
+  /* The cutout reveal (app-cutout-reveal).
+
+     The wipe is the payoff of the whole tool, so it earns real motion where the
+     rest of the app has almost none. It runs ONCE, on arrival, and settles on the
+     result — it is not a loop and not a toy: a background that keeps flashing back
+     is a background you cannot judge the edges of.
+
+     The global prefers-reduced-motion rule above collapses these to 0.01ms, which
+     lands on the end state — the cutout — and is exactly right. Nothing here may
+     encode meaning in the motion alone. */
+  @keyframes cutout-wipe {
+    from { clip-path: inset(0 0 0 0); }
+    to { clip-path: inset(0 0 0 100%); }
+  }
+
+  @keyframes cutout-scan {
+    from { left: 0%; opacity: 0; }
+    12% { opacity: 1; }
+    88% { opacity: 1; }
+    to { left: 100%; opacity: 0; }
+  }
+
+  .cutout-wipe {
+    animation: cutout-wipe 1100ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  .cutout-scan {
+    animation: cutout-scan 1100ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
 }

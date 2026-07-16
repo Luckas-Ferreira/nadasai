@@ -64,7 +64,7 @@
       }
 
       <app-action-bar
-        [primaryLabel]="i18n.t()['crop.btn']"
+        [primaryLabel]="stale() ? i18n.t()['crop.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
         [canContinue]="!!resultUrl()"

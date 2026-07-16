@@ -59,7 +59,7 @@
       </app-panel>
 
       <app-action-bar
-        [primaryLabel]="i18n.t()['convert.btn']"
+        [primaryLabel]="stale() ? i18n.t()['convert.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"
         [canContinue]="!!resultBlob() && !isTerminal()"
