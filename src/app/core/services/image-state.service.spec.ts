@@ -69,6 +69,73 @@ describe('ImageStateService', () => {
     expect(state.history()).toEqual(['remove-bg', 'compress']);
   });
 
+  /**
+   * The scenario undo exists for: remove the background, resize, crop — then
+   * realise three steps later that the crop was wrong. Before this, the only way
+   * back was Start over and re-uploading the original.
+   */
+  it('steps back through a chain, restoring the exact bytes of each step', () => {
+    state.load(pngFile('photo.png'));
+    const original = state.currentFile();
+
+    state.apply('remove-bg', new Blob([new Uint8Array(3)], { type: 'image/png' }), 'nobg', 'png');
+    const afterNoBg = state.currentFile();
+
+    state.apply('resize', new Blob([new Uint8Array(4)], { type: 'image/png' }), 'resized', 'png');
+    const afterResize = state.currentFile();
+
+    state.apply('crop', new Blob([new Uint8Array(5)], { type: 'image/png' }), 'crop', 'png');
+    expect(state.history()).toEqual(['remove-bg', 'resize', 'crop']);
+
+    // The crop was bad: drop it, and the resize result must come back untouched.
+    state.undo();
+    expect(state.currentFile()).toBe(afterResize);
+    expect(state.history()).toEqual(['remove-bg', 'resize']);
+
+    state.undo();
+    expect(state.currentFile()).toBe(afterNoBg);
+
+    // All the way back to the untouched upload.
+    state.undo();
+    expect(state.currentFile()).toBe(original);
+    expect(state.history()).toEqual([]);
+  });
+
+  it('reports which tool undo would take back', () => {
+    expect(state.undoableTool()).toBeNull();
+
+    state.load(pngFile());
+    expect(state.undoableTool()).toBeNull();
+
+    state.apply('crop', new Blob([new Uint8Array(2)], { type: 'image/png' }), 'crop', 'png');
+    expect(state.undoableTool()).toBe('crop');
+
+    state.undo();
+    expect(state.undoableTool()).toBeNull();
+  });
+
+  it('undo on an untouched upload is a no-op, not a wipe', () => {
+    state.load(pngFile());
+    const file = state.currentFile();
+
+    state.undo();
+    state.undo();
+
+    expect(state.currentFile()).toBe(file);
+    expect(state.history()).toEqual([]);
+  });
+
+  it('undoing then applying again does not resurrect the dropped step', () => {
+    state.load(pngFile());
+    state.apply('crop', new Blob([new Uint8Array(2)], { type: 'image/png' }), 'crop', 'png');
+    state.undo();
+    state.apply('resize', new Blob([new Uint8Array(3)], { type: 'image/png' }), 'resized', 'png');
+
+    expect(state.history()).toEqual(['resize']);
+    // And the name still derives from the original, not from the undone crop.
+    expect(state.currentFile()?.name).toBe('photo-resized.png');
+  });
+
   it('clears back to empty', () => {
     state.load(pngFile());
     state.clear();

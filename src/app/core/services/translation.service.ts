@@ -75,6 +75,9 @@ const EN = {
   'common.download': 'Download',
   'common.continue': 'Keep editing',
   'common.reset': 'Start over',
+  'common.undo': 'Undo',
+  /** Suffixed with the tool name, e.g. "Undo Crop". */
+  'common.undo_tool': 'Undo',
   'common.clear': 'Clear',
   'common.dismiss': 'Dismiss',
   'common.original': 'Original',
@@ -206,6 +209,8 @@ const PT: Record<TranslationKey, string> = {
   'common.download': 'Baixar',
   'common.continue': 'Continuar editando',
   'common.reset': 'Recomeçar',
+  'common.undo': 'Desfazer',
+  'common.undo_tool': 'Desfazer',
   'common.clear': 'Limpar',
   'common.dismiss': 'Dispensar',
   'common.original': 'Original',

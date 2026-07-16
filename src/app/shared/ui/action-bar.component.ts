@@ -37,25 +37,44 @@ import { IconComponent } from './icon/icon.component';
         </button>
       }
 
+      <!-- Using the result: side by side, because they are alternatives to each
+           other, not a sequence. -->
       @if (canDownload()) {
-        <button appButton variant="secondary" size="lg" block (click)="download.emit()">
-          <app-icon name="download" [size]="16" />
-          {{ i18n.t()['common.download'] }}
-        </button>
-
-        @if (canContinue()) {
-          <button appButton variant="ghost" block (click)="continueEdit.emit()">
-            <app-icon name="arrowRight" [size]="15" />
-            {{ i18n.t()['common.continue'] }}
+        <div class="flex gap-2">
+          <button appButton variant="secondary" size="lg" class="flex-1" (click)="download.emit()">
+            <app-icon name="download" [size]="16" />
+            {{ i18n.t()['common.download'] }}
           </button>
-        }
+
+          @if (canContinue()) {
+            <!-- No icon here: the label is the longest of the two and the arrow
+                 pushed it onto a second line at half width. -->
+            <button
+              appButton
+              variant="secondary"
+              size="lg"
+              class="flex-1 whitespace-nowrap"
+              (click)="continueEdit.emit()"
+            >
+              {{ i18n.t()['common.continue'] }}
+            </button>
+          }
+        </div>
 
         <p class="mt-0.5 text-center text-xs text-faint">{{ i18n.t()['common.download_hint'] }}</p>
       }
 
-      <button appButton variant="ghost" size="sm" block (click)="reset.emit()">
-        {{ i18n.t()['common.reset'] }}
-      </button>
+      <!-- Getting out of trouble: one quiet row, away from the doing.
+           Undo is deliberately NOT here — it lives in the file bar, which is on
+           screen everywhere. A tool reads its source once, on construction, so
+           undoing from inside one would swap the file underneath a view that
+           never re-reads it; and the moment you actually want undo, you are back
+           on the home page, where no action bar exists. -->
+      <div class="mt-1 flex justify-center border-t border-line pt-2">
+        <button appButton variant="ghost" size="sm" (click)="reset.emit()">
+          {{ i18n.t()['common.reset'] }}
+        </button>
+      </div>
     </div>
   `,
 })
