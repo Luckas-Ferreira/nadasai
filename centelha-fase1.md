@@ -43,7 +43,9 @@ O **Nada Sai** é uma plataforma de manipulação de arquivos construída sobre 
 
 **Essa restrição — e não uma lista de funcionalidades — é o produto.** Ela independe do tipo de arquivo, e é por isso que a plataforma se estende sem mudar de tese.
 
-**Módulo já implementado (imagem).** Existe hoje um protótipo funcional com cinco ferramentas encadeáveis — remoção de fundo, corte, compressão, conversão de formato e redimensionamento — em que o resultado de uma alimenta a seguinte sem que o arquivo saia da máquina em nenhum momento da cadeia. [PREENCHER: link público, se já estiver no ar — muda a percepção de maturidade.]
+**Módulo já implementado (imagem).** Existe hoje um protótipo funcional com cinco ferramentas encadeáveis — remoção de fundo, corte, compressão, conversão de formato e redimensionamento — em que o resultado de uma alimenta a seguinte sem que o arquivo saia da máquina em nenhum momento da cadeia.
+
+**A aplicação está no ar e é pública: `https://nadasai.com`** — não é maquete nem vídeo, é o produto rodando, aberto a qualquer avaliador, sem cadastro. A própria página traz um **contador de rede ao vivo** que mede, no navegador do avaliador, quantos bytes do arquivo dele saíram para a rede: a resposta é **0 bytes, nenhum servidor**. A tese do projeto não é argumentada no formulário — ela é verificável em dez segundos, na máquina de quem está lendo.
 
 **O diferencial inovador está em três decisões de arquitetura, não em funcionalidade:**
 
@@ -80,14 +82,14 @@ Fazer IA de visão computacional rodar com desempenho aceitável no navegador do
 A equipe é formada por dois profissionais de Ciência da Computação da **Universidade Federal de Alagoas**, com histórico comprovado de levar software ao ar e mantê-lo em produção — inclusive em cliente público.
 
 > **José Lucas Ferreira dos Santos — Proponente e coordenador — Ciência da Computação (UFAL) — Arquitetura e desenvolvimento.**
-> Desenvolvedor full-stack com [PREENCHER: X] anos de experiência. É o autor do **IniPort** (`iniport.com.br`), plataforma de gestão de transporte universitário intermunicipal que integra prefeituras, motoristas e estudantes em um único sistema — com emissão de carteira digital, rastreamento em tempo real, controle de lotação e gestão de rotas. O IniPort é **vencedor do Startup Nordeste Alagoas** e opera hoje atendendo administração pública municipal, o que demonstra capacidade de entregar sistema em produção, com usuário real e cliente institucional — e não apenas protótipo.
+> Desenvolvedor full-stack com **5 anos de experiência** no desenvolvimento de soluções tecnológicas. É o fundador e autor do **IniPort** (`iniport.com.br`), startup e plataforma de gestão de transporte universitário intermunicipal que integra prefeituras, motoristas e estudantes em um único sistema — com emissão de carteira digital, rastreamento em tempo real, controle de lotação e gestão de rotas. O IniPort é **vencedor do Startup Nordeste Alagoas** e opera hoje atendendo administração pública municipal, o que demonstra capacidade de entregar sistema em produção, com usuário real e cliente institucional — e não apenas protótipo. Ou seja: não é a primeira vez que tira um produto do papel e o mantém no ar — já o fez, com cliente público, e o produto sobreviveu.
 > Neste projeto, é responsável pela concepção e implementação integral da arquitetura zero-upload: pipeline de processamento em WebAssembly/Canvas, integração do modelo de IA de segmentação executado no cliente, e a suíte automatizada de testes (unitários e ponta-a-ponta) que cobre todo o fluxo. Portfólio: `jluckas.com.br`.
-> [PREENCHER: previsão de dedicação — o edital exige, no item 3.1.3(c), a função efetiva **e** a previsão de dedicação de cada membro. Ex.: 20h semanais.]
+> **Previsão de dedicação: integral — 40h semanais.**
 
 > **Marcelly Beatriz — Ciência da Computação (UFAL) — Design de produto (UX/UI).**
-> [PREENCHER: 1 a 2 frases sobre experiência dela — onde trabalha/trabalhou, que produtos desenhou. Não deixe só o cargo: o critério mede *capacidade de execução*, e nome + cargo não comprovam nada.]
-> Neste projeto, é responsável pelo design da experiência e da interface do Nada Sai. Sua função é central e não cosmética: o produto compete com ferramentas gratuitas de uso imediato, e **a garantia de privacidade só gera valor se o usuário a percebe sem precisar entender a arquitetura.** Traduzir "o arquivo não sai do seu computador" em algo evidente na tela é um problema de design, e é o que determina a adoção.
-> [PREENCHER: previsão de dedicação semanal.]
+> Formada em Ciência da Computação pela UFAL, com trajetória concentrada em experiência do usuário, interface e desenvolvimento front-end. A combinação é o que a torna eficaz aqui: **desenha a partir de dentro da engenharia** — conhece o custo de implementação do que propõe, e por isso o design chega ao código sem virar outra coisa no caminho. Soma a isso a atuação em visão de produto e condução estratégica, definindo não só como a tela se parece, mas o que o produto deve ser.
+> Neste projeto, é responsável pelo design da experiência e da interface do Nada Sai. Sua função é central e não cosmética: o produto compete com ferramentas gratuitas de uso imediato, e **a garantia de privacidade só gera valor se o usuário a percebe sem precisar entender a arquitetura.** Traduzir "o arquivo não sai do seu computador" em algo evidente na tela é um problema de design — e a resposta encontrada é o contador de rede ao vivo na página inicial, que não *explica* a privacidade, e sim a **demonstra**, medindo diante do usuário os 0 bytes que saíram da máquina dele. É design resolvendo o problema central do produto, não decorando a superfície.
+> **Previsão de dedicação: integral — 40h semanais.**
 
 **Complementaridade:** os dois papéis cobrem as duas frentes de risco do produto — a técnica (fazer IA de visão computacional rodar com desempenho aceitável dentro do navegador) e a de adoção (fazer o usuário perceber e confiar numa garantia que é invisível por natureza).
 
@@ -119,15 +121,16 @@ O roteiro tem um único momento que decide tudo — **desligue a internet, ao vi
 
 ## Checklist antes de enviar
 
-- [ ] Registrar `nadasai.com` e `nadasai.com.br`
-- [ ] Colocar a aplicação no ar no domínio e citar o link no formulário
+- [x] ~~Registrar `nadasai.com`~~ — feito. **`nadasai.com.br` ainda não resolve** (opcional: o `.com` cobre o formulário)
+- [x] ~~Colocar a aplicação no ar no domínio e citar o link no formulário~~ — no ar em `https://nadasai.com`, link citado na seção 3
+- [ ] **PENDENTE — Deploy do `public/_headers` (COOP/COEP).** Verificado ao vivo em 16/07: `crossOriginIsolated: false` e `SharedArrayBuffer` indisponível — a versão no ar roda a IA **single-threaded**, usando 1 núcleo de 16. Arquivo já criado e buildado; falta commit + push (o Cloudflare Pages rebuilda sozinho)
 - [ ] **Marcelly cadastrada no Sistema Centelha AL** (exigência do item 3.1.3(e) — sem isso ela não pode constar na equipe)
 - [ ] José Lucas submeter como **proponente/coordenador** (não pode ser trocado depois)
-- [ ] Preencher a **previsão de dedicação semanal** de cada membro (exigência do item 3.1.3(c))
-- [ ] Decidir sobre um **terceiro membro** com perfil de negócio/jurídico — só dá para incluir agora
+- [x] ~~Preencher a **previsão de dedicação semanal** de cada membro~~ — ambos com dedicação integral (40h)
+- [x] ~~Decidir sobre um **terceiro membro**~~ — decidido: **submeter com dois.** Ciente de que a Fase 2 dá peso 2 ao plano de negócios e nota < 2 elimina
 - [ ] Comprovante de residência em Alagoas atualizado
 - [ ] Confirmar que não foi contratado no Centelha 1 ou 2
-- [ ] Preencher todos os **[PREENCHER]** restantes
+- [x] ~~Preencher todos os **[PREENCHER]** restantes~~ — nenhum restante
 - [ ] Gravar o vídeo pitch
 - [ ] **Submeter antes de 17/07/2026, 18h** (data antiga é critério de desempate)
 
