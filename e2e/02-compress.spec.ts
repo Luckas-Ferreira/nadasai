@@ -24,11 +24,40 @@ test.describe('Comprimir', () => {
     await compare.fill('20');
     await compare.fill('80');
 
-    // The primary button stays live: re-run at a different quality without re-uploading.
+    // Drag the divider with a real pointer, which is the way anyone actually uses
+    // it and the way that was broken: the <img> layers are natively draggable, so
+    // the press started an image drag, the divider stuck after a few pixels and the
+    // browser began selecting the page instead. fill() drives the range input and
+    // never touched any of that.
+    const frame = page.locator('app-compare-slider > div');
+    const box = await frame.boundingBox();
+    if (!box) throw new Error('no compare frame');
+
+    const midY = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width * 0.5, midY);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.75, midY, { steps: 10 });
+    await page.mouse.up();
+
+    // The divider followed the pointer the whole way, not a few pixels.
+    const divider = frame.locator('div[style*="left"]').first();
+    const left = await divider.evaluate((el) => parseFloat((el as HTMLElement).style.left));
+    expect(left).toBeGreaterThan(70);
+    expect(left).toBeLessThan(80);
+
+    // And the drag selected nothing — the symptom that gave the bug away.
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('');
+
+    // Nothing to re-run at the quality already used: the button would only rebuild
+    // the same file.
+    await expect(primary(page, 'Comprimir')).toBeHidden();
+
+    // Move the slider and it comes back — re-run at a new quality, no re-upload.
     await page.getByRole('slider', { name: 'Qualidade' }).fill('20');
     await expect(page.getByText('20%')).toBeVisible();
     await primary(page, 'Comprimir').click();
     await expect(compressed).toContainText(/\d+%/);
+    await expect(primary(page, 'Comprimir')).toBeHidden();
 
     await expectDownload(page, /^photo-min\.webp$/);
   });

@@ -7,9 +7,15 @@ import { IconComponent } from './icon/icon.component';
  * Apply / Download / Keep editing / Start over, previously duplicated in all
  * five tools.
  *
- * The primary button stays visible and enabled after a run — the old templates
- * hid it behind `*ngIf="!result()"`, so trying a different quality or format
- * meant starting over and re-uploading the file.
+ * `primaryLabel` is nullable, and every tool passes null once pressing the button
+ * could only reproduce the result already on screen — see each tool's `stale`.
+ * A primary button that recomputes identical bytes reads as "it didn't work", and
+ * on remove-bg it re-ran seconds of inference to land back where you started.
+ *
+ * The label comes back the moment a setting changes, which is the whole point of
+ * keeping it after a run: the templates before this kit hid it behind
+ * `*ngIf="!result()"`, so trying a different quality or format meant starting
+ * over and re-uploading the file.
  */
 @Component({
   selector: 'app-action-bar',

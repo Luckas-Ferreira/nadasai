@@ -49,7 +49,10 @@ test.describe('Cortar', () => {
     await primary(page, 'Aplicar corte').click();
     await expect(page.getByRole('button', { name: 'Continuar editando' })).toBeVisible({ timeout: 30_000 });
 
-    // Re-run with a different ratio without re-uploading.
+    // The result matches the selection, so there is nothing left to apply.
+    await expect(primary(page, 'Aplicar corte')).toBeHidden();
+
+    // Moving the box brings it back: re-run at a different ratio, no re-upload.
     await page.getByRole('button', { name: '16:9' }).click();
     await primary(page, 'Aplicar corte').click();
     await expect(page.getByRole('img', { name: 'Resultado' })).toBeVisible();

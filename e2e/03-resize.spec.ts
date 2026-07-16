@@ -50,6 +50,9 @@ test.describe('Redimensionar', () => {
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('img', { name: 'Resultado' })).toBeVisible();
 
+    // The image already is 400 wide: nothing to redo until the numbers change.
+    await expect(primary(page, 'Redimensionar')).toBeHidden();
+
     // Upscaling must work too — the old maxWidthOrHeight path silently no-opped.
     await page.getByRole('button', { name: '1920', exact: true }).click();
     await primary(page, 'Redimensionar').click();

@@ -10,9 +10,10 @@ import { TranslationService } from '../../core/services/translation.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- touch-none: without it a touch drag scrolls the page instead of moving the divider. -->
     <div
       #frame
-      class="relative select-none overflow-hidden rounded-xl border border-stage-line bg-stage"
+      class="relative touch-none select-none overflow-hidden rounded-xl border border-stage-line bg-stage"
       [style.min-height.px]="minHeight()"
       (pointerdown)="startDrag($event)"
       (pointermove)="drag($event)"
@@ -23,6 +24,7 @@ import { TranslationService } from '../../core/services/translation.service';
         <img
           [src]="after()"
           [alt]="i18n.t()['common.result']"
+          draggable="false"
           class="max-h-[min(62vh,600px)] max-w-full object-contain"
         />
       </div>
@@ -33,6 +35,7 @@ import { TranslationService } from '../../core/services/translation.service';
           <img
             [src]="before()"
             [alt]="i18n.t()['common.original']"
+            draggable="false"
             class="max-h-[min(62vh,600px)] max-w-full object-contain"
           />
         </div>
@@ -82,7 +85,19 @@ export class CompareSliderComponent {
   protected readonly position = signal(50);
   private dragging = false;
 
+  /**
+   * preventDefault is the whole reason this drag works.
+   *
+   * Both layers are <img>, and an image is natively draggable: pressing on one
+   * started an HTML5 image drag, which swallows the pointer stream. The divider
+   * jumped a few pixels and then stuck while the browser fell back to selecting
+   * text across the page — `select-none` cannot help, because the selection is
+   * happening everywhere the pointer went, not in here. `draggable="false"` on
+   * the images kills the drag at the source; this kills it for anything else the
+   * default action might start.
+   */
   protected startDrag(event: PointerEvent): void {
+    event.preventDefault();
     this.dragging = true;
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
     this.moveTo(event);

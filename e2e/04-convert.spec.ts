@@ -20,6 +20,10 @@ test.describe('Converter', () => {
       await primary(page, 'Converter').click();
       await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
       await expectDownload(page, file);
+
+      // Re-encoding to the format already on screen is a no-op, so the button goes;
+      // picking the next format brings it back.
+      await expect(primary(page, 'Converter')).toBeHidden();
     }
   });
 
@@ -40,6 +44,15 @@ test.describe('Converter', () => {
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole('button', { name: 'Continuar editando' })).toHaveCount(0);
     await expectDownload(page, /^photo-converted\.pdf$/);
+
+    // The backdrop reaches the output only for PDF, so here — and only here —
+    // recolouring it is a real change and offers the re-run.
+    await expect(primary(page, 'Converter')).toBeHidden();
+    await page
+      .getByRole('radiogroup', { name: 'Fundo atrás da transparência' })
+      .getByRole('radio', { name: '#FFF' })
+      .click();
+    await expect(primary(page, 'Converter')).toBeVisible();
 
     await format(page, 'ICO').click();
     await primary(page, 'Converter').click();

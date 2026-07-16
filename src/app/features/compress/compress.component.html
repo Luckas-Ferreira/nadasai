@@ -70,7 +70,7 @@
       </app-panel>
 
       <app-action-bar
-        [primaryLabel]="i18n.t()['compress.btn']"
+        [primaryLabel]="stale() ? i18n.t()['compress.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
         [canContinue]="!!resultUrl()"

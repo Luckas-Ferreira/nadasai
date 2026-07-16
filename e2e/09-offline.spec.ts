@@ -62,19 +62,19 @@ test.describe('Offline', () => {
     await serviceWorkerReady(page);
 
     // Pass one, online: this is what pulls the model weights into the cache.
+    // Arriving from the rail carries the file in and runs on its own.
     await upload(page);
     await rail(page).getByRole('link', { name: 'Remover fundo' }).click();
-    await primary(page, 'Remover fundo').click();
     // The model is tens of MB, fetched before the first run can even start.
     await page.getByRole('button', { name: 'Baixar' }).waitFor({ timeout: 300_000 });
 
     await context.setOffline(true);
 
-    // Pass two, offline: a fresh file, so the model genuinely runs again.
+    // Pass two, offline: a fresh file, so the model genuinely runs again. Dropping
+    // it straight onto the tool auto-runs, so there is no button to press here.
     await page.getByRole('button', { name: 'Recomeçar' }).click();
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Remover fundo' }).click();
-    await primary(page, 'Remover fundo').click();
+    await page.getByRole('button', { name: 'Baixar' }).waitFor({ timeout: 300_000 });
 
     await expectDownload(page, /^photo-nobg\.png$/);
   });
