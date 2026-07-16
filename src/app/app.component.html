@@ -14,15 +14,6 @@
       <app-tool-nav />
     </div>
 
-    <div class="mt-auto border-t border-rail-line p-3">
-      <app-segmented
-        [options]="languages"
-        [value]="i18n.currentLang()"
-        (valueChange)="i18n.setLanguage($event)"
-        [ariaLabel]="i18n.t()['app.lang_switch']"
-        onRail
-      />
-    </div>
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col">
@@ -34,14 +25,6 @@
         <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
         <span class="text-md font-semibold">Nada Sai</span>
       </a>
-
-      <app-segmented
-        class="ml-auto"
-        [options]="languages"
-        [value]="i18n.currentLang()"
-        (valueChange)="i18n.setLanguage($event)"
-        [ariaLabel]="i18n.t()['app.lang_switch']"
-      />
     </header>
 
     <app-current-file-bar />

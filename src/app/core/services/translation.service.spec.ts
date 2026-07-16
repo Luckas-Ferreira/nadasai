@@ -37,6 +37,21 @@ describe('TranslationService', () => {
     }
   });
 
+  /**
+   * The app is Portuguese-only for now, and the picker is gone. The service
+   * persists the language on every visit, so anyone who used the app before this
+   * has a value sitting in storage — and if that value wins, an old visitor is
+   * still looking at English with no way left to change it.
+   */
+  it('starts in Portuguese even with another language stored', () => {
+    localStorage.setItem('imgwork.lang', 'en');
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+
+    expect(TestBed.inject(TranslationService).currentLang()).toBe('pt');
+  });
+
   it('resolves every key the tool registry points at', () => {
     for (const tool of TOOLS) {
       expect(i18n.t()[tool.navKey]).toBeTruthy();

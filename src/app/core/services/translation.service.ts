@@ -271,15 +271,26 @@ const PT: Record<TranslationKey, string> = {
 
 const DICTIONARY: Record<Language, Record<TranslationKey, string>> = { en: EN, pt: PT };
 
-function initialLanguage(): Language {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'pt' || stored === 'en') return stored;
-  return navigator.language?.toLowerCase().startsWith('pt') ? 'pt' : 'en';
-}
+/**
+ * Portuguese, for everyone, for now.
+ *
+ * The picker is gone from the UI and this ignores both navigator.language and
+ * any previously stored choice — deliberately. The service persists the active
+ * language on every visit, so by the time this was switched off, every returning
+ * visitor already had a value saved; honouring it would have left anyone who once
+ * landed on EN stuck there, which is the opposite of "the whole thing in
+ * Portuguese".
+ *
+ * Everything else stays: both dictionaries, setLanguage(), the <html lang> sync.
+ * EN is still what TranslationKey is derived from, so a key missing from PT is
+ * still a compile error rather than a blank button. Bringing the picker back is
+ * this constant plus the markup that reads it.
+ */
+const LANGUAGE: Language = 'pt';
 
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
-  readonly currentLang = signal<Language>(initialLanguage());
+  readonly currentLang = signal<Language>(LANGUAGE);
 
   /** Dictionary for the active language. Templates read `i18n.t()['some.key']`. */
   readonly t = computed(() => DICTIONARY[this.currentLang()]);
