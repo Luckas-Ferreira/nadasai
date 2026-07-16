@@ -64,6 +64,28 @@ export class BackgroundRemovalService {
   /** The session owns the 42 MB of weights. Build it once; never per image. */
   private session?: Promise<{ ort: OrtModule; session: OrtSession }>;
 
+  /**
+   * Warm the session ahead of any image, so the first run is inference-only.
+   *
+   * Shares the same memoised promise as removeBackground(), which is the whole
+   * point: a prefetch already in flight is what the first real run awaits, and a
+   * finished one makes it instant. Calling this twice costs nothing.
+   *
+   * Errors are swallowed on purpose — a prefetch is opportunistic, and a failed
+   * one must not surface as an error the user did not ask for. The real run
+   * retries and reports through the normal path.
+   */
+  prefetch(onDownload?: (fraction: number) => void): Promise<void> {
+    return this.load(onDownload).then(
+      () => undefined,
+      () => {
+        // A failed prefetch must not poison the memo: leave nothing behind, so
+        // the next real run starts clean instead of rethrowing this same error.
+        this.session = undefined;
+      },
+    );
+  }
+
   async removeBackground(file: File, onProgress?: (percent: number) => void): Promise<Blob> {
     const cached = this.cache.get(file);
     if (cached) {

@@ -4,8 +4,10 @@ import { TranslationService, type Language } from './core/services/translation.s
 import { TOOLS } from './core/tools/tools';
 import { CurrentFileBarComponent } from './shared/ui/current-file-bar.component';
 import { IconComponent } from './shared/ui/icon/icon.component';
+import { ModelDownloadBarComponent } from './shared/ui/model-download-bar.component';
 import { SegmentedComponent } from './shared/ui/segmented.component';
 import { ToolNavComponent } from './shared/ui/tool-nav.component';
+import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +21,8 @@ import { ToolNavComponent } from './shared/ui/tool-nav.component';
     CurrentFileBarComponent,
     SegmentedComponent,
     IconComponent,
+    UpdateOverlayComponent,
+    ModelDownloadBarComponent,
   ],
   templateUrl: './app.component.html',
 })
