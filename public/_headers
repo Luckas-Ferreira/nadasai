@@ -1,0 +1,6 @@
+# Espelha os headers do `ng serve` (angular.json > serve > headers).
+# Sem COOP/COEP não há SharedArrayBuffer, e a inferência da remoção de fundo
+# cai para single-threaded (~6x mais lenta) sem erro nenhum — falha silenciosa.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
