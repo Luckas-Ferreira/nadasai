@@ -3,6 +3,8 @@ import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
+import { AppUpdateService } from './core/services/app-update.service';
+import { ModelPrefetchService } from './core/services/model-prefetch.service';
 import { NetworkProbeService } from './core/services/network-probe.service';
 
 export const appConfig: ApplicationConfig = {
@@ -33,5 +35,19 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
+
+    /**
+     * Watches for a new deploy and swaps to it behind a blocking overlay. No-op
+     * without a service worker, so ng serve is unaffected.
+     */
+    provideAppInitializer(() => inject(AppUpdateService).start()),
+
+    /**
+     * Pulls the model down once the browser goes idle, so the first background
+     * removal is inference-only. Deliberately after the initializers above: the
+     * 42 MB must never race the first paint, and never a lazy chunk someone is
+     * actually waiting on. Skips itself entirely on a metered or slow link.
+     */
+    provideAppInitializer(() => inject(ModelPrefetchService).start()),
   ],
 };

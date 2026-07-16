@@ -18,6 +18,14 @@ const EN = {
   'app.footer.terms': 'Terms',
   'app.footer.secure': 'Your files never leave your device.',
 
+  'update.title': 'Updating',
+  'update.downloading': 'Downloading the new version…',
+  'update.applying': 'Applying the update…',
+  'update.hint': 'Do not close this window. The page reloads on its own when it finishes.',
+
+  'model.downloading': 'Downloading the AI model',
+  'model.hint': 'So background removal works offline, later.',
+
   'nav.tools': 'Tools',
   'nav.remove_bg': 'Remove background',
   'nav.crop': 'Crop',
@@ -140,6 +148,14 @@ const PT: Record<TranslationKey, string> = {
   'app.footer.privacy': 'Privacidade',
   'app.footer.terms': 'Termos',
   'app.footer.secure': 'Seus arquivos nunca saem do seu dispositivo.',
+
+  'update.title': 'Atualizando',
+  'update.downloading': 'Baixando a nova versão…',
+  'update.applying': 'Aplicando a atualização…',
+  'update.hint': 'Não feche esta janela. A página recarrega sozinha quando terminar.',
+
+  'model.downloading': 'Baixando o modelo de IA',
+  'model.hint': 'Para a remoção de fundo funcionar offline depois.',
 
   'nav.tools': 'Ferramentas',
   'nav.remove_bg': 'Remover fundo',
