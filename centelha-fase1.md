@@ -1,10 +1,14 @@
 # Centelha 3 Alagoas — Formulário da Fase 1
 
-> Edital nº 06/2026 (FAPEAL/SECTI-AL/SEBRAE-AL). **Submissão até 17/07/2026 às 18h (Brasília).**
+> Edital nº 06/2026 (FAPEAL/SECTI-AL/SEBRAE-AL). **Submissão até 17/07/2026 às 18h (Brasília)**, pelo Sistema Centelha (`al.programacentelha.com.br`) — item 11.
 > Texto pronto para copiar e colar na plataforma.
-> Tudo marcado com **[PREENCHER]** exige informação que só você tem — não invente, e não deixe em branco.
-> Nota da Fase 1 = **(2×S + M + E + I) / 5**. Solução vale o dobro: é lá que a proposta ganha ou perde.
-> Desempate final é **data mais antiga de submissão** — submeta antes do dia 17.
+> Nota da Fase 1 = **(2×S + M + E + I) / 5** (item 10.1(b)). Solução vale o dobro: é lá que a proposta ganha ou perde. Cada critério vale de 1 a 5.
+> Desempate: S, M, E, I e **só então** data mais antiga de submissão (item 10.1(c)) — é o último critério, não o primeiro.
+>
+> **SUBMETA HOJE E EDITE DEPOIS.** Item 4.5.3: *"Após a submissão, a proposta poderá ser editada até o fim do prazo estipulado no item 11 – Cronograma (…) sendo considerada sempre a última versão."* Submeter cedo não congela nada — dá para continuar refinando até 17/07 às 18h. E o item 4.5.4 avisa: **rascunho não conta.** *"Propostas em rascunho, ou seja, não enviadas para avaliação, não serão consideradas submetidas e não serão avaliadas."* O pior desfecho possível é um texto perfeito que nunca saiu do rascunho.
+> A confirmação vem por **e-mail automático** (item 4.5.1) — se não chegou, não submeteu.
+>
+> ⚠️ **O NOME DO PROJETO É IRREVERSÍVEL.** Item 4.2.1.1: *"O nome atrelado ao projeto na Fase 1 não poderá ser alterado em nenhum momento até o final da participação no programa."* "Nada Sai" fica para sempre. Decida com convicção antes de enviar.
 
 ---
 
@@ -99,13 +103,16 @@ A equipe é formada por dois profissionais de Ciência da Computação da **Univ
 
 Extraídas do item 3 do Edital nº 06/2026. Duas delas são irreversíveis:
 
-1. **O proponente é o coordenador e NÃO pode ser alterado durante as fases de seleção, sob pena de desclassificação** (item 3.2). Quem submeter é quem fica. José Lucas deve ser o proponente.
-2. **Cada membro precisa estar cadastrado como usuário no Sistema Centelha do estado de Alagoas** (item 3.1.3(e)). **A Marcelly precisa fazer esse cadastro antes da submissão** — não deixe para o dia 17.
-3. **Cada membro precisa ter função efetiva descrita no formulário, junto à previsão de dedicação** (item 3.1.3(c)). Cargo sozinho não basta.
-4. A equipe pode ter **até 5 membros**, incluindo o proponente (item 3.4).
-5. Na Fase 2, cada membro apresenta **declaração de participação individual assinada**.
+*Conferido contra o PDF oficial do edital em 16/07/2026 (fapeal.br → "Chamada original"). Tudo abaixo é citação verificada, não memória.*
 
-**Sobre incluir uma terceira pessoa:** o edital prevê explicitamente a *retirada* de membros durante a Fase 2 (item 3.3.1), mas **não prevê a inclusão**. Ou seja: se você quiser um terceiro integrante — alguém com perfil comercial ou jurídico (um advogado/DPO seria devastadoramente útil nesta tese) — **inclua agora, na Fase 1.** Não conte em adicionar depois.
+1. **O proponente é o coordenador e NÃO pode ser alterado durante as fases de seleção, sob pena de desclassificação** (item 3.2). Quem submeter é quem fica. José Lucas deve ser o proponente.
+2. **Cada membro precisa estar cadastrado como usuário no Sistema Centelha do estado de Alagoas** (item 3.1.3(e)). **A Marcelly precisa fazer esse cadastro antes da submissão.** O item 3.4 é explícito sobre a consequência: *"Apenas os integrantes cadastrados no sistema Centelha e com declaração assinada serão levados em consideração na avaliação."* Sem cadastro ela não é avaliada — a equipe vira de um.
+3. **Cada membro precisa ter função efetiva descrita no formulário, junto à previsão de dedicação** (item 3.1.3(c)). Cargo sozinho não basta.
+4. **Não existe número mínimo de membros.** Item 3.4: *"A equipe executora da proposta poderá ter **até 5 membros**, sendo um deles o proponente."* É teto, não piso — a palavra "mínimo" não aparece em nenhum lugar do edital em relação a tamanho de equipe. **Submeter com dois é válido.**
+5. **O proponente precisa dispor de no mínimo 20h semanais** (item 3.1.1(j)) — único mínimo de dedicação do edital, e vale só para o coordenador. Os 40h declarados cumprem com folga. Para os demais membros o edital não fixa mínimo, só exige que a previsão esteja descrita.
+6. Na Fase 2, cada membro apresenta **declaração de participação individual assinada** (item 3.3.2).
+
+**Sobre incluir uma terceira pessoa — decidido: submeter com dois.** Não há exigência de três (item 3.4 fixa só o teto de 5). O edital prevê explicitamente a *retirada* de membros durante a Fase 2 (item 3.3.1), mas **não prevê a inclusão** — então um terceiro integrante com perfil comercial ou jurídico (um advogado/DPO seria devastadoramente útil nesta tese) precisaria entrar **agora, na Fase 1**. A decisão consciente é seguir com dois, aceitando o risco descrito abaixo.
 
 Isso importa porque a Fase 2 dá **peso 2 à Consistência da Proposta (modelo de negócio + cronograma + orçamento), e nota abaixo de 2 nesse critério elimina a proposta**, por melhor que seja a solução. Dois desenvolvedores/designers cobrem a tecnologia; ninguém na equipe cobre, hoje, o plano de negócios que a Fase 2 vai exigir.
 
@@ -113,9 +120,19 @@ Isso importa porque a Fase 2 dá **peso 2 à Consistência da Proposta (modelo d
 
 ## 6. Vídeo pitch — 3 minutos (opcional, mas faça)
 
-É opcional no edital e é a sua maior vantagem: **quase todos os concorrentes têm só uma ideia no papel. Você tem software rodando.**
+É opcional no edital (item 4.2.1(e)) e é a sua maior vantagem: **quase todos os concorrentes têm só uma ideia no papel. Você tem software rodando.**
 
 O roteiro tem um único momento que decide tudo — **desligue a internet, ao vivo, na frente da câmera, e continue removendo o fundo de uma foto.** Nenhum concorrente do mundo consegue fazer isso. Prova a tese inteira em cinco segundos, sem uma palavra.
+
+**Formato exigido:** até 3 minutos, hospedado no **YouTube como "Não listado" ou "Público"**, ou no **Vimeo compartilhado** — o link é colado na plataforma. Qualquer outro formato não é aceito.
+
+**Grave com o modelo já em cache.** São 44 MB baixados no primeiro acesso. Abra `nadasai.com` e rode uma remoção de fundo *antes* de gravar — com a internet desligada em navegador limpo, a demo não roda e o melhor momento do vídeo morre na frente da câmera.
+
+## 6.1. PDF de apoio — segundo anexo opcional, e ninguém usa
+
+Item 4.2.1(f): **"Envio OPCIONAL de um documento PDF que ilustre ou apoie a apresentação da proposta."**
+
+É um canal extra de graça, separado do vídeo, e a maior parte dos concorrentes vai ignorar. Você tem o que colocar nele e eles não: **capturas do produto real no ar** — a home com o contador de rede marcando `0 bytes / nenhum servidor`, o antes-e-depois da remoção de fundo, a cadeia de ferramentas encadeadas. É o argumento de maturidade em imagem, para o avaliador que não abrir o link nem assistir ao vídeo.
 
 ---
 
@@ -128,11 +145,15 @@ O roteiro tem um único momento que decide tudo — **desligue a internet, ao vi
 - [ ] José Lucas submeter como **proponente/coordenador** (não pode ser trocado depois)
 - [x] ~~Preencher a **previsão de dedicação semanal** de cada membro~~ — ambos com dedicação integral (40h)
 - [x] ~~Decidir sobre um **terceiro membro**~~ — decidido: **submeter com dois.** Ciente de que a Fase 2 dá peso 2 ao plano de negócios e nota < 2 elimina
-- [ ] Comprovante de residência em Alagoas atualizado
-- [ ] Confirmar que não foi contratado no Centelha 1 ou 2
+- [ ] Comprovante de residência em Alagoas atualizado (item 3.1.1(d) — obrigatório)
+- [ ] Confirmar que não foi sócio de empresa contratada no Centelha 1 ou 2 **nem em qualquer edição do Programa Tecnova** (item 3.1.1(g) — o Tecnova é fácil de esquecer e desclassifica igual)
+- [ ] **VERIFICAR — item 3.1.1(h): "Não ser sócio de outras empresas de atividade afim à proposta."** José Lucas é sócio/fundador do IniPort. Gestão de transporte universitário e processamento local de arquivos são atividades distintas, então a leitura provável é que não há conflito — mas quem decide isso é a FAPEAL, não nós. **Se houver qualquer dúvida, pergunte à FAPEAL antes de submeter**, porque isso é critério de elegibilidade, não de nota: não custa pontos, elimina.
+- [ ] **Se aprovado**, será preciso constituir empresa com sede em Alagoas (item 3.1.1(a)). Empresa já existente só serve se constituída após 28/05/2025 (item 3.1.2(a)) — o IniPort provavelmente não se enquadra, então o caminho é abrir uma nova. MEI e Empresário Individual **não são aceitos** (item 3.1.2.2)
 - [x] ~~Preencher todos os **[PREENCHER]** restantes~~ — nenhum restante
-- [ ] Gravar o vídeo pitch
-- [ ] **Submeter antes de 17/07/2026, 18h** (data antiga é critério de desempate)
+- [ ] Gravar o vídeo pitch (YouTube "Não listado"/"Público" ou Vimeo compartilhado — item 4.2.1(e))
+- [ ] Montar o **PDF de apoio opcional** com capturas do produto no ar (item 4.2.1(f) — canal extra que quase ninguém usa)
+- [ ] Confirmar que o nome **"Nada Sai"** é definitivo — não pode ser alterado nunca mais (item 4.2.1.1)
+- [ ] **SUBMETER HOJE (16/07), não amanhã** — dá para editar até 17/07 18h (item 4.5.3). Rascunho não conta (item 4.5.4); espere o e-mail de confirmação (item 4.5.1)
 
 ## O que deliberadamente NÃO está escrito aqui
 
