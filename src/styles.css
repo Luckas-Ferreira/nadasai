@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
-/* Inter, self-hosted. A webfont CDN would be a network request on every load,
+/* Nunito, self-hosted. A webfont CDN would be a network request on every load,
    which contradicts the footer's "your images never leave your device" and
    breaks the app offline. Only the weights the tokens can express are pulled. */
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
 
 /* =============================================================================
    ImgWork design tokens. Tailwind v4 — there is no tailwind.config.js.
@@ -85,7 +86,7 @@
   --color-success-soft: var(--success-soft);
   --color-success-line: var(--success-line);
 
-  --font-sans: "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Nunito", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
 
   --text-2xs: 0.6875rem;

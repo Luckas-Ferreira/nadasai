@@ -1,3 +1,4 @@
+<app-splash-screen />
 <div class="flex min-h-dvh bg-base">
   <!-- Rail. Stays dark in both themes: it anchors the layout and frames the stage. -->
   <!-- Rail. Flips with the theme, so everything inside it reads rail-* tokens. -->
@@ -39,9 +40,9 @@
         <p>{{ i18n.t()['app.footer.secure'] }}</p>
 
         <nav class="flex gap-4">
-          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
-          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
-          <a href="#" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
+          <a routerLink="/sobre" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
+          <a routerLink="/privacidade" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
+          <a routerLink="/termos" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
         </nav>
       </div>
     </footer>

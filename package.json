@@ -24,6 +24,7 @@
     "@angular/router": "^19.2.0",
     "@angular/service-worker": "^19.2.25",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/nunito": "^5.2.7",
     "cropperjs": "^1.6.1",
     "file-saver": "^2.0.5",
     "jspdf": "^4.2.1",
