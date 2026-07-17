@@ -7,6 +7,7 @@ import { IconComponent } from './shared/ui/icon/icon.component';
 import { ModelDownloadBarComponent } from './shared/ui/model-download-bar.component';
 import { ToolNavComponent } from './shared/ui/tool-nav.component';
 import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
+import { SplashScreenComponent } from './shared/ui/splash-screen.component';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
     IconComponent,
     UpdateOverlayComponent,
     ModelDownloadBarComponent,
+    SplashScreenComponent,
   ],
   templateUrl: './app.component.html',
 })
