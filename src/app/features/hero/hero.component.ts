@@ -18,7 +18,6 @@ import { PreviewSurfaceComponent } from '../../shared/ui/preview-surface.compone
  * say that without pretending these already ship.
  */
 const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: TranslationKey }> = [
-  { icon: 'pdf', nameKey: 'hero.soon.pdf', descKey: 'hero.soon.pdf_desc' },
   { icon: 'doc', nameKey: 'hero.soon.doc', descKey: 'hero.soon.doc_desc' },
   { icon: 'audio', nameKey: 'hero.soon.audio', descKey: 'hero.soon.audio_desc' },
 ];

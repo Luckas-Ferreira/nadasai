@@ -14,6 +14,7 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PdfLoaderService, type LoadedPdf, type PdfPageInfo } from './services/pdf-loader.service';
 import { OcrService, type OcrBlock, type OcrLang } from './services/ocr.service';
 import { PdfExporterService } from './services/pdf-exporter.service';
+import { CommonModule } from '@angular/common';
 
 export type EditorTool = 'select' | 'add_text' | 'erase';
 
@@ -39,7 +40,7 @@ type PdfStatus =
   selector: 'app-pdf',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonDirective, IconComponent],
+  imports: [ButtonDirective, IconComponent, CommonModule],
   template: `
     <div class="flex h-[calc(100dvh-56px)] flex-col md:h-[calc(100dvh-0px)]">
 
@@ -306,9 +307,9 @@ export class PdfComponent implements OnDestroy {
   });
 
   protected readonly editorTools = [
-    { id: 'select' as EditorTool,   icon: 'image' as const,    labelKey: 'pdf.tool.select' as const },
-    { id: 'add_text' as EditorTool, icon: 'convert' as const,  labelKey: 'pdf.tool.add_text' as const },
-    { id: 'erase' as EditorTool,    icon: 'close' as const,    labelKey: 'pdf.tool.erase' as const },
+    { id: 'select' as EditorTool, icon: 'image' as const, labelKey: 'pdf.tool.select' as const },
+    { id: 'add_text' as EditorTool, icon: 'convert' as const, labelKey: 'pdf.tool.add_text' as const },
+    { id: 'erase' as EditorTool, icon: 'close' as const, labelKey: 'pdf.tool.erase' as const },
   ];
 
   // ── File handling ──────────────────────────────────────────────────────────
