@@ -139,11 +139,7 @@ type PdfStatus =
               <div class="flex items-center gap-1 rounded-lg border border-stage-line p-0.5">
                 @for (tool of editorTools; track tool.id) {
                   <button
-                    class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors"
-                    [class.bg-surface]="activeTool() === tool.id"
-                    [class.text-text]="activeTool() === tool.id"
-                    [class.text-white/60]="activeTool() !== tool.id"
-                    [class.hover:bg-surface/20]="activeTool() !== tool.id"
+                    [class]="'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ' + (activeTool() === tool.id ? 'bg-surface text-text' : 'text-white/60 hover:bg-surface/20')"
                     (click)="activeTool.set(tool.id)"
                   >
                     <app-icon [name]="tool.icon" [size]="13" />
