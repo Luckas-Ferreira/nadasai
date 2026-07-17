@@ -31,5 +31,20 @@ export const routes: Routes = [
     title: 'Redimensionar — Nada Sai',
     loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
   },
+  {
+    path: 'sobre',
+    title: 'Sobre — Nada Sai',
+    loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
+  },
+  {
+    path: 'privacidade',
+    title: 'Política de Privacidade — Nada Sai',
+    loadComponent: () => import('./features/privacy/privacy.component').then((m) => m.PrivacyComponent),
+  },
+  {
+    path: 'termos',
+    title: 'Termos de Uso — Nada Sai',
+    loadComponent: () => import('./features/terms/terms.component').then((m) => m.TermsComponent),
+  },
   { path: '**', redirectTo: '' },
 ];
