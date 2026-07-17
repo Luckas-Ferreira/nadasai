@@ -21,7 +21,7 @@ import { IconComponent } from './icon/icon.component';
   imports: [ButtonDirective, IconComponent],
   template: `
     @if (state.session(); as session) {
-      <div class="flex items-center gap-3 border-b border-line bg-surface px-5 py-2.5 md:px-8">
+      <div class="flex items-center gap-3 border-b border-line bg-surface px-5 py-2 md:px-8">
         @if (thumb(); as src) {
           <img
             [src]="src"
@@ -41,16 +41,19 @@ import { IconComponent } from './icon/icon.component';
           }
         </div>
 
-        @if (undoLabel(); as label) {
-          <button appButton variant="ghost" size="sm" class="shrink-0" (click)="undo()">
-            <app-icon name="undo" [size]="14" />
-            {{ label }}
-          </button>
-        }
+        <div class="flex shrink-0 items-center gap-1.5 md:gap-2">
+          @if (undoLabel(); as label) {
+            <button appButton variant="ghost" size="sm" (click)="undo()">
+              <app-icon name="undo" [size]="14" />
+              {{ label }}
+            </button>
+          }
 
-        <button appButton variant="ghost" size="sm" class="shrink-0" (click)="state.clear()">
-          {{ i18n.t()['common.clear'] }}
-        </button>
+          <button appButton variant="ghost" size="sm" (click)="state.clear()">
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        </div>
       </div>
     }
   `,
