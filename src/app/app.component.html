@@ -9,9 +9,6 @@
     </a>
 
     <div class="px-3 py-2">
-      <p class="px-2.5 pb-2 text-2xs font-medium uppercase text-rail-faint">
-        {{ i18n.t()['nav.tools'] }}
-      </p>
       <app-tool-nav />
     </div>
 
@@ -50,31 +47,56 @@
 
   <!-- Mobile tab bar. Fixed to the bottom, shows every tool at once (icon +
        one-word label), so the 5th tool is never hidden behind a scroll. -->
-  <nav
-    class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface
-           pb-[env(safe-area-inset-bottom)] md:hidden"
-    [attr.aria-label]="i18n.t()['nav.tools']"
-  >
-    @for (tool of tools; track tool.id) {
-      <a
-        [routerLink]="'/' + tool.path"
-        routerLinkActive
-        #rla="routerLinkActive"
-        [attr.aria-current]="rla.isActive ? 'page' : null"
-        class="flex flex-col items-center gap-1 px-1 py-2 text-2xs font-medium transition-colors"
-        [class.text-accent]="rla.isActive"
-        [class.text-muted]="!rla.isActive"
+  <div class="fixed inset-x-0 bottom-0 z-40 flex flex-col border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
+    <!-- Mobile Tabs -->
+    <div class="flex border-b border-line">
+      <button 
+        (click)="mobileTab = 'image'"
+        class="flex-1 py-2 text-xs font-semibold uppercase tracking-wider transition-colors"
+        [class.text-accent]="mobileTab === 'image'"
+        [class.text-muted]="mobileTab !== 'image'"
+        [class.bg-raised]="mobileTab === 'image'"
       >
-        <span
-          [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-          class="text-[color:var(--tone-fg)]"
+        Imagem
+      </button>
+      <div class="w-px bg-line"></div>
+      <button 
+        (click)="mobileTab = 'pdf'"
+        class="flex-1 py-2 text-xs font-semibold uppercase tracking-wider transition-colors"
+        [class.text-accent]="mobileTab === 'pdf'"
+        [class.text-muted]="mobileTab !== 'pdf'"
+        [class.bg-raised]="mobileTab === 'pdf'"
+      >
+        PDF
+      </button>
+    </div>
+
+    <!-- Mobile Tab Content -->
+    <nav
+      class="grid grid-cols-5"
+      [attr.aria-label]="i18n.t()['nav.tools']"
+    >
+      @for (tool of (mobileTab === 'image' ? imageTools : pdfTools); track tool.id) {
+        <a
+          [routerLink]="'/' + tool.path"
+          routerLinkActive
+          #rla="routerLinkActive"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
+          class="flex flex-col items-center gap-1 px-1 py-2 text-2xs font-medium transition-colors"
+          [class.text-accent]="rla.isActive"
+          [class.text-muted]="!rla.isActive"
         >
-          <app-icon [name]="tool.icon" [size]="20" />
-        </span>
-        <span class="max-w-full truncate">{{ i18n.t()[tool.shortKey] }}</span>
-      </a>
-    }
-  </nav>
+          <span
+            [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+            class="text-[color:var(--tone-fg)]"
+          >
+            <app-icon [name]="tool.icon" [size]="20" />
+          </span>
+          <span class="max-w-full truncate">{{ i18n.t()[tool.shortKey] }}</span>
+        </a>
+      }
+    </nav>
+  </div>
 
   <app-model-download-bar />
   <app-update-overlay />

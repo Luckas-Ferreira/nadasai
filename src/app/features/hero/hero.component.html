@@ -69,13 +69,51 @@
 
   <div class="mt-8 mb-3 flex items-baseline gap-2">
     <h2 class="text-2xs font-medium uppercase text-faint">
-      {{ state.currentFile() ? i18n.t()['hero.next_step'] : i18n.t()['hero.module_image'] }}
+      {{ state.currentFile() ? i18n.t()['hero.next_step'] : 'Módulo de Imagem' }}
     </h2>
     <span class="h-px flex-1 bg-line"></span>
   </div>
 
   <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-    @for (tool of tools; track tool.id) {
+    @for (tool of imageTools; track tool.id) {
+      <li>
+        <a
+          [routerLink]="'/' + tool.path"
+          [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+          [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
+          class="group flex h-full items-start gap-3 rounded-lg border border-line
+                 bg-surface p-4 shadow-panel transition-colors hover:border-[color:var(--tone-fg)]
+                 hover:bg-raised"
+        >
+          <span
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--tone-bg)]
+                   text-[color:var(--tone-fg)] transition-transform group-hover:scale-105"
+          >
+            <app-icon [name]="tool.icon" [size]="18" />
+          </span>
+
+          <span class="min-w-0">
+            <span class="block text-md font-medium text-text">{{ i18n.t()[tool.navKey] }}</span>
+            <span class="mt-0.5 block text-sm text-muted">{{ i18n.t()[tool.descKey] }}</span>
+          </span>
+
+          <span class="ml-auto self-center text-faint opacity-0 transition-opacity group-hover:opacity-100">
+            <app-icon name="arrowRight" [size]="16" />
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="mt-8 mb-3 flex items-baseline gap-2">
+    <h2 class="text-2xs font-medium uppercase text-faint">
+      {{ state.currentFile() ? 'Ferramentas de PDF' : 'Módulo de PDF' }}
+    </h2>
+    <span class="h-px flex-1 bg-line"></span>
+  </div>
+
+  <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    @for (tool of pdfTools; track tool.id) {
       <li>
         <a
           [routerLink]="'/' + tool.path"

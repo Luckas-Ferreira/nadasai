@@ -32,7 +32,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
   },
   {
-    path: 'pdf',
+    path: 'edit-pdf',
     title: 'Editor de PDF — Nada Sai',
     loadComponent: () => import('./features/pdf/pdf.component').then((m) => m.PdfComponent),
   },

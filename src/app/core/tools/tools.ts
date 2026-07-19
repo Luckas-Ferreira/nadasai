@@ -1,7 +1,7 @@
 import { IconName } from '../../shared/ui/icon/icons';
 import type { TranslationKey } from '../services/translation.service';
 
-export type ToolId = 'remove-bg' | 'crop' | 'compress' | 'convert' | 'resize' | 'pdf';
+export type ToolId = 'remove-bg' | 'crop' | 'compress' | 'convert' | 'resize' | 'edit-pdf';
 
 /**
  * Per-tool colour. iLoveIMG's identity is that every tool owns a hue; we borrow
@@ -12,10 +12,13 @@ export type ToolId = 'remove-bg' | 'crop' | 'compress' | 'convert' | 'resize' | 
  */
 export type ToolTone = 'violet' | 'amber' | 'emerald' | 'rose' | 'sky' | 'orange';
 
+export type ToolCategory = 'image' | 'pdf';
+
 export interface ToolDef {
   readonly id: ToolId;
   readonly path: string;
   readonly icon: IconName;
+  readonly category: ToolCategory;
   readonly navKey: TranslationKey;
   /** One-word label for tight surfaces (the mobile tab bar), where navKey wraps. */
   readonly shortKey: TranslationKey;
@@ -32,6 +35,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'remove-bg',
     path: 'remove-bg',
     icon: 'remove-bg',
+    category: 'image',
     navKey: 'nav.remove_bg',
     shortKey: 'nav.short.remove_bg',
     titleKey: 'bg.title',
@@ -43,6 +47,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'crop',
     path: 'crop',
     icon: 'crop',
+    category: 'image',
     navKey: 'nav.crop',
     shortKey: 'nav.short.crop',
     titleKey: 'crop.title',
@@ -54,6 +59,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'compress',
     path: 'compress',
     icon: 'compress',
+    category: 'image',
     navKey: 'nav.compress',
     shortKey: 'nav.short.compress',
     titleKey: 'compress.title',
@@ -65,6 +71,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'resize',
     path: 'resize',
     icon: 'resize',
+    category: 'image',
     navKey: 'nav.resize',
     shortKey: 'nav.short.resize',
     titleKey: 'resize.title',
@@ -76,6 +83,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'convert',
     path: 'convert',
     icon: 'convert',
+    category: 'image',
     navKey: 'nav.convert',
     shortKey: 'nav.short.convert',
     titleKey: 'convert.title',
@@ -84,9 +92,10 @@ export const TOOLS: readonly ToolDef[] = [
     tone: 'sky',
   },
   {
-    id: 'pdf',
-    path: 'pdf',
+    id: 'edit-pdf',
+    path: 'edit-pdf',
     icon: 'pdf',
+    category: 'pdf',
     navKey: 'nav.pdf',
     shortKey: 'nav.short.pdf',
     titleKey: 'pdf.title',
