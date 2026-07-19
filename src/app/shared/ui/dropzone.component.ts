@@ -52,17 +52,17 @@ import { IconComponent } from './icon/icon.component';
         <app-icon name="upload" [size]="20" />
       </span>
 
-      <p class="mt-4 text-lg font-medium text-text">{{ i18n.t()['common.drag'] }}</p>
+      <p class="mt-4 text-lg font-medium text-text">{{ i18n.t()[titleKey()] }}</p>
 
       <p class="mt-1 text-sm text-muted">
         {{ i18n.t()['common.or'] }}
         <span class="font-medium text-accent underline underline-offset-2">
-          {{ i18n.t()['common.upload_btn'] }}
+          {{ i18n.t()[buttonKey()] }}
         </span>
       </p>
 
       @if (!compact()) {
-        <p class="mt-6 text-xs text-faint tabular">{{ i18n.t()['common.drag_hint'] }}</p>
+        <p class="mt-6 text-xs text-faint tabular">{{ i18n.t()[hintKey()] }}</p>
       }
 
       <input
@@ -81,6 +81,10 @@ export class DropzoneComponent {
 
   readonly accept = input(ACCEPT_ATTR);
   readonly compact = input(false, { transform: booleanAttribute });
+  
+  readonly titleKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.drag');
+  readonly hintKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.drag_hint');
+  readonly buttonKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.upload_btn');
 
   readonly fileSelected = output<File>();
 

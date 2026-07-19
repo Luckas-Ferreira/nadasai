@@ -65,11 +65,16 @@ export class ToolPageComponent {
   private readonly state = inject(ImageStateService);
 
   readonly toolId = input.required<ToolId>();
+  readonly forceLoaded = input<boolean | undefined>(undefined);
 
   protected readonly tool = computed(() => toolById(this.toolId()));
 
   /** Drives the layout: the panel only has content once a file is in the chain. */
-  protected readonly loaded = computed(() => !!this.state.currentFile());
+  protected readonly loaded = computed(() => {
+    const forced = this.forceLoaded();
+    if (forced !== undefined) return forced;
+    return !!this.state.currentFile();
+  });
 
   protected readonly loadedLayout = 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_324px]';
   protected readonly emptyLayout = 'mx-auto w-full max-w-[680px]';

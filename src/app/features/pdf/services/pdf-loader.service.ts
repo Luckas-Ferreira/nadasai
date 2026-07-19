@@ -3,12 +3,21 @@ import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist';
 
 export type PdfPageType = 'digital' | 'scanned' | 'unknown';
 
+export interface PdfNativeBlock {
+  text: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface PdfPageInfo {
   index: number;      // 1-based
   type: PdfPageType;
   width: number;
   height: number;
   nativeText: string; // empty string when scanned
+  nativeBlocks: PdfNativeBlock[];
 }
 
 export interface LoadedPdf {
@@ -72,10 +81,40 @@ export class PdfLoaderService {
       const viewport = page.getViewport({ scale: 1 });
       const textContent = await page.getTextContent();
 
-      const nativeText = textContent.items
-        .map((item) => ('str' in item ? item.str : ''))
-        .join(' ')
-        .trim();
+      const nativeBlocks: PdfNativeBlock[] = [];
+      const nativeTextArr: string[] = [];
+
+      for (const item of textContent.items) {
+        if ('str' in item && item.str.trim()) {
+          nativeTextArr.push(item.str);
+          const transform = item.transform; // [scaleX, skewY, skewX, scaleY, translateX, translateY]
+          const px = transform[4];
+          const py = transform[5];
+
+          // Map from PDF space to viewport (CSS pixel) space
+          const vx = viewport.transform[0] * px + viewport.transform[2] * py + viewport.transform[4];
+          const vy = viewport.transform[1] * px + viewport.transform[3] * py + viewport.transform[5];
+
+          // item.width and item.height are in PDF space. Convert to viewport space.
+          // Note: item.height is sometimes 0, fallback to scaleY (transform[3]).
+          const wRaw = item.width * Math.abs(viewport.transform[0]);
+          const fontHeight = (item.height || Math.abs(transform[3])) * Math.abs(viewport.transform[3]);
+          
+          // vy is the baseline in CSS pixels.
+          // PDF text is drawn upwards from the baseline.
+          // A standard approximation is ascent ≈ 0.8 * fontHeight.
+          const topPx = vy - (fontHeight * 0.8);
+
+          const x = vx / viewport.width;
+          const y = topPx / viewport.height;
+          const w = wRaw / viewport.width;
+          const h = fontHeight / viewport.height;
+          
+          nativeBlocks.push({ text: item.str, x, y, w, h });
+        }
+      }
+
+      const nativeText = nativeTextArr.join(' ').trim();
 
       // Heuristic: fewer than 20 chars of native text → treat as scanned.
       const type: PdfPageType = nativeText.length >= 20 ? 'digital' : 'scanned';
@@ -86,6 +125,7 @@ export class PdfLoaderService {
         width: viewport.width,
         height: viewport.height,
         nativeText,
+        nativeBlocks,
       });
     }
 

@@ -330,7 +330,7 @@ const PT: Record<TranslationKey, string> = {
   'nav.short.pdf': 'PDF',
 
   'pdf.title': 'Editor de PDF',
-  'pdf.subtitle': 'Edite, leia e torne PDFs digitalizados pesquisáveis — tudo localmente.',
+  'pdf.subtitle': 'Edite e leia PDFs — tudo localmente.',
   'pdf.upload_btn': 'Escolher PDF',
   'pdf.drag': 'Solte um PDF aqui',
   'pdf.drag_hint': 'Somente arquivos PDF · até 100 MB',

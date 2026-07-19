@@ -70,6 +70,8 @@ export class HeroComponent {
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
   protected readonly tools = TOOLS;
+  protected readonly imageTools = TOOLS.filter(t => t.category === 'image');
+  protected readonly pdfTools = TOOLS.filter(t => t.category === 'pdf');
   protected readonly soon = SOON;
 
   protected readonly errorKey = signal<TranslationKey | null>(null);
