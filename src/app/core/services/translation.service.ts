@@ -1,4 +1,6 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, signal, inject } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 export type Language = 'pt' | 'en';
 
@@ -150,10 +152,10 @@ const EN = {
   'error.model_failed': "The background-removal model couldn't run. Check your connection and try again.",
   'error.too_many_pixels': 'This image has too many pixels for the browser to process.',
 
-  'nav.pdf': 'PDF Editor',
-  'nav.short.pdf': 'PDF',
+  'nav.pdf': 'Edit',
+  'nav.short.pdf': 'Edit',
 
-  'pdf.title': 'PDF Editor',
+  'pdf.title': 'Edit',
   'pdf.subtitle': 'Edit, read and make scanned PDFs searchable — all locally.',
   'pdf.upload_btn': 'Choose PDF',
   'pdf.drag': 'Drop a PDF here',
@@ -326,10 +328,10 @@ const PT: Record<TranslationKey, string> = {
   'error.model_failed': 'Não foi possível rodar o modelo de remoção de fundo. Verifique sua conexão e tente de novo.',
   'error.too_many_pixels': 'Esta imagem tem pixels demais para o navegador processar.',
 
-  'nav.pdf': 'Editor de PDF',
-  'nav.short.pdf': 'PDF',
+  'nav.pdf': 'Editar',
+  'nav.short.pdf': 'Editar',
 
-  'pdf.title': 'Editor de PDF',
+  'pdf.title': 'Editar',
   'pdf.subtitle': 'Edite e leia PDFs — tudo localmente.',
   'pdf.upload_btn': 'Escolher PDF',
   'pdf.drag': 'Solte um PDF aqui',
@@ -386,12 +388,27 @@ export class TranslationService {
   /** Dictionary for the active language. Templates read `i18n.t()['some.key']`. */
   readonly t = computed(() => DICTIONARY[this.currentLang()]);
 
+  private router = inject(Router, { optional: true });
+
   constructor() {
     effect(() => {
       const lang = this.currentLang();
       localStorage.setItem(STORAGE_KEY, lang);
       document.documentElement.lang = lang;
     });
+
+    if (this.router) {
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd)
+      ).subscribe((event: any) => {
+        const url = event.urlAfterRedirects || event.url;
+        if (url.startsWith('/en/') || url === '/en') {
+          this.currentLang.set('en');
+        } else if (url.startsWith('/pt/') || url === '/pt') {
+          this.currentLang.set('pt');
+        }
+      });
+    }
   }
 
   setLanguage(lang: Language): void {

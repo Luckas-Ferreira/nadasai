@@ -31,7 +31,32 @@ export class PdfExporterService {
     const originalBytes = await doc.getData();
     const pdfDoc = await PDFDocument.load(originalBytes);
     const pages = pdfDoc.getPages();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const baseFonts = {
+      Helvetica: {
+        normal: await pdfDoc.embedFont(StandardFonts.Helvetica),
+        bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+        boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+      },
+      Arial: {
+        normal: await pdfDoc.embedFont(StandardFonts.Helvetica),
+        bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+        boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+      },
+      TimesRoman: {
+        normal: await pdfDoc.embedFont(StandardFonts.TimesRoman),
+        bold: await pdfDoc.embedFont(StandardFonts.TimesRomanBold),
+        italic: await pdfDoc.embedFont(StandardFonts.TimesRomanItalic),
+        boldItalic: await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic),
+      },
+      Courier: {
+        normal: await pdfDoc.embedFont(StandardFonts.Courier),
+        bold: await pdfDoc.embedFont(StandardFonts.CourierBold),
+        italic: await pdfDoc.embedFont(StandardFonts.CourierOblique),
+        boldItalic: await pdfDoc.embedFont(StandardFonts.CourierBoldOblique),
+      }
+    };
 
     for (const [pageIdx, pageEdits] of edits.entries()) {
       const page = pages[pageIdx - 1];
@@ -40,29 +65,59 @@ export class PdfExporterService {
       const { width, height } = page.getSize();
 
       for (const edit of pageEdits) {
-        if (edit.deleted) {
-          // Whiteout the original area.
+        let bgColorStr = edit.bgColor;
+        if (!bgColorStr && (edit.deleted || edit.newText !== null)) {
+          bgColorStr = '#ffffff'; // Default to white for edits
+        }
+
+        if (bgColorStr && bgColorStr !== 'transparent') {
+          let hex = bgColorStr.replace('#', '');
+          if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+          const bgR = parseInt(hex.substring(0, 2), 16) / 255;
+          const bgG = parseInt(hex.substring(2, 4), 16) / 255;
+          const bgB = parseInt(hex.substring(4, 6), 16) / 255;
+
           page.drawRectangle({
             x: edit.x * width,
             y: height - (edit.y + edit.h) * height,
             width: edit.w * width,
             height: edit.h * height,
-            color: rgb(1, 1, 1),
+            color: rgb(bgR, bgG, bgB),
             borderWidth: 0,
           });
         }
 
         if (edit.newText) {
-          // Calculate approximate font size from block height.
-          const fontSize = Math.max(6, Math.round(edit.h * height * 0.75));
+          const text = edit.originalText || '';
+          const hasAscender = /[A-Z0-9bdfhkltáéíóúâêôãõà!?'"()\[\]{}\/\\|]/g.test(text);
+          const hasDescender = /[gjpqyç,;]/g.test(text);
+          let multiplier = 1.38;
+          if (hasAscender && hasDescender) multiplier = 1.06;
+          else if (!hasAscender && hasDescender) multiplier = 1.35;
+          else if (!hasAscender && !hasDescender) multiplier = 1.92;
+          
+          const fontSize = Math.max(6, Math.round(edit.h * height * multiplier * (edit.fontScale || 1.0)));
+          
+          // Select correct font
+          const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'];
+          let pdfFont = fontConfig.normal;
+          if (edit.bold && edit.italic) pdfFont = fontConfig.boldItalic;
+          else if (edit.bold) pdfFont = fontConfig.bold;
+          else if (edit.italic) pdfFont = fontConfig.italic;
 
+          // Parse hex color (default black)
+          let hex = (edit.color || '#000000').replace('#', '');
+          if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+          const r = parseInt(hex.substring(0, 2), 16) / 255;
+          const g = parseInt(hex.substring(2, 4), 16) / 255;
+          const b = parseInt(hex.substring(4, 6), 16) / 255;
+          const scaledH = edit.h * (edit.fontScale || 1.0);
           page.drawText(edit.newText, {
             x: edit.x * width,
-            y: height - (edit.y + edit.h) * height + 2,
+            y: height - (edit.y + scaledH) * height + (scaledH * height * 0.25),
             size: fontSize,
-            font,
-            color: rgb(0, 0, 0),
-            maxWidth: edit.w * width,
+            font: pdfFont,
+            color: rgb(r, g, b),
           });
         }
       }
@@ -81,7 +136,7 @@ export class PdfExporterService {
           x: block.x * width,
           y: height - (block.y + block.h) * height,
           size: fontSize,
-          font,
+          font: baseFonts.Helvetica.normal,
           // Invisible text: opacity 0 — makes the PDF searchable
           // without visually altering the scanned image.
           opacity: 0,

@@ -47,7 +47,7 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
           <div class="flex flex-col gap-0.5 mb-2">
             @for (tool of imageTools; track tool.id) {
               <a
-                [routerLink]="'/' + tool.path"
+                [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
                 routerLinkActive
                 #rla="routerLinkActive"
                 [attr.aria-current]="rla.isActive ? 'page' : null"
@@ -85,7 +85,7 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
           <div class="flex flex-col gap-0.5">
             @for (tool of pdfTools; track tool.id) {
               <a
-                [routerLink]="'/' + tool.path"
+                [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
                 routerLinkActive
                 #rla="routerLinkActive"
                 [attr.aria-current]="rla.isActive ? 'page' : null"
@@ -110,7 +110,7 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
         <!-- Mobile flat list fallback (if used somewhere else) -->
         @for (tool of tools; track tool.id) {
           <a
-            [routerLink]="'/' + tool.path"
+            [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
             routerLinkActive
             #rla="routerLinkActive"
             [attr.aria-current]="rla.isActive ? 'page' : null"

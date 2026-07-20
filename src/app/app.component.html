@@ -3,7 +3,7 @@
   <!-- Rail. Stays dark in both themes: it anchors the layout and frames the stage. -->
   <!-- Rail. Flips with the theme, so everything inside it reads rail-* tokens. -->
   <aside class="sticky top-0 hidden h-dvh w-[228px] shrink-0 flex-col border-r border-rail-line bg-rail md:flex">
-    <a routerLink="/" class="flex h-14 items-center gap-2.5 px-4">
+    <a [routerLink]="'/' + i18n.currentLang()" class="flex h-14 items-center gap-2.5 px-4">
       <img src="logo.webp" alt="" class="h-6 w-6 object-contain" />
       <span class="text-md font-semibold text-rail-text">Nada Sai</span>
     </a>
@@ -19,7 +19,7 @@
          cut-off scroll strip — they moved to the fixed bottom tab bar below,
          so nothing gets clipped and the current tool is always visible. -->
     <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 md:hidden">
-      <a routerLink="/" class="flex items-center gap-2">
+      <a [routerLink]="'/' + i18n.currentLang()" class="flex items-center gap-2">
         <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
         <span class="text-md font-semibold">Nada Sai</span>
       </a>
@@ -37,9 +37,9 @@
         <p>{{ i18n.t()['app.footer.secure'] }}</p>
 
         <nav class="flex gap-4">
-          <a routerLink="/sobre" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
-          <a routerLink="/privacidade" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
-          <a routerLink="/termos" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
+          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/about' : '/sobre')" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
+          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/privacy' : '/privacidade')" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
+          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/terms' : '/termos')" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
         </nav>
       </div>
     </footer>
@@ -78,7 +78,7 @@
     >
       @for (tool of (mobileTab === 'image' ? imageTools : pdfTools); track tool.id) {
         <a
-          [routerLink]="'/' + tool.path"
+          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
           routerLinkActive
           #rla="routerLinkActive"
           [attr.aria-current]="rla.isActive ? 'page' : null"
