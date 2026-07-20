@@ -9,6 +9,7 @@ import {
   inject,
   signal,
   computed,
+  HostListener,
 } from '@angular/core';
 import { TranslationService } from '../../core/services/translation.service';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -37,6 +38,13 @@ export interface TextEdit {
   originalText: string;
   newText: string | null;
   deleted: boolean;
+  bold?: boolean;
+  italic?: boolean;
+  color?: string; // hex
+  bgColor?: string; // hex background
+  fontFamily?: 'Helvetica' | 'Arial' | 'TimesRoman' | 'Courier';
+  fontScale?: number;
+  styleModified?: boolean;
 }
 
 type PdfStatus =
@@ -81,7 +89,7 @@ type PdfStatus =
           />
         } @else {
           <!-- Continuous scroll container -->
-          <div class="flex-1 overflow-y-auto bg-stage p-6 flex flex-col items-center gap-6" (click)="onCanvasAreaClick($event)">
+          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)]" (click)="onCanvasAreaClick($event)">
             @if (status() === 'loading' || status() === 'ocr') {
               <div class="flex flex-col items-center justify-center gap-4 py-12">
                 <div class="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-accent"></div>
@@ -101,7 +109,7 @@ type PdfStatus =
             @if (loadedPdf()) {
               @for (page of loadedPdf()!.pages; track page.index) {
                 <div
-                  class="relative shadow-pop shrink-0 bg-white transition-all duration-200"
+                  class="relative mx-auto mb-6 shadow-pop shrink-0 bg-white transition-all duration-200"
                   [style.width.px]="page.width * scale()"
                   [style.height.px]="page.height * scale()"
                 >
@@ -111,18 +119,22 @@ type PdfStatus =
                   <div class="absolute inset-0 overflow-hidden">
                     @for (block of getBlocksForPage(page.index); track block.id) {
                       <div
-                        class="absolute cursor-text overflow-hidden whitespace-nowrap rounded-sm px-0.5 outline-none border transition-colors font-semibold tracking-tight"
+                        class="absolute cursor-text overflow-hidden whitespace-nowrap rounded-sm px-0.5 outline-none border transition-colors tracking-tight"
                         [style.left.%]="block.x * 100"
                         [style.top.%]="block.y * 100"
-                        [style.minWidth.%]="block.w * 100"
-                        [style.height.%]="block.h * 100"
-                        [style.lineHeight.px]="block.h * page.height * scale()"
-                        [style.fontSize.px]="(block.lineHeight || block.h) * page.height * scale() * 0.72"
-                        [style.background]="selectedBlock() === block.id ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : (block.newText !== null ? 'rgb(255,255,255)' : 'transparent')"
+                        [style.minWidth.%]="block.w * 100 * (block.fontScale || 1.0)"
+                        [style.height.%]="block.h * 100 * (block.fontScale || 1.0)"
+                        [style.lineHeight.px]="block.h * page.height * scale() * (block.fontScale || 1.0)"
+                        [style.fontSize.px]="getBaseFontSize(block, page.height) * scale() * (block.fontScale || 1.0)"
+                        [style.fontWeight]="block.bold ? 'bold' : 'normal'"
+                        [style.fontStyle]="block.italic ? 'italic' : 'normal'"
+                        [style.fontFamily]="block.fontFamily || 'Helvetica, sans-serif'"
+                        [style.color]="(selectedBlock() !== block.id && block.newText === null && !block.deleted) ? 'transparent' : (block.color || 'inherit')"
+                        [style.background]="block.bgColor || (selectedBlock() === block.id ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : (block.newText !== null ? 'rgb(255,255,255)' : 'transparent'))"
                         [class.z-10]="selectedBlock() === block.id"
                         [class.text-text]="selectedBlock() === block.id || block.newText !== null"
-                        [class.text-transparent]="selectedBlock() !== block.id && block.newText === null && !block.deleted"
-                        [class.border-transparent]="selectedBlock() !== block.id"
+                        [class.border-dashed]="selectedBlock() !== block.id"
+                        [class.border-line]="selectedBlock() !== block.id"
                         [class.border-accent]="selectedBlock() === block.id"
                         [class.shadow-sm]="selectedBlock() === block.id"
                         [class.line-through]="block.deleted"
@@ -132,14 +144,22 @@ type PdfStatus =
                         [attr.data-block-id]="block.id"
                         (click)="$event.stopPropagation(); selectBlock(block.id, $event)"
                         (blur)="onBlockBlur($event, block.id)"
-                      >{{ block.newText !== null ? block.newText : block.originalText }}</div>
+                      >
+                        @if (selectedBlock() === block.id) {
+                          <div class="absolute -top-3 -left-3 w-6 h-6 bg-white border border-gray-300 rounded-full shadow cursor-move flex items-center justify-center z-20 text-gray-500 hover:text-black hover:border-gray-400"
+                               (mousedown)="startDragBlock(block.id, $event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="19 9 22 12 19 15"></polyline><polyline points="9 19 12 22 15 19"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg>
+                          </div>
+                        }
+                        {{ block.newText !== null ? block.newText : block.originalText }}
+                      </div>
                     }
 
                     <!-- New text input area -->
                     @if (addingText() && activeTool() === 'add_text' && addingTextPage() === page.index) {
                       <textarea
                         #newTextArea
-                        class="absolute resize-none rounded border border-accent bg-white/90 px-1 py-0.5 text-sm text-black outline-none"
+                        class="absolute resize-none rounded border border-accent bg-white/90 px-1 py-0.5 text-sm text-black outline-none font-semibold"
                         [style.left.px]="addTextPos().x * scale()"
                         [style.top.px]="addTextPos().y * scale()"
                         [style.min-width.px]="120 * scale()"
@@ -159,7 +179,7 @@ type PdfStatus =
 
       <div panel class="flex flex-col gap-4">
         @if (status() !== 'idle') {
-          <app-panel heading="Editar PDF">
+          <app-panel [heading]="i18n.t()['pdf.title']">
             <!-- Tools -->
             <div class="flex flex-col gap-2">
               @for (tool of editorTools; track tool.id) {
@@ -171,12 +191,68 @@ type PdfStatus =
                   {{ i18n.t()[tool.labelKey] }}
                 </button>
               }
+              
+              <div class="border-t border-line my-1"></div>
+              <button
+                class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all w-full text-left text-muted hover:text-text hover:bg-surface/50"
+                [disabled]="undoStack().length === 0"
+                [class.opacity-50]="undoStack().length === 0"
+                (click)="undo()"
+              >
+                <app-icon name="undo" [size]="16" />
+                Desfazer
+              </button>
             </div>
 
             <!-- Block Selection Inspector -->
             @if (selectedBlock()) {
-              <div class="mt-4 border-t border-line pt-3 flex flex-col gap-2">
-                <span class="text-xs font-semibold text-text">Bloco selecionado</span>
+              <div class="mt-4 border-t border-line pt-3 flex flex-col gap-3">
+                <span class="text-xs font-semibold text-text">Formatar Texto</span>
+                
+                <!-- Font and Size Row -->
+                <div class="flex items-center gap-2">
+                  <select class="flex-1 rounded-md border border-line bg-surface px-2 py-1.5 text-sm font-medium outline-none hover:border-accent" [value]="getBlockFont(selectedBlock()!)" (change)="changeBlockFont(selectedBlock()!, $event)">
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="TimesRoman">Times Roman</option>
+                    <option value="Courier">Courier</option>
+                  </select>
+
+                  <div class="flex items-center justify-between rounded-md border border-line bg-surface p-0.5">
+                    <button class="px-2 py-1 hover:bg-raised hover:text-text transition-colors text-muted rounded font-medium" (click)="changeBlockSize(selectedBlock()!, -1)">&minus;</button>
+                    <input 
+                      type="text" 
+                      class="text-xs font-medium tabular-nums w-8 text-center bg-transparent border-none outline-none focus:ring-0 p-0" 
+                      [value]="getBlockSize(selectedBlock()!)" 
+                      (change)="setBlockSizeFromInput(selectedBlock()!, $event)"
+                      (keydown.enter)="setBlockSizeFromInput(selectedBlock()!, $event)"
+                      title="Tamanho da fonte"
+                    />
+                    <button class="px-2 py-1 hover:bg-raised hover:text-text transition-colors text-muted rounded font-medium" (click)="changeBlockSize(selectedBlock()!, 1)">+</button>
+                  </div>
+                </div>
+
+                <!-- Color and Styles Row -->
+                <div class="flex items-center gap-2">
+                  <div class="relative h-8 w-8 rounded border border-line hover:border-accent overflow-hidden shrink-0" title="Cor do texto">
+                    <input type="color" class="absolute -top-2 -left-2 h-12 w-12 cursor-pointer border-0 p-0" [value]="getBlockColor(selectedBlock()!)" (input)="changeBlockColor(selectedBlock()!, $event)" />
+                  </div>
+                  <div class="relative h-8 w-8 rounded border border-line hover:border-accent overflow-hidden shrink-0" title="Cor do fundo">
+                    <input type="color" class="absolute -top-2 -left-2 h-12 w-12 cursor-pointer border-0 p-0" [value]="getBlockBgColor(selectedBlock()!)" (input)="changeBlockBgColor(selectedBlock()!, $event)" />
+                  </div>
+                  
+                  <div class="flex flex-1 rounded-md border border-line overflow-hidden">
+                    <button appButton variant="ghost" size="sm" class="flex-1 rounded-none font-serif text-sm font-bold border-r border-transparent hover:bg-raised" [class.bg-raised]="isBlockBold(selectedBlock()!)" (click)="toggleBlockBold(selectedBlock()!)">
+                      B
+                    </button>
+                    <button appButton variant="ghost" size="sm" class="flex-1 rounded-none font-serif text-sm italic hover:bg-raised" [class.bg-raised]="isBlockItalic(selectedBlock()!)" (click)="toggleBlockItalic(selectedBlock()!)">
+                      I
+                    </button>
+                  </div>
+                </div>
+
+                <div class="border-t border-line my-1"></div>
+
                 <button appButton variant="danger" size="sm" block (click)="deleteBlock(selectedBlock()!)">
                   <app-icon name="close" [size]="13" />
                   Apagar
@@ -187,34 +263,26 @@ type PdfStatus =
               </div>
             }
 
-            <!-- Language select -->
-            <div class="mt-4 border-t border-line pt-3">
-              <label class="mb-2 block text-xs text-muted font-medium">Idioma do OCR</label>
-              <select
-                class="w-full rounded-md border border-line bg-surface px-2.5 py-1.5 text-sm font-medium text-text outline-none"
-                [(ngModel)]="ocrLangValue"
-                (change)="runOcrAllPages()"
-              >
-                <option value="por+eng">Português + Inglês</option>
-                <option value="por">Português</option>
-                <option value="eng">Inglês</option>
-                <option value="spa">Espanhol</option>
-              </select>
-            </div>
-
             <!-- Zoom -->
             <div class="mt-4 border-t border-line pt-3 flex flex-col gap-2">
-              <label class="block text-xs text-muted font-medium">Zoom ({{ (scale() * 100) | number:'1.0-0' }}%)</label>
-              <div class="flex items-center gap-2">
-                <button appButton variant="ghost" size="sm" class="flex-1" (click)="zoom(-0.1)">&minus;</button>
-                <button appButton variant="ghost" size="sm" class="flex-1" (click)="zoom(0.1)">+</button>
+              <label class="block text-xs text-muted font-medium">Zoom</label>
+              <div class="flex items-center justify-between rounded-md border border-line bg-surface p-0.5">
+                <button class="px-3 py-1.5 hover:bg-raised hover:text-text transition-colors text-muted rounded font-medium" (click)="zoom(-0.1)">&minus;</button>
+                <input 
+                  type="text" 
+                  class="text-sm font-medium tabular-nums w-12 text-center bg-transparent border-none outline-none focus:ring-0" 
+                  [value]="(scale() * 100) | number:'1.0-0'" 
+                  (change)="setZoomFromInput($event)"
+                  (keydown.enter)="setZoomFromInput($event)"
+                  title="Digite o zoom em %"
+                />
+                <button class="px-3 py-1.5 hover:bg-raised hover:text-text transition-colors text-muted rounded font-medium" (click)="zoom(0.1)">+</button>
               </div>
             </div>
           </app-panel>
 
           <app-action-bar
             [busy]="status() === 'exporting'"
-            [canDownload]="true"
             [primaryLabel]="status() === 'exporting' ? i18n.t()['pdf.exporting'] : i18n.t()['pdf.export_btn']"
             (primary)="exportPdf()"
             (reset)="reset()"
@@ -257,6 +325,32 @@ export class PdfComponent implements OnDestroy {
 
   /** All edits keyed by blockId */
   private readonly edits = signal<Map<string, TextEdit>>(new Map());
+  
+  /** Snapshots for undo */
+  protected readonly undoStack = signal<Map<string, TextEdit>[]>([]);
+
+  private saveHistory(): void {
+    const current = new Map(this.edits());
+    this.undoStack.update(stack => [...stack, current]);
+  }
+
+  @HostListener('window:keydown.control.z', ['$event'])
+  @HostListener('window:keydown.meta.z', ['$event'])
+  protected undo(event?: KeyboardEvent): void {
+    if (event) {
+      const target = event.target as HTMLElement;
+      if (target && (target.isContentEditable || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return; // let browser handle text undo
+      }
+      event.preventDefault();
+    }
+    const stack = this.undoStack();
+    if (stack.length > 0) {
+      const popped = stack[stack.length - 1];
+      this.undoStack.set(stack.slice(0, stack.length - 1));
+      this.edits.set(new Map(popped));
+    }
+  }
 
   /** OCR blocks per page (1-based index) */
   private readonly ocrBlocks = signal<Map<number, OcrBlock[]>>(new Map());
@@ -294,6 +388,7 @@ export class PdfComponent implements OnDestroy {
   private async loadFile(file: File): Promise<void> {
     this.status.set('loading');
     this.edits.set(new Map());
+    this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
 
     try {
@@ -360,7 +455,6 @@ export class PdfComponent implements OnDestroy {
         // Use scale=1 so Tesseract bbox coordinates map 1:1 to the displayed page dimensions.
         const canvas = await this.loader.renderPageToCanvas(pdf.doc, page.index, 1);
         const result = await this.ocr.recognise(canvas, this.ocrLangValue as any);
-        console.log(`[OCR] Page ${page.index}: ${result.blocks.length} blocks, text: "${result.fullText.slice(0, 100)}"`);
 
         allOcr.set(page.index, result.blocks);
 
@@ -404,9 +498,6 @@ export class PdfComponent implements OnDestroy {
     const pageInfo = this.currentPageInfo();
 
     // Debug: log classification info
-    console.log('[PDF OCR] Force OCR on page', pageIdx);
-    console.log('[PDF OCR] Page type:', pageInfo?.type, '| nativeText length:', pageInfo?.nativeText?.length);
-    console.log('[PDF OCR] Page dimensions:', pageInfo?.width, 'x', pageInfo?.height);
 
     this.ocrRunning.set(true);
     this.currentOcrPage.set(pageIdx);
@@ -415,11 +506,8 @@ export class PdfComponent implements OnDestroy {
     try {
       // Use scale=1 so bboxes map directly to the page display dimensions.
       const canvas = await this.loader.renderPageToCanvas(pdf.doc, pageIdx, 1);
-      console.log('[PDF OCR] Canvas for OCR:', canvas.width, 'x', canvas.height);
 
       const result = await this.ocr.recognise(canvas, this.ocrLangValue as any);
-      console.log('[PDF OCR] Lang used:', this.ocrLangValue);
-      console.log('[PDF OCR] Result blocks:', result.blocks.length, result.fullText.slice(0, 200));
 
       if (result.blocks.length === 0) {
         console.warn('[PDF OCR] No blocks found. Tesseract fullText:', result.fullText);
@@ -430,11 +518,15 @@ export class PdfComponent implements OnDestroy {
         const b = result.blocks[i];
         const id = `p${pageIdx}-ocr-forced-${i}`;
         if (!newEdits.has(id)) {
+          const bgResult = this.inpainting.sampleBackground(canvas, b.x, b.y, b.w, b.h);
+          const textColor = this.inpainting.sampleTextColor(canvas, b.x, b.y, b.w, b.h, bgResult.bgColor);
+
           newEdits.set(id, {
             id, pageIndex: pageIdx,
             x: b.x, y: b.y, w: b.w, h: b.h,
             lineHeight: b.lineHeight,
             originalText: b.text,
+            color: textColor,
             newText: null, deleted: false,
           });
         }
@@ -510,12 +602,75 @@ export class PdfComponent implements OnDestroy {
     this.scale.set(Math.round(next * 10) / 10);
   }
 
+  protected setZoomFromInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let val = parseInt(input.value, 10);
+    if (!isNaN(val)) {
+      const next = Math.min(3, Math.max(0.3, val / 100));
+      this.scale.set(Math.round(next * 100) / 100);
+    }
+    input.value = Math.round(this.scale() * 100).toString();
+  }
+
+  // ── Dragging ───────────────────────────────────────────────────────────────
+
+  private dragState: { id: string, startX: number, startY: number, blockX: number, blockY: number } | null = null;
+
+  protected startDragBlock(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+    const block = this.edits().get(id);
+    if (!block) return;
+    this.saveHistory();
+    this.dragState = {
+      id,
+      startX: event.clientX,
+      startY: event.clientY,
+      blockX: block.x,
+      blockY: block.y
+    };
+  }
+
+  @HostListener('window:mousemove', ['$event'])
+  protected onMouseMove(e: MouseEvent): void {
+    if (!this.dragState) return;
+    const { id, startX, startY, blockX, blockY } = this.dragState;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    const block = this.edits().get(id);
+    if (!block) return;
+    const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
+    if (!pageInfo) return;
+
+    const scale = this.scale();
+    const containerW = pageInfo.width * scale;
+    const containerH = pageInfo.height * scale;
+
+    const newX = blockX + dx / containerW;
+    const newY = blockY + dy / containerH;
+
+    const newEdits = new Map(this.edits());
+    newEdits.set(id, { ...block, x: newX, y: newY, styleModified: true, newText: block.newText ?? block.originalText });
+    this.edits.set(newEdits);
+  }
+
+  @HostListener('window:mouseup')
+  protected onMouseUp(): void {
+    this.dragState = null;
+  }
+
   // ── Editing ────────────────────────────────────────────────────────────────
 
   protected onCanvasAreaClick(event: MouseEvent): void {
-    if (this.activeTool() !== 'add_text') return;
-
     const target = event.target as HTMLElement;
+    
+    // Deselect if clicked outside any text block
+    if (!target.hasAttribute('data-block-id') && !target.closest('textarea')) {
+      this.selectedBlock.set(null);
+    }
+
+    if (this.activeTool() !== 'add_text') return;
     if (target.hasAttribute('data-block-id')) return; // clicked on existing block
 
     // Find which page container we clicked on
@@ -524,7 +679,8 @@ export class PdfComponent implements OnDestroy {
     const pageIndex = canvas ? Number(canvas.dataset['page']) : 1;
 
     const rect = pageContainer.getBoundingClientRect();
-    this.addTextPos.set({ x: event.clientX - rect.left, y: event.clientY - rect.top });
+    const scale = this.scale();
+    this.addTextPos.set({ x: (event.clientX - rect.left) / scale, y: (event.clientY - rect.top) / scale });
     this.addingTextPage.set(pageIndex);
     this.addingText.set(true);
   }
@@ -540,16 +696,14 @@ export class PdfComponent implements OnDestroy {
     const pageInfo = this.loadedPdf()?.pages.find(p => p.index === pageIndex);
     if (!pageInfo) return;
 
-    // Convert pixel position to relative coordinates.
-    const containerW = pageInfo.width * this.scale();
-    const containerH = pageInfo.height * this.scale();
-    const id = `p${pageIndex}-add-${Date.now()}`;
+    this.saveHistory();
 
+    const id = `p${pageIndex}-user-${Date.now()}`;
     const newEdits = new Map(this.edits());
     newEdits.set(id, {
-      id, pageIndex,
-      x: this.addTextPos().x / containerW,
-      y: this.addTextPos().y / containerH,
+      id, pageIndex: this.addingTextPage(),
+      x: this.addTextPos().x / pageInfo.width,
+      y: this.addTextPos().y / pageInfo.height,
       w: 0.3, h: 0.04,
       originalText: '', newText: text, deleted: false,
     });
@@ -571,39 +725,53 @@ export class PdfComponent implements OnDestroy {
       const canvas = canvasRef?.nativeElement;
       if (canvas) {
         const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
-        // Canvas is rendered at 2x; page dimensions are at 1x.
-        // We need to scale block coords to the canvas pixel dimensions.
-        const scaleRatio = canvas.width / (pageInfo?.width ?? canvas.width);
         const result = this.inpainting.sampleBackground(
           canvas,
-          block.x * scaleRatio,
-          block.y * scaleRatio,
-          block.w * scaleRatio,
-          block.h * scaleRatio,
+          block.x,
+          block.y,
+          block.w,
+          block.h,
         );
         const newBg = new Map(this.inpaintBg());
         newBg.set(id, result.bgColor);
         this.inpaintBg.set(newBg);
+
+        // Detect text color on demand if missing (e.g. for native digital blocks)
+        if (!block.color) {
+          const textColor = this.inpainting.sampleTextColor(
+            canvas,
+            block.x,
+            block.y,
+            block.w,
+            block.h,
+            result.bgColor
+          );
+          const newEdits = new Map(this.edits());
+          newEdits.set(id, { ...block, color: textColor });
+          this.edits.set(newEdits);
+        }
       }
     }
   }
 
   protected onBlockBlur(event: FocusEvent, id: string): void {
     const el = event.target as HTMLElement;
-    const text = el.innerText.trim();
-    const newEdits = new Map(this.edits());
-    const block = newEdits.get(id);
+    const text = el.textContent?.trim() || '';
+    
+    const block = this.edits().get(id);
     if (block) {
-      if (text === block.originalText) {
-        newEdits.set(id, { ...block, newText: null });
-      } else {
+      const currentText = (block.newText ?? block.originalText).trim();
+      if (text !== currentText) {
+        this.saveHistory();
+        const newEdits = new Map(this.edits());
         newEdits.set(id, { ...block, newText: text });
+        this.edits.set(newEdits);
       }
-      this.edits.set(newEdits);
     }
   }
 
   protected deleteBlock(id: string): void {
+    this.saveHistory();
     const newEdits = new Map(this.edits());
     const block = newEdits.get(id);
     if (block) {
@@ -611,6 +779,140 @@ export class PdfComponent implements OnDestroy {
       this.edits.set(newEdits);
     }
     this.selectedBlock.set(null);
+  }
+
+  // ── Text Styling ───────────────────────────────────────────────────────────
+
+  protected isBlockBold(id: string): boolean {
+    return this.edits().get(id)?.bold ?? false;
+  }
+
+  protected toggleBlockBold(id: string): void {
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      newEdits.set(id, { ...block, bold: !block.bold, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+  }
+
+  protected getBaseFontSize(block: TextEdit, pageHeight: number): number {
+    const text = block.originalText || '';
+    const hasAscender = /[A-Z0-9bdfhkltáéíóúâêôãõà!?'"()\[\]{}\/\\|]/g.test(text);
+    const hasDescender = /[gjpqyç,;]/g.test(text);
+    let multiplier = 1.38;
+    if (hasAscender && hasDescender) multiplier = 1.06;
+    else if (!hasAscender && hasDescender) multiplier = 1.35;
+    else if (!hasAscender && !hasDescender) multiplier = 1.92;
+    return block.h * pageHeight * multiplier;
+  }
+
+  protected getBlockSize(id: string): number {
+    const block = this.edits().get(id);
+    if (!block) return 16;
+    const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
+    const height = pageInfo ? pageInfo.height : 842;
+    const defaultSize = this.getBaseFontSize(block, height);
+    return Math.round(defaultSize * (block.fontScale || 1.0));
+  }
+
+  protected changeBlockSize(id: string, delta: number): void {
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
+      const height = pageInfo ? pageInfo.height : 842;
+      const defaultSize = this.getBaseFontSize(block, height);
+      
+      const currentSize = Math.round(defaultSize * (block.fontScale || 1.0));
+      const nextSize = Math.max(6, currentSize + delta);
+      
+      const nextScale = nextSize / defaultSize;
+      
+      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+  }
+
+  protected setBlockSizeFromInput(id: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const val = parseInt(input.value, 10);
+    const block = this.edits().get(id);
+    if (block && !isNaN(val)) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
+      const height = pageInfo ? pageInfo.height : 842;
+      const defaultSize = this.getBaseFontSize(block, height);
+      
+      const nextSize = Math.max(6, val);
+      const nextScale = nextSize / defaultSize;
+      
+      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+    input.value = this.getBlockSize(id).toString();
+  }
+
+  protected isBlockItalic(id: string): boolean {
+    return this.edits().get(id)?.italic ?? false;
+  }
+
+  protected toggleBlockItalic(id: string): void {
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      newEdits.set(id, { ...block, italic: !block.italic, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+  }
+
+  protected getBlockColor(id: string): string {
+    return this.edits().get(id)?.color ?? '#000000';
+  }
+
+  protected changeBlockColor(id: string, event: Event): void {
+    const color = (event.target as HTMLInputElement).value;
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      newEdits.set(id, { ...block, color, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+  }
+
+  protected getBlockBgColor(id: string): string {
+    return this.edits().get(id)?.bgColor ?? '#ffffff';
+  }
+
+  protected changeBlockBgColor(id: string, event: Event): void {
+    const bgColor = (event.target as HTMLInputElement).value;
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      newEdits.set(id, { ...block, bgColor, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
+  }
+
+  protected getBlockFont(id: string): string {
+    return this.edits().get(id)?.fontFamily ?? 'Helvetica';
+  }
+
+  protected changeBlockFont(id: string, event: Event): void {
+    const fontFamily = (event.target as HTMLSelectElement).value as any;
+    const block = this.edits().get(id);
+    if (block) {
+      this.saveHistory();
+      const newEdits = new Map(this.edits());
+      newEdits.set(id, { ...block, fontFamily, styleModified: true, newText: block.newText ?? block.originalText });
+      this.edits.set(newEdits);
+    }
   }
 
   // ── Export ─────────────────────────────────────────────────────────────────
@@ -642,7 +944,9 @@ export class PdfComponent implements OnDestroy {
       const a = document.createElement('a');
       a.href = url;
       a.download = 'nadasai-edited.pdf';
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch {
       this.errorMessage.set(this.i18n.t()['error.pdf_export_failed']);

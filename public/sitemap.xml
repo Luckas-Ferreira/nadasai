@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Home Page -->
+  <url>
+    <loc>https://nadasai.com/pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt" />
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt" />
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Remover Fundo -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/remover-fundo</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/remove-bg" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/remover-fundo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/remover-fundo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/remove-bg</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/remover-fundo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/remove-bg" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/remover-fundo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Cortar -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/crop</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Comprimir -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Converter -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/converter</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/convert</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Redimensionar -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/redimensionar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/resize</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- PDF Editar -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/editar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/edit</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

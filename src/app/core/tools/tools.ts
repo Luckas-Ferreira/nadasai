@@ -16,7 +16,8 @@ export type ToolCategory = 'image' | 'pdf';
 
 export interface ToolDef {
   readonly id: ToolId;
-  readonly path: string;
+  readonly pathPt: string;
+  readonly pathEn: string;
   readonly icon: IconName;
   readonly category: ToolCategory;
   readonly navKey: TranslationKey;
@@ -33,7 +34,8 @@ export interface ToolDef {
 export const TOOLS: readonly ToolDef[] = [
   {
     id: 'remove-bg',
-    path: 'remove-bg',
+    pathPt: 'imagem/remover-fundo',
+    pathEn: 'image/remove-bg',
     icon: 'remove-bg',
     category: 'image',
     navKey: 'nav.remove_bg',
@@ -45,7 +47,8 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'crop',
-    path: 'crop',
+    pathPt: 'imagem/cortar',
+    pathEn: 'image/crop',
     icon: 'crop',
     category: 'image',
     navKey: 'nav.crop',
@@ -57,7 +60,8 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'compress',
-    path: 'compress',
+    pathPt: 'imagem/comprimir',
+    pathEn: 'image/compress',
     icon: 'compress',
     category: 'image',
     navKey: 'nav.compress',
@@ -69,7 +73,8 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'resize',
-    path: 'resize',
+    pathPt: 'imagem/redimensionar',
+    pathEn: 'image/resize',
     icon: 'resize',
     category: 'image',
     navKey: 'nav.resize',
@@ -81,7 +86,8 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'convert',
-    path: 'convert',
+    pathPt: 'imagem/converter',
+    pathEn: 'image/convert',
     icon: 'convert',
     category: 'image',
     navKey: 'nav.convert',
@@ -93,7 +99,8 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'edit-pdf',
-    path: 'edit-pdf',
+    pathPt: 'pdf/editar',
+    pathEn: 'pdf/edit',
     icon: 'pdf',
     category: 'pdf',
     navKey: 'nav.pdf',

@@ -78,7 +78,7 @@
     @for (tool of imageTools; track tool.id) {
       <li>
         <a
-          [routerLink]="'/' + tool.path"
+          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
           [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
           [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
           class="group flex h-full items-start gap-3 rounded-lg border border-line
@@ -116,7 +116,7 @@
     @for (tool of pdfTools; track tool.id) {
       <li>
         <a
-          [routerLink]="'/' + tool.path"
+          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
           [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
           [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
           class="group flex h-full items-start gap-3 rounded-lg border border-line

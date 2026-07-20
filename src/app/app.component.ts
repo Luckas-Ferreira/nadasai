@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslationService } from './core/services/translation.service';
+import { SeoService } from './core/services/seo.service';
 import { TOOLS } from './core/tools/tools';
 import { CurrentFileBarComponent } from './shared/ui/current-file-bar.component';
 import { IconComponent } from './shared/ui/icon/icon.component';
@@ -27,6 +28,7 @@ import { SplashScreenComponent } from './shared/ui/splash-screen.component';
   templateUrl: './app.component.html',
 })
 export class AppComponent {
+  protected readonly seo = inject(SeoService);
   protected readonly i18n = inject(TranslationService);
   protected readonly tools = TOOLS;
   protected readonly imageTools = TOOLS.filter(t => t.category === 'image');
