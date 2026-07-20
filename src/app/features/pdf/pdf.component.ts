@@ -18,6 +18,7 @@ import { PdfLoaderService, type LoadedPdf, type PdfPageInfo } from './services/p
 import { OcrService, type OcrBlock, type OcrLang } from './services/ocr.service';
 import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
+import { baseFontSize } from './services/font-metrics';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -29,12 +30,40 @@ import { AlertComponent } from '../../shared/ui/alert.component';
 
 export type EditorTool = 'select' | 'add_text' | 'erase';
 
+/**
+ * Escala de renderização da página para o OCR.
+ *
+ * Isto era 1, com o comentário "para os bbox do Tesseract mapearem 1:1 nas
+ * dimensões da página". O mapeamento não precisa disso: o OcrService normaliza
+ * todo bbox por canvas.width/height, então qualquer escala mapeia igual.
+ *
+ * O que a escala 1 fazia era entregar a página em ~72 DPI (A4 = 595x842). O
+ * Tesseract é calibrado para ~300 DPI e degrada bastante abaixo de ~150: além
+ * de errar caracteres, devolve bounding box ruim. Medido num DITR fotografado,
+ * a página densa saía com bbox mediano de 27px onde o glifo real tinha ~8px —
+ * 3x inflado, o que virava fonte 3x maior na hora de renderizar o bloco
+ * editável. A página menos densa do mesmo arquivo, mais fácil de segmentar,
+ * saía correta com 9px. Era o input que estava ruim, não a matemática de fonte.
+ *
+ * 3 = ~216 DPI. Um A4 vira 1785x2526 (~4,5 MP), que o Tesseract processa em
+ * tempo aceitável no browser. Subir para 4 (288 DPI) quase dobra a memória e o
+ * tempo sem ganho proporcional nesse tipo de documento.
+ */
+const OCR_RENDER_SCALE = 3;
+
 /** Represents one user edit on a page. */
 export interface TextEdit {
   id: string;
   pageIndex: number;   // 1-based
   x: number; y: number; w: number; h: number; // all 0–1 relative to page
   lineHeight?: number; // 0-1 relative to page height
+  /**
+   * Corpo da fonte medido, 0-1 relativo à altura da página. Presente só nos
+   * blocos vindos do OCR, onde o OcrService o estima a partir do bbox da
+   * palavra. Bloco de texto nativo não tem — e não precisa: ali o próprio `h`
+   * já É o corpo da fonte. Ver baseFontSize em services/font-metrics.ts.
+   */
+  fontSize?: number;
   originalText: string;
   newText: string | null;
   deleted: boolean;
@@ -124,6 +153,7 @@ type PdfStatus =
                         [style.top.%]="block.y * 100"
                         [style.minWidth.%]="block.w * 100 * (block.fontScale || 1.0)"
                         [style.height.%]="block.h * 100 * (block.fontScale || 1.0)"
+                        [style.maxHeight.%]="block.h * 100 * (block.fontScale || 1.0)"
                         [style.lineHeight.px]="block.h * page.height * scale() * (block.fontScale || 1.0)"
                         [style.fontSize.px]="getBaseFontSize(block, page.height) * scale() * (block.fontScale || 1.0)"
                         [style.fontWeight]="block.bold ? 'bold' : 'normal'"
@@ -452,8 +482,7 @@ export class PdfComponent implements OnDestroy {
       for (const page of pages) {
         this.currentOcrPage.set(page.index);
 
-        // Use scale=1 so Tesseract bbox coordinates map 1:1 to the displayed page dimensions.
-        const canvas = await this.loader.renderPageToCanvas(pdf.doc, page.index, 1);
+        const canvas = await this.loader.renderPageToCanvas(pdf.doc, page.index, OCR_RENDER_SCALE);
         const result = await this.ocr.recognise(canvas, this.ocrLangValue as any);
 
         allOcr.set(page.index, result.blocks);
@@ -468,6 +497,7 @@ export class PdfComponent implements OnDestroy {
               id, pageIndex: page.index,
               x: b.x, y: b.y, w: b.w, h: b.h,
               lineHeight: b.lineHeight,
+              fontSize: b.fontSize,
               originalText: b.text,
               newText: null, deleted: false,
             });
@@ -504,8 +534,7 @@ export class PdfComponent implements OnDestroy {
     this.ocr.progress.set(0);
 
     try {
-      // Use scale=1 so bboxes map directly to the page display dimensions.
-      const canvas = await this.loader.renderPageToCanvas(pdf.doc, pageIdx, 1);
+      const canvas = await this.loader.renderPageToCanvas(pdf.doc, pageIdx, OCR_RENDER_SCALE);
 
       const result = await this.ocr.recognise(canvas, this.ocrLangValue as any);
 
@@ -525,6 +554,7 @@ export class PdfComponent implements OnDestroy {
             id, pageIndex: pageIdx,
             x: b.x, y: b.y, w: b.w, h: b.h,
             lineHeight: b.lineHeight,
+            fontSize: b.fontSize,
             originalText: b.text,
             color: textColor,
             newText: null, deleted: false,
@@ -798,14 +828,7 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected getBaseFontSize(block: TextEdit, pageHeight: number): number {
-    const text = block.originalText || '';
-    const hasAscender = /[A-Z0-9bdfhkltáéíóúâêôãõà!?'"()\[\]{}\/\\|]/g.test(text);
-    const hasDescender = /[gjpqyç,;]/g.test(text);
-    let multiplier = 1.38;
-    if (hasAscender && hasDescender) multiplier = 1.06;
-    else if (!hasAscender && hasDescender) multiplier = 1.35;
-    else if (!hasAscender && !hasDescender) multiplier = 1.92;
-    return block.h * pageHeight * multiplier;
+    return baseFontSize(block, pageHeight);
   }
 
   protected getBlockSize(id: string): number {
