@@ -24,6 +24,20 @@ npm run e2e:ui            # interactive runner
 
 **Hosting requires COOP/COEP headers.** Remove-bg runs multithreaded WASM, which needs `SharedArrayBuffer`, which needs `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: require-corp`. `ng serve` sends them (`angular.json` serve `headers`) and so does the e2e preview server; a static host that omits them silently drops inference to single-threaded (~6× slower), not broken. Anything you embed cross-origin must then be CORP-compatible.
 
+**Every runtime asset is self-hosted, and that is not optional.** `require-corp` blocks cross-origin subresources without CORP, so a library that fetches its own worker/wasm/weights from a CDN does not degrade — it fails outright. It also contradicts the footer's privacy claim, which is why `@imgly/background-removal` was dropped. Three libraries default to a CDN and are pinned to same-origin paths instead, all resolved from `document.baseURI` (never relative — routes are `/pt/…` and `/en/…`, so a relative path lands in the SPA fallback and comes back as `index.html`, which the browser then rejects on MIME):
+
+| asset | served from | copied by |
+|---|---|---|
+| `ort/` — onnxruntime wasm | `node_modules` | `angular.json` assets |
+| `pdfjs/pdf.worker.min.mjs` | `node_modules` | `angular.json` assets |
+| `tesseract/` — OCR worker + core wasm | `node_modules` | `angular.json` assets |
+| `model/` — IS-Net weights (42 MB) | download | `scripts/fetch-model.mjs` |
+| `tessdata/` — por+eng traineddata (~4 MB) | download | `scripts/fetch-tessdata.mjs` |
+
+Both fetch scripts run on `postinstall` and `prebuild` and no-op once the files exist. Neither directory is committed. The OCR core variants are the `-lstm` ones specifically, because `OcrService` builds its worker with OEM 1 (`LSTM_ONLY`); changing the OEM means copying the Legacy variants too, or the core 404s.
+
+**`tesseract.js` is CommonJS and must be imported through its default export.** Vite (dev) synthesises named exports from CJS; esbuild (prod) emits `export default` alone. So `const { createWorker } = await import('tesseract.js')` works under `ng serve` and yields `undefined` in a production build — surfacing as a minified `"e is not a function"` nowhere near the cause. `loadCreateWorker()` in `ocr.service.ts` reads the default with a fallback. Any other CJS dependency imported lazily has the same trap.
+
 E2E lives in `e2e/`. It uploads a real image, runs each tool and asserts on the actual `download` event (the suggested filename is what proves both the encode and the naming rules). `e2e/fixtures/generate.ts` synthesises the fixtures at startup — a hand-rolled PNG encoder, so no binaries in the repo. **The grain in that PNG is load-bearing**: a flat synthetic image compresses smaller as lossless PNG than as lossy WebP, so `compress` legitimately produces a bigger file and the savings badge never renders. Playwright runs **two** web servers: `ng serve` on 4200 for most specs, and a real production build behind a static preview server on 4300 for `09-offline` — `ng serve` never emits `ngsw-worker.js`, so the offline/service-worker assertions need the actual build artifact.
 
 ## Architecture

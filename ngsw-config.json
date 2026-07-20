@@ -24,6 +24,14 @@
       "resources": {
         "files": ["/model/**", "/ort/**"]
       }
+    },
+    {
+      "name": "pdf",
+      "installMode": "lazy",
+      "updateMode": "lazy",
+      "resources": {
+        "files": ["/pdfjs/**", "/tesseract/**", "/tessdata/**"]
+      }
     }
   ]
 }

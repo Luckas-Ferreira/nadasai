@@ -32,7 +32,15 @@ export interface LoadedPdf {
  * (has a native text layer) or scanned (image-only, needs OCR).
  *
  * PDF.js is loaded lazily so it doesn't bloat the initial bundle.
- * The worker is pointed at pdfjs-dist's own copy to avoid a separate fetch.
+ *
+ * O worker é servido de `pdfjs/` (copiado do node_modules em angular.json,
+ * mesmo padrão do `ort/`). Ele NÃO pode ser resolvido via
+ * `new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url)`: `new URL` não
+ * resolve bare specifier, então isso vira caminho relativo ao chunk e em produção
+ * pede /pdfjs-dist/... — que não existe, o SPA fallback devolve index.html e o
+ * browser recusa por MIME type. O pdf.js então cai para "fake worker" e todo PDF
+ * falha como se fosse inválido. Copiar do node_modules mantém worker e API na
+ * mesma versão automaticamente.
  */
 @Injectable({ providedIn: 'root' })
 export class PdfLoaderService {
@@ -42,10 +50,11 @@ export class PdfLoaderService {
     if (this.pdfjsLoaded) return;
 
     const pdfjs = await import('pdfjs-dist');
-    // Point the worker at the bundled version so no extra network request is needed.
+    // Absoluto a partir do <base href>, não relativo à rota: em /pt ou /en um
+    // caminho relativo pediria /pt/pdfjs/... e cairia no fallback do SPA.
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.mjs',
-      import.meta.url,
+      'pdfjs/pdf.worker.min.mjs',
+      document.baseURI,
     ).toString();
 
     this.pdfjsLoaded = true;

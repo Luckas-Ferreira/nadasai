@@ -18,6 +18,52 @@ export interface OcrResult {
   fullText: string;
 }
 
+/**
+ * Todos os três caminhos precisam ser explícitos.
+ *
+ * Sem eles o tesseract.js busca worker, core wasm e traineddata no jsdelivr em
+ * runtime, e isso quebra duas vezes: o `Cross-Origin-Embedder-Policy:
+ * require-corp` (necessário para o SharedArrayBuffer da remoção de fundo)
+ * bloqueia cross-origin sem CORP, e uma CDN de terceiro contradiz o "Seus
+ * arquivos nunca saem do seu dispositivo" do rodapé — exatamente o motivo pelo
+ * qual o @imgly/background-removal foi removido.
+ *
+ * Absoluto a partir do <base href>, nunca relativo: as rotas são /pt/... e
+ * /en/..., então um caminho relativo cairia no fallback do SPA e voltaria
+ * index.html com MIME text/html.
+ *
+ * `corePath` é um diretório — o tesseract.js detecta suporte a SIMD e escolhe
+ * entre tesseract-core-{relaxedsimd-,simd-,}lstm.wasm.js sozinho. As três
+ * variantes são copiadas em angular.json; cada uma traz o wasm embutido em
+ * base64, então não há fetch extra de .wasm. São variantes -lstm porque o
+ * worker é criado com OEM 1 (LSTM_ONLY) abaixo — trocar o OEM exige copiar
+ * também as variantes Legacy, ou o core dá 404.
+ */
+const TESSERACT_PATHS = {
+  workerPath: new URL('tesseract/worker.min.js', document.baseURI).toString(),
+  corePath: new URL('tesseract/', document.baseURI).toString(),
+  langPath: new URL('tessdata/', document.baseURI).toString(),
+};
+
+/**
+ * O tesseract.js é CommonJS (`"type": "commonjs"`, sem campo `module`), e isso
+ * diverge entre dev e produção:
+ *
+ *   - `ng serve` usa o Vite, que pré-empacota o CJS e *sintetiza* named exports,
+ *     então `const { createWorker } = await import('tesseract.js')` funciona.
+ *   - `ng build` usa o esbuild, que emite o chunk com `export default Mt()` e
+ *     nada mais. O mesmo destructuring devolve `undefined`, e a chamada estoura
+ *     um "e is not a function" minificado, longe da causa.
+ *
+ * Ou seja: quebra só em produção, e com uma mensagem que não ajuda. Por isso a
+ * leitura passa pelo default com fallback, em vez de destructuring direto.
+ */
+async function loadCreateWorker() {
+  const mod = await import('tesseract.js');
+  const ns = mod as unknown as { default?: typeof mod };
+  return mod.createWorker ?? ns.default!.createWorker;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OcrService {
   readonly progress = signal<number>(-1);
@@ -31,8 +77,11 @@ export class OcrService {
     console.log('[OCR] Creating worker for lang:', lang);
     this.statusText.set('Iniciando motor OCR...');
 
-    const { createWorker } = await import('tesseract.js');
+    const createWorker = await loadCreateWorker();
+    // OEM 1 = LSTM_ONLY. Pareado com as variantes -lstm do core e com o
+    // tessdata `4.0.0_best_int` que o fetch-tessdata.mjs baixa.
     const worker = await createWorker(lang, 1, {
+      ...TESSERACT_PATHS,
       logger: (m: { status: string; progress: number }) => {
         console.log('[OCR Logger]', m.status, (m.progress * 100).toFixed(0) + '%');
         this.statusText.set(m.status);
