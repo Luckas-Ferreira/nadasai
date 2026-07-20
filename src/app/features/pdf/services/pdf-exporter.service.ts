@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { TextEdit } from '../pdf.component';
+import { baseFontSize } from './font-metrics';
 
 /**
  * Rebuilds the edited PDF using pdf-lib.
@@ -88,16 +89,10 @@ export class PdfExporterService {
         }
 
         if (edit.newText) {
-          const text = edit.originalText || '';
-          const hasAscender = /[A-Z0-9bdfhkltáéíóúâêôãõà!?'"()\[\]{}\/\\|]/g.test(text);
-          const hasDescender = /[gjpqyç,;]/g.test(text);
-          let multiplier = 1.38;
-          if (hasAscender && hasDescender) multiplier = 1.06;
-          else if (!hasAscender && hasDescender) multiplier = 1.35;
-          else if (!hasAscender && !hasDescender) multiplier = 1.92;
-          
-          const fontSize = Math.max(6, Math.round(edit.h * height * multiplier * (edit.fontScale || 1.0)));
-          
+          // Mesma função que a tela usa, de propósito: o que foi editado precisa
+          // sair do export do tamanho em que estava sendo editado.
+          const fontSize = Math.max(6, Math.round(baseFontSize(edit, height) * (edit.fontScale || 1.0)));
+
           // Select correct font
           const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'];
           let pdfFont = fontConfig.normal;

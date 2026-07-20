@@ -9,6 +9,8 @@ export interface OcrBlock {
   w: number;
   h: number;
   lineHeight?: number;
+  /** Corpo da fonte estimado, 0-1 relativo à altura da página. Ver estimateLineFontSize. */
+  fontSize?: number;
   confidence: number;
 }
 
@@ -62,6 +64,104 @@ async function loadCreateWorker() {
   const mod = await import('tesseract.js');
   const ns = mod as unknown as { default?: typeof mod };
   return mod.createWorker ?? ns.default!.createWorker;
+}
+
+/**
+ * Um bbox de palavra alto demais vira fonte gigante lá na frente: o
+ * getBaseFontSize() do pdf.component deriva o tamanho da fonte de `h`, então um
+ * bbox 3x mais alto que o normal renderiza um texto 3x maior que o resto da
+ * página. Isso acontece de verdade em foto de papel amassado, onde o Tesseract
+ * mescla uma palavra com a linha vizinha ou com uma dobra do papel.
+ *
+ * O teto NÃO pode ser a altura da linha: no Tesseract o bbox da linha é a união
+ * dos bboxes das palavras dela, então palavra <= linha por construção e o clamp
+ * nunca dispararia. O sinal precisa ser cross-line — daí a mediana da página.
+ *
+ * A mediana é robusta a outlier justamente por ser mediana: alguns bboxes
+ * estourados não a deslocam. O fator 1.8 é permissivo de propósito, para não
+ * achatar título ou cabeçalho legítimo, que costuma ficar em 1.3–1.6x o corpo
+ * do texto; o que ele corta é o 2.5x+, que na prática é sempre erro de
+ * segmentação.
+ *
+ * Encolhe pelo centro: sem saber se o bbox inflou para cima (linha de cima) ou
+ * para baixo (dobra, sublinhado), manter o centro é a escolha neutra.
+ */
+const OUTLIER_FACTOR = 1.8;
+
+export function clampOutlierHeights(blocks: OcrBlock[]): void {
+  if (blocks.length < 3) return; // amostra pequena demais para ter mediana confiável
+
+  const sorted = blocks.map((b) => b.h).sort((a, b) => a - b);
+  const median = sorted[sorted.length >> 1];
+  if (median <= 0) return;
+
+  const cap = median * OUTLIER_FACTOR;
+  for (const b of blocks) {
+    if (b.h > cap) {
+      b.y += (b.h - cap) / 2;
+      b.h = cap;
+    }
+  }
+}
+
+/**
+ * Converte a altura do bbox de UMA palavra em corpo de fonte.
+ *
+ * O bbox não mede o corpo da fonte, mede os glifos que a palavra por acaso tem:
+ * "arme" ocupa só a altura-de-x, "Data" vai da caixa-alta à linha de base,
+ * "gjpq" desce abaixo dela. Os multiplicadores desfazem isso.
+ *
+ * É um chute, e num token curto é um chute ruim: em "e" ou "47" não há
+ * informação suficiente. Por isso o resultado daqui nunca é usado sozinho —
+ * ele é a entrada da mediana por linha, que é quem decide de fato.
+ */
+function estimateWordFontSize(text: string, h: number): number {
+  const hasAscender = /[A-Z0-9bdfhkltáéíóúâêôãõà!?'"()\[\]{}\/\\|]/.test(text);
+  const hasDescender = /[gjpqyç,;]/.test(text);
+  const isAlphanumeric = /[A-Za-z0-9À-ÿ]/.test(text);
+
+  let multiplier = 1.38; // caixa-alta/dígito sem descendente, e o neutro
+  if (!isAlphanumeric) multiplier = 1.38; // só símbolo: não dá para inferir
+  else if (hasAscender && hasDescender) multiplier = 1.06;
+  else if (!hasAscender && hasDescender) multiplier = 1.35;
+  else if (!hasAscender && !hasDescender) multiplier = 1.92; // só altura-de-x
+
+  return h * multiplier;
+}
+
+/**
+ * Estima o corpo da fonte de cada palavra e corta os outliers contra a mediana
+ * da página.
+ *
+ * TENTATIVA DESCARTADA — mediana por linha: palavras de uma linha compartilham
+ * o corpo, então parecia certo estimar por palavra e adotar a mediana da linha.
+ * Medido no documento real, ficou pior. Num scan ruidoso boa parte das linhas
+ * tem vários tokens ruins, então a mediana da linha herda o chute ruim e o
+ * PROPAGA para as palavras boas dela: a página inteira subiu para 2.2x o corpo
+ * correto, uniformemente. Consistente e errado é pior que inconsistente.
+ *
+ * O que os dados mostram é que a estimativa por palavra acerta a MAIORIA — a
+ * mediana da página cai em cima do corpo real — e erra numa minoria de tokens
+ * curtos. Então o certo é manter a estimativa por palavra e limitar a cauda.
+ *
+ * O corte é no tamanho final da fonte, não na altura do bbox. Limitar só o bbox
+ * não basta: com `h` preso em 1.8x a mediana, a amplitude do multiplicador
+ * (1.92/1.06 = 1.8x) ainda deixava passar 3.25x no tamanho renderizado, que é o
+ * que o usuário enxerga. Medido: 74 de 211 blocos acima do dobro da mediana.
+ */
+export function assignFontSizes(blocks: OcrBlock[]): void {
+  for (const b of blocks) b.fontSize = estimateWordFontSize(b.text, b.h);
+  if (blocks.length < 3) return; // amostra pequena demais para ter mediana confiável
+
+  const sorted = blocks.map((b) => b.fontSize!).sort((a, b) => a - b);
+  const median = sorted[sorted.length >> 1];
+  if (median <= 0) return;
+
+  // 1.8x é folgado de propósito: cabeçalho legítimo fica em 1.3-1.6x o corpo, e
+  // achatar título seria pior que o bug. O que isso corta é 2x+, que na prática
+  // é sempre chute ruim do multiplicador ou bbox mesclado.
+  const cap = median * OUTLIER_FACTOR;
+  for (const b of blocks) if (b.fontSize! > cap) b.fontSize = cap;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -127,6 +227,7 @@ export class OcrService {
           for (const line of lines) {
             const lh = (line.bbox.y1 - line.bbox.y0) / canvas.height;
             const words = line.words ?? [];
+
             for (const word of words) {
               if ((word.confidence ?? 0) < 30) continue;
               const text = (word.text ?? '').trim();
@@ -145,6 +246,9 @@ export class OcrService {
     } else {
       console.warn('[OCR] No blocks. Available keys:', tData ? Object.keys(tData) : 'null');
     }
+
+    clampOutlierHeights(blocks); // geometria da caixa
+    assignFontSizes(blocks); // corpo da fonte, cortado contra a mediana da página
 
     console.log('[OCR] Extracted', blocks.length, 'blocks from', tData?.blocks?.length ?? 0, 'root blocks');
     return { lang: lang as OcrLang, blocks, fullText: data.text };
