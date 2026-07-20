@@ -10,8 +10,8 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report",
-    "postinstall": "node scripts/fetch-model.mjs",
-    "prebuild": "node scripts/fetch-model.mjs"
+    "postinstall": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs",
+    "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs"
   },
   "private": true,
   "dependencies": {

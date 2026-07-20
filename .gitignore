@@ -49,5 +49,8 @@ Thumbs.db
 # 42 MB de pesos do modelo, baixados por scripts/fetch-model.mjs
 public/model/
 
+# ~4 MB de modelos de idioma do OCR, baixados por scripts/fetch-tessdata.mjs
+public/tessdata/
+
 # Terminal Paste Image folder
 .cp-images/

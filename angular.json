@@ -34,6 +34,21 @@
                 "glob": "ort-wasm-simd-threaded.{wasm,mjs}",
                 "input": "node_modules/onnxruntime-web/dist",
                 "output": "ort/"
+              },
+              {
+                "glob": "pdf.worker.min.mjs",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "pdfjs/"
+              },
+              {
+                "glob": "worker.min.js",
+                "input": "node_modules/tesseract.js/dist",
+                "output": "tesseract/"
+              },
+              {
+                "glob": "tesseract-core*-lstm.wasm.js",
+                "input": "node_modules/tesseract.js-core",
+                "output": "tesseract/"
               }
             ],
             "styles": [
