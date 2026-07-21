@@ -108,6 +108,24 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Imagens para PDF -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/para-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/to-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- PDF Editar -->
   <url>
     <loc>https://nadasai.com/pt/pdf/editar</loc>

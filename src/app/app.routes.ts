@@ -81,6 +81,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/para-pdf',
+        title: 'Imagens para PDF — Nada Sai',
+        loadComponent: () => import('./features/img-to-pdf/img-to-pdf.component').then((m) => m.ImgToPdfComponent),
+        data: {
+          metaDescription: 'Junte várias imagens em um único PDF, na ordem que você quiser. Grátis, offline e sem enviar nada para servidores.',
+          metaKeywords: 'imagem para pdf, jpg para pdf, png para pdf, juntar imagens em pdf, converter fotos em pdf'
+        }
+      },
+      {
         path: 'pdf/editar',
         title: 'Editor de PDF — Nada Sai',
         loadComponent: () => import('./features/pdf/pdf.component').then((m) => m.PdfComponent),
@@ -163,6 +172,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Change the resolution (width and height) of your images. Free tool that runs on your computer.',
           metaKeywords: 'resize image, change photo size, change image resolution'
+        }
+      },
+      {
+        path: 'image/to-pdf',
+        title: 'Images to PDF — Nada Sai',
+        loadComponent: () => import('./features/img-to-pdf/img-to-pdf.component').then((m) => m.ImgToPdfComponent),
+        data: {
+          metaDescription: 'Merge several images into a single PDF, in the order you choose. Free, offline, and nothing is uploaded.',
+          metaKeywords: 'image to pdf, jpg to pdf, png to pdf, merge images into pdf, photos to pdf'
         }
       },
       {

@@ -1,0 +1,124 @@
+<app-tool-page [toolId]="'img-to-pdf'" [forceLoaded]="items().length > 0">
+  <!-- One slot element, so the margin has to come and go with its contents. -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || !!noticeKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    @if (noticeKey(); as key) {
+      <app-alert
+        [message]="i18n.t()[key]"
+        tone="info"
+        dismissible
+        (dismiss)="noticeKey.set(null)"
+      />
+    }
+  </div>
+
+  <div stage>
+    @if (!items().length) {
+      <app-dropzone
+        multiple
+        [titleKey]="'imgpdf.drag'"
+        [hintKey]="'imgpdf.drag_hint'"
+        (filesSelected)="addFiles($event)"
+      />
+    } @else {
+      <div class="relative overflow-hidden rounded-xl border border-stage-line bg-stage p-4">
+        <app-pdf-page-grid [items]="items()" (reorder)="reorder($event)" (remove)="removeAt($event)" />
+
+        <p class="mt-3 text-xs text-white/45">{{ i18n.t()['imgpdf.reorder_hint'] }}</p>
+
+        @if (busy()) {
+          <div
+            class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px]"
+          >
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+
+            <p class="text-sm font-medium text-white">{{ i18n.t()['imgpdf.building'] }}</p>
+
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress() ?? 0"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs text-white/50 tabular" aria-live="polite">
+                {{ progress() ?? 0 }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (!full()) {
+        <div class="mt-3">
+          <app-dropzone
+            multiple
+            compact
+            [titleKey]="'imgpdf.add_more'"
+            (filesSelected)="addFiles($event)"
+          />
+        </div>
+      }
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (items().length) {
+      <app-panel [heading]="i18n.t()['imgpdf.page_size']">
+        <app-segmented
+          [options]="pageModeOptions()"
+          [value]="pageMode()"
+          (valueChange)="pageMode.set($event)"
+          [ariaLabel]="i18n.t()['imgpdf.page_size']"
+        />
+
+        <p class="mt-2 text-xs text-faint">
+          {{ pageMode() === 'a4' ? i18n.t()['imgpdf.page_hint_a4'] : i18n.t()['imgpdf.page_hint_fit'] }}
+        </p>
+
+        <!-- JPEG carries no alpha, so a transparent PNG has to land on something.
+             Same control, same reason, as the convert tool's PDF backdrop. -->
+        <div class="mt-4 border-t border-line pt-3">
+          <span class="mb-2 block text-2xs font-medium uppercase text-faint">
+            {{ i18n.t()['imgpdf.bg'] }}
+          </span>
+
+          <app-segmented
+            [options]="backdropOptions"
+            [value]="background()"
+            (valueChange)="background.set($event)"
+            [ariaLabel]="i18n.t()['imgpdf.bg']"
+          />
+        </div>
+
+        <div class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
+          <span class="text-muted">{{ i18n.t()['imgpdf.pages'] }}</span>
+          <span class="font-mono text-text tabular">{{ items().length }}</span>
+        </div>
+
+        @if (resultSize(); as size) {
+          <div class="mt-2 flex justify-between text-sm">
+            <span class="text-muted">{{ i18n.t()['common.result'] }}</span>
+            <span class="font-mono text-text tabular">{{ size }}</span>
+          </div>
+        }
+
+        <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+          {{ i18n.t()['imgpdf.terminal_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['imgpdf.btn'] : null"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

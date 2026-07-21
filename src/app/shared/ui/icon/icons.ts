@@ -31,6 +31,8 @@ export const ICONS = {
   pdf: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8m-5-5 5 5m-5-5v5h5',
   doc: 'M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Zm-5 9h6m-6 4h4',
   audio: 'M4 10v4m4-7v10m4-13v16m4-11v6m4-4v2',
+  images: 'M8 3h11a2 2 0 0 1 2 2v11M4 10.5 6.9 7.6a1.5 1.5 0 0 1 2.2 0l3.4 3.4M12 9.6l1.4-1.4a1.5 1.5 0 0 1 2.2 0L18 10.5M5 20h11a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1Z',
+  chevronLeft: 'M15 6l-6 6 6 6',
   chevronDown: 'M6 9l6 6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
 } as const;
