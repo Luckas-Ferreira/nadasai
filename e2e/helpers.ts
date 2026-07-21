@@ -5,6 +5,10 @@ export const PHOTO = join(__dirname, 'fixtures', 'assets', 'photo.png');
 export const PHOTO_TALL = join(__dirname, 'fixtures', 'assets', 'photo-tall.png');
 export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 
+export const DOC_A = join(__dirname, 'fixtures', 'assets', 'doc-a.pdf');
+export const DOC_B = join(__dirname, 'fixtures', 'assets', 'doc-b.pdf');
+export const SCAN = join(__dirname, 'fixtures', 'assets', 'scan.pdf');
+
 /**
  * The app is Portuguese-only, so there is nothing to pin: the language no longer
  * depends on the machine's locale or on storage, and these assertions are against

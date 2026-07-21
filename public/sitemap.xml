@@ -143,4 +143,40 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- PDF Juntar -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/juntar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/merge" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/juntar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/juntar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/merge</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/juntar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/merge" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/juntar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- PDF Comprimir -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compress" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comprimir" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comprimir" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comprimir" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

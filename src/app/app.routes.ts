@@ -99,6 +99,24 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/juntar',
+        title: 'Juntar PDF — Nada Sai',
+        loadComponent: () => import('./features/merge-pdf/merge-pdf.component').then((m) => m.MergePdfComponent),
+        data: {
+          metaDescription: 'Junte vários PDFs em um só e organize as páginas na ordem que quiser. Grátis, offline e sem enviar nada para servidores.',
+          metaKeywords: 'juntar pdf, unir pdf, mesclar pdf, combinar pdf, organizar páginas de pdf'
+        }
+      },
+      {
+        path: 'pdf/comprimir',
+        title: 'Comprimir PDF — Nada Sai',
+        loadComponent: () => import('./features/compress-pdf/compress-pdf.component').then((m) => m.CompressPdfComponent),
+        data: {
+          metaDescription: 'Reduza o tamanho de arquivos PDF direto no navegador. Seu documento não sai do seu computador.',
+          metaKeywords: 'comprimir pdf, reduzir tamanho de pdf, diminuir pdf, compactar pdf'
+        }
+      },
+      {
         path: 'sobre',
         title: 'Sobre — Nada Sai',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
@@ -190,6 +208,24 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Edit your PDF files (merge, reorder, delete pages) 100% offline with guaranteed privacy.',
           metaKeywords: 'edit pdf, merge pdf, manipulate pdf pages, offline pdf editor'
+        }
+      },
+      {
+        path: 'pdf/merge',
+        title: 'Merge PDF — Nada Sai',
+        loadComponent: () => import('./features/merge-pdf/merge-pdf.component').then((m) => m.MergePdfComponent),
+        data: {
+          metaDescription: 'Combine several PDFs into one and arrange the pages in any order. Free, offline, and nothing is uploaded.',
+          metaKeywords: 'merge pdf, combine pdf, join pdf files, reorder pdf pages'
+        }
+      },
+      {
+        path: 'pdf/compress',
+        title: 'Compress PDF — Nada Sai',
+        loadComponent: () => import('./features/compress-pdf/compress-pdf.component').then((m) => m.CompressPdfComponent),
+        data: {
+          metaDescription: 'Reduce PDF file size right in your browser. Your document never leaves your computer.',
+          metaKeywords: 'compress pdf, reduce pdf size, shrink pdf, make pdf smaller'
         }
       },
       {

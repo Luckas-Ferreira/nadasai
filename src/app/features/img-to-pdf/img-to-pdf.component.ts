@@ -10,10 +10,15 @@ import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
+import { PageGridComponent, type PageItem } from '../../shared/ui/page-grid.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
 import { SegmentedComponent } from '../../shared/ui/segmented.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
-import { PdfPageGridComponent, type PdfPageItem } from './page-grid.component';
+
+/** A page here is an image file; the grid itself only needs label + url. */
+interface PdfPageItem extends PageItem {
+  readonly file: File;
+}
 
 /**
  * Thirty pages of capped raster is already a ~15 MB PDF. Past that the encode
@@ -44,7 +49,7 @@ const MAX_PAGES = 30;
     SegmentedComponent,
     ActionBarComponent,
     AlertComponent,
-    PdfPageGridComponent,
+    PageGridComponent,
   ],
   templateUrl: './img-to-pdf.component.html',
 })
@@ -203,7 +208,7 @@ export class ImgToPdfComponent {
     if (!blob || !first) return;
 
     // Named after page one, not after whatever the chain last produced.
-    saveBlob(blob, suffixedName(first.name, this.tool.suffix, 'pdf'));
+    saveBlob(blob, suffixedName(first.label, this.tool.suffix, 'pdf'));
   }
 
   protected reset(): void {
@@ -218,8 +223,8 @@ export class ImgToPdfComponent {
     this.state.clear();
   }
 
-  private toItem(file: File, name: string): PdfPageItem {
-    return { id: `page-${this.nextId++}`, file, name, url: this.urls.create(file) };
+  private toItem(file: File, label: string): PdfPageItem {
+    return { id: `page-${this.nextId++}`, file, label, url: this.urls.create(file) };
   }
 
   /** The PDF on screen no longer matches the list, so it must not stay downloadable. */

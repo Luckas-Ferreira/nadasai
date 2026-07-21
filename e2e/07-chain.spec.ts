@@ -13,7 +13,8 @@ test.describe('The chain', () => {
     await expect(page.getByText('photo.png')).toBeVisible();
     await expect(page.getByText('O que você quer fazer com ela?')).toBeVisible();
 
-    await rail(page).getByRole('link', { name: 'Comprimir' }).click();
+    // Exact: the PDF module has its own "Comprimir PDF" in the same rail.
+    await rail(page).getByRole('link', { name: 'Comprimir', exact: true }).click();
     await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
     await primary(page, 'Comprimir').click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
