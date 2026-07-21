@@ -25,6 +25,22 @@
  * é texto 38% a 92% maior que o original — era isso que aparecia ao clicar num
  * bloco e o texto saltar de tamanho. Sem multiplicador: `h` é o valor.
  */
-export function baseFontSize(block: { fontSize?: number; h: number }, pageHeight: number): number {
-  return (block.fontSize ?? block.h) * pageHeight;
+export function baseFontSize(
+  block: { fontSize?: number; h: number; w?: number; originalText?: string | null },
+  pageHeight: number,
+  pageWidth?: number
+): number {
+  const baseSize = (block.fontSize ?? block.h) * pageHeight;
+
+  // Cap the font size to prevent horizontal overflow.
+  // Helvetica's average character width is around 0.55 of the font size.
+  // We use a 0.48 multiplier to prevent extreme shrinking which makes the text look unnaturally tiny compared to its bounding box.
+  if (pageWidth !== undefined && block.w !== undefined && block.originalText != null) {
+    const textLength = Math.max(1, block.originalText.length);
+    const maxAvailableWidthPx = block.w * pageWidth;
+    const maxFontSize = maxAvailableWidthPx / (textLength * 0.48);
+    return Math.min(baseSize, maxFontSize);
+  }
+
+  return baseSize;
 }
