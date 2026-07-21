@@ -2,6 +2,7 @@ import { expect, type Page } from '@playwright/test';
 import { join } from 'node:path';
 
 export const PHOTO = join(__dirname, 'fixtures', 'assets', 'photo.png');
+export const PHOTO_TALL = join(__dirname, 'fixtures', 'assets', 'photo-tall.png');
 export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 
 /**

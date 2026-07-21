@@ -70,6 +70,7 @@ import { IconComponent } from './icon/icon.component';
         type="file"
         class="hidden"
         [accept]="accept()"
+        [attr.multiple]="multiple() ? '' : null"
         (change)="onSelected($event)"
         (click)="$event.stopPropagation()"
       />
@@ -81,12 +82,19 @@ export class DropzoneComponent {
 
   readonly accept = input(ACCEPT_ATTR);
   readonly compact = input(false, { transform: booleanAttribute });
-  
+  /** Only affects the picker and `filesSelected`; `fileSelected` still emits one file. */
+  readonly multiple = input(false, { transform: booleanAttribute });
+
   readonly titleKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.drag');
   readonly hintKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.drag_hint');
   readonly buttonKey = input<keyof ReturnType<typeof TranslationService.prototype.t>>('common.upload_btn');
 
   readonly fileSelected = output<File>();
+  /**
+   * Every file from the drop or the picker. Emitted alongside `fileSelected`
+   * rather than instead of it, so the five single-file tools are untouched.
+   */
+  readonly filesSelected = output<File[]>();
 
   private readonly input = viewChild.required<ElementRef<HTMLInputElement>>('input');
   protected readonly dragging = signal(false);
@@ -123,15 +131,21 @@ export class DropzoneComponent {
     this.depth = 0;
     this.dragging.set(false);
 
-    const file = event.dataTransfer?.files?.[0];
-    if (file) this.fileSelected.emit(file);
+    this.emit(event.dataTransfer?.files);
   }
 
   protected onSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) this.fileSelected.emit(file);
+    this.emit(input.files);
     // Allow re-selecting the same file immediately after a reset.
     input.value = '';
+  }
+
+  private emit(list: FileList | null | undefined): void {
+    const files = Array.from(list ?? []);
+    if (!files.length) return;
+
+    this.fileSelected.emit(files[0]);
+    this.filesSelected.emit(files);
   }
 }

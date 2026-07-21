@@ -1,4 +1,12 @@
-import { TARGET_FORMATS, TERMINAL_FORMATS, encodeIco, encodeImage, resizeImage } from './converters';
+import {
+  TARGET_FORMATS,
+  TERMINAL_FORMATS,
+  encodeIco,
+  encodeImage,
+  encodePdf,
+  encodePdfFromImages,
+  resizeImage,
+} from './converters';
 
 /** Builds a real, decodable PNG with a transparent half so alpha handling is exercised. */
 async function makeImageFile(width = 40, height = 20, type = 'image/png'): Promise<File> {
@@ -31,6 +39,26 @@ async function pixelAt(blob: Blob, x: number, y: number): Promise<[number, numbe
 async function dimensions(blob: Blob): Promise<{ width: number; height: number }> {
   const bitmap = await createImageBitmap(blob);
   return { width: bitmap.width, height: bitmap.height };
+}
+
+/**
+ * Reads the produced PDF back with pdf-lib (already a dependency, used by the
+ * PDF editor). Asserting on real page objects is the only way to know the pages
+ * exist at all — a blob with the right MIME proves nothing.
+ */
+async function pdfPages(blob: Blob): Promise<{ width: number; height: number }[]> {
+  const { PDFDocument } = await import('pdf-lib');
+  const doc = await PDFDocument.load(await blob.arrayBuffer());
+  return doc.getPages().map((page) => page.getSize());
+}
+
+/** A4 in points, portrait — the box encodePdfFromImages targets in `a4` mode. */
+const A4 = { width: 595.28, height: 841.89 };
+
+function isA4(page: { width: number; height: number }): boolean {
+  const long = Math.max(page.width, page.height);
+  const short = Math.min(page.width, page.height);
+  return Math.abs(long - A4.height) < 1 && Math.abs(short - A4.width) < 1;
 }
 
 describe('converters', () => {
@@ -107,6 +135,73 @@ describe('converters', () => {
       const out = await resizeImage(file, { width: 100, height: 100 });
 
       expect(await dimensions(out)).toEqual({ width: 100, height: 100 });
+    });
+  });
+
+  describe('encodePdfFromImages', () => {
+    it('writes one page per image and keeps the order it was given', async () => {
+      const files = [await makeImageFile(40, 20), await makeImageFile(20, 40), await makeImageFile(30, 30)];
+
+      const blob = await encodePdfFromImages(files, { pageMode: 'fit' });
+      expect(blob.type).toBe('application/pdf');
+
+      const pages = await pdfPages(blob);
+      expect(pages.length).toBe(3);
+
+      // Order is the feature: page 1 is landscape, page 2 portrait, page 3 square.
+      expect(pages[0].width).toBeGreaterThan(pages[0].height);
+      expect(pages[1].width).toBeLessThan(pages[1].height);
+      expect(pages[2].width).toBeCloseTo(pages[2].height, 1);
+    });
+
+    it('gives every page the A4 box in a4 mode, whatever the image shape', async () => {
+      const files = [await makeImageFile(400, 100), await makeImageFile(100, 400)];
+
+      const pages = await pdfPages(await encodePdfFromImages(files, { pageMode: 'a4' }));
+
+      expect(pages.length).toBe(2);
+      expect(pages.every(isA4)).toBeTrue();
+      // The A4 box is rotated to match the image, so a wide photo is not letterboxed
+      // into a sliver of a portrait page.
+      expect(pages[0].width).toBeGreaterThan(pages[0].height);
+      expect(pages[1].width).toBeLessThan(pages[1].height);
+    });
+
+    it('sizes a fit page to the image, and honours the raster cap', async () => {
+      const file = await makeImageFile(600, 200);
+
+      const [uncapped] = await pdfPages(await encodePdfFromImages([file], { pageMode: 'fit' }));
+      const [capped] = await pdfPages(
+        await encodePdfFromImages([file], { pageMode: 'fit', maxLongSide: 300 }),
+      );
+
+      // Half the pixels, half the page — and the aspect ratio survives.
+      expect(capped.width).toBeCloseTo(uncapped.width / 2, 0);
+      expect(capped.width / capped.height).toBeCloseTo(3, 1);
+    });
+
+    it('reports progress once per image', async () => {
+      const files = [await makeImageFile(20, 20), await makeImageFile(20, 20)];
+      const seen: string[] = [];
+
+      await encodePdfFromImages(files, {
+        pageMode: 'fit',
+        onProgress: (done, total) => seen.push(`${done}/${total}`),
+      });
+
+      expect(seen).toEqual(['1/2', '2/2']);
+    });
+
+    it('refuses an empty list instead of emitting a zero-page PDF', async () => {
+      await expectAsync(encodePdfFromImages([])).toBeRejected();
+    });
+
+    /** The single-image convert path now routes through the same encoder. */
+    it('encodePdf still produces one page the size of its image', async () => {
+      const pages = await pdfPages(await encodePdf(await makeImageFile(80, 40)));
+
+      expect(pages.length).toBe(1);
+      expect(pages[0].width / pages[0].height).toBeCloseTo(2, 1);
     });
   });
 

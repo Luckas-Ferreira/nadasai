@@ -1,7 +1,14 @@
 import { IconName } from '../../shared/ui/icon/icons';
 import type { TranslationKey } from '../services/translation.service';
 
-export type ToolId = 'remove-bg' | 'crop' | 'compress' | 'convert' | 'resize' | 'edit-pdf';
+export type ToolId =
+  | 'remove-bg'
+  | 'crop'
+  | 'compress'
+  | 'convert'
+  | 'resize'
+  | 'img-to-pdf'
+  | 'edit-pdf';
 
 /**
  * Per-tool colour. iLoveIMG's identity is that every tool owns a hue; we borrow
@@ -10,7 +17,7 @@ export type ToolId = 'remove-bg' | 'crop' | 'compress' | 'convert' | 'resize' | 
  * matching pair of theme-flipping tokens in styles.css; adding a tone means
  * adding it in BOTH places.
  */
-export type ToolTone = 'violet' | 'amber' | 'emerald' | 'rose' | 'sky' | 'orange';
+export type ToolTone = 'violet' | 'amber' | 'emerald' | 'rose' | 'sky' | 'orange' | 'indigo';
 
 export type ToolCategory = 'image' | 'pdf';
 
@@ -96,6 +103,19 @@ export const TOOLS: readonly ToolDef[] = [
     descKey: 'convert.subtitle',
     suffix: 'converted',
     tone: 'sky',
+  },
+  {
+    id: 'img-to-pdf',
+    pathPt: 'imagem/para-pdf',
+    pathEn: 'image/to-pdf',
+    icon: 'images',
+    category: 'image',
+    navKey: 'nav.img_to_pdf',
+    shortKey: 'nav.short.img_to_pdf',
+    titleKey: 'imgpdf.title',
+    descKey: 'imgpdf.subtitle',
+    suffix: 'pdf',
+    tone: 'indigo',
   },
   {
     id: 'edit-pdf',

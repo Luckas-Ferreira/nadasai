@@ -10,6 +10,8 @@ import { join } from 'node:path';
 
 const DIR = join(__dirname, 'assets');
 export const PHOTO = join(DIR, 'photo.png');
+/** Portrait, and a different name — the images-to-PDF spec needs two distinguishable pages. */
+export const PHOTO_TALL = join(DIR, 'photo-tall.png');
 export const NOT_AN_IMAGE = join(DIR, 'notes.txt');
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
@@ -91,5 +93,6 @@ function makePng(width: number, height: number): Buffer {
 export default function globalSetup(): void {
   mkdirSync(DIR, { recursive: true });
   writeFileSync(PHOTO, makePng(800, 600));
+  writeFileSync(PHOTO_TALL, makePng(400, 700));
   writeFileSync(NOT_AN_IMAGE, 'definitely not a PNG\n');
 }

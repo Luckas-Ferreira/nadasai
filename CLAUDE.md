@@ -75,6 +75,10 @@ Shared pieces: `app-dropzone`, `app-preview-surface`, `app-compare-slider`, `app
 
 Register the tool once in `core/tools/tools.ts`; the nav, the home grid and the filename suffix all read from there.
 
+**`img-to-pdf` is the one tool that does not live on the chain, and that is not an oversight.** `ImageStateService` holds exactly one file per session — that is what makes the other tools chainable — and a reorderable page list is not a chain, so the list is local component state. It still *reads* the chain on construction (a crop flows into page one) and it never calls `apply()`, because a PDF is terminal for the same reason `TERMINAL_FORMATS` blocks convert. Consequences worth knowing: `<app-tool-page>` gets `[forceLoaded]` because its default `loaded` watches the chain, which is empty here; the output filename comes off **page one**, not `originalName`; and `stale` has to include the page order, or dragging page 3 to the front would leave the stale PDF downloadable. `app-dropzone` grew `multiple` + `filesSelected` for it — emitted *alongside* `fileSelected`, never instead of it, so the five single-file tools are untouched.
+
+`encodePdfFromImages` in `core/image/converters.ts` backs it, and `encodePdf` is now a one-line wrapper over it. Two things there are load-bearing: the loop is **sequential** (mapping it through `Promise.all` holds every decoded canvas at once — thirty 12 MP photos is gigabytes of RGBA), and `maxLongSide` caps the raster for the multi-image path only. Without the cap a batch of phone photos builds a 50 MB PDF at 2-3 MB per page; single-image convert passes no cap, because there the user asked for that one image at full resolution.
+
 ### Object URLs
 
 `ObjectUrlScope` (`core/image/object-url.ts`) must be in every tool's `providers`. Angular destroys it on route leave, which is the entire point — provide it in root and you have recreated the leak it was written to fix. Use `urls.replace(old, blob)` rather than raw `createObjectURL`.
