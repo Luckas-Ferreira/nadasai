@@ -118,7 +118,12 @@ type PdfStatus =
           />
         } @else {
           <!-- Continuous scroll container -->
-          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)]" (click)="onCanvasAreaClick($event)">
+          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)]" 
+               (click)="onCanvasAreaClick($event)"
+               (wheel)="onWheel($event)"
+               (touchstart)="onTouchStart($event)"
+               (touchmove)="onTouchMove($event)"
+               (touchend)="onTouchEnd($event)">
             @if (status() === 'loading' || status() === 'ocr') {
               <div class="flex flex-col items-center justify-center gap-4 py-12">
                 <div class="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-accent"></div>
@@ -148,17 +153,18 @@ type PdfStatus =
                   <div class="absolute inset-0 overflow-hidden">
                     @for (block of getBlocksForPage(page.index); track block.id) {
                       <div
-                        class="absolute cursor-text overflow-hidden whitespace-nowrap rounded-sm px-0.5 outline-none border transition-colors tracking-tight"
+                        class="absolute cursor-text overflow-visible whitespace-nowrap rounded-sm px-0.5 outline-none border transition-colors tracking-tight"
                         [style.left.%]="block.x * 100"
                         [style.top.%]="block.y * 100"
-                        [style.minWidth.%]="block.w * 100 * (block.fontScale || 1.0)"
-                        [style.height.%]="block.h * 100 * (block.fontScale || 1.0)"
-                        [style.maxHeight.%]="block.h * 100 * (block.fontScale || 1.0)"
+                        [style.width.%]="block.w * 100"
+                        [style.minWidth.%]="block.w * 100"
+                        [style.height.%]="block.h * 100"
                         [style.lineHeight.px]="block.h * page.height * scale() * (block.fontScale || 1.0)"
-                        [style.fontSize.px]="getBaseFontSize(block, page.height) * scale() * (block.fontScale || 1.0)"
+                        [style.fontSize.px]="getBaseFontSize(block, page.height, page.width) * scale() * (block.fontScale || 1.0)"
+                        [style.fontStretch]="'condensed'"
                         [style.fontWeight]="block.bold ? 'bold' : 'normal'"
                         [style.fontStyle]="block.italic ? 'italic' : 'normal'"
-                        [style.fontFamily]="block.fontFamily || 'Helvetica, sans-serif'"
+                        [style.fontFamily]="block.fontFamily || 'Helvetica, Arial Narrow, sans-serif'"
                         [style.color]="(selectedBlock() !== block.id && block.newText === null && !block.deleted) ? 'transparent' : (block.color || 'inherit')"
                         [style.background]="block.bgColor || (selectedBlock() === block.id ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : (block.newText !== null ? 'rgb(255,255,255)' : 'transparent'))"
                         [class.z-10]="selectedBlock() === block.id"
@@ -594,7 +600,7 @@ export class PdfComponent implements OnDestroy {
 
     // Retry up to 10 times if the canvas refs are not yet in the DOM.
     for (let attempt = 0; attempt < 10; attempt++) {
-      if (this.pageCanvases && this.pageCanvases.length > 0) {
+      if (this.pageCanvases && this.pageCanvases.length === pdf.pages.length) {
         break;
       }
       await new Promise<void>((r) => setTimeout(r, 30));
@@ -627,6 +633,49 @@ export class PdfComponent implements OnDestroy {
     }
   }
 
+  protected initialPinchDistance: number | null = null;
+  protected initialScaleAtPinchStart: number = 1.0;
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 2) {
+      this.initialPinchDistance = Math.hypot(
+        event.touches[0].clientX - event.touches[1].clientX,
+        event.touches[0].clientY - event.touches[1].clientY
+      );
+      this.initialScaleAtPinchStart = this.scale();
+    }
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (event.touches.length === 2 && this.initialPinchDistance !== null) {
+      if (event.cancelable) event.preventDefault();
+      const currentDistance = Math.hypot(
+        event.touches[0].clientX - event.touches[1].clientX,
+        event.touches[0].clientY - event.touches[1].clientY
+      );
+      const ratio = currentDistance / this.initialPinchDistance;
+      const newScale = Math.min(3, Math.max(0.3, this.initialScaleAtPinchStart * ratio));
+      this.scale.set(Math.round(newScale * 100) / 100);
+    }
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    if (event.touches.length < 2) {
+      this.initialPinchDistance = null;
+    }
+  }
+
+  protected onWheel(event: WheelEvent): void {
+    if (event.ctrlKey || event.metaKey) {
+      if (event.cancelable) event.preventDefault();
+      // Most trackpads map pinch-to-zoom to wheel events with ctrlKey=true.
+      // event.deltaY is positive when pinching out (zooming out), negative when pinching in (zooming in).
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      const currentScale = this.scale();
+      const next = Math.min(3, Math.max(0.3, currentScale + delta));
+      this.scale.set(Math.round(next * 100) / 100);
+    }
+  }
   protected zoom(delta: number): void {
     const next = Math.min(3, Math.max(0.3, this.scale() + delta));
     this.scale.set(Math.round(next * 10) / 10);
@@ -827,8 +876,8 @@ export class PdfComponent implements OnDestroy {
     }
   }
 
-  protected getBaseFontSize(block: TextEdit, pageHeight: number): number {
-    return baseFontSize(block, pageHeight);
+  protected getBaseFontSize(block: TextEdit, pageHeight: number, pageWidth: number): number {
+    return baseFontSize(block, pageHeight, pageWidth);
   }
 
   protected getBlockSize(id: string): number {
@@ -836,7 +885,8 @@ export class PdfComponent implements OnDestroy {
     if (!block) return 16;
     const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
     const height = pageInfo ? pageInfo.height : 842;
-    const defaultSize = this.getBaseFontSize(block, height);
+    const width = pageInfo ? pageInfo.width : 595;
+    const defaultSize = this.getBaseFontSize(block, height, width);
     return Math.round(defaultSize * (block.fontScale || 1.0));
   }
 
@@ -847,7 +897,8 @@ export class PdfComponent implements OnDestroy {
       const newEdits = new Map(this.edits());
       const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
       const height = pageInfo ? pageInfo.height : 842;
-      const defaultSize = this.getBaseFontSize(block, height);
+      const width = pageInfo ? pageInfo.width : 595;
+      const defaultSize = this.getBaseFontSize(block, height, width);
       
       const currentSize = Math.round(defaultSize * (block.fontScale || 1.0));
       const nextSize = Math.max(6, currentSize + delta);
@@ -868,7 +919,8 @@ export class PdfComponent implements OnDestroy {
       const newEdits = new Map(this.edits());
       const pageInfo = this.loadedPdf()?.pages.find(p => p.index === block.pageIndex);
       const height = pageInfo ? pageInfo.height : 842;
-      const defaultSize = this.getBaseFontSize(block, height);
+      const width = pageInfo ? pageInfo.width : 595;
+      const defaultSize = this.getBaseFontSize(block, height, width);
       
       const nextSize = Math.max(6, val);
       const nextScale = nextSize / defaultSize;
