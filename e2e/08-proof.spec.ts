@@ -43,7 +43,8 @@ test.describe('Zero-upload, asserted from outside the app', () => {
 
     // Drive real work through two tools — a leak would happen here, not at rest.
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Comprimir' }).click();
+    // Exact: the PDF module has its own "Comprimir PDF" in the same rail.
+    await rail(page).getByRole('link', { name: 'Comprimir', exact: true }).click();
     await primary(page, 'Comprimir').click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 

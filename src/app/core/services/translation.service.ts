@@ -35,6 +35,11 @@ const EN = {
   'nav.convert': 'Convert',
   'nav.resize': 'Resize',
   'nav.img_to_pdf': 'Images to PDF',
+  // Qualified with "PDF" on purpose: the rail shows the image and PDF modules at
+  // the same time, and two links reading exactly "Compress" are ambiguous to a
+  // screen reader, which announces the name with no idea which group it sits in.
+  'nav.merge_pdf': 'Merge PDF',
+  'nav.compress_pdf': 'Compress PDF',
 
   'nav.short.remove_bg': 'Cutout',
   'nav.short.crop': 'Crop',
@@ -42,6 +47,8 @@ const EN = {
   'nav.short.convert': 'Convert',
   'nav.short.resize': 'Resize',
   'nav.short.img_to_pdf': 'PDF',
+  'nav.short.merge_pdf': 'Merge',
+  'nav.short.compress_pdf': 'Compress',
 
   'hero.title': 'Your files never leave your computer.',
   'hero.subtitle':
@@ -143,9 +150,6 @@ const EN = {
   'imgpdf.add_more': 'Add more images',
   'imgpdf.pages': 'Pages',
   'imgpdf.reorder_hint': 'Drag a page to reorder, or use the arrows.',
-  'imgpdf.move_left': 'Move earlier',
-  'imgpdf.move_right': 'Move later',
-  'imgpdf.remove': 'Remove',
   'imgpdf.page_size': 'Page size',
   'imgpdf.page_a4': 'A4',
   'imgpdf.page_fit': 'Image size',
@@ -156,6 +160,12 @@ const EN = {
   'imgpdf.terminal_note': 'A PDF is a final format — it can be downloaded, but not edited further here.',
   'imgpdf.limit_reached': 'Up to 30 images per PDF. The extras were left out.',
   'imgpdf.some_skipped': 'Some files were skipped: they are not supported images or are over 50 MB.',
+
+  // Shared by every page strip (app-page-grid).
+  'pages.move_left': 'Move earlier',
+  'pages.move_right': 'Move later',
+  'pages.remove': 'Remove',
+  'pages.rotate': 'Rotate 90°',
 
   'resize.title': 'Resize',
   'resize.subtitle': 'Set exact pixel dimensions.',
@@ -208,6 +218,43 @@ const EN = {
   'error.pdf_too_large': 'That PDF is too large. The limit is 100 MB.',
   'error.pdf_encrypted': 'This PDF is password-protected and cannot be edited.',
   'error.pdf_export_failed': "The PDF couldn't be exported. Please try again.",
+
+  'mergepdf.title': 'Merge PDF',
+  'mergepdf.subtitle': 'Combine several PDFs into one and arrange the pages however you like.',
+  'mergepdf.btn': 'Merge PDFs',
+  'mergepdf.drag': 'Drop your PDFs here',
+  'mergepdf.drag_hint': 'Several at once · PDF only · up to 100 MB each',
+  'mergepdf.add_more': 'Add more PDFs',
+  'mergepdf.pages': 'Pages',
+  'mergepdf.reading': 'Reading pages',
+  'mergepdf.building': 'Merging',
+  'mergepdf.reorder_hint': 'Drag a page to reorder, or use the arrows. Rotation applies to that page only.',
+  'mergepdf.files': 'Files',
+  'mergepdf.limit_files': 'Up to 20 PDFs at a time. The extras were left out.',
+  'mergepdf.limit_pages': 'Up to 300 pages per merge. The extras were left out.',
+  'mergepdf.some_skipped': 'Some files were skipped: they are not valid PDFs, are password-protected, or are over 100 MB.',
+  'mergepdf.terminal_note': 'The merged PDF is downloaded straight to your device — nothing is uploaded.',
+
+  'cpdf.title': 'Compress PDF',
+  'cpdf.subtitle': 'Make a PDF smaller without it leaving your computer.',
+  'cpdf.btn': 'Compress PDF',
+  'cpdf.drag': 'Drop a PDF here',
+  'cpdf.drag_hint': 'PDF files only · up to 100 MB',
+  'cpdf.level': 'Compression',
+  'cpdf.level_light': 'Light',
+  'cpdf.level_balanced': 'Recommended',
+  'cpdf.level_strong': 'Strong',
+  'cpdf.level_lossless': 'Lossless',
+  'cpdf.hint_light': 'Highest quality. Good when the PDF will be printed.',
+  'cpdf.hint_balanced': 'The best trade-off for reading on screen and sending by email.',
+  'cpdf.hint_strong': 'Smallest file. Visible loss of sharpness when zoomed in.',
+  'cpdf.hint_lossless': 'Rewrites the file structure without touching a single pixel. Modest savings.',
+  'cpdf.raster_note': 'Pages are re-encoded as images. Any text the PDF already had is kept as an invisible layer, so it stays searchable.',
+  'cpdf.working': 'Compressing page',
+  'cpdf.original': 'Original',
+  'cpdf.saved': 'Saved',
+  'cpdf.pages': 'Pages',
+  'cpdf.no_gain': 'This PDF is already well optimised — compressing it would make it bigger, so the original was kept.',
 } as const;
 
 export type TranslationKey = keyof typeof EN;
@@ -236,6 +283,8 @@ const PT: Record<TranslationKey, string> = {
   'nav.convert': 'Converter',
   'nav.resize': 'Redimensionar',
   'nav.img_to_pdf': 'Imagens para PDF',
+  'nav.merge_pdf': 'Juntar PDF',
+  'nav.compress_pdf': 'Comprimir PDF',
 
   'nav.short.remove_bg': 'Fundo',
   'nav.short.crop': 'Cortar',
@@ -243,6 +292,8 @@ const PT: Record<TranslationKey, string> = {
   'nav.short.convert': 'Converter',
   'nav.short.resize': 'Tamanho',
   'nav.short.img_to_pdf': 'PDF',
+  'nav.short.merge_pdf': 'Juntar',
+  'nav.short.compress_pdf': 'Comprimir',
 
   'hero.title': 'Seus arquivos não saem do seu computador.',
   'hero.subtitle':
@@ -343,9 +394,6 @@ const PT: Record<TranslationKey, string> = {
   'imgpdf.add_more': 'Adicionar mais imagens',
   'imgpdf.pages': 'Páginas',
   'imgpdf.reorder_hint': 'Arraste uma página para reordenar, ou use as setas.',
-  'imgpdf.move_left': 'Mover para antes',
-  'imgpdf.move_right': 'Mover para depois',
-  'imgpdf.remove': 'Remover',
   'imgpdf.page_size': 'Tamanho da página',
   'imgpdf.page_a4': 'A4',
   'imgpdf.page_fit': 'Da imagem',
@@ -356,6 +404,12 @@ const PT: Record<TranslationKey, string> = {
   'imgpdf.terminal_note': 'PDF é um formato final — pode ser baixado, mas não editado adiante aqui.',
   'imgpdf.limit_reached': 'Até 30 imagens por PDF. As demais ficaram de fora.',
   'imgpdf.some_skipped': 'Alguns arquivos foram ignorados: não são imagens suportadas ou passam de 50 MB.',
+
+  // Compartilhadas por toda tira de páginas (app-page-grid).
+  'pages.move_left': 'Mover para antes',
+  'pages.move_right': 'Mover para depois',
+  'pages.remove': 'Remover',
+  'pages.rotate': 'Girar 90°',
 
   'resize.title': 'Redimensionar',
   'resize.subtitle': 'Defina as dimensões exatas em pixels.',
@@ -408,6 +462,43 @@ const PT: Record<TranslationKey, string> = {
   'error.pdf_too_large': 'Esse PDF é grande demais. O limite é 100 MB.',
   'error.pdf_encrypted': 'Este PDF está protegido por senha e não pode ser editado.',
   'error.pdf_export_failed': 'Não foi possível exportar o PDF. Tente novamente.',
+
+  'mergepdf.title': 'Juntar PDF',
+  'mergepdf.subtitle': 'Junte vários PDFs em um só e organize as páginas do jeito que quiser.',
+  'mergepdf.btn': 'Juntar PDFs',
+  'mergepdf.drag': 'Solte seus PDFs aqui',
+  'mergepdf.drag_hint': 'Vários de uma vez · Somente PDF · até 100 MB cada',
+  'mergepdf.add_more': 'Adicionar mais PDFs',
+  'mergepdf.pages': 'Páginas',
+  'mergepdf.reading': 'Lendo as páginas',
+  'mergepdf.building': 'Juntando',
+  'mergepdf.reorder_hint': 'Arraste uma página para reordenar, ou use as setas. Girar vale só para aquela página.',
+  'mergepdf.files': 'Arquivos',
+  'mergepdf.limit_files': 'Até 20 PDFs por vez. Os demais ficaram de fora.',
+  'mergepdf.limit_pages': 'Até 300 páginas por junção. As demais ficaram de fora.',
+  'mergepdf.some_skipped': 'Alguns arquivos foram ignorados: não são PDFs válidos, estão protegidos por senha, ou passam de 100 MB.',
+  'mergepdf.terminal_note': 'O PDF final é baixado direto para o seu dispositivo — nada é enviado.',
+
+  'cpdf.title': 'Comprimir PDF',
+  'cpdf.subtitle': 'Deixe um PDF menor sem ele sair do seu computador.',
+  'cpdf.btn': 'Comprimir PDF',
+  'cpdf.drag': 'Solte um PDF aqui',
+  'cpdf.drag_hint': 'Somente arquivos PDF · até 100 MB',
+  'cpdf.level': 'Compressão',
+  'cpdf.level_light': 'Leve',
+  'cpdf.level_balanced': 'Recomendada',
+  'cpdf.level_strong': 'Forte',
+  'cpdf.level_lossless': 'Sem perdas',
+  'cpdf.hint_light': 'Qualidade máxima. Boa quando o PDF vai ser impresso.',
+  'cpdf.hint_balanced': 'O melhor equilíbrio para ler na tela e mandar por e-mail.',
+  'cpdf.hint_strong': 'Arquivo menor. Perda de nitidez visível no zoom.',
+  'cpdf.hint_lossless': 'Reescreve a estrutura do arquivo sem tocar em nenhum pixel. Economia modesta.',
+  'cpdf.raster_note': 'As páginas são reconvertidas em imagem. O texto que o PDF já tinha é mantido como camada invisível, então continua pesquisável.',
+  'cpdf.working': 'Comprimindo a página',
+  'cpdf.original': 'Original',
+  'cpdf.saved': 'Economia',
+  'cpdf.pages': 'Páginas',
+  'cpdf.no_gain': 'Este PDF já está bem otimizado — comprimir deixaria ele maior, então o original foi mantido.',
 };
 
 const DICTIONARY: Record<Language, Record<TranslationKey, string>> = { en: EN, pt: PT };

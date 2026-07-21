@@ -41,7 +41,8 @@ test.describe('Offline', () => {
     await expect(page.locator('app-network-proof')).toContainText('Você está sem internet');
 
     // Navigating here is the exact thing that used to hang: a lazy chunk.
-    await rail(page).getByRole('link', { name: 'Comprimir' }).click();
+    // Exact: the PDF module has its own "Comprimir PDF" in the same rail.
+    await rail(page).getByRole('link', { name: 'Comprimir', exact: true }).click();
     await primary(page, 'Comprimir').click();
     await expectDownload(page, /^photo-min\.webp$/);
   });

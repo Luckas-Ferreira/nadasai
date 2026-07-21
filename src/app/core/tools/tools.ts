@@ -8,7 +8,9 @@ export type ToolId =
   | 'convert'
   | 'resize'
   | 'img-to-pdf'
-  | 'edit-pdf';
+  | 'edit-pdf'
+  | 'merge-pdf'
+  | 'compress-pdf';
 
 /**
  * Per-tool colour. iLoveIMG's identity is that every tool owns a hue; we borrow
@@ -17,7 +19,16 @@ export type ToolId =
  * matching pair of theme-flipping tokens in styles.css; adding a tone means
  * adding it in BOTH places.
  */
-export type ToolTone = 'violet' | 'amber' | 'emerald' | 'rose' | 'sky' | 'orange' | 'indigo';
+export type ToolTone =
+  | 'violet'
+  | 'amber'
+  | 'emerald'
+  | 'rose'
+  | 'sky'
+  | 'orange'
+  | 'indigo'
+  | 'teal'
+  | 'fuchsia';
 
 export type ToolCategory = 'image' | 'pdf';
 
@@ -129,6 +140,32 @@ export const TOOLS: readonly ToolDef[] = [
     descKey: 'pdf.subtitle',
     suffix: 'edited',
     tone: 'orange',
+  },
+  {
+    id: 'merge-pdf',
+    pathPt: 'pdf/juntar',
+    pathEn: 'pdf/merge',
+    icon: 'merge',
+    category: 'pdf',
+    navKey: 'nav.merge_pdf',
+    shortKey: 'nav.short.merge_pdf',
+    titleKey: 'mergepdf.title',
+    descKey: 'mergepdf.subtitle',
+    suffix: 'merged',
+    tone: 'teal',
+  },
+  {
+    id: 'compress-pdf',
+    pathPt: 'pdf/comprimir',
+    pathEn: 'pdf/compress',
+    icon: 'compress',
+    category: 'pdf',
+    navKey: 'nav.compress_pdf',
+    shortKey: 'nav.short.compress_pdf',
+    titleKey: 'cpdf.title',
+    descKey: 'cpdf.subtitle',
+    suffix: 'min',
+    tone: 'fuchsia',
   },
 ];
 

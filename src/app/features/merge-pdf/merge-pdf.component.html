@@ -1,4 +1,4 @@
-<app-tool-page [toolId]="'img-to-pdf'" [forceLoaded]="items().length > 0">
+<app-tool-page [toolId]="'merge-pdf'" [forceLoaded]="items().length > 0">
   <!-- One slot element, so the margin has to come and go with its contents. -->
   <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || !!noticeKey()">
     @if (errorKey(); as key) {
@@ -19,28 +19,40 @@
     @if (!items().length) {
       <app-dropzone
         multiple
-        [titleKey]="'imgpdf.drag'"
-        [hintKey]="'imgpdf.drag_hint'"
+        [accept]="'application/pdf,.pdf'"
+        [titleKey]="'mergepdf.drag'"
+        [hintKey]="'mergepdf.drag_hint'"
+        [buttonKey]="'pdf.upload_btn'"
         (filesSelected)="addFiles($event)"
       />
+
+      @if (reading()) {
+        <p class="mt-3 text-center text-sm text-muted tabular" aria-live="polite">
+          {{ i18n.t()['mergepdf.reading'] }} · {{ progress() ?? 0 }}%
+        </p>
+      }
     } @else {
       <div class="relative overflow-hidden rounded-xl border border-stage-line bg-stage p-4">
         <app-page-grid
+          rotatable
           [items]="items()"
-          [ariaLabel]="i18n.t()['imgpdf.pages']"
+          [ariaLabel]="i18n.t()['mergepdf.pages']"
           (reorder)="reorder($event)"
           (remove)="removeAt($event)"
+          (rotate)="rotateAt($event)"
         />
 
-        <p class="mt-3 text-xs text-white/45">{{ i18n.t()['imgpdf.reorder_hint'] }}</p>
+        <p class="mt-3 text-xs text-white/45">{{ i18n.t()['mergepdf.reorder_hint'] }}</p>
 
-        @if (busy()) {
+        @if (busy() || reading()) {
           <div
             class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px]"
           >
             <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
 
-            <p class="text-sm font-medium text-white">{{ i18n.t()['imgpdf.building'] }}</p>
+            <p class="text-sm font-medium text-white">
+              {{ reading() ? i18n.t()['mergepdf.reading'] : i18n.t()['mergepdf.building'] }}
+            </p>
 
             <div class="w-56">
               <div class="h-1 overflow-hidden rounded-full bg-white/10">
@@ -62,7 +74,9 @@
           <app-dropzone
             multiple
             compact
-            [titleKey]="'imgpdf.add_more'"
+            [accept]="'application/pdf,.pdf'"
+            [titleKey]="'mergepdf.add_more'"
+            [buttonKey]="'pdf.upload_btn'"
             (filesSelected)="addFiles($event)"
           />
         </div>
@@ -72,35 +86,14 @@
 
   <div panel class="flex flex-col gap-4">
     @if (items().length) {
-      <app-panel [heading]="i18n.t()['imgpdf.page_size']">
-        <app-segmented
-          [options]="pageModeOptions()"
-          [value]="pageMode()"
-          (valueChange)="pageMode.set($event)"
-          [ariaLabel]="i18n.t()['imgpdf.page_size']"
-        />
-
-        <p class="mt-2 text-xs text-faint">
-          {{ pageMode() === 'a4' ? i18n.t()['imgpdf.page_hint_a4'] : i18n.t()['imgpdf.page_hint_fit'] }}
-        </p>
-
-        <!-- JPEG carries no alpha, so a transparent PNG has to land on something.
-             Same control, same reason, as the convert tool's PDF backdrop. -->
-        <div class="mt-4 border-t border-line pt-3">
-          <span class="mb-2 block text-2xs font-medium uppercase text-faint">
-            {{ i18n.t()['imgpdf.bg'] }}
-          </span>
-
-          <app-segmented
-            [options]="backdropOptions"
-            [value]="background()"
-            (valueChange)="background.set($event)"
-            [ariaLabel]="i18n.t()['imgpdf.bg']"
-          />
+      <app-panel [heading]="i18n.t()['mergepdf.title']">
+        <div class="flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['mergepdf.files'] }}</span>
+          <span class="font-mono text-text tabular">{{ fileCount() }}</span>
         </div>
 
-        <div class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
-          <span class="text-muted">{{ i18n.t()['imgpdf.pages'] }}</span>
+        <div class="mt-2 flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['mergepdf.pages'] }}</span>
           <span class="font-mono text-text tabular">{{ items().length }}</span>
         </div>
 
@@ -112,12 +105,13 @@
         }
 
         <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
-          {{ i18n.t()['imgpdf.terminal_note'] }}
+          {{ i18n.t()['mergepdf.terminal_note'] }}
         </p>
       </app-panel>
 
       <app-action-bar
-        [primaryLabel]="stale() ? i18n.t()['imgpdf.btn'] : null"
+        [primaryLabel]="stale() ? i18n.t()['mergepdf.btn'] : null"
+        [primaryDisabled]="reading()"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"
         (primary)="run()"

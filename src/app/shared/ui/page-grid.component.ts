@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, booleanAttribute, inject, input, output, signal } from '@angular/core';
 import { TranslationService } from '../../core/services/translation.service';
-import { IconComponent } from '../../shared/ui/icon/icon.component';
+import { IconComponent } from './icon/icon.component';
 
-export interface PdfPageItem {
+export interface PageItem {
   readonly id: string;
-  readonly file: File;
-  /** Basis for the output filename. Differs from `file.name` when the chain seeded it. */
-  readonly name: string;
+  /** Shown under the thumbnail and used as its alt text. */
+  readonly label: string;
   readonly url: string;
+  /** Degrees clockwise, 0/90/180/270. Only meaningful when `rotatable`. */
+  readonly rotation?: number;
 }
 
 /**
@@ -19,17 +20,17 @@ export interface PdfPageItem {
  *
  * It sits on `bg-stage`, dark in both themes like every other surface that holds
  * an image, so its own type is white-on-stage rather than the page tokens.
+ *
+ * Shared by img-to-pdf (images becoming pages) and merge-pdf (pages of real
+ * PDFs), which is why it knows nothing about Files — just a label and a URL.
  */
 @Component({
-  selector: 'app-pdf-page-grid',
+  selector: 'app-page-grid',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent],
   template: `
-    <ol
-      class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-      [attr.aria-label]="i18n.t()['imgpdf.pages']"
-    >
+    <ol class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" [attr.aria-label]="ariaLabel()">
       @for (item of items(); track item.id; let i = $index) {
         <li
           draggable="true"
@@ -39,8 +40,13 @@ export interface PdfPageItem {
           (dragend)="clearDrag()"
           [class]="tileClass(i)"
         >
-          <div class="flex aspect-square items-center justify-center p-2">
-            <img [src]="item.url" [alt]="item.name" class="max-h-full max-w-full object-contain" />
+          <div class="flex aspect-square items-center justify-center overflow-hidden p-2">
+            <img
+              [src]="item.url"
+              [alt]="item.label"
+              class="max-h-full max-w-full object-contain transition-transform duration-200"
+              [style.transform]="item.rotation ? 'rotate(' + item.rotation + 'deg)' : null"
+            />
           </div>
 
           <span
@@ -50,20 +56,34 @@ export interface PdfPageItem {
             {{ i + 1 }}
           </span>
 
-          <button
-            type="button"
-            [attr.aria-label]="i18n.t()['imgpdf.remove'] + ' — ' + item.name"
-            (click)="remove.emit(i)"
-            class="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-sm
-                   bg-black/60 text-white/70 transition-colors hover:bg-danger hover:text-white"
-          >
-            <app-icon name="close" [size]="12" />
-          </button>
+          <div class="absolute right-1.5 top-1.5 flex gap-1">
+            @if (rotatable()) {
+              <button
+                type="button"
+                [attr.aria-label]="i18n.t()['pages.rotate'] + ' — ' + item.label"
+                (click)="rotate.emit(i)"
+                class="flex h-5 w-5 items-center justify-center rounded-sm bg-black/60 text-white/70
+                       transition-colors hover:bg-accent-fill hover:text-on-accent"
+              >
+                <app-icon name="rotate" [size]="12" />
+              </button>
+            }
+
+            <button
+              type="button"
+              [attr.aria-label]="i18n.t()['pages.remove'] + ' — ' + item.label"
+              (click)="remove.emit(i)"
+              class="flex h-5 w-5 items-center justify-center rounded-sm bg-black/60 text-white/70
+                     transition-colors hover:bg-danger hover:text-white"
+            >
+              <app-icon name="close" [size]="12" />
+            </button>
+          </div>
 
           <div class="flex items-center justify-between border-t border-white/10 px-1 py-1">
             <button
               type="button"
-              [attr.aria-label]="i18n.t()['imgpdf.move_left']"
+              [attr.aria-label]="i18n.t()['pages.move_left']"
               [disabled]="i === 0"
               (click)="reorder.emit({ from: i, to: i - 1 })"
               [class]="stepButton"
@@ -71,11 +91,11 @@ export interface PdfPageItem {
               <app-icon name="chevronLeft" [size]="14" />
             </button>
 
-            <span class="min-w-0 truncate px-1 text-2xs text-white/45">{{ item.name }}</span>
+            <span class="min-w-0 truncate px-1 text-2xs text-white/45">{{ item.label }}</span>
 
             <button
               type="button"
-              [attr.aria-label]="i18n.t()['imgpdf.move_right']"
+              [attr.aria-label]="i18n.t()['pages.move_right']"
               [disabled]="i === items().length - 1"
               (click)="reorder.emit({ from: i, to: i + 1 })"
               [class]="stepButton"
@@ -88,13 +108,16 @@ export interface PdfPageItem {
     </ol>
   `,
 })
-export class PdfPageGridComponent {
+export class PageGridComponent {
   protected readonly i18n = inject(TranslationService);
 
-  readonly items = input.required<readonly PdfPageItem[]>();
+  readonly items = input.required<readonly PageItem[]>();
+  readonly ariaLabel = input<string>('');
+  readonly rotatable = input(false, { transform: booleanAttribute });
 
   readonly reorder = output<{ from: number; to: number }>();
   readonly remove = output<number>();
+  readonly rotate = output<number>();
 
   protected readonly from = signal<number | null>(null);
   protected readonly over = signal<number | null>(null);
