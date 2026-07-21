@@ -91,8 +91,8 @@ export class PdfExporterService {
         if (edit.newText) {
           // Mesma função que a tela usa, de propósito: o que foi editado precisa
           // sair do export do tamanho em que estava sendo editado.
-          const fontSize = Math.max(6, Math.round(baseFontSize(edit, height) * (edit.fontScale || 1.0)));
-
+          const computedSize = baseFontSize(edit, height, width);
+          const fontSize = Math.max(6, Math.round(computedSize * (edit.fontScale || 1.0)));
           // Select correct font
           const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'];
           let pdfFont = fontConfig.normal;
