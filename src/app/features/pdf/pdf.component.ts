@@ -27,6 +27,7 @@ import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
+import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 
 export type EditorTool = 'select' | 'add_text' | 'erase';
 
@@ -99,6 +100,7 @@ type PdfStatus =
     PanelComponent,
     ActionBarComponent,
     AlertComponent,
+    PdfPasswordPromptComponent,
   ],
   template: `
     <app-tool-page [toolId]="'edit-pdf'" [forceLoaded]="status() !== 'idle'">
@@ -110,13 +112,22 @@ type PdfStatus =
 
       <div stage class="flex flex-col h-full w-full">
         @if (status() === 'idle') {
-          <app-dropzone
-            [accept]="'application/pdf,.pdf'"
-            [titleKey]="'pdf.drag'"
-            [hintKey]="'pdf.drag_hint'"
-            [buttonKey]="'pdf.upload_btn'"
-            (fileSelected)="onFileDropzone($event)"
-          />
+          @if (pdfProtected()) {
+            <app-pdf-password-prompt
+              [fileName]="pendingFile()?.name ?? ''"
+              [errorMsg]="passwordError()"
+              (unlock)="loadFile(pendingFile()!, $event)"
+              (cancel)="reset()"
+            />
+          } @else {
+            <app-dropzone
+              [accept]="'application/pdf,.pdf'"
+              [titleKey]="'pdf.drag'"
+              [hintKey]="'pdf.drag_hint'"
+              [buttonKey]="'pdf.upload_btn'"
+              (fileSelected)="onFileDropzone($event)"
+            />
+          }
         } @else {
           <!-- Continuous scroll container -->
           <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y" 
@@ -365,6 +376,10 @@ export class PdfComponent implements OnDestroy {
   private readonly inpainting = inject(InpaintingService);
 
   protected readonly status = signal<PdfStatus>('idle');
+  protected readonly pendingFile = signal<File | null>(null);
+  protected readonly pdfProtected = signal(false);
+  protected readonly pdfPassword = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly loadedPdf = signal<LoadedPdf | null>(null);
   protected readonly currentPage = signal(1);
@@ -462,16 +477,20 @@ export class PdfComponent implements OnDestroy {
     if (file) void this.loadFile(file);
   }
 
-  private async loadFile(file: File): Promise<void> {
+  protected async loadFile(file: File, password?: string): Promise<void> {
     this.status.set('loading');
     this.edits.set(new Map());
     this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
+    this.passwordError.set(null);
+    this.pendingFile.set(file);
 
     try {
-      const pdf = await this.loader.load(file);
+      const pdf = await this.loader.load(file, password);
       this.loadedPdf.set(pdf);
       this.currentPage.set(1);
+      this.pdfPassword.set(password ?? null);
+      this.pdfProtected.set(false);
 
       // Seed edits from digital pages' native text.
       const newEdits = new Map<string, TextEdit>();
@@ -506,10 +525,19 @@ export class PdfComponent implements OnDestroy {
         void this.runOcrAllPages();
       }
     } catch (err: unknown) {
+      console.error('[PdfComponent] Error loading PDF:', err);
       const key = err instanceof Error ? err.message : 'generic';
-      const msgKey = `error.${key}` as keyof ReturnType<typeof this.i18n.t>;
-      this.errorMessage.set(this.i18n.t()[msgKey] ?? this.i18n.t()['error.generic']);
-      this.status.set('error');
+      if (key === 'pdf_encrypted') {
+        this.pdfProtected.set(true);
+        if (password) {
+          this.passwordError.set('Senha incorreta. Tente novamente.');
+        }
+        this.status.set('idle');
+      } else {
+        const msgKey = `error.${key}` as keyof ReturnType<typeof this.i18n.t>;
+        this.errorMessage.set(this.i18n.t()[msgKey] ?? this.i18n.t()['error.generic']);
+        this.status.set('error');
+      }
     }
   }
 
@@ -1096,6 +1124,10 @@ export class PdfComponent implements OnDestroy {
 
   protected reset(): void {
     this.status.set('idle');
+    this.pendingFile.set(null);
+    this.pdfProtected.set(false);
+    this.pdfPassword.set(null);
+    this.passwordError.set(null);
     this.loadedPdf.set(null);
     this.edits.set(new Map());
     this.ocrBlocks.set(new Map());

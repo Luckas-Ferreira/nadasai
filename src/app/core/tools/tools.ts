@@ -14,7 +14,9 @@ export type ToolId =
   | 'split-pdf'
   | 'pdf-to-img'
   | 'organize-pdf'
-  | 'protect-pdf';
+  | 'protect-pdf'
+  | 'sign-pdf'
+  | 'watermark-pdf';
 
 /**
  * Per-tool colour. iLoveIMG's identity is that every tool owns a hue; we borrow
@@ -222,6 +224,32 @@ export const TOOLS: readonly ToolDef[] = [
     descKey: 'protpdf.subtitle',
     suffix: 'protected',
     tone: 'indigo',
+  },
+  {
+    id: 'sign-pdf',
+    pathPt: 'pdf/assinar',
+    pathEn: 'pdf/sign',
+    icon: 'brush',
+    category: 'pdf',
+    navKey: 'nav.sign_pdf',
+    shortKey: 'nav.short.sign_pdf',
+    titleKey: 'signpdf.title',
+    descKey: 'signpdf.subtitle',
+    suffix: 'signed',
+    tone: 'emerald',
+  },
+  {
+    id: 'watermark-pdf',
+    pathPt: 'pdf/marca-dagua',
+    pathEn: 'pdf/watermark',
+    icon: 'image',
+    category: 'pdf',
+    navKey: 'nav.watermark_pdf',
+    shortKey: 'nav.short.watermark_pdf',
+    titleKey: 'wmpdf.title',
+    descKey: 'wmpdf.subtitle',
+    suffix: 'watermarked',
+    tone: 'sky',
   },
 ];
 

@@ -17,13 +17,22 @@
 
   <div stage>
     @if (!file()) {
-      <app-dropzone
-        [accept]="'application/pdf,.pdf'"
-        [titleKey]="'cpdf.drag'"
-        [hintKey]="'cpdf.drag_hint'"
-        [buttonKey]="'pdf.upload_btn'"
-        (fileSelected)="onFile($event)"
-      />
+      @if (pdfProtected()) {
+        <app-pdf-password-prompt
+          [fileName]="pendingFile()?.name ?? ''"
+          [errorMsg]="passwordError()"
+          (unlock)="onFile(pendingFile()!, $event)"
+          (cancel)="reset()"
+        />
+      } @else {
+        <app-dropzone
+          [accept]="'application/pdf,.pdf'"
+          [titleKey]="'cpdf.drag'"
+          [hintKey]="'cpdf.drag_hint'"
+          [buttonKey]="'pdf.upload_btn'"
+          (fileSelected)="onFile($event)"
+        />
+      }
     } @else {
       <div
         class="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-xl

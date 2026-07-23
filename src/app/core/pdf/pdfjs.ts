@@ -1,3 +1,10 @@
+// Polyfill for Promise.try required by pdfjs-dist when handling encrypted PDF messages
+if (typeof (Promise as any).try !== 'function') {
+  (Promise as any).try = function <T>(fn: () => T | PromiseLike<T>): Promise<T> {
+    return new Promise((resolve) => resolve(fn()));
+  };
+}
+
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { AppError } from '../errors';
 
@@ -9,15 +16,6 @@ let pdfjs: typeof import('pdfjs-dist') | null = null;
 /**
  * Loads pdf.js and points it at the self-hosted worker. Memoized — three tools
  * now open PDFs and none of them should re-run this.
- *
- * The `workerSrc` rule is the fragile part, and it is why this lives in one
- * place instead of in each service. It must be resolved against
- * `document.baseURI`, NOT relatively: routes are `/pt/…` and `/en/…`, so a
- * relative path asks for `/pt/pdfjs/pdf.worker.min.mjs`, hits the SPA fallback,
- * comes back as index.html, and the browser rejects it on MIME type. pdf.js then
- * quietly falls back to a "fake worker" and every PDF fails as if it were
- * corrupt. `new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url)` fails
- * the same way — `new URL` does not resolve bare specifiers.
  */
 export async function getPdfjs(): Promise<typeof import('pdfjs-dist')> {
   if (pdfjs) return pdfjs;
@@ -30,14 +28,9 @@ export async function getPdfjs(): Promise<typeof import('pdfjs-dist')> {
 }
 
 /**
- * Validates and opens a PDF, mapping pdf.js's failures onto AppError codes.
- *
- * The buffer is COPIED before it is handed over. pdf.js transfers ownership of
- * the ArrayBuffer to its worker, which detaches the original — and both the
- * merge and compress tools read the same File again afterwards to hand its bytes
- * to pdf-lib. Without the copy that second read comes back empty.
+ * Validates and opens a PDF, supporting password protection and mapping pdf.js failures onto AppError codes.
  */
-export async function openPdf(file: File): Promise<PDFDocumentProxy> {
+export async function openPdf(file: File, password?: string): Promise<PDFDocumentProxy> {
   if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
     throw new AppError('pdf_unsupported');
   }
@@ -47,17 +40,24 @@ export async function openPdf(file: File): Promise<PDFDocumentProxy> {
   const data = new Uint8Array(await file.arrayBuffer());
 
   try {
-    return await getDocument({ data }).promise;
+    return await getDocument({ data, password }).promise;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.toLowerCase().includes('password')) throw new AppError('pdf_encrypted', err);
+    const errName = (err as any)?.name;
+
+    if (
+      message.toLowerCase().includes('password') ||
+      errName === 'PasswordException' ||
+      errName === 'IncorrectPasswordException'
+    ) {
+      throw new AppError('pdf_encrypted', err);
+    }
     throw new AppError('pdf_unsupported', err);
   }
 }
 
 /**
- * Renders one page to an offscreen canvas. Used for display, for thumbnails and
- * as the input to both Tesseract and the compressor's JPEG re-encode.
+ * Renders one page to an offscreen canvas.
  */
 export async function renderPageToCanvas(
   doc: PDFDocumentProxy,
@@ -81,14 +81,6 @@ export async function renderPageToCanvas(
 
 /**
  * Releases a document and the worker behind it.
- *
- * `PDFDocumentProxy` has no `destroy()` — teardown lives on its loading task,
- * and pdf.js spins up a worker per task unless you hand it one. A tool that
- * opens twenty PDFs to build thumbnails and never calls this leaves twenty
- * workers, each holding its own copy of a document, alive for the whole session.
- *
- * Never throws: this is always cleanup, usually in a `finally`, and a failure
- * here must not mask the error that sent us there.
  */
 export async function closePdf(doc: PDFDocumentProxy): Promise<void> {
   try {
@@ -99,11 +91,7 @@ export async function closePdf(doc: PDFDocumentProxy): Promise<void> {
 }
 
 /**
- * Drops a canvas's backing store immediately instead of waiting for GC.
- *
- * The compressor holds a full-page raster at 200 DPI — an A4 is ~14 MP, ~55 MB
- * of RGBA — and the loop is sequential precisely so only one exists at a time.
- * Letting the finished one linger until the collector runs defeats that.
+ * Drops a canvas's backing store immediately.
  */
 export function releaseCanvas(canvas: HTMLCanvasElement): void {
   canvas.width = 0;

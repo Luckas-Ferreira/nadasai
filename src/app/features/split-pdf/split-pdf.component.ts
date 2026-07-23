@@ -13,6 +13,7 @@ import { ButtonDirective } from '../../shared/ui/button.directive';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
+import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 import { SegmentedComponent, type SegmentOption } from '../../shared/ui/segmented.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
 import {
@@ -24,7 +25,7 @@ import {
   SplitResult,
 } from './services/pdf-splitter.service';
 
-/** Thumbnail preview width in CSS pixels */
+/** Preview width in CSS pixels for stage thumbnails */
 const THUMB_WIDTH = 240;
 
 export interface PageThumb {
@@ -47,37 +48,37 @@ export interface PageThumb {
     SegmentedComponent,
     ActionBarComponent,
     ButtonDirective,
+    PdfPasswordPromptComponent,
   ],
   templateUrl: './split-pdf.component.html',
 })
 export class SplitPdfComponent {
-  private readonly splitter = inject(PdfSplitterService);
+  private readonly pdfSplitterService = inject(PdfSplitterService);
   private readonly urls = inject(ObjectUrlScope);
   protected readonly tool = toolById('split-pdf');
   protected readonly i18n = inject(TranslationService);
 
   // File & document state
   protected readonly file = signal<File | null>(null);
+  protected readonly pendingFile = signal<File | null>(null);
+  protected readonly pdfProtected = signal(false);
+  protected readonly pdfPassword = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
+
   protected readonly pageCount = signal(0);
   protected readonly thumbs = signal<PageThumb[]>([]);
   protected readonly renderingThumbs = signal(false);
 
-  // Tabs & Modes
-  protected readonly mainMode = signal<SplitMainMode>('pages');
+  // Split Modes
+  protected readonly mainMode = signal<SplitMainMode>('range');
   protected readonly rangeSubMode = signal<SplitRangeMode>('custom');
-  protected readonly pagesSubMode = signal<SplitPagesMode>('select');
+  protected readonly pagesSubMode = signal<SplitPagesMode>('all');
 
-  // Custom Ranges
+  // Parameters
   protected readonly customRanges = signal<SplitRange[]>([{ from: 1, to: 1 }]);
-
-  // Fixed Range Chunk Size
-  protected readonly fixedChunkSize = signal<number>(2);
-
-  // Selected Pages (1-based index)
+  protected readonly fixedChunkSize = signal(2);
   protected readonly selectedPages = signal<Set<number>>(new Set());
-
-  // Options
-  protected readonly mergeOutput = signal<boolean>(false);
+  protected readonly mergeOutput = signal(false);
 
   // Task & Execution state
   protected readonly busy = signal(false);
@@ -108,7 +109,6 @@ export class SplitPdfComponent {
     return f ? formatBytes(f.size) : null;
   });
 
-  // Derived Info for Info Banner
   protected readonly estimatedPdfCount = computed(() => {
     const total = this.pageCount();
     if (total === 0) return 0;
@@ -126,7 +126,6 @@ export class SplitPdfComponent {
         return merge ? (count > 0 ? 1 : 0) : count;
       }
     } else {
-      // mode === 'pages'
       if (this.pagesSubMode() === 'all') {
         return total;
       } else {
@@ -136,16 +135,20 @@ export class SplitPdfComponent {
     }
   });
 
-  protected async onFile(file: File): Promise<void> {
+  protected async onFile(file: File, password?: string): Promise<void> {
     this.errorKey.set(null);
     this.result.set(null);
+    this.passwordError.set(null);
+    this.pendingFile.set(file);
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const count = doc.numPages;
         this.pageCount.set(count);
         this.file.set(file);
+        this.pdfPassword.set(password ?? null);
+        this.pdfProtected.set(false);
 
         // Reset ranges & selected pages
         this.customRanges.set([{ from: 1, to: count }]);
@@ -156,21 +159,28 @@ export class SplitPdfComponent {
         await closePdf(doc);
       }
 
-      // Render page thumbnails asynchronously with its own doc session
-      void this.loadThumbnails(file);
+      void this.loadThumbnails(file, password);
     } catch (err) {
       console.error('[SplitPdf] Error loading PDF:', err);
-      this.errorKey.set(toMessageKey(err));
-      this.file.set(null);
+      const msgKey = toMessageKey(err);
+      if (msgKey === 'error.pdf_encrypted') {
+        this.pdfProtected.set(true);
+        if (password) {
+          this.passwordError.set('Senha incorreta. Tente novamente.');
+        }
+      } else {
+        this.errorKey.set(msgKey);
+        this.file.set(null);
+      }
     }
   }
 
-  private async loadThumbnails(file: File): Promise<void> {
+  private async loadThumbnails(file: File, password?: string): Promise<void> {
     this.renderingThumbs.set(true);
     const generatedThumbs: PageThumb[] = [];
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const count = doc.numPages;
         for (let i = 1; i <= count; i++) {
@@ -198,43 +208,49 @@ export class SplitPdfComponent {
     }
   }
 
-  // Range management
+  // Custom Ranges handlers
   protected addRange(): void {
     const total = this.pageCount();
     const current = this.customRanges();
     const last = current[current.length - 1];
     const newFrom = last ? Math.min(total, last.to + 1) : 1;
-    const newTo = total > 0 ? total : 1;
-
-    this.customRanges.set([...current, { from: newFrom, to: newTo }]);
+    this.customRanges.set([...current, { from: newFrom, to: total }]);
   }
 
   protected removeRange(index: number): void {
-    const current = this.customRanges();
-    if (current.length > 1) {
-      this.customRanges.set(current.filter((_, i) => i !== index));
-    }
+    const current = [...this.customRanges()];
+    if (current.length <= 1) return;
+    current.splice(index, 1);
+    this.customRanges.set(current);
   }
 
-  protected updateRangeFrom(index: number, event: Event): void {
-    const val = parseInt((event.target as HTMLInputElement).value, 10) || 1;
+  protected updateRangeFrom(index: number, val: number): void {
     const current = [...this.customRanges()];
     if (current[index]) {
-      current[index] = { ...current[index], from: Math.max(1, Math.min(this.pageCount(), val)) };
+      current[index] = { ...current[index], from: Math.max(1, Math.min(val, this.pageCount())) };
       this.customRanges.set(current);
     }
   }
 
-  protected updateRangeTo(index: number, event: Event): void {
-    const val = parseInt((event.target as HTMLInputElement).value, 10) || 1;
+  protected updateRangeTo(index: number, val: number): void {
     const current = [...this.customRanges()];
     if (current[index]) {
-      current[index] = { ...current[index], to: Math.max(current[index].from, Math.min(this.pageCount(), val)) };
+      current[index] = { ...current[index], to: Math.max(1, Math.min(val, this.pageCount())) };
       this.customRanges.set(current);
     }
   }
 
-  // Page selection
+  protected onThumbClick(pageIndex: number): void {
+    if (this.mainMode() === 'pages') {
+      this.togglePageSelection(pageIndex);
+    }
+  }
+
+  protected updateFixedChunk(val: number): void {
+    this.fixedChunkSize.set(Math.max(1, val));
+  }
+
+  // Page selection handlers
   protected togglePageSelection(pageIndex: number): void {
     const set = new Set(this.selectedPages());
     if (set.has(pageIndex)) {
@@ -257,43 +273,18 @@ export class SplitPdfComponent {
   }
 
   protected isPageSelected(pageIndex: number): boolean {
-    if (this.mainMode() === 'pages' && this.pagesSubMode() === 'all') {
-      return true;
-    }
-    if (this.mainMode() === 'pages' && this.pagesSubMode() === 'select') {
-      return this.selectedPages().has(pageIndex);
-    }
-    if (this.mainMode() === 'range') {
-      if (this.rangeSubMode() === 'custom') {
-        return this.customRanges().some((r) => pageIndex >= r.from && pageIndex <= r.to);
-      } else {
-        return true;
-      }
-    }
-    return false;
+    if (this.mainMode() === 'range') return false;
+    if (this.pagesSubMode() === 'all') return true;
+    return this.selectedPages().has(pageIndex);
   }
 
   protected isPageDimmed(pageIndex: number): boolean {
+    if (this.mainMode() === 'range') return false;
+    if (this.pagesSubMode() === 'all') return false;
     return !this.isPageSelected(pageIndex);
   }
 
-  protected onThumbClick(pageIndex: number): void {
-    if (this.mainMode() !== 'pages') {
-      this.mainMode.set('pages');
-    }
-    if (this.pagesSubMode() !== 'select') {
-      this.pagesSubMode.set('select');
-    }
-    this.togglePageSelection(pageIndex);
-  }
-
-  // Fixed Chunk Size Update
-  protected updateFixedChunk(event: Event): void {
-    const val = parseInt((event.target as HTMLInputElement).value, 10) || 1;
-    this.fixedChunkSize.set(Math.max(1, Math.min(this.pageCount(), val)));
-  }
-
-  // Run Split
+  // Execution
   protected async run(): Promise<void> {
     const f = this.file();
     if (!f || this.busy()) return;
@@ -303,8 +294,9 @@ export class SplitPdfComponent {
     this.progress.set(0);
 
     try {
-      const res = await this.splitter.split({
+      const res = await this.pdfSplitterService.split({
         file: f,
+        password: this.pdfPassword() ?? undefined,
         mode: this.mainMode(),
         rangeSubMode: this.rangeSubMode(),
         pagesSubMode: this.pagesSubMode(),
@@ -317,12 +309,8 @@ export class SplitPdfComponent {
 
       this.result.set(res);
     } catch (err: any) {
-      console.error('[SplitPdf] Run failed:', err);
-      if (err.message === 'no_pages_selected') {
-        this.errorKey.set('error.generic');
-      } else {
-        this.errorKey.set(toMessageKey(err));
-      }
+      console.error('[SplitPdf] Split failed:', err);
+      this.errorKey.set(toMessageKey(err));
     } finally {
       this.busy.set(false);
       this.progress.set(null);
@@ -338,13 +326,15 @@ export class SplitPdfComponent {
   protected reset(): void {
     this.urls.releaseAll();
     this.file.set(null);
+    this.pendingFile.set(null);
+    this.pdfProtected.set(false);
+    this.pdfPassword.set(null);
+    this.passwordError.set(null);
     this.pageCount.set(0);
     this.thumbs.set([]);
     this.result.set(null);
     this.errorKey.set(null);
     this.customRanges.set([{ from: 1, to: 1 }]);
     this.selectedPages.set(new Set());
-    this.fixedChunkSize.set(2);
-    this.mergeOutput.set(false);
   }
 }

@@ -9,13 +9,22 @@
   <!-- STAGE AREA: PDF Page Thumbnails Grid -->
   <div stage>
     @if (!file()) {
-      <app-dropzone
-        [accept]="'application/pdf,.pdf'"
-        [titleKey]="'pdf2img.drag'"
-        [hintKey]="'pdf2img.drag_hint'"
-        [buttonKey]="'pdf.upload_btn'"
-        (fileSelected)="onFile($event)"
-      />
+      @if (pdfProtected()) {
+        <app-pdf-password-prompt
+          [fileName]="pendingFile()?.name ?? ''"
+          [errorMsg]="passwordError()"
+          (unlock)="onFile(pendingFile()!, $event)"
+          (cancel)="reset()"
+        />
+      } @else {
+        <app-dropzone
+          [accept]="'application/pdf,.pdf'"
+          [titleKey]="'pdf2img.drag'"
+          [hintKey]="'pdf2img.drag_hint'"
+          [buttonKey]="'pdf.upload_btn'"
+          (fileSelected)="onFile($event)"
+        />
+      }
     } @else {
       <div class="relative flex flex-col min-h-[360px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
         <!-- Top Stage Action Bar -->

@@ -15,6 +15,8 @@ export const routes: Routes = [
   { path: 'pdf-to-img', redirectTo: 'pt/pdf/para-imagem', pathMatch: 'full' },
   { path: 'organize-pdf', redirectTo: 'pt/pdf/organizar', pathMatch: 'full' },
   { path: 'protect-pdf', redirectTo: 'pt/pdf/proteger', pathMatch: 'full' },
+  { path: 'sign-pdf', redirectTo: 'pt/pdf/assinar', pathMatch: 'full' },
+  { path: 'watermark-pdf', redirectTo: 'pt/pdf/marca-dagua', pathMatch: 'full' },
   { path: 'sobre', redirectTo: 'pt/sobre', pathMatch: 'full' },
   { path: 'privacidade', redirectTo: 'pt/privacidade', pathMatch: 'full' },
   { path: 'termos', redirectTo: 'pt/termos', pathMatch: 'full' },
@@ -29,6 +31,8 @@ export const routes: Routes = [
   { path: 'pdf/para-imagem', redirectTo: 'pt/pdf/para-imagem', pathMatch: 'full' },
   { path: 'pdf/organizar', redirectTo: 'pt/pdf/organizar', pathMatch: 'full' },
   { path: 'pdf/proteger', redirectTo: 'pt/pdf/proteger', pathMatch: 'full' },
+  { path: 'pdf/assinar', redirectTo: 'pt/pdf/assinar', pathMatch: 'full' },
+  { path: 'pdf/marca-dagua', redirectTo: 'pt/pdf/marca-dagua', pathMatch: 'full' },
 
   // Portuguese Routes
   {
@@ -158,6 +162,24 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Criptografe e adicione senha de proteção a arquivos PDF 100% offline no seu navegador. Segurança total sem uploads.',
           metaKeywords: 'proteger pdf, colocar senha em pdf, criptografar pdf, bloquear pdf'
+        }
+      },
+      {
+        path: 'pdf/assinar',
+        title: 'Assinar PDF — Nada Sai',
+        loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
+        data: {
+          metaDescription: 'Desenhe sua assinatura, carregue rubrica ou digite seu nome em arquivos PDF 100% offline no seu navegador.',
+          metaKeywords: 'assinar pdf, assinatura digital pdf, rubrica pdf, carimbar pdf'
+        }
+      },
+      {
+        path: 'pdf/marca-dagua',
+        title: 'Marca d\'Água no PDF — Nada Sai',
+        loadComponent: () => import('./features/watermark-pdf/watermark-pdf.component').then((m) => m.WatermarkPdfComponent),
+        data: {
+          metaDescription: 'Adicione marcas d\'água de texto personalizadas em arquivos PDF 100% offline no seu navegador.',
+          metaKeywords: 'marca d agua pdf, colocar texto em pdf, confidencial pdf, marcas d agua'
         }
       },
       {
@@ -306,6 +328,24 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Encrypt and set a password on PDF files 100% offline in your browser. Total security with zero uploads.',
           metaKeywords: 'protect pdf, encrypt pdf, set pdf password, lock pdf'
+        }
+      },
+      {
+        path: 'pdf/sign',
+        title: 'Sign PDF — Nada Sai',
+        loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
+        data: {
+          metaDescription: 'Draw your signature, upload a stamp, or type your name on PDF files 100% offline in your browser.',
+          metaKeywords: 'sign pdf, digital signature, pdf signature, stamp pdf'
+        }
+      },
+      {
+        path: 'pdf/watermark',
+        title: 'Watermark PDF — Nada Sai',
+        loadComponent: () => import('./features/watermark-pdf/watermark-pdf.component').then((m) => m.WatermarkPdfComponent),
+        data: {
+          metaDescription: 'Add custom text watermarks to PDF files 100% offline in your browser.',
+          metaKeywords: 'watermark pdf, text watermark, pdf stamp, confidential pdf'
         }
       },
       {

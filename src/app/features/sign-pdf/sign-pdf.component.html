@@ -1,0 +1,365 @@
+<app-tool-page [toolId]="'sign-pdf'" [forceLoaded]="!!file()">
+  <!-- Error Banner -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" dismissible (dismiss)="errorKey.set(null)" />
+    }
+  </div>
+
+  <!-- STAGE AREA: PDF Preview & Multiple Signatures Overlay -->
+  <div stage>
+    @if (!file()) {
+      @if (pdfProtected()) {
+        <app-pdf-password-prompt
+          [fileName]="pendingFile()?.name ?? ''"
+          [errorMsg]="passwordError()"
+          (unlock)="onFile(pendingFile()!, $event)"
+          (cancel)="reset()"
+        />
+      } @else {
+        <app-dropzone
+          [accept]="'application/pdf,.pdf'"
+          [titleKey]="'signpdf.drag'"
+          [hintKey]="'signpdf.drag_hint'"
+          [buttonKey]="'pdf.upload_btn'"
+          (fileSelected)="onFile($event)"
+        />
+      }
+    } @else {
+      <div class="relative flex flex-col items-center justify-center min-h-[380px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
+        <!-- Stage Page Navigation Bar -->
+        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-3 border-b border-white/10 text-xs bg-stage/60 backdrop-blur-sm z-10">
+          <div class="flex items-center gap-2">
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              [disabled]="selectedPageIndex() <= 1"
+              (click)="changePage(selectedPageIndex() - 1)"
+              class="text-white/70 hover:text-white"
+            >
+              <app-icon name="chevronLeft" [size]="14" />
+            </button>
+
+            <span class="font-mono text-white/90">
+              Página {{ selectedPageIndex() }} de {{ pageCount() }}
+            </span>
+
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              [disabled]="selectedPageIndex() >= pageCount()"
+              (click)="changePage(selectedPageIndex() + 1)"
+              class="text-white/70 hover:text-white"
+            >
+              <app-icon name="arrowRight" [size]="14" />
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-white/60 font-mono">
+              {{ placedSignatures().length }} assinatura(s) no documento
+            </span>
+
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              class="text-white/50 hover:text-white"
+              (click)="reset()"
+            >
+              <app-icon name="close" [size]="14" />
+              {{ i18n.t()['common.clear'] }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Page Canvas & Live Overlay Bounding Boxes for Current Page -->
+        <div class="mt-12 flex items-center justify-center w-full flex-1 relative">
+          @if (renderingPreview()) {
+            <div class="flex flex-col items-center justify-center gap-3 py-16">
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+              <p class="text-sm font-medium text-white/80">Carregando página…</p>
+            </div>
+          } @else if (previewUrl()) {
+            <div class="relative max-h-[52vh] overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-white">
+              <img [src]="previewUrl()" [alt]="'Página ' + selectedPageIndex()" class="max-h-[52vh] w-auto object-contain block" />
+
+              <!-- Overlay Bounding Boxes for all signatures on this page -->
+              @for (sig of currentPageSignatures(); track sig.id) {
+                <div
+                  class="absolute border-2 rounded transition-all duration-75 flex items-center justify-center p-1 shadow-md cursor-pointer"
+                  [class.border-accent]="sig.id === activeSignatureId()"
+                  [class.bg-accent-soft]="sig.id === activeSignatureId()"
+                  [class.border-white]="sig.id !== activeSignatureId()"
+                  [class.border-dashed]="sig.id !== activeSignatureId()"
+                  [style.left.%]="sig.xPercent"
+                  [style.top.%]="sig.yPercent"
+                  [style.width.%]="sig.widthPercent"
+                  (click)="selectSignature(sig)"
+                >
+                  <img [src]="sig.signaturePngDataUrl" alt="Assinatura" class="w-full h-auto object-contain max-h-full" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Processing Overlay -->
+        @if (busy()) {
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px] z-20">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <p class="text-sm font-medium text-white">{{ i18n.t()['signpdf.working'] }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL AREA: Multi-Signature Creation & Management -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['signpdf.title']">
+        <!-- Mode Tabs -->
+        <div class="flex flex-col gap-3">
+          <app-segmented
+            [options]="tabOptions()"
+            [value]="activeTab()"
+            (valueChange)="activeTab.set($event)"
+            [columns]="3"
+          />
+
+          <!-- TAB 1: DRAW -->
+          @if (activeTab() === 'draw') {
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-muted">Cor da Caneta</span>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="h-5 w-5 rounded-full border-2"
+                    [class.border-accent]="penColor() === '#000000'"
+                    [class.border-transparent]="penColor() !== '#000000'"
+                    style="background-color: #000000;"
+                    (click)="penColor.set('#000000')"
+                  ></button>
+                  <button
+                    type="button"
+                    class="h-5 w-5 rounded-full border-2"
+                    [class.border-accent]="penColor() === '#1e40af'"
+                    [class.border-transparent]="penColor() !== '#1e40af'"
+                    style="background-color: #1e40af;"
+                    (click)="penColor.set('#1e40af')"
+                  ></button>
+                  <button
+                    type="button"
+                    class="h-5 w-5 rounded-full border-2"
+                    [class.border-accent]="penColor() === '#dc2626'"
+                    [class.border-transparent]="penColor() !== '#dc2626'"
+                    style="background-color: #dc2626;"
+                    (click)="penColor.set('#dc2626')"
+                  ></button>
+                </div>
+              </div>
+
+              <!-- Interactive Canvas Pad -->
+              <div class="relative w-full h-28 rounded-lg border border-line bg-surface overflow-hidden touch-none flex items-center justify-center">
+                <canvas
+                  #signatureCanvas
+                  width="400"
+                  height="112"
+                  class="w-full h-full cursor-crosshair"
+                  (mousedown)="startDrawing($event)"
+                  (mousemove)="draw($event)"
+                  (mouseup)="stopDrawing()"
+                  (mouseleave)="stopDrawing()"
+                  (touchstart)="startDrawing($event)"
+                  (touchmove)="draw($event)"
+                  (touchend)="stopDrawing()"
+                ></canvas>
+
+                @if (!signatureDataUrl()) {
+                  <span class="absolute text-xs text-faint pointer-events-none">Desenhe sua assinatura aqui</span>
+                }
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  appButton
+                  variant="ghost"
+                  size="sm"
+                  class="text-xs text-muted hover:text-text"
+                  (click)="clearCanvas()"
+                >
+                  {{ i18n.t()['signpdf.clear_pad'] }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- TAB 2: UPLOAD IMAGE -->
+          @if (activeTab() === 'upload') {
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-medium text-muted">Carregar imagem de rubrica / carimbo</label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                (change)="onUploadSignature($event)"
+                class="block w-full text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-accent-soft file:text-accent hover:file:bg-accent/20 cursor-pointer"
+              />
+            </div>
+          }
+
+          <!-- TAB 3: TYPE NAME -->
+          @if (activeTab() === 'type') {
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-medium text-muted">Digite seu nome completo</label>
+              <input
+                type="text"
+                [value]="typedName()"
+                (input)="updateTypedName($any($event.target).value)"
+                placeholder="Ex: João da Silva"
+                class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
+              />
+            </div>
+          }
+
+          <!-- ADD BUTTONS -->
+          @if (signatureDataUrl()) {
+            <div class="flex flex-col gap-2 mt-1">
+              <button
+                appButton
+                variant="secondary"
+                size="sm"
+                class="w-full"
+                (click)="addSignatureToDocument()"
+              >
+                <app-icon name="plus" [size]="14" />
+                Adicionar nesta página (Pág. {{ selectedPageIndex() }})
+              </button>
+
+              @if (pageCount() > 1) {
+                <button
+                  appButton
+                  variant="ghost"
+                  size="sm"
+                  class="w-full text-xs text-muted hover:text-text"
+                  (click)="applySignatureToAllPages()"
+                >
+                  Aplicar como rubrica em todas as páginas
+                </button>
+              }
+            </div>
+          }
+
+          <!-- PLACED SIGNATURES LIST -->
+          @if (placedSignatures().length > 0) {
+            <div class="my-2 border-t border-line"></div>
+
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center justify-between text-xs text-muted">
+                <span class="font-medium">Assinaturas no Documento ({{ placedSignatures().length }})</span>
+              </div>
+
+              <div class="flex flex-col gap-1.5 max-h-36 overflow-y-auto pr-1">
+                @for (sig of placedSignatures(); track sig.id) {
+                  <div
+                    class="flex items-center justify-between gap-2 p-2 rounded border text-xs cursor-pointer transition-colors"
+                    [class.border-accent]="sig.id === activeSignatureId()"
+                    [class.bg-accent-soft]="sig.id === activeSignatureId()"
+                    [class.border-line]="sig.id !== activeSignatureId()"
+                    (click)="selectSignature(sig)"
+                  >
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div class="h-6 w-10 shrink-0 bg-surface rounded border border-line flex items-center justify-center p-0.5 overflow-hidden">
+                        <img [src]="sig.signaturePngDataUrl" alt="Thumbnail" class="max-h-full max-w-full object-contain" />
+                      </div>
+                      <span class="truncate font-medium text-text">{{ sig.label }}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="text-faint hover:text-danger p-1"
+                      (click)="removeSignature(sig.id); $event.stopPropagation()"
+                    >
+                      <app-icon name="close" [size]="14" />
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- POSITION & SIZE CONTROLS FOR ACTIVE SIGNATURE -->
+          @if (activeSignature()) {
+            <div class="my-2 border-t border-line"></div>
+
+            <div class="flex flex-col gap-3">
+              <span class="text-xs font-semibold text-text">Ajustar Posição e Tamanho</span>
+
+              <!-- Pos X -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs text-muted">
+                  <span>Posição Horizontal (X)</span>
+                  <span class="font-mono tabular">{{ xPercent() }}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="80"
+                  [value]="xPercent()"
+                  (input)="updateActiveX(+$any($event.target).value)"
+                  class="accent-accent cursor-pointer"
+                />
+              </div>
+
+              <!-- Pos Y -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs text-muted">
+                  <span>Posição Vertical (Y)</span>
+                  <span class="font-mono tabular">{{ yPercent() }}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="85"
+                  [value]="yPercent()"
+                  (input)="updateActiveY(+$any($event.target).value)"
+                  class="accent-accent cursor-pointer"
+                />
+              </div>
+
+              <!-- Width -->
+              <div class="flex flex-col gap-1">
+                <div class="flex justify-between text-xs text-muted">
+                  <span>Tamanho da Assinatura</span>
+                  <span class="font-mono tabular">{{ widthPercent() }}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="60"
+                  [value]="widthPercent()"
+                  (input)="updateActiveWidth(+$any($event.target).value)"
+                  class="accent-accent cursor-pointer"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <!-- Action Bar -->
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['signpdf.btn'] : null"
+        [primaryDisabled]="placedSignatures().length === 0 && !signatureDataUrl()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

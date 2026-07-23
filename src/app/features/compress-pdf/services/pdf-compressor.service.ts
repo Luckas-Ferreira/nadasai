@@ -49,10 +49,11 @@ export class PdfCompressorService {
     file: File,
     level: CompressLevel,
     onProgress?: (done: number, total: number) => void,
+    password?: string,
   ): Promise<CompressResult> {
     const blob = level === 'lossless'
-      ? await this.rewrite(file, onProgress)
-      : await this.rasterize(file, RASTER[level], onProgress);
+      ? await this.rewrite(file, password, onProgress)
+      : await this.rasterize(file, RASTER[level], password, onProgress);
 
     /**
      * A compressor that hands back a bigger file is the one failure nobody
@@ -68,11 +69,11 @@ export class PdfCompressorService {
   }
 
   /** Structural only: same content, tighter container. */
-  private async rewrite(file: File, onProgress?: (done: number, total: number) => void): Promise<Blob> {
+  private async rewrite(file: File, password?: string, onProgress?: (done: number, total: number) => void): Promise<Blob> {
     const { PDFDocument } = await import('pdf-lib');
 
     onProgress?.(0, 1);
-    const doc = await PDFDocument.load(await file.arrayBuffer());
+    const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
     const bytes = await doc.save({ useObjectStreams: true });
     onProgress?.(1, 1);
 
@@ -82,11 +83,12 @@ export class PdfCompressorService {
   private async rasterize(
     file: File,
     { dpi, quality }: { dpi: number; quality: number },
+    password?: string,
     onProgress?: (done: number, total: number) => void,
   ): Promise<Blob> {
     const { PDFDocument, StandardFonts } = await import('pdf-lib');
 
-    const source = await openPdf(file);
+    const source = await openPdf(file, password);
 
     try {
       const out = await PDFDocument.create();

@@ -11,6 +11,7 @@ import { AlertComponent } from '../../shared/ui/alert.component';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { PageGridComponent, type PageItem } from '../../shared/ui/page-grid.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
+import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
 import { PdfOrganizerService } from './services/pdf-organizer.service';
 
@@ -36,6 +37,7 @@ interface OrganizePageItem extends PageItem {
     ActionBarComponent,
     AlertComponent,
     PageGridComponent,
+    PdfPasswordPromptComponent,
   ],
   templateUrl: './organize-pdf.component.html',
 })
@@ -47,6 +49,11 @@ export class OrganizePdfComponent {
   protected readonly i18n = inject(TranslationService);
 
   protected readonly file = signal<File | null>(null);
+  protected readonly pendingFile = signal<File | null>(null);
+  protected readonly pdfProtected = signal(false);
+  protected readonly pdfPassword = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
+
   protected readonly items = signal<readonly OrganizePageItem[]>([]);
   protected readonly resultBlob = signal<Blob | null>(null);
   protected readonly busy = signal(false);
@@ -75,18 +82,20 @@ export class OrganizePdfComponent {
 
   private nextId = 0;
 
-  protected async onFile(file: File): Promise<void> {
+  protected async onFile(file: File, password?: string): Promise<void> {
     if (this.reading() || this.busy()) return;
 
     this.errorKey.set(null);
     this.resultBlob.set(null);
     this.ranSettings.set(null);
-    this.file.set(file);
+    this.passwordError.set(null);
+    this.pendingFile.set(file);
+
     this.reading.set(true);
     this.progress.set(0);
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const total = doc.numPages;
         const pageItems: OrganizePageItem[] = [];
@@ -110,15 +119,26 @@ export class OrganizePdfComponent {
           this.progress.set(Math.round((i / total) * 100));
         }
 
+        this.file.set(file);
+        this.pdfPassword.set(password ?? null);
+        this.pdfProtected.set(false);
         this.items.set(pageItems);
       } finally {
         await closePdf(doc);
       }
     } catch (err) {
       console.error('[OrganizePdf] Error reading PDF:', err);
-      this.errorKey.set(toMessageKey(err));
-      this.file.set(null);
-      this.items.set([]);
+      const msgKey = toMessageKey(err);
+      if (msgKey === 'error.pdf_encrypted') {
+        this.pdfProtected.set(true);
+        if (password) {
+          this.passwordError.set('Senha incorreta. Tente novamente.');
+        }
+      } else {
+        this.errorKey.set(msgKey);
+        this.file.set(null);
+        this.items.set([]);
+      }
     } finally {
       this.reading.set(false);
       this.progress.set(null);
@@ -166,6 +186,7 @@ export class OrganizePdfComponent {
         file: item.srcFile,
         pageIndex: item.srcPageIndex,
         rotation: item.rotation,
+        password: this.pdfPassword() ?? undefined,
       }));
 
       const blob = await this.organizer.organize(sources, (done, total) => {
@@ -194,6 +215,10 @@ export class OrganizePdfComponent {
   protected reset(): void {
     this.urls.releaseAll();
     this.file.set(null);
+    this.pendingFile.set(null);
+    this.pdfProtected.set(false);
+    this.pdfPassword.set(null);
+    this.passwordError.set(null);
     this.items.set([]);
     this.resultBlob.set(null);
     this.ranSettings.set(null);

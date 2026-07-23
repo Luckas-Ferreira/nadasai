@@ -44,6 +44,8 @@ const EN = {
   'nav.pdf_to_img': 'PDF to Image',
   'nav.organize_pdf': 'Organize PDF',
   'nav.protect_pdf': 'Protect PDF',
+  'nav.sign_pdf': 'Sign PDF',
+  'nav.watermark_pdf': 'Watermark PDF',
 
   'nav.short.remove_bg': 'Cutout',
   'nav.short.crop': 'Crop',
@@ -57,6 +59,8 @@ const EN = {
   'nav.short.pdf_to_img': 'To Image',
   'nav.short.organize_pdf': 'Organize',
   'nav.short.protect_pdf': 'Protect',
+  'nav.short.sign_pdf': 'Sign',
+  'nav.short.watermark_pdf': 'Watermark',
 
   'hero.title': 'Your files never leave your computer.',
   'hero.subtitle':
@@ -322,6 +326,27 @@ const EN = {
   'protpdf.error_mismatch': 'Passwords do not match.',
   'protpdf.error_empty': 'Please enter a password to protect the PDF.',
   'protpdf.working': 'Encrypting PDF…',
+
+  'signpdf.title': 'Sign PDF',
+  'signpdf.subtitle': 'Draw your signature, upload a stamp, or type your name on a PDF page.',
+  'signpdf.btn': 'Sign PDF',
+  'signpdf.drag': 'Drop a PDF here',
+  'signpdf.drag_hint': 'PDF files only · up to 100 MB',
+  'signpdf.tab_draw': 'Draw',
+  'signpdf.tab_upload': 'Upload Image',
+  'signpdf.tab_type': 'Type Name',
+  'signpdf.clear_pad': 'Clear',
+  'signpdf.working': 'Signing PDF…',
+
+  'wmpdf.title': 'Watermark PDF',
+  'wmpdf.subtitle': 'Add a text watermark or logo stamp across your PDF pages.',
+  'wmpdf.btn': 'Apply Watermark',
+  'wmpdf.drag': 'Drop a PDF here',
+  'wmpdf.drag_hint': 'PDF files only · up to 100 MB',
+  'wmpdf.text_label': 'Watermark Text',
+  'wmpdf.opacity_label': 'Opacity',
+  'wmpdf.rotation_label': 'Rotation Angle',
+  'wmpdf.working': 'Applying watermark…',
 } as const;
 
 export type TranslationKey = keyof typeof EN;
@@ -356,6 +381,8 @@ const PT: Record<TranslationKey, string> = {
   'nav.pdf_to_img': 'PDF para Imagem',
   'nav.organize_pdf': 'Organizar PDF',
   'nav.protect_pdf': 'Proteger PDF',
+  'nav.sign_pdf': 'Assinar PDF',
+  'nav.watermark_pdf': 'Marca d\'Água',
 
   'nav.short.remove_bg': 'Fundo',
   'nav.short.crop': 'Cortar',
@@ -369,6 +396,8 @@ const PT: Record<TranslationKey, string> = {
   'nav.short.pdf_to_img': 'Para Imagem',
   'nav.short.organize_pdf': 'Organizar',
   'nav.short.protect_pdf': 'Proteger',
+  'nav.short.sign_pdf': 'Assinar',
+  'nav.short.watermark_pdf': 'Marca d\'Água',
 
   'hero.title': 'Seus arquivos não saem do seu computador.',
   'hero.subtitle':
@@ -633,6 +662,27 @@ const PT: Record<TranslationKey, string> = {
   'protpdf.error_mismatch': 'As senhas não coincidem.',
   'protpdf.error_empty': 'Por favor, insira uma senha para proteger o PDF.',
   'protpdf.working': 'Criptografando PDF…',
+
+  'signpdf.title': 'Assinar PDF',
+  'signpdf.subtitle': 'Desenhe sua assinatura, carregue uma imagem ou digite seu nome em uma página do PDF.',
+  'signpdf.btn': 'Assinar PDF',
+  'signpdf.drag': 'Solte um PDF aqui',
+  'signpdf.drag_hint': 'Somente arquivos PDF · até 100 MB',
+  'signpdf.tab_draw': 'Desenhar',
+  'signpdf.tab_upload': 'Carregar Imagem',
+  'signpdf.tab_type': 'Digitar Nome',
+  'signpdf.clear_pad': 'Limpar',
+  'signpdf.working': 'Assinando PDF…',
+
+  'wmpdf.title': 'Marca d\'Água no PDF',
+  'wmpdf.subtitle': 'Adicione um texto ou imagem como marca d\'água nas páginas do seu PDF.',
+  'wmpdf.btn': 'Aplicar Marca d\'Água',
+  'wmpdf.drag': 'Solte um PDF aqui',
+  'wmpdf.drag_hint': 'Somente arquivos PDF · até 100 MB',
+  'wmpdf.text_label': 'Texto da Marca d\'Água',
+  'wmpdf.opacity_label': 'Opacidade',
+  'wmpdf.rotation_label': 'Ângulo de Rotação',
+  'wmpdf.working': 'Aplicando marca d\'água…',
 };
 
 const DICTIONARY: Record<Language, Record<TranslationKey, string>> = { en: EN, pt: PT };
