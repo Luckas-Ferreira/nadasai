@@ -1,0 +1,202 @@
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { toMessageKey } from '../../core/errors';
+import { saveBlob } from '../../core/image/download';
+import { canvasToBlob, formatBytes, suffixedName } from '../../core/image/image-file.util';
+import { ObjectUrlScope } from '../../core/image/object-url';
+import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../core/pdf/pdfjs';
+import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { toolById } from '../../core/tools/tools';
+import { ActionBarComponent } from '../../shared/ui/action-bar.component';
+import { AlertComponent } from '../../shared/ui/alert.component';
+import { DropzoneComponent } from '../../shared/ui/dropzone.component';
+import { PageGridComponent, type PageItem } from '../../shared/ui/page-grid.component';
+import { PanelComponent } from '../../shared/ui/panel.component';
+import { ToolPageComponent } from '../../shared/ui/tool-page.component';
+import { PdfOrganizerService } from './services/pdf-organizer.service';
+
+/** Thumbnail width in CSS pixels */
+const THUMB_WIDTH = 160;
+
+interface OrganizePageItem extends PageItem {
+  readonly srcFile: File;
+  /** 0-based, into srcFile's own pages. */
+  readonly srcPageIndex: number;
+  readonly rotation: number;
+}
+
+@Component({
+  selector: 'app-organize-pdf',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ObjectUrlScope],
+  imports: [
+    ToolPageComponent,
+    DropzoneComponent,
+    PanelComponent,
+    ActionBarComponent,
+    AlertComponent,
+    PageGridComponent,
+  ],
+  templateUrl: './organize-pdf.component.html',
+})
+export class OrganizePdfComponent {
+  private readonly urls = inject(ObjectUrlScope);
+  private readonly organizer = inject(PdfOrganizerService);
+  protected readonly tool = toolById('organize-pdf');
+
+  protected readonly i18n = inject(TranslationService);
+
+  protected readonly file = signal<File | null>(null);
+  protected readonly items = signal<readonly OrganizePageItem[]>([]);
+  protected readonly resultBlob = signal<Blob | null>(null);
+  protected readonly busy = signal(false);
+  protected readonly reading = signal(false);
+  protected readonly progress = signal<number | null>(null);
+  protected readonly errorKey = signal<TranslationKey | null>(null);
+
+  protected readonly originalSize = computed(() => {
+    const f = this.file();
+    return f ? formatBytes(f.size) : null;
+  });
+
+  protected readonly resultSize = computed(() => {
+    const blob = this.resultBlob();
+    return blob ? formatBytes(blob.size) : null;
+  });
+
+  private readonly settings = computed(() =>
+    this.items()
+      .map((item) => `${item.id}:${item.rotation}`)
+      .join(','),
+  );
+
+  private readonly ranSettings = signal<string | null>(null);
+  protected readonly stale = computed(() => this.ranSettings() !== this.settings());
+
+  private nextId = 0;
+
+  protected async onFile(file: File): Promise<void> {
+    if (this.reading() || this.busy()) return;
+
+    this.errorKey.set(null);
+    this.resultBlob.set(null);
+    this.ranSettings.set(null);
+    this.file.set(file);
+    this.reading.set(true);
+    this.progress.set(0);
+
+    try {
+      const doc = await openPdf(file);
+      try {
+        const total = doc.numPages;
+        const pageItems: OrganizePageItem[] = [];
+
+        for (let i = 1; i <= total; i++) {
+          const page = await doc.getPage(i);
+          const { width } = page.getViewport({ scale: 1 });
+          const canvas = await renderPageToCanvas(doc, i, THUMB_WIDTH / width);
+          const blob = await canvasToBlob(canvas, 'image/jpeg', 0.82);
+          releaseCanvas(canvas);
+
+          pageItems.push({
+            id: `page-${++this.nextId}`,
+            url: this.urls.create(blob),
+            label: `${file.name} · ${this.i18n.t()['cpdf.pages']} ${i}`,
+            srcFile: file,
+            srcPageIndex: i - 1,
+            rotation: 0,
+          });
+
+          this.progress.set(Math.round((i / total) * 100));
+        }
+
+        this.items.set(pageItems);
+      } finally {
+        await closePdf(doc);
+      }
+    } catch (err) {
+      console.error('[OrganizePdf] Error reading PDF:', err);
+      this.errorKey.set(toMessageKey(err));
+      this.file.set(null);
+      this.items.set([]);
+    } finally {
+      this.reading.set(false);
+      this.progress.set(null);
+    }
+  }
+
+  protected reorder(move: { from: number; to: number }): void {
+    const next = [...this.items()];
+    const [moved] = next.splice(move.from, 1);
+    if (moved) {
+      next.splice(move.to, 0, moved);
+      this.items.set(next);
+    }
+  }
+
+  protected removeAt(index: number): void {
+    const next = [...this.items()];
+    next.splice(index, 1);
+    this.items.set(next);
+  }
+
+  protected rotateAt(index: number): void {
+    const current = this.items();
+    const target = current[index];
+    if (!target) return;
+
+    const next = [...current];
+    next[index] = {
+      ...target,
+      rotation: (target.rotation + 90) % 360,
+    };
+    this.items.set(next);
+  }
+
+  protected async run(): Promise<void> {
+    const f = this.file();
+    if (!f || !this.items().length || this.busy() || this.reading()) return;
+
+    this.busy.set(true);
+    this.errorKey.set(null);
+    this.progress.set(0);
+
+    try {
+      const sources = this.items().map((item) => ({
+        file: item.srcFile,
+        pageIndex: item.srcPageIndex,
+        rotation: item.rotation,
+      }));
+
+      const blob = await this.organizer.organize(sources, (done, total) => {
+        this.progress.set(Math.round((done / total) * 100));
+      });
+
+      this.resultBlob.set(blob);
+      this.ranSettings.set(this.settings());
+    } catch (err) {
+      console.error('[OrganizePdf] Build failed:', err);
+      this.errorKey.set(toMessageKey(err));
+    } finally {
+      this.busy.set(false);
+      this.progress.set(null);
+    }
+  }
+
+  protected download(): void {
+    const blob = this.resultBlob();
+    const f = this.file();
+    if (!blob || !f) return;
+
+    saveBlob(blob, suffixedName(f.name, this.tool.suffix, 'pdf'));
+  }
+
+  protected reset(): void {
+    this.urls.releaseAll();
+    this.file.set(null);
+    this.items.set([]);
+    this.resultBlob.set(null);
+    this.ranSettings.set(null);
+    this.errorKey.set(null);
+  }
+}

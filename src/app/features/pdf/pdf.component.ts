@@ -73,6 +73,7 @@ export interface TextEdit {
   bgColor?: string; // hex background
   fontFamily?: 'Helvetica' | 'Arial' | 'TimesRoman' | 'Courier';
   fontScale?: number;
+  baseFontSize?: number;
   styleModified?: boolean;
 }
 
@@ -118,25 +119,50 @@ type PdfStatus =
           />
         } @else {
           <!-- Continuous scroll container -->
-          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)]" 
+          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y" 
                (click)="onCanvasAreaClick($event)"
                (wheel)="onWheel($event)"
                (touchstart)="onTouchStart($event)"
                (touchmove)="onTouchMove($event)"
                (touchend)="onTouchEnd($event)">
-            @if (status() === 'loading' || status() === 'ocr') {
+
+            <!-- Floating OCR Loading & Progress Popup Modal -->
+            @if (ocrRunning()) {
+              <div class="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[calc(100%-2rem)] pointer-events-auto">
+                <div class="flex flex-col gap-2.5 rounded-xl border border-line bg-surface/95 backdrop-blur-md p-4 shadow-2xl text-text transition-all animate-in fade-in zoom-in-95">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                      <div class="relative flex h-5 w-5 items-center justify-center shrink-0">
+                        <div class="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+                      </div>
+                      <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-semibold text-text truncate">
+                          {{ i18n.t()['pdf.ocr_loading_title'] }}
+                        </span>
+                        <span class="text-[11px] text-muted truncate">
+                          {{ currentOcrPage() ? ('Página ' + currentOcrPage() + ' • ') : '' }}{{ getFormattedOcrStatus() }}
+                        </span>
+                      </div>
+                    </div>
+                    @if (ocrProgress() >= 0) {
+                      <span class="text-xs font-mono font-bold text-accent shrink-0">{{ ocrProgress() }}%</span>
+                    }
+                  </div>
+                  @if (ocrProgress() >= 0) {
+                    <div class="h-1.5 w-full overflow-hidden rounded-full bg-raised">
+                      <div class="h-full rounded-full bg-accent transition-all duration-300 ease-out" [style.width.%]="ocrProgress()"></div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (status() === 'loading') {
               <div class="flex flex-col items-center justify-center gap-4 py-12">
                 <div class="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-accent"></div>
                 <p class="text-sm text-muted">
-                  {{ status() === 'ocr'
-                    ? i18n.t()['pdf.ocr_running'] + ' ' + currentOcrPage() + '…' + (ocrStatusText() ? ' (' + ocrStatusText() + ')' : '')
-                    : i18n.t()['pdf.detecting'] }}
+                  {{ i18n.t()['pdf.detecting'] }}
                 </p>
-                @if (ocrProgress() >= 0) {
-                  <div class="h-1.5 w-48 overflow-hidden rounded-full bg-raised">
-                    <div class="h-full rounded-full bg-accent transition-all" [style.width.%]="ocrProgress()"></div>
-                  </div>
-                }
               </div>
             }
 
@@ -151,7 +177,7 @@ type PdfStatus =
 
                   <!-- OCR / edit overlay -->
                   <div class="absolute inset-0 overflow-hidden">
-                    @for (block of getBlocksForPage(page.index); track block.id) {
+                    @for (block of (blocksByPage().get(page.index) || []); track block.id) {
                       <div
                         class="absolute cursor-text overflow-visible whitespace-nowrap rounded-sm px-0.5 outline-none border transition-colors tracking-tight"
                         [style.left.%]="block.x * 100"
@@ -160,7 +186,7 @@ type PdfStatus =
                         [style.minWidth.%]="block.w * 100"
                         [style.height.%]="block.h * 100"
                         [style.lineHeight.px]="block.h * page.height * scale() * (block.fontScale || 1.0)"
-                        [style.fontSize.px]="getBaseFontSize(block, page.height, page.width) * scale() * (block.fontScale || 1.0)"
+                        [style.fontSize.px]="(block.baseFontSize || getBaseFontSize(block, page.height, page.width)) * scale() * (block.fontScale || 1.0)"
                         [style.fontStretch]="'condensed'"
                         [style.fontWeight]="block.bold ? 'bold' : 'normal'"
                         [style.fontStyle]="block.italic ? 'italic' : 'normal'"
@@ -359,6 +385,15 @@ export class PdfComponent implements OnDestroy {
   protected readonly ocrProgress = this.ocr.progress;
   protected readonly ocrStatusText = this.ocr.statusText;
 
+  protected getFormattedOcrStatus(): string {
+    const raw = this.ocrStatusText();
+    if (!raw) return this.i18n.t()['pdf.detecting'] || 'Processando…';
+    if (raw.includes('loading language')) return 'Carregando modelo de idioma (OCR)…';
+    if (raw.includes('initializing')) return 'Inicializando motor OCR…';
+    if (raw.includes('recognizing')) return 'Reconhecendo texto…';
+    return raw;
+  }
+
   /** All edits keyed by blockId */
   private readonly edits = signal<Map<string, TextEdit>>(new Map());
   
@@ -395,12 +430,18 @@ export class PdfComponent implements OnDestroy {
     this.loadedPdf()?.pages.find((p) => p.index === this.currentPage()),
   );
 
-  protected getBlocksForPage(pageIndex: number): (TextEdit & { id: string })[] {
-    const allEdits = this.edits();
-    return [...allEdits.values()]
-      .filter((e) => e.pageIndex === pageIndex)
-      .map((e) => ({ ...e }));
-  }
+  protected readonly blocksByPage = computed(() => {
+    const map = new Map<number, TextEdit[]>();
+    for (const edit of this.edits().values()) {
+      const list = map.get(edit.pageIndex);
+      if (list) {
+        list.push(edit);
+      } else {
+        map.set(edit.pageIndex, [edit]);
+      }
+    }
+    return map;
+  });
 
   protected readonly editorTools = [
     { id: 'select' as EditorTool, icon: 'image' as const, labelKey: 'pdf.tool.select' as const },
@@ -439,11 +480,15 @@ export class PdfComponent implements OnDestroy {
           for (let i = 0; i < page.nativeBlocks.length; i++) {
             const b = page.nativeBlocks[i];
             const id = `p${page.index}-native-${i}`;
-            newEdits.set(id, {
+            const blockObj = {
               id, pageIndex: page.index,
               x: b.x, y: b.y, w: b.w, h: b.h,
               originalText: b.text,
               newText: null, deleted: false,
+            };
+            newEdits.set(id, {
+              ...blockObj,
+              baseFontSize: baseFontSize(blockObj, page.height, page.width),
             });
           }
         }
@@ -499,13 +544,17 @@ export class PdfComponent implements OnDestroy {
           const b = result.blocks[i];
           const id = `p${page.index}-ocr-${i}`;
           if (!newEdits.has(id)) {
-            newEdits.set(id, {
+            const blockObj = {
               id, pageIndex: page.index,
               x: b.x, y: b.y, w: b.w, h: b.h,
               lineHeight: b.lineHeight,
               fontSize: b.fontSize,
               originalText: b.text,
               newText: null, deleted: false,
+            };
+            newEdits.set(id, {
+              ...blockObj,
+              baseFontSize: baseFontSize(blockObj, page.height, page.width),
             });
           }
         }
@@ -633,6 +682,23 @@ export class PdfComponent implements OnDestroy {
     }
   }
 
+  private zoomAnimFrame: number | null = null;
+  private pendingZoomScale: number | null = null;
+
+  private setScaleSmooth(val: number): void {
+    const clamped = Math.min(3, Math.max(0.3, Math.round(val * 100) / 100));
+    this.pendingZoomScale = clamped;
+    if (this.zoomAnimFrame === null) {
+      this.zoomAnimFrame = requestAnimationFrame(() => {
+        if (this.pendingZoomScale !== null) {
+          this.scale.set(this.pendingZoomScale);
+          this.pendingZoomScale = null;
+        }
+        this.zoomAnimFrame = null;
+      });
+    }
+  }
+
   protected initialPinchDistance: number | null = null;
   protected initialScaleAtPinchStart: number = 1.0;
 
@@ -654,8 +720,7 @@ export class PdfComponent implements OnDestroy {
         event.touches[0].clientY - event.touches[1].clientY
       );
       const ratio = currentDistance / this.initialPinchDistance;
-      const newScale = Math.min(3, Math.max(0.3, this.initialScaleAtPinchStart * ratio));
-      this.scale.set(Math.round(newScale * 100) / 100);
+      this.setScaleSmooth(this.initialScaleAtPinchStart * ratio);
     }
   }
 
@@ -668,17 +733,12 @@ export class PdfComponent implements OnDestroy {
   protected onWheel(event: WheelEvent): void {
     if (event.ctrlKey || event.metaKey) {
       if (event.cancelable) event.preventDefault();
-      // Most trackpads map pinch-to-zoom to wheel events with ctrlKey=true.
-      // event.deltaY is positive when pinching out (zooming out), negative when pinching in (zooming in).
       const delta = event.deltaY > 0 ? -0.1 : 0.1;
-      const currentScale = this.scale();
-      const next = Math.min(3, Math.max(0.3, currentScale + delta));
-      this.scale.set(Math.round(next * 100) / 100);
+      this.setScaleSmooth(this.scale() + delta);
     }
   }
   protected zoom(delta: number): void {
-    const next = Math.min(3, Math.max(0.3, this.scale() + delta));
-    this.scale.set(Math.round(next * 10) / 10);
+    this.setScaleSmooth(this.scale() + delta);
   }
 
   protected setZoomFromInput(event: Event): void {

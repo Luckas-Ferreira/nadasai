@@ -10,7 +10,11 @@ export type ToolId =
   | 'img-to-pdf'
   | 'edit-pdf'
   | 'merge-pdf'
-  | 'compress-pdf';
+  | 'compress-pdf'
+  | 'split-pdf'
+  | 'pdf-to-img'
+  | 'organize-pdf'
+  | 'protect-pdf';
 
 /**
  * Per-tool colour. iLoveIMG's identity is that every tool owns a hue; we borrow
@@ -166,6 +170,58 @@ export const TOOLS: readonly ToolDef[] = [
     descKey: 'cpdf.subtitle',
     suffix: 'min',
     tone: 'fuchsia',
+  },
+  {
+    id: 'split-pdf',
+    pathPt: 'pdf/dividir',
+    pathEn: 'pdf/split',
+    icon: 'split',
+    category: 'pdf',
+    navKey: 'nav.split_pdf',
+    shortKey: 'nav.short.split_pdf',
+    titleKey: 'splitpdf.title',
+    descKey: 'splitpdf.subtitle',
+    suffix: 'split',
+    tone: 'rose',
+  },
+  {
+    id: 'pdf-to-img',
+    pathPt: 'pdf/para-imagem',
+    pathEn: 'pdf/to-image',
+    icon: 'image',
+    category: 'pdf',
+    navKey: 'nav.pdf_to_img',
+    shortKey: 'nav.short.pdf_to_img',
+    titleKey: 'pdf2img.title',
+    descKey: 'pdf2img.subtitle',
+    suffix: 'img',
+    tone: 'amber',
+  },
+  {
+    id: 'organize-pdf',
+    pathPt: 'pdf/organizar',
+    pathEn: 'pdf/organize',
+    icon: 'doc',
+    category: 'pdf',
+    navKey: 'nav.organize_pdf',
+    shortKey: 'nav.short.organize_pdf',
+    titleKey: 'orgpdf.title',
+    descKey: 'orgpdf.subtitle',
+    suffix: 'organized',
+    tone: 'emerald',
+  },
+  {
+    id: 'protect-pdf',
+    pathPt: 'pdf/proteger',
+    pathEn: 'pdf/protect',
+    icon: 'lock',
+    category: 'pdf',
+    navKey: 'nav.protect_pdf',
+    shortKey: 'nav.short.protect_pdf',
+    titleKey: 'protpdf.title',
+    descKey: 'protpdf.subtitle',
+    suffix: 'protected',
+    tone: 'indigo',
   },
 ];
 

@@ -1,0 +1,311 @@
+<app-tool-page [toolId]="'split-pdf'" [forceLoaded]="!!file()">
+  <!-- Error & Info Banners -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE AREA: PDF Page Thumbnails Grid -->
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'application/pdf,.pdf'"
+        [titleKey]="'splitpdf.drag'"
+        [hintKey]="'splitpdf.drag_hint'"
+        [buttonKey]="'pdf.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="relative flex flex-col min-h-[360px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
+        <!-- Top Stage Action Bar -->
+        <div class="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-white/10 text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="truncate font-medium text-white/90">{{ file()?.name }}</span>
+            <span class="shrink-0 font-mono text-white/50">
+              @if (mainMode() === 'pages') {
+                ({{ selectedPages().size }} de {{ pageCount() }} páginas selecionadas)
+              } @else {
+                ({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})
+              }
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              class="text-white/80 hover:text-white"
+              (click)="selectAllPages()"
+            >
+              {{ i18n.t()['splitpdf.select_all'] }}
+            </button>
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              class="text-white/50 hover:text-white"
+              (click)="deselectAllPages()"
+            >
+              {{ i18n.t()['splitpdf.deselect_all'] }}
+            </button>
+
+            <button
+              appButton
+              variant="ghost"
+              size="sm"
+              class="text-white/50 hover:text-white"
+              (click)="reset()"
+            >
+              <app-icon name="close" [size]="14" />
+              {{ i18n.t()['common.clear'] }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Thumbnail Grid -->
+        @if (renderingThumbs()) {
+          <div class="flex-1 flex flex-col items-center justify-center gap-3 py-16">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <p class="text-sm font-medium text-white/80">Gerando miniaturas…</p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[62vh] overflow-y-auto pr-1">
+            @for (thumb of thumbs(); track thumb.index) {
+              <div
+                class="group relative flex flex-col items-center rounded-lg border p-2 bg-surface shadow-sm transition-all duration-200 cursor-pointer select-none"
+                [class.border-accent]="isPageSelected(thumb.index)"
+                [class.bg-accent-soft]="isPageSelected(thumb.index)"
+                [class.border-line]="!isPageSelected(thumb.index)"
+                [class.opacity-40]="isPageDimmed(thumb.index)"
+                (click)="onThumbClick(thumb.index)"
+              >
+                <!-- Selection Checkmark Badge -->
+                <div
+                  class="absolute top-2 left-2 z-10 flex h-5 w-5 items-center justify-center rounded-full shadow-sm transition-all"
+                  [class.bg-accent]="isPageSelected(thumb.index)"
+                  [class.text-on-accent]="isPageSelected(thumb.index)"
+                  [class.bg-raised]="!isPageSelected(thumb.index)"
+                  [class.border]="!isPageSelected(thumb.index)"
+                  [class.border-line]="!isPageSelected(thumb.index)"
+                  [class.text-transparent]="!isPageSelected(thumb.index)"
+                >
+                  <app-icon name="check" [size]="12" />
+                </div>
+
+                <!-- Thumbnail Canvas Preview -->
+                <div class="relative w-full aspect-[1/1.4] overflow-hidden rounded bg-raised flex items-center justify-center">
+                  <img [src]="thumb.url" [alt]="'Página ' + thumb.index" class="w-full h-full object-contain" />
+                </div>
+
+                <!-- Page Number Badge -->
+                <span class="mt-2 font-mono text-xs text-muted group-hover:text-text transition-colors">
+                  {{ thumb.index }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Busy Processing Overlay (Matching compress-pdf / merge-pdf) -->
+        @if (busy()) {
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px] z-20">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <p class="text-sm font-medium text-white">{{ i18n.t()['splitpdf.working'] }}</p>
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress() ?? 0"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs text-white/50 tabular" aria-live="polite">
+                {{ progress() ?? 0 }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL AREA: Control Options (Matching System Pattern) -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['splitpdf.title']">
+        <!-- Main Mode Segmented Switcher -->
+        <app-segmented
+          [options]="mainModeOptions()"
+          [value]="mainMode()"
+          (valueChange)="mainMode.set($event)"
+          [columns]="2"
+        />
+
+        <div class="my-3 border-t border-line"></div>
+
+        <!-- TAB 1: INTERVALO -->
+        @if (mainMode() === 'range') {
+          <div class="flex flex-col gap-3">
+            <app-segmented
+              [options]="rangeSubModeOptions()"
+              [value]="rangeSubMode()"
+              (valueChange)="rangeSubMode.set($event)"
+              [columns]="2"
+            />
+
+            @if (rangeSubMode() === 'custom') {
+              <div class="flex flex-col gap-2.5 mt-1">
+                @for (range of customRanges(); track $index) {
+                  <div class="flex flex-col gap-1.5 p-2.5 rounded-lg border border-line bg-raised">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-medium text-text">Intervalo {{ $index + 1 }}</span>
+                      @if (customRanges().length > 1) {
+                        <button
+                          type="button"
+                          class="text-muted hover:text-text cursor-pointer p-0.5"
+                          (click)="removeRange($index)"
+                        >
+                          <app-icon name="close" [size]="12" />
+                        </button>
+                      }
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-faint">Página inicial</label>
+                        <input
+                          type="number"
+                          min="1"
+                          [max]="pageCount()"
+                          [value]="range.from"
+                          (change)="updateRangeFrom($index, $event)"
+                          class="w-full rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-mono text-text outline-none focus:border-accent"
+                        />
+                      </div>
+                      <div class="flex flex-col gap-1">
+                        <label class="text-[11px] text-faint">Página final</label>
+                        <input
+                          type="number"
+                          min="1"
+                          [max]="pageCount()"
+                          [value]="range.to"
+                          (change)="updateRangeTo($index, $event)"
+                          class="w-full rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-mono text-text outline-none focus:border-accent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <button
+                  appButton
+                  variant="secondary"
+                  size="sm"
+                  class="w-full mt-1"
+                  (click)="addRange()"
+                >
+                  {{ i18n.t()['splitpdf.add_range'] }}
+                </button>
+
+                <label class="flex items-start gap-2.5 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    [checked]="mergeOutput()"
+                    (change)="mergeOutput.set(!mergeOutput())"
+                    class="mt-0.5 h-4 w-4 rounded border-line text-accent focus:ring-accent"
+                  />
+                  <span class="text-xs text-muted leading-tight">
+                    {{ i18n.t()['splitpdf.merge_ranges'] }}
+                  </span>
+                </label>
+              </div>
+            }
+
+            @if (rangeSubMode() === 'fixed') {
+              <div class="flex flex-col gap-2.5 mt-1 p-3 rounded-lg border border-line bg-raised">
+                <label class="text-xs text-muted">{{ i18n.t()['splitpdf.fixed_every'] }}</label>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    [max]="pageCount()"
+                    [value]="fixedChunkSize()"
+                    (change)="updateFixedChunk($event)"
+                    class="w-20 rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-mono text-text outline-none focus:border-accent"
+                  />
+                  <span class="text-xs text-text">{{ i18n.t()['splitpdf.pages_each'] }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- TAB 2: PÁGINAS -->
+        @if (mainMode() === 'pages') {
+          <div class="flex flex-col gap-3">
+            <app-segmented
+              [options]="pagesSubModeOptions()"
+              [value]="pagesSubMode()"
+              (valueChange)="pagesSubMode.set($event)"
+              [columns]="2"
+            />
+
+            <p class="text-xs text-faint leading-relaxed mt-1">
+              @if (pagesSubMode() === 'all') {
+                {{ i18n.t()['splitpdf.info_all'] }}
+              } @else {
+                {{ i18n.t()['splitpdf.info_select'] }}
+              }
+            </p>
+
+            @if (pagesSubMode() === 'select') {
+              <label class="flex items-start gap-2.5 mt-1 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [checked]="mergeOutput()"
+                  (change)="mergeOutput.set(!mergeOutput())"
+                  class="mt-0.5 h-4 w-4 rounded border-line text-accent focus:ring-accent"
+                />
+                <span class="text-xs text-muted leading-tight">
+                  {{ i18n.t()['splitpdf.merge_pages'] }}
+                </span>
+              </label>
+            }
+          </div>
+        }
+
+        <!-- Summary Statistics Table (Matching compress-pdf & merge-pdf) -->
+        <div class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
+          <span class="text-muted">{{ i18n.t()['cpdf.pages'] }}</span>
+          <span class="font-mono text-text tabular">{{ pageCount() }}</span>
+        </div>
+
+        <div class="mt-2 flex justify-between text-sm">
+          <span class="text-muted">Arquivos a gerar</span>
+          <span class="font-mono text-text tabular">{{ estimatedPdfCount() }}</span>
+        </div>
+
+        @if (result(); as res) {
+          <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
+            <span class="text-sm font-medium text-success">
+              {{ res.isZip ? 'Arquivo ZIP gerado' : 'PDF gerado' }}
+            </span>
+            <span class="font-mono text-sm font-medium text-success tabular">{{ res.pdfCount }} arquivo(s)</span>
+          </div>
+        }
+      </app-panel>
+
+      <!-- Standard Action Bar (Includes Primary Action, Download, and Reset / Clear) -->
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['splitpdf.btn'] : null"
+        [primaryDisabled]="estimatedPdfCount() === 0"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
