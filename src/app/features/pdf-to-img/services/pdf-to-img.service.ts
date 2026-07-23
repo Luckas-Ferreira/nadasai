@@ -6,6 +6,7 @@ export type ImageOutputFormat = 'jpeg' | 'png' | 'webp';
 
 export interface PdfToImgOptions {
   file: File;
+  password?: string;
   format: ImageOutputFormat;
   scale: number; // 1, 2, or 3
   selectedPages: number[]; // 1-based indices
@@ -22,9 +23,9 @@ export interface PdfToImgResult {
 @Injectable({ providedIn: 'root' })
 export class PdfToImgService {
   async convertToImages(options: PdfToImgOptions): Promise<PdfToImgResult> {
-    const { file, format, scale, selectedPages, onProgress } = options;
+    const { file, password, format, scale, selectedPages, onProgress } = options;
 
-    const doc = await openPdf(file);
+    const doc = await openPdf(file, password);
     try {
       const totalPages = doc.numPages;
       if (totalPages === 0) {

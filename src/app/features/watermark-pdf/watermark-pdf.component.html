@@ -1,0 +1,228 @@
+<app-tool-page [toolId]="'watermark-pdf'" [forceLoaded]="!!file()">
+  <!-- Error Banners -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" dismissible (dismiss)="errorKey.set(null)" />
+    }
+  </div>
+
+  <!-- STAGE AREA: Live Watermark Overlay Preview -->
+  <div stage>
+    @if (!file()) {
+      @if (pdfProtected()) {
+        <app-pdf-password-prompt
+          [fileName]="pendingFile()?.name ?? ''"
+          [errorMsg]="passwordError()"
+          (unlock)="onFile(pendingFile()!, $event)"
+          (cancel)="reset()"
+        />
+      } @else {
+        <app-dropzone
+          [accept]="'application/pdf,.pdf'"
+          [titleKey]="'wmpdf.drag'"
+          [hintKey]="'wmpdf.drag_hint'"
+          [buttonKey]="'pdf.upload_btn'"
+          (fileSelected)="onFile($event)"
+        />
+      }
+    } @else {
+      <div class="relative flex flex-col items-center justify-center min-h-[380px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
+        <!-- Stage Top Bar -->
+        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-3 border-b border-white/10 text-xs bg-stage/60 backdrop-blur-sm z-10">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="truncate font-medium text-white/90">{{ file()?.name }}</span>
+            <span class="shrink-0 font-mono text-white/50">({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})</span>
+          </div>
+
+          <button
+            appButton
+            variant="ghost"
+            size="sm"
+            class="text-white/50 hover:text-white"
+            (click)="reset()"
+          >
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        </div>
+
+        <!-- Preview Image Canvas with Live Watermark Text Overlay -->
+        <div class="mt-10 flex items-center justify-center w-full flex-1 relative">
+          @if (renderingPreview()) {
+            <div class="flex flex-col items-center justify-center gap-3 py-16">
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+              <p class="text-sm font-medium text-white/80">Carregando pré-visualização…</p>
+            </div>
+          } @else if (previewUrl()) {
+            <div class="relative max-h-[52vh] overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-white flex items-center justify-center">
+              <img [src]="previewUrl()" [alt]="file()?.name" class="max-h-[52vh] w-auto object-contain block" />
+
+              <!-- Live Watermark Overlay Text -->
+              @if (text().trim()) {
+                <div
+                  class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+                >
+                  <span
+                    class="font-extrabold uppercase tracking-widest text-center whitespace-nowrap"
+                    [style.color]="colorHex()"
+                    [style.opacity]="opacity()"
+                    [style.transform]="'rotate(' + rotationDegrees() + 'deg)'"
+                    [style.font-size.px]="fontSize() * 0.75"
+                  >
+                    {{ text() }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Busy Processing Overlay -->
+        @if (busy()) {
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px] z-20">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <p class="text-sm font-medium text-white">{{ i18n.t()['wmpdf.working'] }}</p>
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress() ?? 0"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs text-white/50 tabular" aria-live="polite">
+                {{ progress() ?? 0 }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL AREA: Watermark Options & Actions -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['wmpdf.title']">
+        <div class="flex flex-col gap-4">
+          <!-- Text Field -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted">
+              {{ i18n.t()['wmpdf.text_label'] }}
+            </label>
+            <input
+              type="text"
+              [value]="text()"
+              (input)="text.set($any($event.target).value)"
+              placeholder="Ex: CONFIDENCIAL"
+              class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent font-semibold"
+            />
+          </div>
+
+          <!-- Color Selector -->
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-muted">Cor da Marca d'Água</span>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                class="h-6 w-6 rounded-full border-2"
+                [class.border-accent]="colorHex() === '#ef4444'"
+                [class.border-transparent]="colorHex() !== '#ef4444'"
+                style="background-color: #ef4444;"
+                (click)="colorHex.set('#ef4444')"
+              ></button>
+              <button
+                type="button"
+                class="h-6 w-6 rounded-full border-2"
+                [class.border-accent]="colorHex() === '#64748b'"
+                [class.border-transparent]="colorHex() !== '#64748b'"
+                style="background-color: #64748b;"
+                (click)="colorHex.set('#64748b')"
+              ></button>
+              <button
+                type="button"
+                class="h-6 w-6 rounded-full border-2"
+                [class.border-accent]="colorHex() === '#3b82f6'"
+                [class.border-transparent]="colorHex() !== '#3b82f6'"
+                style="background-color: #3b82f6;"
+                (click)="colorHex.set('#3b82f6')"
+              ></button>
+              <button
+                type="button"
+                class="h-6 w-6 rounded-full border-2"
+                [class.border-accent]="colorHex() === '#000000'"
+                [class.border-transparent]="colorHex() !== '#000000'"
+                style="background-color: #000000;"
+                (click)="colorHex.set('#000000')"
+              ></button>
+            </div>
+          </div>
+
+          <!-- Rotation Angle -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted">
+              {{ i18n.t()['wmpdf.rotation_label'] }}
+            </label>
+            <app-segmented
+              [options]="rotationOptions()"
+              [value]="rotationDegrees()"
+              (valueChange)="rotationDegrees.set($event)"
+              [columns]="3"
+            />
+          </div>
+
+          <!-- Font Size -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted">Tamanho do Texto</label>
+            <app-segmented
+              [options]="fontSizeOptions()"
+              [value]="fontSize()"
+              (valueChange)="fontSize.set($event)"
+              [columns]="3"
+            />
+          </div>
+
+          <!-- Opacity Slider -->
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-xs text-muted">
+              <span>{{ i18n.t()['wmpdf.opacity_label'] }}</span>
+              <span class="font-mono tabular">{{ Math.round(opacity() * 100) }}%</span>
+            </div>
+            <input
+              type="range"
+              min="0.1"
+              max="1"
+              step="0.05"
+              [value]="opacity()"
+              (input)="opacity.set(+$any($event.target).value)"
+              class="accent-accent cursor-pointer"
+            />
+          </div>
+
+          <!-- Summary Stats -->
+          <div class="flex justify-between border-t border-line pt-3 text-sm">
+            <span class="text-muted">{{ i18n.t()['cpdf.pages'] }}</span>
+            <span class="font-mono text-text tabular">{{ pageCount() }}</span>
+          </div>
+
+          @if (resultSize(); as size) {
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">Resultado</span>
+              <span class="font-mono text-text tabular">{{ size }}</span>
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <!-- Action Bar -->
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['wmpdf.btn'] : null"
+        [primaryDisabled]="!text().trim()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

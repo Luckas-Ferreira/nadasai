@@ -39,8 +39,8 @@ export interface LoadedPdf {
  */
 @Injectable({ providedIn: 'root' })
 export class PdfLoaderService {
-  async load(file: File): Promise<LoadedPdf> {
-    const doc = await openPdf(file);
+  async load(file: File, password?: string): Promise<LoadedPdf> {
+    const doc = await openPdf(file, password);
 
     const pages: PdfPageInfo[] = [];
 

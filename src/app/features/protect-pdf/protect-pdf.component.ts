@@ -13,11 +13,11 @@ import { ButtonDirective } from '../../shared/ui/button.directive';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
+import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
 import { PdfProtectorService } from './services/pdf-protector.service';
 
-/** Preview width in CSS pixels */
-const THUMB_WIDTH = 320;
+const THUMB_WIDTH = 480;
 
 @Component({
   selector: 'app-protect-pdf',
@@ -33,6 +33,7 @@ const THUMB_WIDTH = 320;
     IconComponent,
     ActionBarComponent,
     ButtonDirective,
+    PdfPasswordPromptComponent,
   ],
   templateUrl: './protect-pdf.component.html',
 })
@@ -44,6 +45,11 @@ export class ProtectPdfComponent {
 
   // File & document state
   protected readonly file = signal<File | null>(null);
+  protected readonly pendingFile = signal<File | null>(null);
+  protected readonly pdfProtected = signal(false);
+  protected readonly pdfPassword = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
+
   protected readonly pageCount = signal(0);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly renderingPreview = signal(false);
@@ -81,34 +87,46 @@ export class ProtectPdfComponent {
     return { label: 'Forte', color: 'text-emerald-500', bar: 'w-full bg-emerald-500' };
   });
 
-  protected async onFile(file: File): Promise<void> {
+  protected async onFile(file: File, password?: string): Promise<void> {
     this.errorKey.set(null);
     this.resultBlob.set(null);
     this.password.set('');
     this.confirmPassword.set('');
+    this.passwordError.set(null);
+    this.pendingFile.set(file);
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const count = doc.numPages;
         this.pageCount.set(count);
         this.file.set(file);
+        this.pdfPassword.set(password ?? null);
+        this.pdfProtected.set(false);
       } finally {
         await closePdf(doc);
       }
 
-      void this.loadPreview(file);
+      void this.loadPreview(file, password);
     } catch (err) {
       console.error('[ProtectPdf] Error loading PDF:', err);
-      this.errorKey.set(toMessageKey(err));
-      this.file.set(null);
+      const msgKey = toMessageKey(err);
+      if (msgKey === 'error.pdf_encrypted') {
+        this.pdfProtected.set(true);
+        if (password) {
+          this.passwordError.set('Senha incorreta. Tente novamente.');
+        }
+      } else {
+        this.errorKey.set(msgKey);
+        this.file.set(null);
+      }
     }
   }
 
-  private async loadPreview(file: File): Promise<void> {
+  private async loadPreview(file: File, password?: string): Promise<void> {
     this.renderingPreview.set(true);
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const page = await doc.getPage(1);
         const { width } = page.getViewport({ scale: 1 });
@@ -138,13 +156,7 @@ export class ProtectPdfComponent {
     const pwd = this.password().trim();
     const confirm = this.confirmPassword().trim();
 
-    if (!pwd) {
-      this.errorKey.set('protpdf.error_empty');
-      return;
-    }
-
-    if (pwd !== confirm) {
-      this.errorKey.set('protpdf.error_mismatch');
+    if (!pwd || pwd !== confirm) {
       return;
     }
 
@@ -156,12 +168,12 @@ export class ProtectPdfComponent {
       const blob = await this.protector.protect({
         file: f,
         password: pwd,
-        onProgress: (p) => this.progress.set(p),
+        onProgress: (p: number) => this.progress.set(p),
       });
 
       this.resultBlob.set(blob);
     } catch (err: any) {
-      console.error('[ProtectPdf] Protection failed:', err);
+      console.error('[ProtectPdf] Encrypt failed:', err);
       this.errorKey.set(toMessageKey(err));
     } finally {
       this.busy.set(false);
@@ -180,6 +192,10 @@ export class ProtectPdfComponent {
   protected reset(): void {
     this.urls.releaseAll();
     this.file.set(null);
+    this.pendingFile.set(null);
+    this.pdfProtected.set(false);
+    this.pdfPassword.set(null);
+    this.passwordError.set(null);
     this.pageCount.set(0);
     this.previewUrl.set(null);
     this.resultBlob.set(null);

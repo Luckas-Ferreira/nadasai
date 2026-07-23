@@ -13,11 +13,15 @@ import { ButtonDirective } from '../../shared/ui/button.directive';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
+import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 import { SegmentedComponent, type SegmentOption } from '../../shared/ui/segmented.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
-import { ImageOutputFormat, PdfToImgResult, PdfToImgService } from './services/pdf-to-img.service';
+import {
+  ImageOutputFormat,
+  PdfToImgResult,
+  PdfToImgService,
+} from './services/pdf-to-img.service';
 
-/** Preview width in CSS pixels for stage thumbnails */
 const THUMB_WIDTH = 240;
 
 export interface PageThumb {
@@ -40,6 +44,7 @@ export interface PageThumb {
     SegmentedComponent,
     ActionBarComponent,
     ButtonDirective,
+    PdfPasswordPromptComponent,
   ],
   templateUrl: './pdf-to-img.component.html',
 })
@@ -51,13 +56,18 @@ export class PdfToImgComponent {
 
   // File & document state
   protected readonly file = signal<File | null>(null);
+  protected readonly pendingFile = signal<File | null>(null);
+  protected readonly pdfProtected = signal(false);
+  protected readonly pdfPassword = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
+
   protected readonly pageCount = signal(0);
   protected readonly thumbs = signal<PageThumb[]>([]);
   protected readonly renderingThumbs = signal(false);
 
   // Options
-  protected readonly format = signal<ImageOutputFormat>('jpeg');
-  protected readonly scale = signal<number>(2); // Default 2x resolution
+  protected readonly format = signal<ImageOutputFormat>('png');
+  protected readonly scale = signal<number>(2); // 1=1x, 2=2x, 3=3x
   protected readonly selectedPages = signal<Set<number>>(new Set());
 
   // Task & Execution state
@@ -67,15 +77,15 @@ export class PdfToImgComponent {
   protected readonly errorKey = signal<TranslationKey | null>(null);
 
   protected readonly formatOptions = computed<SegmentOption<ImageOutputFormat>[]>(() => [
-    { value: 'jpeg', label: 'JPG' },
     { value: 'png', label: 'PNG' },
-    { value: 'webp', label: 'WEBP' },
+    { value: 'jpeg', label: 'JPG' },
+    { value: 'webp', label: 'WebP' },
   ]);
 
   protected readonly scaleOptions = computed<SegmentOption<number>[]>(() => [
     { value: 1, label: '1x (72 DPI)' },
-    { value: 2, label: '2x HD (144 DPI)' },
-    { value: 3, label: '3x Ultra (216 DPI)' },
+    { value: 2, label: '2x (150 DPI)' },
+    { value: 3, label: '3x (300 DPI)' },
   ]);
 
   protected readonly originalSize = computed(() => {
@@ -87,18 +97,21 @@ export class PdfToImgComponent {
   protected readonly resultBlob = computed(() => this.result()?.blob ?? null);
   protected readonly stale = computed(() => !this.result());
 
-  protected async onFile(file: File): Promise<void> {
+  protected async onFile(file: File, password?: string): Promise<void> {
     this.errorKey.set(null);
     this.result.set(null);
+    this.passwordError.set(null);
+    this.pendingFile.set(file);
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const count = doc.numPages;
         this.pageCount.set(count);
         this.file.set(file);
+        this.pdfPassword.set(password ?? null);
+        this.pdfProtected.set(false);
 
-        // Select all pages initially
         const allSelected = new Set<number>();
         for (let i = 1; i <= count; i++) allSelected.add(i);
         this.selectedPages.set(allSelected);
@@ -106,21 +119,28 @@ export class PdfToImgComponent {
         await closePdf(doc);
       }
 
-      // Load page thumbnails
-      void this.loadThumbnails(file);
+      void this.loadThumbnails(file, password);
     } catch (err) {
       console.error('[PdfToImg] Error loading PDF:', err);
-      this.errorKey.set(toMessageKey(err));
-      this.file.set(null);
+      const msgKey = toMessageKey(err);
+      if (msgKey === 'error.pdf_encrypted') {
+        this.pdfProtected.set(true);
+        if (password) {
+          this.passwordError.set('Senha incorreta. Tente novamente.');
+        }
+      } else {
+        this.errorKey.set(msgKey);
+        this.file.set(null);
+      }
     }
   }
 
-  private async loadThumbnails(file: File): Promise<void> {
+  private async loadThumbnails(file: File, password?: string): Promise<void> {
     this.renderingThumbs.set(true);
     const generatedThumbs: PageThumb[] = [];
 
     try {
-      const doc = await openPdf(file);
+      const doc = await openPdf(file, password);
       try {
         const count = doc.numPages;
         for (let i = 1; i <= count; i++) {
@@ -148,7 +168,7 @@ export class PdfToImgComponent {
     }
   }
 
-  // Page selection handlers
+  // Page selection
   protected togglePageSelection(pageIndex: number): void {
     const set = new Set(this.selectedPages());
     if (set.has(pageIndex)) {
@@ -190,6 +210,7 @@ export class PdfToImgComponent {
     try {
       const res = await this.pdfToImgService.convertToImages({
         file: f,
+        password: this.pdfPassword() ?? undefined,
         format: this.format(),
         scale: this.scale(),
         selectedPages: Array.from(this.selectedPages()),
@@ -215,6 +236,10 @@ export class PdfToImgComponent {
   protected reset(): void {
     this.urls.releaseAll();
     this.file.set(null);
+    this.pendingFile.set(null);
+    this.pdfProtected.set(false);
+    this.pdfPassword.set(null);
+    this.passwordError.set(null);
     this.pageCount.set(0);
     this.thumbs.set([]);
     this.result.set(null);

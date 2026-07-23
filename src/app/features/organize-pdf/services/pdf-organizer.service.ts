@@ -7,6 +7,7 @@ export interface OrganizeSource {
   readonly pageIndex: number;
   /** Clockwise rotation offset: 0, 90, 180, 270 */
   readonly rotation: number;
+  readonly password?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,19 +21,19 @@ export class PdfOrganizerService {
     const { PDFDocument, degrees } = await import('pdf-lib');
     const out = await PDFDocument.create();
 
-    const byFile = new Map<File, number[]>();
+    const byFile = new Map<File, { indices: number[]; password?: string }>();
     for (const source of sources) {
-      const indices = byFile.get(source.file);
-      if (indices) indices.push(source.pageIndex);
-      else byFile.set(source.file, [source.pageIndex]);
+      const entry = byFile.get(source.file);
+      if (entry) entry.indices.push(source.pageIndex);
+      else byFile.set(source.file, { indices: [source.pageIndex], password: source.password });
     }
 
     const queues = new Map<File, { pages: Awaited<ReturnType<typeof out.copyPages>>; next: number }>();
     let read = 0;
 
-    for (const [file, indices] of byFile) {
-      const src = await PDFDocument.load(await file.arrayBuffer());
-      queues.set(file, { pages: await out.copyPages(src, indices), next: 0 });
+    for (const [file, entry] of byFile) {
+      const src = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+      queues.set(file, { pages: await out.copyPages(src, entry.indices), next: 0 });
       onProgress?.(++read, byFile.size);
     }
 

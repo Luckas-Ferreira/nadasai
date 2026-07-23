@@ -12,6 +12,7 @@ export type SplitPagesMode = 'all' | 'select';
 
 export interface SplitPdfOptions {
   file: File;
+  password?: string;
   mode: SplitMainMode;
   rangeSubMode: SplitRangeMode;
   pagesSubMode: SplitPagesMode;
@@ -35,6 +36,7 @@ export class PdfSplitterService {
     const { PDFDocument } = await import('pdf-lib');
     const {
       file,
+      password,
       mode,
       rangeSubMode,
       pagesSubMode,
@@ -46,7 +48,7 @@ export class PdfSplitterService {
     } = options;
 
     const arrayBuffer = await file.arrayBuffer();
-    const srcDoc = await PDFDocument.load(arrayBuffer);
+    const srcDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
     const totalPages = srcDoc.getPageCount();
 
     if (totalPages === 0) {
@@ -59,25 +61,23 @@ export class PdfSplitterService {
     if (mode === 'range') {
       if (rangeSubMode === 'custom') {
         for (const range of customRanges) {
-          const from = Math.max(1, Math.min(totalPages, range.from));
-          const to = Math.max(from, Math.min(totalPages, range.to));
-          const pageIndices: number[] = [];
-          for (let p = from - 1; p < to; p++) {
-            pageIndices.push(p);
+          const from = Math.max(1, Math.min(range.from, range.to));
+          const to = Math.min(totalPages, Math.max(range.from, range.to));
+          const set: number[] = [];
+          for (let i = from; i <= to; i++) {
+            set.push(i - 1);
           }
-          if (pageIndices.length > 0) {
-            pageSets.push(pageIndices);
-          }
+          if (set.length > 0) pageSets.push(set);
         }
       } else {
-        // Fixed range chunking (e.g. 2 pages per PDF)
+        // fixed chunks
         const chunkSize = Math.max(1, fixedChunkSize);
-        for (let i = 0; i < totalPages; i += chunkSize) {
-          const chunk: number[] = [];
-          for (let j = i; j < Math.min(totalPages, i + chunkSize); j++) {
-            chunk.push(j);
+        for (let start = 0; start < totalPages; start += chunkSize) {
+          const set: number[] = [];
+          for (let i = start; i < Math.min(totalPages, start + chunkSize); i++) {
+            set.push(i);
           }
-          pageSets.push(chunk);
+          pageSets.push(set);
         }
       }
     } else {
@@ -87,21 +87,13 @@ export class PdfSplitterService {
           pageSets.push([i]);
         }
       } else {
-        // Select specific pages
-        const validPages = selectedPages
+        // select
+        const validSelected = selectedPages
           .filter((p) => p >= 1 && p <= totalPages)
           .sort((a, b) => a - b);
 
-        if (mergeOutput) {
-          // All selected pages into 1 PDF
-          if (validPages.length > 0) {
-            pageSets.push(validPages.map((p) => p - 1));
-          }
-        } else {
-          // Each selected page into an individual PDF
-          for (const p of validPages) {
-            pageSets.push([p - 1]);
-          }
+        for (const p of validSelected) {
+          pageSets.push([p - 1]);
         }
       }
     }
@@ -110,57 +102,61 @@ export class PdfSplitterService {
       throw new Error('no_pages_selected');
     }
 
-    // Handle Merge Output option for custom ranges
-    if (mode === 'range' && mergeOutput && pageSets.length > 1) {
-      const combined: number[] = [];
-      for (const set of pageSets) {
-        combined.push(...set);
-      }
-      pageSets = [combined];
-    }
-
-    // Build output PDFs
-    const createdPdfs: { name: string; bytes: Uint8Array }[] = [];
     const baseName = file.name.replace(/\.[^/.]+$/, '');
 
+    // If mergeOutput is true, combine all page sets into a single PDF
+    if (mergeOutput) {
+      const mergedDoc = await PDFDocument.create();
+      const allIndices = pageSets.flat();
+      const copiedPages = await mergedDoc.copyPages(srcDoc, allIndices);
+      for (const p of copiedPages) {
+        mergedDoc.addPage(p);
+      }
+      const bytes = await mergedDoc.save({ useObjectStreams: true });
+      const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' });
+      return {
+        blob,
+        filename: `${baseName}_split.pdf`,
+        isZip: false,
+        pdfCount: 1,
+      };
+    }
+
+    // If only 1 sub-PDF produced, return directly as single PDF file
+    if (pageSets.length === 1) {
+      const singleDoc = await PDFDocument.create();
+      const copiedPages = await singleDoc.copyPages(srcDoc, pageSets[0]);
+      for (const p of copiedPages) {
+        singleDoc.addPage(p);
+      }
+      const bytes = await singleDoc.save({ useObjectStreams: true });
+      const blob = new Blob([bytes as BlobPart], { type: 'application/pdf' });
+      return {
+        blob,
+        filename: `${baseName}_range_1.pdf`,
+        isZip: false,
+        pdfCount: 1,
+      };
+    }
+
+    // Multiple PDFs produced: bundle into ZIP archive
+    const createdPdfs: { name: string; bytes: Uint8Array }[] = [];
+
     for (let i = 0; i < pageSets.length; i++) {
-      const pageIndices = pageSets[i];
-      const newDoc = await PDFDocument.create();
-      const copiedPages = await newDoc.copyPages(srcDoc, pageIndices);
-      for (const page of copiedPages) {
-        newDoc.addPage(page);
+      const subDoc = await PDFDocument.create();
+      const copiedPages = await subDoc.copyPages(srcDoc, pageSets[i]);
+      for (const p of copiedPages) {
+        subDoc.addPage(p);
       }
-
-      const pdfBytes = await newDoc.save();
-
-      let pdfName = '';
-      if (pageSets.length === 1) {
-        pdfName = `${baseName}_split.pdf`;
-      } else if (pageIndices.length === 1) {
-        pdfName = `${baseName}_page_${pageIndices[0] + 1}.pdf`;
-      } else {
-        pdfName = `${baseName}_range_${pageIndices[0] + 1}-${pageIndices[pageIndices.length - 1] + 1}.pdf`;
-      }
-
-      createdPdfs.push({ name: pdfName, bytes: pdfBytes });
+      const bytes = await subDoc.save({ useObjectStreams: true });
+      const pdfName = `${baseName}_part_${i + 1}.pdf`;
+      createdPdfs.push({ name: pdfName, bytes });
 
       if (onProgress) {
         onProgress(Math.round(((i + 1) / pageSets.length) * 100));
       }
     }
 
-    // If only 1 PDF created, return as single PDF blob
-    if (createdPdfs.length === 1) {
-      const blob = new Blob([createdPdfs[0].bytes], { type: 'application/pdf' });
-      return {
-        blob,
-        filename: createdPdfs[0].name,
-        isZip: false,
-        pdfCount: 1,
-      };
-    }
-
-    // Multiple PDFs created: bundle into a ZIP archive using fflate
     const zipFiles: Record<string, Uint8Array> = {};
     for (const item of createdPdfs) {
       zipFiles[item.name] = item.bytes;
@@ -171,7 +167,7 @@ export class PdfSplitterService {
 
     return {
       blob: zipBlob,
-      filename: `${baseName}_split.zip`,
+      filename: `${baseName}_split_files.zip`,
       isZip: true,
       pdfCount: createdPdfs.length,
     };
