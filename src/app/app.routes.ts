@@ -11,6 +11,10 @@ export const routes: Routes = [
   { path: 'convert', redirectTo: 'pt/imagem/converter', pathMatch: 'full' },
   { path: 'resize', redirectTo: 'pt/imagem/redimensionar', pathMatch: 'full' },
   { path: 'edit-pdf', redirectTo: 'pt/pdf/editar', pathMatch: 'full' },
+  { path: 'split-pdf', redirectTo: 'pt/pdf/dividir', pathMatch: 'full' },
+  { path: 'pdf-to-img', redirectTo: 'pt/pdf/para-imagem', pathMatch: 'full' },
+  { path: 'organize-pdf', redirectTo: 'pt/pdf/organizar', pathMatch: 'full' },
+  { path: 'protect-pdf', redirectTo: 'pt/pdf/proteger', pathMatch: 'full' },
   { path: 'sobre', redirectTo: 'pt/sobre', pathMatch: 'full' },
   { path: 'privacidade', redirectTo: 'pt/privacidade', pathMatch: 'full' },
   { path: 'termos', redirectTo: 'pt/termos', pathMatch: 'full' },
@@ -21,6 +25,10 @@ export const routes: Routes = [
   { path: 'imagem/converter', redirectTo: 'pt/imagem/converter', pathMatch: 'full' },
   { path: 'imagem/redimensionar', redirectTo: 'pt/imagem/redimensionar', pathMatch: 'full' },
   { path: 'pdf/editar', redirectTo: 'pt/pdf/editar', pathMatch: 'full' },
+  { path: 'pdf/dividir', redirectTo: 'pt/pdf/dividir', pathMatch: 'full' },
+  { path: 'pdf/para-imagem', redirectTo: 'pt/pdf/para-imagem', pathMatch: 'full' },
+  { path: 'pdf/organizar', redirectTo: 'pt/pdf/organizar', pathMatch: 'full' },
+  { path: 'pdf/proteger', redirectTo: 'pt/pdf/proteger', pathMatch: 'full' },
 
   // Portuguese Routes
   {
@@ -114,6 +122,42 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Reduza o tamanho de arquivos PDF direto no navegador. Seu documento não sai do seu computador.',
           metaKeywords: 'comprimir pdf, reduzir tamanho de pdf, diminuir pdf, compactar pdf'
+        }
+      },
+      {
+        path: 'pdf/dividir',
+        title: 'Dividir PDF — Nada Sai',
+        loadComponent: () => import('./features/split-pdf/split-pdf.component').then((m) => m.SplitPdfComponent),
+        data: {
+          metaDescription: 'Divida e extraia páginas de arquivos PDF 100% offline no seu navegador. Escolha intervalos ou selecione páginas.',
+          metaKeywords: 'dividir pdf, separar pdf, extrair paginas pdf, cortar pdf'
+        }
+      },
+      {
+        path: 'pdf/para-imagem',
+        title: 'PDF para Imagem — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-img/pdf-to-img.component').then((m) => m.PdfToImgComponent),
+        data: {
+          metaDescription: 'Converta páginas de PDF em imagens JPG, PNG ou WEBP 100% offline no seu navegador. Alta resolução e sem enviar nada.',
+          metaKeywords: 'pdf para imagem, converter pdf em jpg, pdf para png, transformar pdf em foto'
+        }
+      },
+      {
+        path: 'pdf/organizar',
+        title: 'Organizar PDF — Nada Sai',
+        loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
+        data: {
+          metaDescription: 'Reordene, gire e remova páginas de arquivos PDF 100% offline no seu navegador. Rápido, gratuito e seguro.',
+          metaKeywords: 'organizar pdf, girar pdf, reordenar paginas pdf, excluir paginas pdf, mover paginas pdf'
+        }
+      },
+      {
+        path: 'pdf/proteger',
+        title: 'Proteger PDF — Nada Sai',
+        loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
+        data: {
+          metaDescription: 'Criptografe e adicione senha de proteção a arquivos PDF 100% offline no seu navegador. Segurança total sem uploads.',
+          metaKeywords: 'proteger pdf, colocar senha em pdf, criptografar pdf, bloquear pdf'
         }
       },
       {
@@ -226,6 +270,42 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Reduce PDF file size right in your browser. Your document never leaves your computer.',
           metaKeywords: 'compress pdf, reduce pdf size, shrink pdf, make pdf smaller'
+        }
+      },
+      {
+        path: 'pdf/split',
+        title: 'Split PDF — Nada Sai',
+        loadComponent: () => import('./features/split-pdf/split-pdf.component').then((m) => m.SplitPdfComponent),
+        data: {
+          metaDescription: 'Split and extract pages from PDF files 100% offline in your browser. Select ranges or specific pages.',
+          metaKeywords: 'split pdf, extract pdf pages, separate pdf, cut pdf'
+        }
+      },
+      {
+        path: 'pdf/to-image',
+        title: 'PDF to Image — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-img/pdf-to-img.component').then((m) => m.PdfToImgComponent),
+        data: {
+          metaDescription: 'Convert PDF pages into JPG, PNG or WEBP images 100% offline in your browser. High resolution and zero uploads.',
+          metaKeywords: 'pdf to image, convert pdf to jpg, pdf to png, pdf to photo'
+        }
+      },
+      {
+        path: 'pdf/organize',
+        title: 'Organize PDF — Nada Sai',
+        loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
+        data: {
+          metaDescription: 'Reorder, rotate, and delete pages from PDF files 100% offline in your browser. Fast, free and secure.',
+          metaKeywords: 'organize pdf, rotate pdf, reorder pdf pages, delete pdf pages'
+        }
+      },
+      {
+        path: 'pdf/protect',
+        title: 'Protect PDF — Nada Sai',
+        loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
+        data: {
+          metaDescription: 'Encrypt and set a password on PDF files 100% offline in your browser. Total security with zero uploads.',
+          metaKeywords: 'protect pdf, encrypt pdf, set pdf password, lock pdf'
         }
       },
       {

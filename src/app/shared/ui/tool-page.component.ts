@@ -49,13 +49,13 @@ import { IconComponent } from './icon/icon.component';
            centred single column while empty, the stage/panel grid once loaded.
            The aside simply renders nothing until the tool fills its panel. -->
       <div [class]="loaded() ? loadedLayout : emptyLayout">
-        <div class="min-w-0">
-          <ng-content select="[stage]" />
-        </div>
-
-        <aside class="min-w-0">
+        <aside class="min-w-0 order-1 lg:order-2">
           <ng-content select="[panel]" />
         </aside>
+
+        <div class="min-w-0 order-2 lg:order-1">
+          <ng-content select="[stage]" />
+        </div>
       </div>
     </section>
   `,

@@ -1,0 +1,175 @@
+<app-tool-page [toolId]="'protect-pdf'" [forceLoaded]="!!file()">
+  <!-- Error Banners -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" dismissible (dismiss)="errorKey.set(null)" />
+    }
+  </div>
+
+  <!-- STAGE AREA: PDF Cover Preview & Info -->
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'application/pdf,.pdf'"
+        [titleKey]="'protpdf.drag'"
+        [hintKey]="'protpdf.drag_hint'"
+        [buttonKey]="'pdf.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="relative flex flex-col items-center justify-center min-h-[360px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
+        <!-- Stage Top Bar -->
+        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-4 border-b border-white/10 text-xs bg-stage/60 backdrop-blur-sm z-10">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="truncate font-medium text-white/90">{{ file()?.name }}</span>
+            <span class="shrink-0 font-mono text-white/50">({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})</span>
+          </div>
+
+          <button
+            appButton
+            variant="ghost"
+            size="sm"
+            class="text-white/50 hover:text-white"
+            (click)="reset()"
+          >
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        </div>
+
+        <!-- Preview Image Canvas / Spinner -->
+        <div class="mt-10 flex items-center justify-center w-full flex-1">
+          @if (renderingPreview()) {
+            <div class="flex flex-col items-center justify-center gap-3 py-16">
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+              <p class="text-sm font-medium text-white/80">Gerando pré-visualização…</p>
+            </div>
+          } @else if (previewUrl()) {
+            <div class="relative max-h-[50vh] overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-white">
+              <img [src]="previewUrl()" [alt]="file()?.name" class="max-h-[50vh] w-auto object-contain" />
+            </div>
+          }
+        </div>
+
+        <!-- Busy Processing Overlay -->
+        @if (busy()) {
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px] z-20">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <p class="text-sm font-medium text-white">{{ i18n.t()['protpdf.working'] }}</p>
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress() ?? 0"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs text-white/50 tabular" aria-live="polite">
+                {{ progress() ?? 0 }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL AREA: Password Inputs & Protection Actions -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['protpdf.title']">
+        <div class="flex flex-col gap-4">
+          <!-- Password Field -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted">
+              {{ i18n.t()['protpdf.password_label'] }}
+            </label>
+            <div class="relative flex items-center">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                [value]="password()"
+                (input)="password.set($any($event.target).value)"
+                [placeholder]="i18n.t()['protpdf.password_placeholder']"
+                class="w-full rounded-md border border-line bg-surface px-3 py-2 pr-10 text-sm text-text outline-none focus:border-accent"
+              />
+              <button
+                type="button"
+                class="absolute right-2 text-muted hover:text-text cursor-pointer p-1"
+                (click)="showPassword.set(!showPassword())"
+                tabindex="-1"
+              >
+                <app-icon [name]="showPassword() ? 'unlock' : 'lock'" [size]="16" />
+              </button>
+            </div>
+
+            <!-- Password Strength Bar -->
+            @if (passwordStrength(); as strength) {
+              <div class="flex flex-col gap-1 mt-1">
+                <div class="h-1 w-full overflow-hidden rounded-full bg-line">
+                  <div class="h-full transition-all duration-300 {{ strength.bar }}"></div>
+                </div>
+                <div class="flex justify-between text-[11px]">
+                  <span class="text-faint">Força da senha:</span>
+                  <span class="font-medium {{ strength.color }}">{{ strength.label }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-muted">
+              {{ i18n.t()['protpdf.password_confirm_label'] }}
+            </label>
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              [value]="confirmPassword()"
+              (input)="confirmPassword.set($any($event.target).value)"
+              [placeholder]="i18n.t()['protpdf.password_confirm_placeholder']"
+              class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
+            />
+          </div>
+
+          <p class="text-xs text-faint leading-relaxed border-t border-line pt-3">
+            O documento será criptografado com senha de abertura. Quem tentar abrir o arquivo precisará digitar esta senha.
+          </p>
+
+          <!-- Summary Statistics -->
+          <div class="flex justify-between border-t border-line pt-3 text-sm">
+            <span class="text-muted">{{ i18n.t()['cpdf.pages'] }}</span>
+            <span class="font-mono text-text tabular">{{ pageCount() }}</span>
+          </div>
+
+          <div class="flex justify-between text-sm">
+            <span class="text-muted">{{ i18n.t()['cpdf.original'] }}</span>
+            <span class="font-mono text-text tabular">{{ originalSize() }}</span>
+          </div>
+
+          @if (resultSize(); as size) {
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">Protegido</span>
+              <span class="font-mono text-text tabular">{{ size }}</span>
+            </div>
+          }
+
+          @if (resultBlob()) {
+            <div class="flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
+              <span class="text-sm font-medium text-success">PDF Criptografado!</span>
+              <app-icon name="check" [size]="16" class="text-success" />
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <!-- Action Bar -->
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['protpdf.btn'] : null"
+        [primaryDisabled]="!password().trim()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
