@@ -9,7 +9,6 @@ import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
-import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
 import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.component';
 import { SegmentedComponent } from '../../shared/ui/segmented.component';
@@ -38,7 +37,6 @@ const LEVEL_HINTS: Record<CompressLevel, TranslationKey> = {
     ActionBarComponent,
     AlertComponent,
     SegmentedComponent,
-    IconComponent,
     PdfPasswordPromptComponent,
   ],
   templateUrl: './compress-pdf.component.html',

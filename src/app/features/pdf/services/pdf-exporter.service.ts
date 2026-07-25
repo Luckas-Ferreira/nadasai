@@ -45,6 +45,13 @@ export class PdfExporterService {
         italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
         boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
       },
+      // Symbol não existe no pdf-lib como fonte padrão — usa Helvetica como fallback.
+      Symbol: {
+        normal: await pdfDoc.embedFont(StandardFonts.Helvetica),
+        bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+        boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+      },
       TimesRoman: {
         normal: await pdfDoc.embedFont(StandardFonts.TimesRoman),
         bold: await pdfDoc.embedFont(StandardFonts.TimesRomanBold),
@@ -89,12 +96,15 @@ export class PdfExporterService {
         }
 
         if (edit.newText) {
-          // Mesma função que a tela usa, de propósito: o que foi editado precisa
-          // sair do export do tamanho em que estava sendo editado.
-          const computedSize = baseFontSize(edit, height, width);
+          // Usa edit.baseFontSize quando disponível (valor medido/calculado e
+          // armazenado no seed), senão cai no baseFontSize() como fallback.
+          // Garante que o export saia com o mesmo tamanho que aparece no overlay.
+          const computedSize = edit.baseFontSize != null
+            ? edit.baseFontSize * height
+            : baseFontSize(edit, height, width);
           const fontSize = Math.max(6, Math.round(computedSize * (edit.fontScale || 1.0)));
-          // Select correct font
-          const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'];
+          // Seleciona a fonte correta; Symbol cai em Helvetica (pdf-lib não tem Symbol embutida).
+          const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'] ?? baseFonts['Helvetica'];
           let pdfFont = fontConfig.normal;
           if (edit.bold && edit.italic) pdfFont = fontConfig.boldItalic;
           else if (edit.bold) pdfFont = fontConfig.bold;
@@ -107,8 +117,20 @@ export class PdfExporterService {
           const g = parseInt(hex.substring(2, 4), 16) / 255;
           const b = parseInt(hex.substring(4, 6), 16) / 255;
           const scaledH = edit.h * (edit.fontScale || 1.0);
+
+          let startX = edit.x * width;
+          if (edit.textAlign === 'center' || edit.textAlign === 'right') {
+            const firstLine = edit.newText.split('\n')[0];
+            const textWidth = pdfFont.widthOfTextAtSize(firstLine, fontSize);
+            if (edit.textAlign === 'center') {
+              startX += Math.max(0, (edit.w * width - textWidth) / 2);
+            } else if (edit.textAlign === 'right') {
+              startX += Math.max(0, edit.w * width - textWidth);
+            }
+          }
+
           page.drawText(edit.newText, {
-            x: edit.x * width,
+            x: startX,
             y: height - (edit.y + scaledH) * height + (scaledH * height * 0.25),
             size: fontSize,
             font: pdfFont,

@@ -22,6 +22,13 @@ export async function getPdfjs(): Promise<typeof import('pdfjs-dist')> {
 
   const lib = await import('pdfjs-dist');
   lib.GlobalWorkerOptions.workerSrc = new URL('pdfjs/pdf.worker.min.mjs', document.baseURI).toString();
+  try {
+    if ('VerbosityLevel' in lib && (lib as any).VerbosityLevel) {
+      (lib as any).verbosity = (lib as any).VerbosityLevel.ERRORS;
+    }
+  } catch {
+    // ESM module exports are frozen objects in modern browsers.
+  }
 
   pdfjs = lib;
   return lib;
