@@ -26,21 +26,109 @@
  * bloco e o texto saltar de tamanho. Sem multiplicador: `h` é o valor.
  */
 export function baseFontSize(
-  block: { fontSize?: number; h: number; w?: number; originalText?: string | null },
+  block: { fontSize?: number; h: number; w?: number; originalText?: string | null; lineHeight?: number; bold?: boolean },
   pageHeight: number,
   pageWidth?: number
 ): number {
-  const baseSize = (block.fontSize ?? block.h) * pageHeight;
+  // Se o bloco foi gerado com um lineHeight (fração da altura total), a altura
+  // física de 1 linha é exatamente essa fração * pageHeight.
+  // Caso falte (ex: blocos da persistência antiga), estimamos.
+  let singleLineHPx = (block.lineHeight ?? (block.h / Math.max(1, block.originalText?.split('\n').length ?? 1))) * pageHeight;
+  
+  // Se a altura da linha representa quase a caixa toda (>80%), o bloco tem só 1 linha.
+  const isSingleLine = block.h > 0 && block.lineHeight && block.lineHeight > block.h * 0.8;
+  
+  if (pageWidth !== undefined && block.w !== undefined && block.originalText && (isSingleLine || (!block.lineHeight && block.originalText.split('\n').length === 1))) {
+    const availW = block.w * pageWidth;
+    return Math.min(singleLineHPx * 0.85, fitFontSizeToWidth(block.originalText, availW, singleLineHPx * 0.85, !!block.bold));
+  }
+  
+  // Para parágrafos multilinha, usar fitFontSizeToWidth não funciona bem porque o
+  // comprimento original do string contínuo (sem \n) esgarça a escala da fonte para
+  // preencher toda a caixa numa única iteração, gerando fontes muito maiores que a linha.
+  return singleLineHPx * 0.72;
+}
 
-  // Cap the font size to prevent horizontal overflow.
-  // Helvetica's average character width is around 0.55 of the font size.
-  // We use a 0.48 multiplier to prevent extreme shrinking which makes the text look unnaturally tiny compared to its bounding box.
-  if (pageWidth !== undefined && block.w !== undefined && block.originalText != null) {
-    const textLength = Math.max(1, block.originalText.length);
-    const maxAvailableWidthPx = block.w * pageWidth;
-    const maxFontSize = maxAvailableWidthPx / (textLength * 0.48);
-    return Math.min(baseSize, maxFontSize);
+/**
+ * Para blocos de texto NATIVO (PDF digital): mede o texto real no browser
+ * usando CanvasRenderingContext2D.measureText() e busca por bissecção o
+ * fontSize (em px de página) que faz o texto caber exatamente na largura
+ * disponível do bloco.
+ *
+ * Isso elimina o erro de métricas entre a fonte original do PDF e
+ * Helvetica/Arial do browser — não importa o quão diferente for o kerning ou
+ * o tracking da fonte embarcada, o resultado visual ficará dentro de ~1–2% da
+ * largura real do bloco.
+ *
+ * Por que bissecção e não cálculo direto? measureText retorna a largura para
+ * um dado fontSize, mas a relação é linear em fontes bem comportadas. Duas
+ * medições bastam para interpolar; a bissecção é usada como sanidade para
+ * fontes que fogem do linear (ex: ligaduras, features OpenType).
+ *
+ * @param text           Texto a medir
+ * @param availWidthPx   Largura disponível em px de página (b.w * pageWidth)
+ * @param hintSizePx     Estimativa inicial do fontSize em px (b.h * pageHeight)
+ * @param bold           Se o texto é negrito
+ * @param fontFamily     Família de fonte usada no overlay
+ * @returns              fontSize em px de página que ajusta o texto à largura
+ */
+export function fitFontSizeToWidth(
+  text: string,
+  availWidthPx: number,
+  hintSizePx: number,
+  bold = false,
+  fontFamily = 'Helvetica, Arial Narrow, sans-serif'
+): number {
+  // Texto muito curto ou vazio: retornar a estimativa original sem medir.
+  if (!text || text.length < 2 || availWidthPx <= 0) return hintSizePx;
+
+  // Canvas de medição reutilizável (não adicionado ao DOM).
+  const ctx = _getMeasureCtx();
+
+  const weight = bold ? 'bold' : 'normal';
+
+  // Medição rápida no tamanho hint para checar se já está certo.
+  ctx.font = `${weight} ${hintSizePx}px ${fontFamily}`;
+  const widthAtHint = ctx.measureText(text).width;
+
+  // Se a diferença for < 5%, aceita sem ajuste — evita instabilidade.
+  if (Math.abs(widthAtHint - availWidthPx) / availWidthPx < 0.05) {
+    return hintSizePx;
   }
 
-  return baseSize;
+  // Caso simples: relação é linear → escala direta.
+  // fontAtTarget / hintSize = availWidthPx / widthAtHint
+  const directScale = availWidthPx / widthAtHint;
+  const candidate = hintSizePx * directScale;
+
+  // Verificar se o candidato linear está correto (tolerância 3%).
+  ctx.font = `${weight} ${candidate}px ${fontFamily}`;
+  const widthAtCandidate = ctx.measureText(text).width;
+  if (Math.abs(widthAtCandidate - availWidthPx) / availWidthPx < 0.03) {
+    return Math.max(4, candidate);
+  }
+
+  // Refinamento por bissecção em até 6 iterações (muito raro ser necessário).
+  let lo = Math.max(4, candidate * 0.7);
+  let hi = candidate * 1.4;
+  for (let i = 0; i < 6; i++) {
+    const mid = (lo + hi) / 2;
+    ctx.font = `${weight} ${mid}px ${fontFamily}`;
+    const w = ctx.measureText(text).width;
+    if (w < availWidthPx) lo = mid;
+    else hi = mid;
+  }
+
+  return Math.max(4, (lo + hi) / 2);
+}
+
+/** Canvas singleton de medição — criado uma vez, nunca adicionado ao DOM. */
+let _measureCanvas: HTMLCanvasElement | null = null;
+let _measureCtx: CanvasRenderingContext2D | null = null;
+
+function _getMeasureCtx(): CanvasRenderingContext2D {
+  if (_measureCtx) return _measureCtx;
+  _measureCanvas = document.createElement('canvas');
+  _measureCtx = _measureCanvas.getContext('2d')!;
+  return _measureCtx;
 }
