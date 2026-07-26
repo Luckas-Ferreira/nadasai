@@ -1,0 +1,34 @@
+# Nada Sai
+
+> Nada Sai is a free, 100% client-side, browser-based web application for editing images and PDF documents. All processing runs locally in the user's browser using WebAssembly and Web Workers — zero files or user data are ever uploaded to any server.
+
+## Overview
+
+Nada Sai provides private, offline-first image manipulation (background removal, cropping, compression, conversion, resizing) and PDF editing (merging, splitting, page reordering, signing, watermarking, password protection, and OCR text extraction).
+
+## Image Tools
+
+- [Remover Fundo / Remove Background](https://nadasai.com/pt/imagem/remover-fundo): Automatically remove background from photos locally using AI.
+- [Cortar Imagem / Crop Image](https://nadasai.com/pt/imagem/cortar): Crop and resize images with custom aspect ratios.
+- [Comprimir Imagem / Compress Image](https://nadasai.com/pt/imagem/comprimir): Reduce image file sizes without quality loss.
+- [Converter Imagem / Convert Image](https://nadasai.com/pt/imagem/converter): Convert images between PNG, JPG, and WebP formats.
+- [Redimensionar Imagem / Resize Image](https://nadasai.com/pt/imagem/redimensionar): Change image width and height dimensions.
+- [Imagens para PDF / Images to PDF](https://nadasai.com/pt/imagem/para-pdf): Convert multiple images into a single PDF document.
+
+## PDF Tools
+
+- [Editor de PDF / PDF Editor](https://nadasai.com/pt/pdf/editar): Edit text, headers, and content directly inside PDF files.
+- [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Combine multiple PDF documents into a single file.
+- [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Extract or separate pages from a PDF.
+- [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Shrink PDF file size 100% offline.
+- [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Convert PDF pages into high-resolution PNG, JPG, or WebP images.
+- [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): Reorder, rotate, or delete PDF pages.
+- [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Add password encryption to PDF files.
+- [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw or add digital signatures and stamps to PDFs.
+- [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Add custom text watermarks to PDF pages.
+
+## Information & Legal
+
+- [Sobre / About](https://nadasai.com/pt/sobre): Learn about Nada Sai's zero-server privacy architecture.
+- [Privacidade / Privacy Policy](https://nadasai.com/pt/privacidade): Read the 100% local processing privacy policy.
+- [Termos de Uso / Terms of Service](https://nadasai.com/pt/termos): Terms of service for using Nada Sai tools.
