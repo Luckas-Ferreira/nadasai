@@ -335,21 +335,19 @@ export function mergeParagraphBlocks(blocks: OcrBlock[]): OcrBlock[] {
     };
   });
   
-  // Sort lines by Y
-  lineStats.sort((a, b) => a.y - b.y);
+  // Sort lines by Y then X
+  lineStats.sort((a, b) => a.y - b.y || a.x - b.x);
 
   // Passo 2: Agrupar linhas em parágrafos
-  const sortedWidths = [...lineStats.map(l => l.w)].sort((a, b) => a - b);
-  const maxLineWidth = sortedWidths[sortedWidths.length - 1] || 0.8;
-  const columnRight = Math.max(...lineStats.map(l => l.x + l.w));
-
   const paragraphs: (typeof lineStats[0])[][] = [];
 
   for (const line of lineStats) {
     let placed = false;
-    if (paragraphs.length > 0) {
-      const lastPara = paragraphs[paragraphs.length - 1];
-      const lastLine = lastPara[lastPara.length - 1];
+
+    // Procura um grupo de parágrafo compatível entre os últimos 5 grupos abertos
+    for (let i = paragraphs.length - 1; i >= Math.max(0, paragraphs.length - 5); i--) {
+      const candidatePara = paragraphs[i];
+      const lastLine = candidatePara[candidatePara.length - 1];
 
       const baselineDist = line.y - lastLine.y;
       const avgH = (line.h + lastLine.h) / 2;
@@ -363,15 +361,17 @@ export function mergeParagraphBlocks(blocks: OcrBlock[]): OcrBlock[] {
       const fsMismatch = fsA !== undefined && fsB !== undefined && (Math.abs(fsA - fsB) > 0.008 || fsA / fsB > 1.2 || fsB / fsA > 1.2);
       const boldMismatch = lastLine.isBold !== line.isBold;
 
-      const lastLineRightEdge = lastLine.x + lastLine.w;
-      const isLastLineShort = lastLine.w < maxLineWidth * 0.75 && lastLineRightEdge < columnRight - 0.08;
+      const paraMaxW = Math.max(...candidatePara.map((l) => l.w));
+      const paraMaxRight = Math.max(...candidatePara.map((l) => l.x + l.w));
+      const isLastLineShort = lastLine.w < paraMaxW * 0.70 && (lastLine.x + lastLine.w) < paraMaxRight - 0.04;
 
       const isNormalSpacing = baselineDist <= avgH * 2.2 || gap <= avgH * 1.5;
       const isAligned = xOverlap > 0 || leftDiff < 0.08;
 
       if (isNormalSpacing && !fsMismatch && !boldMismatch && !isLastLineShort && isAligned) {
-        lastPara.push(line);
+        candidatePara.push(line);
         placed = true;
+        break;
       }
     }
     if (!placed) {
