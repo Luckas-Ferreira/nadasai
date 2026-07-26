@@ -2,6 +2,8 @@ import { PdfNativeBlock } from './pdf-loader.service';
 
 export interface MergedParagraphBlock {
   text: string;
+  /** Texto formatado com tags inline (ex: <b>texto</b>) para preservar negritos parciais. */
+  formattedText?: string;
   /** Textos individuais de cada linha, antes de serem unidos. */
   lineTexts: string[];
   x: number;
@@ -19,7 +21,32 @@ export interface MergedParagraphBlock {
   fontFamily?: 'Helvetica' | 'TimesRoman' | 'Courier' | 'Symbol';
 }
 
-// ─── Detecção de estilo ────────────────────────────────────────────────────
+// ─── Detecção de estilo e títulos ──────────────────────────────────────────
+
+/**
+ * Retorna true se a linha for um título de documento ou título numerado de seção
+ * (ex: "Edital FAPEAL nº 06/2026", "1. OBJETIVO DO PROGRAMA CENTELHA ALAGOAS").
+ */
+function isSectionTitleOrHeaderLine(text: string): boolean {
+  const clean = text.trim();
+  if (!clean || clean.length < 3) return false;
+
+  // 1. Título numerado de seção (ex: "1. OBJETIVO DO PROGRAMA CENTELHA ALAGOAS", "2. RECURSOS FINANCEIROS...")
+  const isNumberedSectionTitle = /^\d+(\.\d+)*\s+[A-ZÁÉÍÓÚÀÂÊÔÃÕÇ\s\-:.,]{3,}$/.test(clean);
+  if (isNumberedSectionTitle) return true;
+
+  // 2. Número de edital ou palavra-chave de título/cabeçalho
+  const isEditalOrHeaderPattern = /^(edital|programa|ministério|governo|certificad[oa]|declaração|atestado|termo|anexo|capítulo|seção|artigo|cláusula)\b/i.test(clean);
+  if (isEditalOrHeaderPattern && clean.length <= 90) return true;
+
+  // 3. Linha em caixa alta curta/média (ex: "FAPEAL/SECTI-AL/SEBRAE-AL", "RECURSOS FINANCEIROS A SEREM CONCEDIDOS")
+  const letters = clean.replace(/[^a-zA-ZáéíóúàâêôãõçÁÉÍÓÚÀÂÊÔÃÕÇ]/g, '');
+  const uppercaseLetters = letters.replace(/[^A-ZÁÉÍÓÚÀÂÊÔÃÕÇ]/g, '');
+  const isAllCaps = letters.length >= 4 && (uppercaseLetters.length / letters.length) >= 0.85;
+  if (isAllCaps && clean.length <= 80) return true;
+
+  return false;
+}
 
 /**
  * Retorna true se o nome da fonte indica negrito.
@@ -107,7 +134,26 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
       const blockMid = block.y + block.h / 2;
       const lineMid = lineY + lineH / 2;
 
-      if (Math.abs(blockMid - lineMid) < Math.max(lineH, block.h) * 0.85) {
+      // Verifica alinhamento vertical
+      const isSameY = Math.abs(blockMid - lineMid) < Math.max(lineH, block.h) * 0.85;
+      if (!isSameY) continue;
+
+      // Verifica distância horizontal para evitar agrupar colunas separadas na mesma linha
+      const lineMinX = Math.min(...line.map((b) => b.x));
+      const lineMaxX = Math.max(...line.map((b) => b.x + b.w));
+      const blockMaxX = block.x + block.w;
+
+      let hGap = 0;
+      if (block.x >= lineMaxX) {
+        hGap = block.x - lineMaxX;
+      } else if (blockMaxX <= lineMinX) {
+        hGap = lineMinX - blockMaxX;
+      }
+
+      // Um espaço de coluna ou tabulação costuma ser > 2.2x a altura do texto ou > 2.8% da largura da página.
+      const maxAllowedGap = Math.max(Math.max(lineH, block.h) * 2.2, 0.028);
+
+      if (hGap <= maxAllowedGap) {
         line.push(block);
         placed = true;
         break;
@@ -127,6 +173,7 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
   interface LineSummary {
     items: PdfNativeBlock[];
     text: string;
+    formattedText?: string;
     x: number;
     y: number;
     w: number;
@@ -134,6 +181,7 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
     fontSizePt?: number;
     bold: boolean;
     italic: boolean;
+    isTitle: boolean;
     textColor?: string;
     fontFamily?: 'Helvetica' | 'TimesRoman' | 'Courier' | 'Symbol';
   }
@@ -159,15 +207,38 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
       const boldCount = items.filter((i) => i.isBold ?? isBoldFont(i.fontName)).length;
       const italicCount = items.filter((i) => i.isItalic ?? isItalicFont(i.fontName)).length;
 
+      // Preserva negritos/itálicos mistos na mesma linha usando tags <b>/<i>
+      let formattedText: string | undefined = undefined;
+      const hasMixedBold = boldCount > 0 && boldCount < items.length;
+      const hasMixedItalic = italicCount > 0 && italicCount < items.length;
+
+      if (hasMixedBold || hasMixedItalic) {
+        formattedText = items
+          .map((i) => {
+            const b = i.isBold ?? isBoldFont(i.fontName);
+            const it = i.isItalic ?? isItalicFont(i.fontName);
+            let val = i.text;
+            if (b && it) val = `<b><i>${val}</i></b>`;
+            else if (b) val = `<b>${val}</b>`;
+            else if (it) val = `<i>${val}</i>`;
+            return val;
+          })
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
       // Cor e família do bloco dominante (mais largo = mais texto) da linha.
       const dominantItem = [...items].sort((a, b) => b.w - a.w)[0];
 
       const isTitlePattern = /^\d+(\.\d+)*\s+[A-Z\s]{2,}/.test(text);
-      const isBoldLine = (boldCount > items.length / 2) || (isTitlePattern && boldCount > 0);
+      const isTitle = isSectionTitleOrHeaderLine(text);
+      const isBoldLine = (boldCount > items.length / 2) || (isTitlePattern && boldCount > 0) || isTitle;
 
       return {
         items,
         text,
+        formattedText,
         x: minX,
         y: minY,
         w: maxX - minX,
@@ -175,18 +246,15 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
         fontSizePt: avgFontSizePt,
         bold: isBoldLine,
         italic: italicCount > items.length / 2,
+        isTitle,
         textColor: dominantItem?.textColor,
         fontFamily: dominantItem?.fontFamily,
       };
     })
     .filter((l) => l.text.length > 0);
 
-  lineSummaries.sort((a, b) => a.y - b.y);
+  lineSummaries.sort((a, b) => a.y - b.y || a.x - b.x);
   if (lineSummaries.length === 0) return [];
-
-  // Métricas de coluna para detectar linhas curtas (fim de parágrafo).
-  const maxLineWidth = Math.max(...lineSummaries.map((l) => l.w), 0.1);
-  const columnRight = Math.max(...lineSummaries.map((l) => l.x + l.w));
 
   // ── Passo 3: Agrupa linhas em parágrafos ────────────────────────────────
   const paragraphGroups: LineSummary[][] = [];
@@ -194,9 +262,11 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
   for (const line of lineSummaries) {
     let placed = false;
 
-    if (paragraphGroups.length > 0) {
-      const currentPara = paragraphGroups[paragraphGroups.length - 1];
-      const lastLine = currentPara[currentPara.length - 1];
+    // Procura um grupo de parágrafo compatível entre os últimos 5 grupos abertos
+    // (permite agrupar corretamente parágrafos multilinha em layouts de múltiplas colunas)
+    for (let i = paragraphGroups.length - 1; i >= Math.max(0, paragraphGroups.length - 5); i--) {
+      const candidatePara = paragraphGroups[i];
+      const lastLine = candidatePara[candidatePara.length - 1];
 
       const baselineDist = line.y - lastLine.y;
       const avgH = (line.h + lastLine.h) / 2;
@@ -219,17 +289,22 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
       // Negrito diferente (ex: título em negrito seguido de corpo normal).
       const boldMismatch = lastLine.bold !== line.bold;
 
-      // Linha anterior curta indica fim de parágrafo.
-      const lastLineRightEdge = lastLine.x + lastLine.w;
+      // Título / Cabeçalho de Seção: títulos de seção nunca devem ser mesclados com o corpo do texto!
+      const isHeaderSeparator = lastLine.isTitle || line.isTitle;
+
+      // Linha anterior curta indica fim de parágrafo. Medido em relação às linhas do próprio parágrafo candidato.
+      const paraMaxW = Math.max(...candidatePara.map((l) => l.w));
+      const paraMaxRight = Math.max(...candidatePara.map((l) => l.x + l.w));
       const isLastLineShort =
-        lastLine.w < maxLineWidth * 0.75 && lastLineRightEdge < columnRight - 0.08;
+        lastLine.w < paraMaxW * 0.70 && (lastLine.x + lastLine.w) < paraMaxRight - 0.04;
 
       const isNormalSpacing = baselineDist <= avgH * 2.2 || gap <= avgH * 1.5;
       const isAligned = xOverlap > 0 || leftDiff < 0.08;
 
-      if (isNormalSpacing && !fsMismatch && !boldMismatch && !isLastLineShort && isAligned) {
-        currentPara.push(line);
+      if (isNormalSpacing && !fsMismatch && !boldMismatch && !isHeaderSeparator && !isLastLineShort && isAligned) {
+        candidatePara.push(line);
         placed = true;
+        break;
       }
     }
 
@@ -280,11 +355,19 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
     // Justificação: Bloco multilinha (2+ linhas) que não seja centralizado e ocupe margem a margem (> 0.68).
     const isJustified = !isCentered && group.length >= 2 && blockW > 0.68;
 
-    // Negrito: se a maioria for negrito, se a linha dominante for negrito, ou se for título (fontSize >= 11) com negrito.
-    const isBoldGroup = (boldCount > group.length / 2) || (dominantLine?.bold ?? false) || (isAnyLineBold && (avgFontSizePt ?? 0) >= 11);
+    // Negrito: se a maioria for negrito, se a linha dominante for negrito, ou se for título em caixa alta / fonte destacada (fontSize >= 12).
+    const isUppercaseTitle = /^[A-Z0-9\s\-:.,]{3,}$/.test(text.trim()) && (avgFontSizePt ?? 0) >= 12;
+    const isTitleGroup = group.some((l) => l.isTitle);
+    const isBoldGroup = (boldCount > group.length / 2) || (dominantLine?.bold ?? false) || (isAnyLineBold && (avgFontSizePt ?? 0) >= 11) || isUppercaseTitle || isTitleGroup;
+
+    const hasFormatted = group.some((l) => l.formattedText);
+    const formattedText = hasFormatted
+      ? group.map((l) => l.formattedText || l.text).join('\n')
+      : undefined;
 
     return {
       text,
+      formattedText,
       lineTexts,
       x: minX,
       y: minY,

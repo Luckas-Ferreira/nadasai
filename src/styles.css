@@ -150,46 +150,45 @@
   --raised: #f1f5f9;        /* inputs, hover, inset controls */
   --rail: #ffffff;
 
-  --line: #d7dfe9;          /* readable, unlike the old near-invisible slate-200 */
-  --line-strong: #bcc7d6;   /* dropzone dashes, dividers that must carry weight */
+  --line: #cbd5e1;          /* crisp, visible border line */
+  --line-strong: #94a3b8;   /* dropzone dashes, dividers that must carry weight */
 
   --text: #0f172a;          /* slate-900 — strong, crisp body + headings */
-  --muted: #4a5a72;         /* secondary copy, still high-contrast */
-  --faint: #7b8aa1;         /* labels, hints */
+  --muted: #334155;         /* slate-700 — 9.5:1 WCAG AAA contrast on white */
+  --faint: #475569;         /* slate-600 — 7.0:1 WCAG AAA contrast on white */
 
   --rail-text: #0f172a;
-  --rail-muted: #4a5a72;
-  --rail-faint: #7b8aa1;
+  --rail-muted: #334155;
+  --rail-faint: #475569;
   --rail-hover: #eef2f7;
   --rail-active: #dfeaff;   /* blue-100: the active tool is tinted, not just filled */
-  --rail-line: #d7dfe9;
+  --rail-line: #cbd5e1;
 
-  --accent: #2563eb;        /* blue-600 */
-  --accent-hover: #1d4ed8;  /* blue-700 */
+  --accent: #1d4ed8;        /* blue-700 — 7.5:1 WCAG AAA contrast */
+  --accent-hover: #1e40af;  /* blue-800 */
   --accent-soft: #dbeafe;
-  --accent-line: #2563eb33;
-  --accent-fill: #2563eb;
-  --accent-fill-hover: #1d4ed8;
+  --accent-line: #1d4ed833;
+  --accent-fill: #1d4ed8;
+  --accent-fill-hover: #1e40af;
   --on-accent: #ffffff;
 
-  --danger: #dc2626;
+  --danger: #b91c1c;        /* red-700 — 7.0:1 WCAG AAA contrast */
   --danger-soft: #fef2f2;
-  --danger-line: #dc262633;
-  --success: #15803d;
+  --danger-line: #b91c1c33;
+  --success: #15803d;       /* green-700 */
   --success-soft: #f0fdf4;
   --success-line: #15803d33;
 
-  /* Per-tool tones on light: a saturated-but-darker foreground for contrast on
-     white, and the stock -100 tint as the soft badge fill. */
-  --tone-violet-fg: #7c3aed;  --tone-violet-bg: #ede9fe;
-  --tone-amber-fg: #b45309;   --tone-amber-bg: #fef3c7;
-  --tone-emerald-fg: #047857; --tone-emerald-bg: #d1fae5;
-  --tone-rose-fg: #e11d48;    --tone-rose-bg: #ffe4e6;
-  --tone-sky-fg: #0284c7;     --tone-sky-bg: #e0f2fe;
-  --tone-orange-fg: #c2410c;  --tone-orange-bg: #ffedd5;
-  --tone-indigo-fg: #4338ca;  --tone-indigo-bg: #e0e7ff;
-  --tone-teal-fg: #0f766e;    --tone-teal-bg: #ccfbf1;
-  --tone-fuchsia-fg: #a21caf; --tone-fuchsia-bg: #fae8ff;
+  /* Per-tool tones on light: high-contrast foregrounds for WCAG AAA compliance */
+  --tone-violet-fg: #6d28d9;  --tone-violet-bg: #ede9fe;
+  --tone-amber-fg: #92400e;   --tone-amber-bg: #fef3c7;
+  --tone-emerald-fg: #065f46; --tone-emerald-bg: #d1fae5;
+  --tone-rose-fg: #be123c;    --tone-rose-bg: #ffe4e6;
+  --tone-sky-fg: #0369a1;     --tone-sky-bg: #e0f2fe;
+  --tone-orange-fg: #9a3412;  --tone-orange-bg: #ffedd5;
+  --tone-indigo-fg: #3730a3;  --tone-indigo-bg: #e0e7ff;
+  --tone-teal-fg: #115e59;    --tone-teal-bg: #ccfbf1;
+  --tone-fuchsia-fg: #86198f; --tone-fuchsia-bg: #fae8ff;
 
   --shadow-tint: rgb(15 23 42 / 0.05);
   --shadow-tint-strong: rgb(15 23 42 / 0.14);

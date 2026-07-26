@@ -19,6 +19,53 @@ import { baseFontSize } from './font-metrics';
  * to digital PDFs this is unavoidable without embedding the source font.
  * The result is always readable and correct; the visual match may vary.
  */
+interface TextSegment {
+  text: string;
+  bold: boolean;
+  italic: boolean;
+}
+
+function parseFormattedLine(lineHtml: string, baseBold: boolean, baseItalic: boolean): TextSegment[] {
+  if (!/<[a-z][\s\S]*>/i.test(lineHtml)) {
+    const text = lineHtml.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    return [{ text, bold: baseBold, italic: baseItalic }];
+  }
+
+  if (typeof DOMParser !== 'undefined') {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(`<body>${lineHtml}</body>`, 'text/html');
+      const segments: TextSegment[] = [];
+
+      function traverse(node: Node, isBold: boolean, isItalic: boolean) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const t = node.textContent?.replace(/&nbsp;/g, ' ') || '';
+          if (t) {
+            segments.push({ text: t, bold: isBold, italic: isItalic });
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as HTMLElement;
+          const tag = el.tagName.toLowerCase();
+          const nextBold = isBold || tag === 'b' || tag === 'strong' || el.style.fontWeight === 'bold' || parseInt(el.style.fontWeight || '0') >= 600;
+          const nextItalic = isItalic || tag === 'i' || tag === 'em' || el.style.fontStyle === 'italic';
+
+          for (const child of Array.from(el.childNodes)) {
+            traverse(child, nextBold, nextItalic);
+          }
+        }
+      }
+
+      traverse(doc.body, baseBold, baseItalic);
+      if (segments.length > 0) return segments;
+    } catch {
+      // Fallback
+    }
+  }
+
+  const plainText = lineHtml.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
+  return [{ text: plainText, bold: baseBold, italic: baseItalic }];
+}
+
 @Injectable({ providedIn: 'root' })
 export class PdfExporterService {
   async export(
@@ -105,10 +152,6 @@ export class PdfExporterService {
           const fontSize = Math.max(6, Math.round(computedSize * (edit.fontScale || 1.0)));
           // Seleciona a fonte correta; Symbol cai em Helvetica (pdf-lib não tem Symbol embutida).
           const fontConfig = baseFonts[edit.fontFamily || 'Helvetica'] ?? baseFonts['Helvetica'];
-          let pdfFont = fontConfig.normal;
-          if (edit.bold && edit.italic) pdfFont = fontConfig.boldItalic;
-          else if (edit.bold) pdfFont = fontConfig.bold;
-          else if (edit.italic) pdfFont = fontConfig.italic;
 
           // Parse hex color (default black)
           let hex = (edit.color || '#000000').replace('#', '');
@@ -118,24 +161,52 @@ export class PdfExporterService {
           const b = parseInt(hex.substring(4, 6), 16) / 255;
           const scaledH = edit.h * (edit.fontScale || 1.0);
 
-          let startX = edit.x * width;
-          if (edit.textAlign === 'center' || edit.textAlign === 'right') {
-            const firstLine = edit.newText.split('\n')[0];
-            const textWidth = pdfFont.widthOfTextAtSize(firstLine, fontSize);
+          const rawLines = edit.newText.replace(/<br\s*\/?>/gi, '\n').replace(/<\/div>\s*<div>/gi, '\n').split('\n');
+          const lineCount = rawLines.length;
+          const lineSpacing = lineCount > 1 ? (scaledH * height) / lineCount : fontSize * 1.2;
+
+          for (let l = 0; l < rawLines.length; l++) {
+            const lineStr = rawLines[l];
+            const segments = parseFormattedLine(lineStr, edit.bold ?? false, edit.italic ?? false);
+
+            let totalLineWidth = 0;
+            for (const seg of segments) {
+              let f = fontConfig.normal;
+              if (seg.bold && seg.italic) f = fontConfig.boldItalic;
+              else if (seg.bold) f = fontConfig.bold;
+              else if (seg.italic) f = fontConfig.italic;
+              totalLineWidth += f.widthOfTextAtSize(seg.text, fontSize);
+            }
+
+            let startX = edit.x * width;
             if (edit.textAlign === 'center') {
-              startX += Math.max(0, (edit.w * width - textWidth) / 2);
+              startX += Math.max(0, (edit.w * width - totalLineWidth) / 2);
             } else if (edit.textAlign === 'right') {
-              startX += Math.max(0, edit.w * width - textWidth);
+              startX += Math.max(0, edit.w * width - totalLineWidth);
+            }
+
+            const baseLineY = height - (edit.y + scaledH) * height + (scaledH * height * 0.25);
+            const lineY = lineCount > 1
+              ? height - (edit.y * height) - (l * lineSpacing) - fontSize
+              : baseLineY;
+
+            let currentX = startX;
+            for (const seg of segments) {
+              let f = fontConfig.normal;
+              if (seg.bold && seg.italic) f = fontConfig.boldItalic;
+              else if (seg.bold) f = fontConfig.bold;
+              else if (seg.italic) f = fontConfig.italic;
+
+              page.drawText(seg.text, {
+                x: currentX,
+                y: lineY,
+                size: fontSize,
+                font: f,
+                color: rgb(r, g, b),
+              });
+              currentX += f.widthOfTextAtSize(seg.text, fontSize);
             }
           }
-
-          page.drawText(edit.newText, {
-            x: startX,
-            y: height - (edit.y + scaledH) * height + (scaledH * height * 0.25),
-            size: fontSize,
-            font: pdfFont,
-            color: rgb(r, g, b),
-          });
         }
       }
     }

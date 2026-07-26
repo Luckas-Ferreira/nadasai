@@ -41,6 +41,7 @@ export interface TextEdit {
   lineHeight?: number;
   fontSize?: number;
   originalText: string;
+  formattedText?: string;
   newText: string | null;
   deleted: boolean;
   bold?: boolean;
@@ -196,7 +197,8 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                           [attr.contenteditable]="activeTool() === 'select' && selectedBlock() === block.id ? 'true' : 'false'"
                           [attr.data-block-id]="block.id"
                           (blur)="onBlockBlur($event, block.id)"
-                        >{{ block.newText !== null ? block.newText : block.originalText }}</div>
+                          [innerHTML]="getBlockHtml(block)"
+                        ></div>
 
                         <!-- ── Acrobat-style resize handles (only when selected) ── -->
                         @if (selectedBlock() === block.id) {
@@ -300,6 +302,41 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
               </button>
             </div>
 
+            <!-- Page selector / info -->
+            <div class="mt-4 flex items-center justify-between border-t border-line pt-3">
+              <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ loadedPdf()!.pageCount }}</span>
+              <div class="flex items-center gap-1">
+                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
+                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= loadedPdf()!.pageCount" (click)="currentPage.set(currentPage() + 1)">›</button>
+              </div>
+            </div>
+
+            <!-- OCR tool option -->
+            <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Motor OCR</span>
+                <span class="text-[10px] text-accent font-medium px-1.5 py-0.5 rounded bg-accent/10">Tesseract.js</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <select
+                  class="flex-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
+                  [(ngModel)]="ocrLangValue"
+                >
+                  <option value="por+eng">Português + Inglês</option>
+                  <option value="por">Português</option>
+                  <option value="eng">Inglês</option>
+                </select>
+                <button
+                  appButton variant="secondary" size="sm"
+                  [disabled]="ocrRunning()"
+                  (click)="forceOcrOnCurrentPage()"
+                  title="Executa OCR na página atual"
+                >
+                  OCR Página
+                </button>
+              </div>
+            </div>
+
             <!-- ── Text formatting (appears when a block is selected) ── -->
             @if (selectedBlock()) {
               <div class="mt-3 border-t border-line pt-3 flex flex-col gap-3">
@@ -339,6 +376,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-bold font-serif transition-all shrink-0"
                     [class]="isBlockBold(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Negrito"
+                    (mousedown)="$event.preventDefault()"
                     (click)="toggleBlockBold(selectedBlock()!)"
                   >B</button>
 
@@ -347,6 +385,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm italic font-serif transition-all shrink-0"
                     [class]="isBlockItalic(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Itálico"
+                    (mousedown)="$event.preventDefault()"
                     (click)="toggleBlockItalic(selectedBlock()!)"
                   >I</button>
                 </div>
@@ -589,14 +628,15 @@ export class PdfComponent implements OnDestroy {
               h: b.h,
               lineHeight: b.h / lineCount,
               originalText: b.text,
+              formattedText: b.formattedText,
               newText: null,
               deleted: false,
               bold: b.bold ?? false,
               italic: b.italic ?? false,
               textAlign: b.textAlign ?? 'left',
               fontFamily: b.fontFamily as TextEdit['fontFamily'] ?? 'Helvetica',
-              // Cor: força explicitamente preto (#000000) se a cor for branca/clara ou inexistente.
-              color: (b.textColor && !isLightColor(b.textColor)) ? b.textColor : '#000000',
+              // Cor: preserva cor extraída do PDF se válida e não-preta; se não houver, deixa undefined para amostragem no canvas.
+              color: (b.textColor && b.textColor !== '#000000' && !isLightColor(b.textColor)) ? b.textColor : undefined,
               source: 'native' as const,
               baseFontSize: calculatedFontSize,
             };
@@ -1074,11 +1114,9 @@ export class PdfComponent implements OnDestroy {
         newBg.set(id, result.bgColor);
         this.inpaintBg.set(newBg);
 
-        // Detectar cor do texto apenas para blocos OCR/user onde não sabemos a cor.
-        // Blocos nativos já têm padrão #000000 no template — detectar por inpainting
-        // num canvas de PDF digital pode retornar branco (fundo dominante) e sobrescrever
-        // a cor correta com branco, fazendo o texto sumir.
-        if (!block.color && block.source !== 'native') {
+        // Amostra a cor real do texto no canvas se o estilo não tiver sido alterado manualmente pelo usuário.
+        // Preserva a cor original do PDF (ex: azul em "CERTIFICADO") ao clicar no bloco.
+        if (!block.styleModified || !block.color) {
           const textColor = this.inpainting.sampleTextColor(
             canvas,
             block.x,
@@ -1087,36 +1125,44 @@ export class PdfComponent implements OnDestroy {
             block.h,
             result.bgColor
           );
-          // Só armazena se a cor detectada for suficientemente escura (luminância < 200).
-          // Um retorno branco/quase-branco indica que o sampler não achou texto —
-          // nesse caso, manter sem cor e deixar o template usar 'inherit'.
           const hexMatch = textColor.match(/[0-9a-f]{2}/gi);
+          let detectedColor = block.color;
           if (hexMatch && hexMatch.length >= 3) {
             const lum = 0.299 * parseInt(hexMatch[0], 16)
                       + 0.587 * parseInt(hexMatch[1], 16)
                       + 0.114 * parseInt(hexMatch[2], 16);
             if (lum < 200) {
-              const newEdits = new Map(this.edits());
-              newEdits.set(id, { ...block, color: textColor });
-              this.edits.set(newEdits);
+              detectedColor = textColor;
             }
           }
+
+          const newEdits = new Map(this.edits());
+          newEdits.set(id, {
+            ...block,
+            color: detectedColor,
+          });
+          this.edits.set(newEdits);
         }
       }
     }
   }
 
+  protected getBlockHtml(block: TextEdit): string {
+    return block.newText !== null ? block.newText : (block.formattedText || block.originalText);
+  }
+
   protected onBlockBlur(event: FocusEvent, id: string): void {
     const el = event.target as HTMLElement;
+    const html = el.innerHTML?.trim() || '';
     const text = el.textContent?.trim() || '';
-    
+
     const block = this.edits().get(id);
     if (block) {
-      const currentText = (block.newText ?? block.originalText).trim();
-      if (text !== currentText) {
+      const currentHtml = (block.newText ?? block.formattedText ?? block.originalText).trim();
+      if (html !== currentHtml && text.length > 0) {
         this.saveHistory();
         const newEdits = new Map(this.edits());
-        newEdits.set(id, { ...block, newText: text });
+        newEdits.set(id, { ...block, newText: html });
         this.edits.set(newEdits);
       }
     }
@@ -1140,11 +1186,34 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected toggleBlockBold(id: string): void {
+    const selection = typeof window !== 'undefined' ? window.getSelection() : null;
+    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const container = document.querySelector(`[data-block-id="${id}"]`);
+      if (container && container.contains(range.commonAncestorContainer)) {
+        document.execCommand('bold', false);
+        const newHtml = (container as HTMLElement).innerHTML;
+        const block = this.edits().get(id);
+        if (block) {
+          this.saveHistory();
+          const newEdits = new Map(this.edits());
+          newEdits.set(id, { ...block, newText: newHtml, styleModified: true });
+          this.edits.set(newEdits);
+        }
+        return;
+      }
+    }
+
     const block = this.edits().get(id);
     if (block) {
       this.saveHistory();
       const newEdits = new Map(this.edits());
-      newEdits.set(id, { ...block, bold: !block.bold, styleModified: true, newText: block.newText ?? block.originalText });
+      newEdits.set(id, {
+        ...block,
+        bold: !block.bold,
+        styleModified: true,
+        newText: block.newText ?? block.formattedText ?? block.originalText,
+      });
       this.edits.set(newEdits);
     }
   }
@@ -1161,7 +1230,6 @@ export class PdfComponent implements OnDestroy {
     if (block.lineHeight) {
       return block.lineHeight * pageHeight * (block.fontScale || 1.0);
     }
-    // Fallback to font size approximation if no specific line height
     return (block.baseFontSize || this.getBaseFontSize(block, pageHeight, pageHeight)) * (block.fontScale || 1.0) * 1.2;
   }
 
@@ -1179,7 +1247,7 @@ export class PdfComponent implements OnDestroy {
       const newEdits = new Map(this.edits());
       const currentScale = block.fontScale || 1.0;
       const nextScale = Math.max(0.3, Math.min(3.0, Math.round((currentScale + deltaPercent / 100) * 100) / 100));
-      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.originalText });
+      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.formattedText ?? block.originalText });
       this.edits.set(newEdits);
     }
   }
@@ -1193,7 +1261,7 @@ export class PdfComponent implements OnDestroy {
       this.saveHistory();
       const newEdits = new Map(this.edits());
       const nextScale = Math.max(0.3, Math.min(3.0, Math.round(val) / 100));
-      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.originalText });
+      newEdits.set(id, { ...block, fontScale: nextScale, styleModified: true, newText: block.newText ?? block.formattedText ?? block.originalText });
       this.edits.set(newEdits);
     }
     input.value = this.getBlockScalePercent(id);
@@ -1204,11 +1272,34 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected toggleBlockItalic(id: string): void {
+    const selection = typeof window !== 'undefined' ? window.getSelection() : null;
+    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const container = document.querySelector(`[data-block-id="${id}"]`);
+      if (container && container.contains(range.commonAncestorContainer)) {
+        document.execCommand('italic', false);
+        const newHtml = (container as HTMLElement).innerHTML;
+        const block = this.edits().get(id);
+        if (block) {
+          this.saveHistory();
+          const newEdits = new Map(this.edits());
+          newEdits.set(id, { ...block, newText: newHtml, styleModified: true });
+          this.edits.set(newEdits);
+        }
+        return;
+      }
+    }
+
     const block = this.edits().get(id);
     if (block) {
       this.saveHistory();
       const newEdits = new Map(this.edits());
-      newEdits.set(id, { ...block, italic: !block.italic, styleModified: true, newText: block.newText ?? block.originalText });
+      newEdits.set(id, {
+        ...block,
+        italic: !block.italic,
+        styleModified: true,
+        newText: block.newText ?? block.formattedText ?? block.originalText,
+      });
       this.edits.set(newEdits);
     }
   }
