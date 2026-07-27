@@ -6,6 +6,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  // Os probes de diagnóstico rodam pela playwright.debug.config.ts: eles leem um
+  // PDF real solto na raiz, que só existe na máquina de quem está depurando.
+  testIgnore: /debug-.*\.spec\.ts/,
   globalSetup: './e2e/fixtures/generate.ts',
   fullyParallel: false,
   workers: 1,

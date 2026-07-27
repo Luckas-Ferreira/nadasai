@@ -59,6 +59,20 @@
   --color-stage: #0b0c0e;
   --color-stage-line: #26292e;
 
+  /* The DOCUMENT stage — the surround behind a PDF page you scroll and read.
+     Deliberately not --color-stage. That token is dark because a light surround
+     skews your judgement of an image's brightness, which is true when you are
+     cropping a photo and irrelevant when you are reading a form: nobody colour-
+     grades a transcript. What a near-black slab does there is fight the white
+     page for attention and glare on a long read. Acrobat, Preview and Chrome's
+     own viewer all put a neutral mid grey behind the page, and they are right.
+     A shade below --base so the page reads as paper on a desk rather than as
+     another card on the page. */
+  --color-doc-stage: #ccd4df;
+  --color-doc-stage-line: #b3bdca;
+  --color-doc-scroll-thumb: #97a3b4;
+  --color-doc-scroll-thumb-hover: #7c8a9e;
+
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
 
@@ -128,6 +142,15 @@
   --shadow-sm: 0 1px 2px var(--shadow-tint);
   --shadow-panel: 0 1px 3px var(--shadow-tint);
   --shadow-pop: 0 12px 32px -8px var(--shadow-tint-strong);
+  /* A folha de papel do editor de PDF. Três camadas porque uma só não dá conta:
+     o anel de 1px define a borda contra o cinza do entorno (uma página branca
+     sem contorno "vaza" no fundo), a sombra curta assenta a folha e a longa dá
+     a altura. `--shadow-pop` sozinho flutuava demais para algo que deveria
+     parecer pousado numa mesa. */
+  --shadow-page:
+    0 0 0 1px rgb(15 23 42 / 0.08),
+    0 1px 2px rgb(15 23 42 / 0.10),
+    0 8px 20px -6px rgb(15 23 42 / 0.20);
   --shadow-glow: 0 0 0 3px var(--accent-line);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -320,5 +343,61 @@
 
   .cutout-scan {
     animation: cutout-scan 1100ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  /* Barra de rolagem do documento. A do sistema é uma calha clara de largura
+     fixa que, num entorno cinza, lê como uma faixa colada na borda — some com
+     o resto do enquadramento. Aqui ela vira um polegar arredondado sobre trilha
+     transparente; a borda transparente com background-clip é o truque que dá
+     respiro lateral sem precisar de uma trilha pintada. */
+  .doc-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-doc-scroll-thumb) transparent;
+  }
+
+  .doc-scroll::-webkit-scrollbar {
+    width: 14px;
+    height: 14px;
+  }
+
+  .doc-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .doc-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-doc-scroll-thumb);
+    background-clip: content-box;
+    border: 4px solid transparent;
+    border-radius: var(--radius-full);
+  }
+
+  .doc-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-doc-scroll-thumb-hover);
+    background-clip: content-box;
+  }
+
+  .doc-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Justificação dos blocos do editor de PDF.
+     Mora aqui, e não em `styles` do componente, porque o alvo é markup injetado
+     via [innerHTML]: a encapsulação emulada do Angular carimba o atributo
+     _ngcontent só nos elementos do template, e uma regra escopada nunca casaria
+     com esses <div>.
+
+     `text-align: justify` sozinho não estica linha nenhuma aqui, e isso é o CSS
+     funcionando como especificado: ele não justifica a última linha de um bloco
+     nem a linha logo antes de uma quebra forçada. Como o texto do editor carrega
+     as quebras reais do PDF, toda linha é uma dessas — e nenhuma era justificada.
+     Uma linha por <div> mais `text-align-last` resolve; o `:last-child` fica de
+     fora porque uma última linha esticada é a assinatura de justificação mal
+     feita. Não usar `style=` inline nos <div>: o sanitizador do Angular o remove. */
+  .pdf-justified > div {
+    text-align-last: justify;
+  }
+
+  .pdf-justified > div:last-child {
+    text-align-last: auto;
   }
 }

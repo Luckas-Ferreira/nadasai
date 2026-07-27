@@ -38,6 +38,14 @@ export const ICONS = {
   chevronDown: 'M6 9l6 6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
   plus: 'M12 5v14m-7-7h14',
+  alignLeft: 'M4 6h16M4 10h10M4 14h16M4 18h10',
+  alignCenter: 'M4 6h16M7 10h10M4 14h16M7 18h10',
+  alignRight: 'M4 6h16M10 10h10M4 14h16M10 18h10',
+  alignJustify: 'M4 6h16M4 10h16M4 14h16M4 18h16',
+  text: 'M6 5h12M12 5v14m-3 0h6',
+  square: 'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z',
+  scan: 'M4 8V6a2 2 0 0 1 2-2h2m8 0h2a2 2 0 0 1 2 2v2m0 8v2a2 2 0 0 1-2 2h-2m-8 0H6a2 2 0 0 1-2-2v-2m3-4h10',
+  eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm12 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z',
 } as const;
 
 export type IconName = keyof typeof ICONS;
