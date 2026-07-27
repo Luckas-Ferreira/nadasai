@@ -157,13 +157,26 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
   for (const block of sorted) {
     let placed = false;
     for (const line of lines) {
-      const lineY = line.reduce((sum, b) => sum + b.y, 0) / line.length;
       const lineH = line.reduce((max, b) => Math.max(max, b.h), 0);
-      const blockMid = block.y + block.h / 2;
-      const lineMid = lineY + lineH / 2;
 
-      // Verifica alinhamento vertical
-      const isSameY = Math.abs(blockMid - lineMid) < Math.max(lineH, block.h) * 0.85;
+      // Alinhamento vertical pela BASELINE, ancorada no primeiro item da linha.
+      //
+      // Antes isto comparava o centro vertical com tolerância de 0.85× a altura,
+      // e errava duas vezes na mesma conta. Primeiro porque o centro se desloca
+      // com o corpo da fonte: numa tabela, o código da disciplina (corpo maior,
+      // na sua coluna) e o nome dela (corpo menor, na coluna seguinte) têm
+      // centros a 0.5× de distância e baselines claramente distintas. Segundo
+      // porque a âncora era a MÉDIA dos y da linha, que deriva a cada item
+      // admitido — bastava um item errado entrar para a linha passar a aceitar a
+      // linha de baixo da mesma célula. Era assim que três linhas de uma tabela
+      // viravam um bloco só, com a fonte esmagada para caber tudo numa linha.
+      //
+      // A baseline não tem esses problemas: itens desenhados na mesma linha a
+      // compartilham qualquer que seja o corpo. O loader guarda `y` como o topo
+      // do glifo, a 0.8 da altura acima da baseline.
+      const blockBaseline = block.y + block.h * 0.8;
+      const lineBaseline = line[0].y + line[0].h * 0.8;
+      const isSameY = Math.abs(blockBaseline - lineBaseline) <= Math.min(lineH, block.h) * 0.4;
       if (!isSameY) continue;
 
       // Verifica distância horizontal para evitar agrupar colunas separadas na mesma linha

@@ -89,6 +89,55 @@ describe('mergeNativeParagraphs - Column Separation', () => {
   });
 });
 
+describe('mergeNativeParagraphs - células de tabela', () => {
+  // Coordenadas reais extraídas de um histórico acadêmico: uma linha da tabela
+  // de disciplinas. O código fica numa coluna com corpo maior; o nome e o
+  // professor ficam na coluna seguinte, com corpo menor e duas linhas.
+  const linhaDaTabela: PdfNativeBlock[] = [
+    { text: '2021.2', x: 0.0694, y: 0.8415, w: 0.0360, h: 0.0083, fontSizePt: 7, isBold: false, isItalic: false },
+    { text: 'CPTA107', x: 0.1527, y: 0.8415, w: 0.0510, h: 0.0083, fontSizePt: 7, isBold: false, isItalic: false },
+    { text: 'SOCIEDADE E DESENVOLVIMENTO', x: 0.2168, y: 0.8379, w: 0.1726, h: 0.0071, fontSizePt: 6, isBold: false, isItalic: false },
+    { text: 'Dra. MARIA ESTER FERREIRA DA SILVA VIEGAS (54h)', x: 0.2168, y: 0.8461, w: 0.2589, h: 0.0071, fontSizePt: 6, isBold: false, isItalic: false },
+  ];
+
+  it('não junta o código da disciplina com o nome da coluna seguinte', () => {
+    // O teste de mesma-linha comparava centros verticais com folga de 0.85× a
+    // altura. Como o centro se desloca com o corpo da fonte, o código entrava na
+    // linha do nome; e como a âncora era a média dos y da linha, ela derivava e
+    // passava a aceitar também a segunda linha da célula. Três linhas viravam
+    // uma, com a fonte esmagada para caber.
+    const juntou = mergeNativeParagraphs(linhaDaTabela).some(
+      (b) => b.text.includes('CPTA107') && b.text.includes('SOCIEDADE'),
+    );
+    expect(juntou).toBe(false);
+  });
+
+  it('não junta as duas linhas de uma célula com o código ao lado', () => {
+    const juntou = mergeNativeParagraphs(linhaDaTabela).some(
+      (b) => b.text.includes('CPTA107') && b.text.includes('MARIA ESTER'),
+    );
+    expect(juntou).toBe(false);
+  });
+
+  it('mantém cada coluna da linha como bloco próprio', () => {
+    const result = mergeNativeParagraphs(linhaDaTabela);
+    expect(result.some((b) => b.text === '2021.2')).toBe(true);
+    expect(result.some((b) => b.text === 'CPTA107')).toBe(true);
+  });
+
+  it('ainda une itens que compartilham a baseline, com corpos diferentes', () => {
+    // O caso oposto: rótulo e valor na mesma linha, tamanhos distintos. A
+    // baseline é a mesma, então continuam num bloco só.
+    const result = mergeNativeParagraphs([
+      { text: 'Matrícula:', x: 0.60, y: 0.300, w: 0.08, h: 0.014, fontSizePt: 12, isBold: false, isItalic: false },
+      { text: '21110249', x: 0.69, y: 0.2975, w: 0.08, h: 0.0165, fontSizePt: 14, isBold: true, isItalic: false },
+    ]);
+
+    expect(result.length).toBe(1);
+    expect(result[0].text).toBe('Matrícula: 21110249');
+  });
+});
+
 describe('mergeNativeParagraphs - layout de formulário', () => {
   const label = (text: string, y: number): PdfNativeBlock => ({
     text, x: 0.05, y, w: 0.09, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false,
