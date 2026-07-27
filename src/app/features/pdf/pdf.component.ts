@@ -213,11 +213,15 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                         [style.cursor]="activeTool() === 'erase' ? 'crosshair' : (selectedBlock() === block.id ? 'text' : 'pointer')"
                         (click)="$event.stopPropagation(); selectBlock(block.id, $event)"
                       >
-                        <!-- ── Text content ── -->
+                        <!-- ── Text content ──
+                             Recorta apenas blocos intocados, onde o texto é
+                             transparente e quem aparece é o canvas. Num bloco
+                             editado o recorte só teria o efeito de esconder o
+                             que o usuário acabou de escrever. -->
                         <div
                           class="absolute -inset-x-0.5 inset-y-0 px-0.5 outline-none focus:outline-none border-none ring-0 focus:ring-0 shadow-none"
-                          [class.overflow-hidden]="selectedBlock() !== block.id"
-                          [class.overflow-visible]="selectedBlock() === block.id"
+                          [class.overflow-hidden]="selectedBlock() !== block.id && block.newText === null"
+                          [class.overflow-visible]="selectedBlock() === block.id || block.newText !== null"
                           [style.fontSize.px]="getBlockFontPx(block, page.height, page.width) * scale()"
                           [style.lineHeight.px]="getBlockLineHeightPx(block, page.height) * scale()"
                           [style.top.px]="getBlockTextTopPx(block, page.height, page.width) * scale()"
@@ -233,6 +237,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                           style="word-break: normal; overflow-wrap: normal;"
                           [attr.contenteditable]="activeTool() === 'select' && selectedBlock() === block.id ? 'true' : 'false'"
                           [attr.data-block-id]="block.id"
+                          (input)="onBlockInput($event, block.id)"
                           (blur)="onBlockBlur($event, block.id)"
                           [innerHTML]="getBlockHtml(block)"
                         ></div>
@@ -1545,21 +1550,103 @@ export class PdfComponent implements OnDestroy {
     return lines.map((line) => `<div>${line || '<br>'}</div>`).join('');
   }
 
+  /**
+   * Sessão de digitação em curso, para o histórico ter uma entrada por sessão e
+   * não uma por tecla — a caixa cresce a cada tecla, e sem isso cada caractere
+   * empilharia um "desfazer".
+   */
+  private editingSessionId: string | null = null;
+
+  protected onBlockInput(event: Event, id: string): void {
+    if (this.editingSessionId !== id) {
+      this.saveHistory();
+      this.editingSessionId = id;
+    }
+    this.growBlockToFit(event.target as HTMLElement, id);
+  }
+
   protected onBlockBlur(event: FocusEvent, id: string): void {
     const el = event.target as HTMLElement;
     const html = el.innerHTML?.trim() || '';
     const text = el.textContent?.trim() || '';
 
+    const sessionSaved = this.editingSessionId === id;
+    this.editingSessionId = null;
+
     const block = this.edits().get(id);
     if (block) {
       const currentHtml = (block.newText ?? block.formattedText ?? block.originalText).trim();
       if (html !== currentHtml && text.length > 0) {
-        this.saveHistory();
+        // O histórico já foi salvo no primeiro caractere da sessão.
+        if (!sessionSaved) this.saveHistory();
         const newEdits = new Map(this.edits());
         newEdits.set(id, { ...block, newText: html });
         this.edits.set(newEdits);
       }
     }
+
+    // Última medida, para o caso de o conteúdo ter chegado por colagem ou
+    // execCommand, que nem sempre disparam 'input'.
+    this.growBlockToFit(el, id);
+  }
+
+  /**
+   * Cresce a caixa do bloco até caber o que foi digitado.
+   *
+   * Sem isto, o texto que passa da caixa fica visível enquanto o bloco está
+   * selecionado (o overflow é liberado na seleção) e **some ao clicar fora** —
+   * parece que o editor comeu o que se acabou de escrever. A caixa vem da bbox
+   * do PDF, que dimensiona o texto original e não tem por que limitar o novo.
+   *
+   * Cresce e nunca encolhe: encolher enquanto se apaga faria a caixa pular a
+   * cada tecla, e o texto abaixo dançar junto. O corpo da fonte não muda — quem
+   * dá lugar é a caixa, como no Acrobat.
+   *
+   * Mede o excesso (`scrollHeight - clientHeight`) em vez da altura total
+   * porque o container de texto é deslocado para compensar a meia-entrelinha, e
+   * comparar alturas absolutas faria a caixa crescer alguns décimos a cada
+   * foco, indefinidamente.
+   */
+  private growBlockToFit(el: HTMLElement, id: string): void {
+    const block = this.edits().get(id);
+    if (!block) return;
+
+    const page = this.loadedPdf()?.pages.find((p) => p.index === block.pageIndex);
+    if (!page) return;
+
+    const zoom = this.scale() || 1;
+    const overflowY = el.scrollHeight - el.clientHeight;
+    const overflowX = el.scrollWidth - el.clientWidth;
+
+    // Zona morta vertical de meia entrelinha. Todo bloco multilinha já nasce com
+    // alguns pixels de "transbordo" que não são texto escapando: a caixa vai do
+    // topo do primeiro glifo à base do último, enquanto a altura do conteúdo
+    // conta o passo inteiro da última linha — sobra o espaço do descendente.
+    // Sem a zona morta, só selecionar e clicar fora engordaria o bloco alguns
+    // pixels, toda vez, para sempre. Uma linha nova de verdade transborda o
+    // passo inteiro e passa folgado.
+    const lineHeightPx = this.getBlockLineHeightPx(block, page.height) * zoom;
+    const deadZoneY = Math.max(2, lineHeightPx * 0.6);
+
+    if (overflowY <= deadZoneY && overflowX <= 1) return;
+
+    const next = { ...block };
+
+    if (overflowY > deadZoneY) {
+      // Não passa da borda inferior da página: além dela o texto ficaria fora
+      // do papel, e o retângulo de cobertura do export junto.
+      next.h = Math.min(1 - block.y, block.h + overflowY / zoom / page.height);
+    }
+
+    if (overflowX > 1) {
+      // Blocos de uma linha só usam `nowrap` e transbordam para o lado, não para
+      // baixo. Aí quem cresce é a largura, até a margem direita da página.
+      next.w = Math.min(0.99 - block.x, block.w + overflowX / zoom / page.width);
+    }
+
+    const newEdits = new Map(this.edits());
+    newEdits.set(id, next);
+    this.edits.set(newEdits);
   }
 
   protected deleteBlock(id: string): void {
