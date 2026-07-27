@@ -1,9 +1,7 @@
-// Polyfill for Promise.try required by pdfjs-dist when handling password-protected PDFs
-if (typeof (Promise as any).try !== 'function') {
-  (Promise as any).try = function <T>(fn: () => T | PromiseLike<T>): Promise<T> {
-    return new Promise((resolve) => resolve(fn()));
-  };
-}
+// Instala Promise.try, que o zone.js remove ao trocar o Promise global e o
+// pdf.js precisa em toda troca de mensagem com o worker. Precisa vir antes do
+// bootstrap; ver o arquivo para o que quebra sem ele.
+import './app/core/pdf/promise-try';
 
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';

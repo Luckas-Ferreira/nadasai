@@ -88,3 +88,154 @@ describe('mergeNativeParagraphs - Column Separation', () => {
     expect(result[1].text).toContain('Continuação Coluna 2');
   });
 });
+
+describe('mergeNativeParagraphs - alinhamento inferido', () => {
+  const linha = (text: string, x: number, y: number, w: number): PdfNativeBlock =>
+    ({ text, x, y, w, h: 0.011, fontSizePt: 9, isBold: false, isItalic: false });
+
+  it('não confunde parágrafo justificado com centralizado', () => {
+    // Num parágrafo justificado toda linha vai de margem a margem, então os
+    // centros caem todos em 0.5 — exatamente como num texto centralizado. Se a
+    // última linha por acaso for longa, o bloco passava por centralizado, e no
+    // export saía com cada linha numa sangria diferente. A margem ESQUERDA é o
+    // que separa os dois casos.
+    const justificado = mergeNativeParagraphs([
+      linha('primeira linha cheia que vai de margem a margem sem sobra alguma', 0.13, 0.30, 0.74),
+      linha('segunda linha cheia que vai de margem a margem sem sobra alguma', 0.13, 0.315, 0.74),
+      linha('terceira linha tambem cheia ate a margem direita da caixa toda', 0.13, 0.33, 0.73),
+    ]);
+
+    expect(justificado.length).toBe(1);
+    expect(justificado[0].textAlign).toBe('justify');
+  });
+
+  it('ainda reconhece um cabeçalho centralizado largo', () => {
+    // O caso oposto: linhas com sangrias diferentes, centros coincidindo.
+    const centralizado = mergeNativeParagraphs([
+      linha('Recredenciada conforme Portaria MEC No 463, de 30 de junho de 2021', 0.14, 0.16, 0.72),
+      linha('na secao 01, pag. 34, em 01/07/2021', 0.32, 0.175, 0.36),
+    ]);
+
+    expect(centralizado.length).toBe(1);
+    expect(centralizado[0].textAlign).toBe('center');
+  });
+});
+
+describe('mergeNativeParagraphs - células de tabela', () => {
+  // Coordenadas reais extraídas de um histórico acadêmico: uma linha da tabela
+  // de disciplinas. O código fica numa coluna com corpo maior; o nome e o
+  // professor ficam na coluna seguinte, com corpo menor e duas linhas.
+  const linhaDaTabela: PdfNativeBlock[] = [
+    { text: '2021.2', x: 0.0694, y: 0.8415, w: 0.0360, h: 0.0083, fontSizePt: 7, isBold: false, isItalic: false },
+    { text: 'CPTA107', x: 0.1527, y: 0.8415, w: 0.0510, h: 0.0083, fontSizePt: 7, isBold: false, isItalic: false },
+    { text: 'SOCIEDADE E DESENVOLVIMENTO', x: 0.2168, y: 0.8379, w: 0.1726, h: 0.0071, fontSizePt: 6, isBold: false, isItalic: false },
+    { text: 'Dra. MARIA ESTER FERREIRA DA SILVA VIEGAS (54h)', x: 0.2168, y: 0.8461, w: 0.2589, h: 0.0071, fontSizePt: 6, isBold: false, isItalic: false },
+  ];
+
+  it('não junta o código da disciplina com o nome da coluna seguinte', () => {
+    // O teste de mesma-linha comparava centros verticais com folga de 0.85× a
+    // altura. Como o centro se desloca com o corpo da fonte, o código entrava na
+    // linha do nome; e como a âncora era a média dos y da linha, ela derivava e
+    // passava a aceitar também a segunda linha da célula. Três linhas viravam
+    // uma, com a fonte esmagada para caber.
+    const juntou = mergeNativeParagraphs(linhaDaTabela).some(
+      (b) => b.text.includes('CPTA107') && b.text.includes('SOCIEDADE'),
+    );
+    expect(juntou).toBe(false);
+  });
+
+  it('não junta as duas linhas de uma célula com o código ao lado', () => {
+    const juntou = mergeNativeParagraphs(linhaDaTabela).some(
+      (b) => b.text.includes('CPTA107') && b.text.includes('MARIA ESTER'),
+    );
+    expect(juntou).toBe(false);
+  });
+
+  it('mantém cada coluna da linha como bloco próprio', () => {
+    const result = mergeNativeParagraphs(linhaDaTabela);
+    expect(result.some((b) => b.text === '2021.2')).toBe(true);
+    expect(result.some((b) => b.text === 'CPTA107')).toBe(true);
+  });
+
+  it('ainda une itens que compartilham a baseline, com corpos diferentes', () => {
+    // O caso oposto: rótulo e valor na mesma linha, tamanhos distintos. A
+    // baseline é a mesma, então continuam num bloco só.
+    const result = mergeNativeParagraphs([
+      { text: 'Matrícula:', x: 0.60, y: 0.300, w: 0.08, h: 0.014, fontSizePt: 12, isBold: false, isItalic: false },
+      { text: '21110249', x: 0.69, y: 0.2975, w: 0.08, h: 0.0165, fontSizePt: 14, isBold: true, isItalic: false },
+    ]);
+
+    expect(result.length).toBe(1);
+    expect(result[0].text).toBe('Matrícula: 21110249');
+  });
+});
+
+describe('mergeNativeParagraphs - layout de formulário', () => {
+  const label = (text: string, y: number): PdfNativeBlock => ({
+    text, x: 0.05, y, w: 0.09, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false,
+  });
+
+  it('não funde a coluna de rótulos de um formulário num parágrafo só', () => {
+    // Histórico acadêmico: rótulos empilhados na coluna esquerda, todos com o
+    // mesmo x, mesma fonte e espaçamento regular — geometricamente idênticos a
+    // um parágrafo estreito. O ':' é o que os separa.
+    const blocks: PdfNativeBlock[] = [
+      label('Curso:', 0.510),
+      label('Status:', 0.545),
+      label('Ênfase:', 0.575),
+      label('Currículo:', 0.605),
+    ];
+
+    const result = mergeNativeParagraphs(blocks);
+
+    expect(result.length).toBe(4);
+    expect(result.map((r) => r.text)).toEqual(['Curso:', 'Status:', 'Ênfase:', 'Currículo:']);
+  });
+
+  it('quebra o parágrafo quando a linha anterior é curta demais para ter quebrado na margem', () => {
+    // Duas linhas de uma coluna de valores: a de cima é curta, então não é uma
+    // linha de prosa que bateu na margem — é outra célula.
+    const blocks: PdfNativeBlock[] = [
+      { text: 'Brasileira', x: 0.25, y: 0.30, w: 0.08, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+      { text: 'Portaria Nº 920, 27/12/2018. D.O.U.: 28/12/2018', x: 0.25, y: 0.33, w: 0.30, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+    ];
+
+    const result = mergeNativeParagraphs(blocks);
+
+    expect(result.length).toBe(2);
+  });
+
+  it('mescla prosa multilinha preservando a quebra real e o passo entre linhas', () => {
+    const blocks: PdfNativeBlock[] = [
+      { text: 'texto corrido que ocupa a medida inteira do bloco e quebra na margem direita', x: 0.14, y: 0.160, w: 0.72, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+      { text: 'seguindo na segunda linha', x: 0.14, y: 0.178, w: 0.30, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+    ];
+
+    const result = mergeNativeParagraphs(blocks);
+
+    expect(result.length).toBe(1);
+    // '\n', não ' ': a quebra do PDF é preservada em vez de ser refeita pelo CSS.
+    expect(result[0].text).toBe(
+      'texto corrido que ocupa a medida inteira do bloco e quebra na margem direita\nseguindo na segunda linha',
+    );
+    expect(result[0].lineCount).toBe(2);
+    // Passo entre baselines medido pelos y, não h/lineCount (que daria 0.0155).
+    expect(result[0].lineHeight).toBeCloseTo(0.018, 4);
+    expect(result[0].lineBoxH).toBeCloseTo(0.013, 4);
+  });
+
+  it('não encadeia linhas com passo irregular (linhas de tabela com alturas variáveis)', () => {
+    const blocks: PdfNativeBlock[] = [
+      { text: 'valor um que preenche a linha inteira do bloco', x: 0.25, y: 0.400, w: 0.30, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+      { text: 'valor dois que preenche a linha inteira do bl', x: 0.25, y: 0.418, w: 0.30, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+      // Salto de linha: a célula acima tinha duas linhas, então o passo muda.
+      { text: 'valor tres que preenche a linha inteira do bl', x: 0.25, y: 0.452, w: 0.30, h: 0.013, fontSizePt: 9, isBold: false, isItalic: false },
+    ];
+
+    const result = mergeNativeParagraphs(blocks);
+
+    expect(result.length).toBe(2);
+    expect(result[0].lineCount).toBe(2);
+    expect(result[1].lineCount).toBe(1);
+  });
+});

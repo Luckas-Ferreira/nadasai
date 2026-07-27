@@ -18,8 +18,9 @@ import { PdfLoaderService, isLightColor, type LoadedPdf, type PdfPageInfo } from
 import { OcrService, type OcrBlock, type OcrLang } from './services/ocr.service';
 import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
-import { baseFontSize, fitFontSizeToWidth } from './services/font-metrics';
+import { baseFontSize, fitFontSizeToWidth, measureTextWidth } from './services/font-metrics';
 import { mergeNativeParagraphs } from './services/paragraph-merger';
+import { renderPageIntoCanvas, renderPageToCanvas, releaseCanvas, pageRenderScale } from '../../core/pdf/pdfjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -33,6 +34,23 @@ import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.
 export type EditorTool = 'select' | 'add_text' | 'erase';
 
 const OCR_RENDER_SCALE = 3;
+
+/**
+ * Famílias do pdf-lib → pilhas CSS reais.
+ *
+ * `fontFamily` guarda o nome que o pdf-lib usa no export ('TimesRoman',
+ * 'Courier'), e esses nomes iam direto para o `font-family` do overlay. Nenhum
+ * browser conhece "TimesRoman": a família não resolvia, o texto renderizava na
+ * fonte padrão e ficava mais largo do que o `fitFontSizeToWidth` mediu — o que,
+ * com as quebras agora preservadas, gera uma linha extra e desloca o bloco.
+ */
+const FONT_STACKS: Record<NonNullable<TextEdit['fontFamily']>, string> = {
+  Helvetica: 'Helvetica, Arial, sans-serif',
+  Arial: 'Arial, Helvetica, sans-serif',
+  TimesRoman: '"Times New Roman", Times, serif',
+  Courier: '"Courier New", Courier, monospace',
+  Symbol: 'Helvetica, Arial, sans-serif',
+};
 
 export interface TextEdit {
   id: string;
@@ -84,6 +102,15 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
         <div banner class="mb-5">
           <app-alert [message]="errorMessage()" [actionLabel]="i18n.t()['common.reset']" (action)="reset()" />
         </div>
+      } @else if (renderWarning()) {
+        <div banner class="mb-5">
+          <app-alert
+            [message]="renderWarning()!"
+            tone="info"
+            dismissible
+            (dismiss)="renderWarning.set(null)"
+          />
+        </div>
       }
 
       <!-- ── Canvas Stage ───────────────────────────────────────────────── -->
@@ -106,8 +133,11 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
             />
           }
         } @else {
-          <!-- Scroll container -->
-          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y"
+          <!-- Scroll container.
+               Usa o doc-stage e não o image-stage: ver o comentário do token em
+               styles.css. Arredondado e com borda para virar uma superfície de
+               leitura enquadrada, em vez de uma laje que encosta nas beiradas. -->
+          <div class="doc-scroll flex-1 overflow-auto rounded-xl border border-doc-stage-line bg-doc-stage p-6 sm:p-8 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y"
                (click)="onCanvasAreaClick($event)"
                (wheel)="onWheel($event)"
                (touchstart)="onTouchStart($event)"
@@ -150,12 +180,17 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
             @if (loadedPdf()) {
               @for (page of loadedPdf()!.pages; track page.index) {
+                <!-- A folha. Sem overflow-hidden no wrapper, de propósito: as
+                     alças de redimensionamento de um bloco selecionado ficam a
+                     -4px das bordas e a de mover a -14px, e seriam decepadas.
+                     Quem arredonda é o canvas, que respeita border-radius ao
+                     pintar. -->
                 <div
-                  class="relative mx-auto mb-6 shadow-pop shrink-0 bg-white"
+                  class="relative mx-auto mb-7 shrink-0 rounded-md bg-white shadow-page"
                   [style.width.px]="page.width * scale()"
                   [style.height.px]="page.height * scale()"
                 >
-                  <canvas #pageCanvas [attr.data-page]="page.index" class="block h-full w-full"></canvas>
+                  <canvas #pageCanvas [attr.data-page]="page.index" class="block h-full w-full rounded-md"></canvas>
 
                   <!-- Paragraph / text block overlays -->
                   <div class="absolute inset-0" style="overflow: visible;">
@@ -178,24 +213,31 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                         [style.cursor]="activeTool() === 'erase' ? 'crosshair' : (selectedBlock() === block.id ? 'text' : 'pointer')"
                         (click)="$event.stopPropagation(); selectBlock(block.id, $event)"
                       >
-                        <!-- ── Text content ── -->
+                        <!-- ── Text content ──
+                             Recorta apenas blocos intocados, onde o texto é
+                             transparente e quem aparece é o canvas. Num bloco
+                             editado o recorte só teria o efeito de esconder o
+                             que o usuário acabou de escrever. -->
                         <div
                           class="absolute -inset-x-0.5 inset-y-0 px-0.5 outline-none focus:outline-none border-none ring-0 focus:ring-0 shadow-none"
-                          [class.overflow-hidden]="selectedBlock() !== block.id"
-                          [class.overflow-visible]="selectedBlock() === block.id"
+                          [class.overflow-hidden]="selectedBlock() !== block.id && block.newText === null"
+                          [class.overflow-visible]="selectedBlock() === block.id || block.newText !== null"
                           [style.fontSize.px]="getBlockFontPx(block, page.height, page.width) * scale()"
                           [style.lineHeight.px]="getBlockLineHeightPx(block, page.height) * scale()"
+                          [style.top.px]="getBlockTextTopPx(block, page.height, page.width) * scale()"
                           [style.fontWeight]="block.bold ? 'bold' : 'normal'"
                           [style.fontStyle]="block.italic ? 'italic' : 'normal'"
                           [style.textAlign]="block.textAlign || 'left'"
-                          [style.fontFamily]="block.fontFamily || 'Helvetica, Arial, sans-serif'"
+                          [style.fontFamily]="getBlockFontStack(block)"
                           [style.fontStretch]="block.source === 'native' ? 'normal' : 'condensed'"
                           [style.color]="(!canvasRendered().has(page.index) || selectedBlock() === block.id || block.newText !== null || block.deleted) ? ((block.color && !isLightColor(block.color)) ? block.color : '#000000') : 'transparent'"
                           [style.background]="block.bgColor || ((selectedBlock() === block.id || block.newText !== null) ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : 'transparent')"
+                          [class.pdf-justified]="block.textAlign === 'justify'"
                           [style.whiteSpace]="(block.lineHeight && block.h <= block.lineHeight * 1.3) ? 'nowrap' : 'pre-wrap'"
                           style="word-break: normal; overflow-wrap: normal;"
                           [attr.contenteditable]="activeTool() === 'select' && selectedBlock() === block.id ? 'true' : 'false'"
                           [attr.data-block-id]="block.id"
+                          (input)="onBlockInput($event, block.id)"
                           (blur)="onBlockBlur($event, block.id)"
                           [innerHTML]="getBlockHtml(block)"
                         ></div>
@@ -273,9 +315,8 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
       <div panel class="flex flex-col gap-4">
         @if (status() !== 'idle') {
 
+          <!-- ── 1. Ferramentas ──────────────────────────────────────────── -->
           <app-panel [heading]="i18n.t()['pdf.title']">
-
-            <!-- Tools section -->
             <div class="flex flex-col gap-1.5">
               @for (tool of editorTools; track tool.id) {
                 <button
@@ -289,7 +330,6 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
               <div class="border-t border-line my-1"></div>
 
-              <!-- Undo -->
               <button
                 class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all w-full text-left text-muted border border-transparent hover:text-text hover:bg-raised"
                 [class.opacity-40]="undoStack().length === 0"
@@ -301,52 +341,22 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                 Desfazer
               </button>
             </div>
+          </app-panel>
 
-            <!-- Page selector / info -->
-            <div class="mt-4 flex items-center justify-between border-t border-line pt-3">
-              <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ loadedPdf()!.pageCount }}</span>
-              <div class="flex items-center gap-1">
-                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
-                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= loadedPdf()!.pageCount" (click)="currentPage.set(currentPage() + 1)">›</button>
-              </div>
-            </div>
+          <!-- ── 2. Bloco selecionado ────────────────────────────────────────
+               Painel próprio, logo abaixo das ferramentas: é o que o usuário
+               quer ver no momento em que clica num texto. Antes ficava enterrado
+               entre a paginação e o zoom. -->
+          <app-panel heading="Bloco selecionado">
+            @if (selectedBlock(); as id) {
+              <div class="flex flex-col gap-3">
 
-            <!-- OCR tool option -->
-            <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Motor OCR</span>
-                <span class="text-[10px] text-accent font-medium px-1.5 py-0.5 rounded bg-accent/10">Tesseract.js</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <select
-                  class="flex-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
-                  [(ngModel)]="ocrLangValue"
-                >
-                  <option value="por+eng">Português + Inglês</option>
-                  <option value="por">Português</option>
-                  <option value="eng">Inglês</option>
-                </select>
-                <button
-                  appButton variant="secondary" size="sm"
-                  [disabled]="ocrRunning()"
-                  (click)="forceOcrOnCurrentPage()"
-                  title="Executa OCR na página atual"
-                >
-                  OCR Página
-                </button>
-              </div>
-            </div>
-
-            <!-- ── Text formatting (appears when a block is selected) ── -->
-            @if (selectedBlock()) {
-              <div class="mt-3 border-t border-line pt-3 flex flex-col gap-3">
-                <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Formatar Texto</span>
-
-                <!-- Font family -->
+                <!-- Fonte -->
                 <select
                   class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium outline-none hover:border-accent transition-colors cursor-pointer"
-                  [value]="getBlockFont(selectedBlock()!)"
-                  (change)="changeBlockFont(selectedBlock()!, $event)"
+                  [value]="getBlockFont(id)"
+                  (change)="changeBlockFont(id, $event)"
+                  title="Família da fonte"
                 >
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
@@ -355,66 +365,84 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   <option value="Symbol">Symbol</option>
                 </select>
 
-                <!-- Font size + B/I -->
+                <!-- Tamanho + negrito/itálico -->
                 <div class="flex items-center gap-2">
-                  <!-- Size stepper -->
                   <div class="flex flex-1 items-center rounded-lg border border-line bg-surface overflow-hidden">
-                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(selectedBlock()!, -5)">−</button>
+                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, -5)">−</button>
                     <input
                       type="text"
                       class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
-                      [value]="getBlockScalePercent(selectedBlock()!)"
-                      (change)="setBlockSizeFromInput(selectedBlock()!, $event)"
-                      (keydown.enter)="setBlockSizeFromInput(selectedBlock()!, $event)"
+                      [value]="getBlockScalePercent(id)"
+                      (change)="setBlockSizeFromInput(id, $event)"
+                      (keydown.enter)="setBlockSizeFromInput(id, $event)"
                       title="Tamanho (%)"
                     />
-                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(selectedBlock()!, 5)">+</button>
+                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, 5)">+</button>
                   </div>
 
-                  <!-- Bold -->
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-bold font-serif transition-all shrink-0"
-                    [class]="isBlockBold(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                    [class]="isBlockBold(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Negrito"
                     (mousedown)="$event.preventDefault()"
-                    (click)="toggleBlockBold(selectedBlock()!)"
+                    (click)="toggleBlockBold(id)"
                   >B</button>
 
-                  <!-- Italic -->
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm italic font-serif transition-all shrink-0"
-                    [class]="isBlockItalic(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                    [class]="isBlockItalic(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Itálico"
                     (mousedown)="$event.preventDefault()"
-                    (click)="toggleBlockItalic(selectedBlock()!)"
+                    (click)="toggleBlockItalic(id)"
                   >I</button>
                 </div>
 
-                <!-- Color row -->
-                <div class="flex items-center gap-2">
-                  <!-- Text color -->
-                  <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor do texto">
-                    <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(selectedBlock()!)" (input)="changeBlockColor(selectedBlock()!, $event)" />
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
-                      <span class="text-xs font-bold text-text leading-none">A</span>
-                      <div class="h-2 w-7 rounded-sm mt-0.5" [style.background]="getBlockColor(selectedBlock()!)"></div>
-                    </div>
+                <!-- Alinhamento — o detector de layout acerta a maioria dos
+                     casos, mas não todos; aqui se corrige à mão. -->
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Alinhamento</span>
+                  <div class="flex items-center gap-1.5">
+                    @for (opt of alignOptions; track opt.value) {
+                      <button
+                        class="h-9 flex-1 flex items-center justify-center rounded-lg border transition-all"
+                        [class]="getBlockAlign(id) === opt.value ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                        [title]="opt.label"
+                        [attr.aria-label]="opt.label"
+                        [attr.aria-pressed]="getBlockAlign(id) === opt.value"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="setBlockAlign(id, opt.value)"
+                      >
+                        <app-icon [name]="opt.icon" [size]="15" />
+                      </button>
+                    }
                   </div>
+                </div>
 
-                  <!-- Background color -->
-                  <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor de fundo">
-                    <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(selectedBlock()!)" (input)="changeBlockBgColor(selectedBlock()!, $event)" />
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-text opacity-70"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                      <div class="h-2 w-7 rounded-sm mt-0.5" [style.background]="getBlockBgColor(selectedBlock()!)"></div>
+                <!-- Cores -->
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Cores</span>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor do texto">
+                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(id)" (input)="changeBlockColor(id, $event)" />
+                      <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                        <app-icon name="text" [size]="12" class="text-text opacity-70" />
+                        <div class="h-2 w-7 rounded-sm" [style.background]="getBlockColor(id)"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor de fundo">
+                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(id)" (input)="changeBlockBgColor(id, $event)" />
+                      <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                        <app-icon name="square" [size]="12" class="text-text opacity-70" />
+                        <div class="h-2 w-7 rounded-sm" [style.background]="getBlockBgColor(id)"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="border-t border-line my-0.5"></div>
 
-                <!-- Delete + Deselect -->
-                <button appButton variant="danger" size="sm" block (click)="deleteBlock(selectedBlock()!)">
+                <button appButton variant="danger" size="sm" block (click)="deleteBlock(id)">
                   <app-icon name="close" [size]="13" />
                   Apagar bloco
                 </button>
@@ -422,27 +450,89 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   Desselecionar
                 </button>
               </div>
+            } @else {
+              <!-- Estado vazio: o painel some quando nada está selecionado fazia
+                   parecer que os controles tinham desaparecido. -->
+              <p class="text-xs text-muted leading-relaxed">
+                Clique num bloco de texto da página para trocar fonte, tamanho,
+                alinhamento e cor. Com o bloco selecionado, clique de novo no
+                texto para editá-lo.
+              </p>
             }
-
-            <!-- Zoom -->
-            <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
-              <label class="text-[11px] font-semibold text-muted uppercase tracking-wider">Zoom</label>
-              <div class="flex items-center rounded-lg border border-line bg-surface overflow-hidden">
-                <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)">−</button>
-                <input
-                  type="text"
-                  class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2"
-                  [value]="(scale() * 100) | number:'1.0-0'"
-                  (change)="setZoomFromInput($event)"
-                  (keydown.enter)="setZoomFromInput($event)"
-                  title="Zoom %"
-                />
-                <span class="text-xs text-muted pr-2 select-none">%</span>
-                <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)">+</button>
-              </div>
-            </div>
-
           </app-panel>
+
+          <!-- ── 3. Visualização ──────────────────────────────────────────────
+               Paginação e zoom são navegação, não edição; juntos e depois do que
+               edita. Guardado por loadedPdf(), não por status(): o painel abre
+               em 'loading', quando ainda não há documento. -->
+          @if (loadedPdf(); as pdf) {
+            <app-panel heading="Visualização">
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ pdf.pageCount }}</span>
+                  <div class="flex items-center gap-1">
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)" aria-label="Página anterior">‹</button>
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="goToPage(currentPage() + 1)" aria-label="Próxima página">›</button>
+                  </div>
+                </div>
+
+                <div class="flex items-center rounded-lg border border-line bg-surface overflow-hidden">
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)" aria-label="Diminuir zoom">−</button>
+                  <input
+                    type="text"
+                    class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
+                    [value]="(scale() * 100) | number:'1.0-0'"
+                    (change)="setZoomFromInput($event)"
+                    (keydown.enter)="setZoomFromInput($event)"
+                    title="Zoom %"
+                  />
+                  <span class="text-xs text-muted pr-2 select-none">%</span>
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)" aria-label="Aumentar zoom">+</button>
+                </div>
+              </div>
+            </app-panel>
+          }
+
+          <!-- ── 4. Reconhecimento de texto ───────────────────────────────────
+               Só aparece quando há página digitalizada. Num PDF que já tem
+               camada de texto o OCR não roda sozinho, e forçá-lo empilharia
+               blocos reconhecidos por cima dos nativos — a opção estava sempre
+               visível oferecendo algo que ou não fazia nada ou piorava. -->
+          @if (showOcrPanel()) {
+            <app-panel heading="Reconhecimento de texto">
+              <div class="flex flex-col gap-2.5">
+                <p class="text-xs text-muted leading-relaxed">
+                  @if (currentPageIsScanned()) {
+                    Esta página é uma imagem digitalizada — o texto foi lido por OCR e pode conter erros.
+                  } @else {
+                    Este documento tem páginas digitalizadas. Esta aqui já tem texto digital.
+                  }
+                </p>
+
+                <select
+                  class="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
+                  [(ngModel)]="ocrLangValue"
+                  title="Idioma do reconhecimento"
+                >
+                  <option value="por+eng">Português + Inglês</option>
+                  <option value="por">Português</option>
+                  <option value="eng">Inglês</option>
+                </select>
+
+                <button
+                  appButton variant="secondary" size="sm" block
+                  [disabled]="ocrRunning()"
+                  (click)="forceOcrOnCurrentPage()"
+                  title="Reconhece o texto da página atual de novo"
+                >
+                  <app-icon name="scan" [size]="13" />
+                  Reconhecer esta página
+                </button>
+
+                <span class="text-[10px] text-muted/70">Tesseract.js — roda no seu navegador</span>
+              </div>
+            </app-panel>
+          }
 
           <app-action-bar
             [busy]="status() === 'exporting'"
@@ -475,11 +565,22 @@ export class PdfComponent implements OnDestroy {
   protected readonly pdfPassword = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
   protected readonly errorMessage = signal('');
+
+  /**
+   * Falha ao rasterizar uma ou mais páginas. Não é fatal — o editor continua
+   * utilizável porque o overlay de texto vira texto preto visível — mas é o
+   * estado em que a página perde logos, tabelas e bordas, e sem aviso ele se
+   * parece com "o editor comeu meu documento".
+   */
+  protected readonly renderWarning = signal<string | null>(null);
   protected readonly loadedPdf = signal<LoadedPdf | null>(null);
   protected readonly currentPage = signal(1);
   protected readonly scale = signal(1.0);
   protected readonly isLightColor = isLightColor;
   protected readonly canvasRendered = signal<Set<number>>(new Set());
+
+  /** O ajuste à largura é só na primeira renderização; depois o zoom é do usuário. */
+  private didFitWidth = false;
   protected readonly activeTool = signal<EditorTool>('select');
   protected readonly selectedBlock = signal<string | null>(null);
   protected readonly currentOcrPage = signal(0);
@@ -541,6 +642,26 @@ export class PdfComponent implements OnDestroy {
     this.loadedPdf()?.pages.find((p) => p.index === this.currentPage()),
   );
 
+  protected readonly currentPageIsScanned = computed(() => this.currentPageInfo()?.type === 'scanned');
+
+  /**
+   * O painel de OCR só faz sentido num documento que tenha alguma página
+   * digitalizada.
+   *
+   * Num PDF que já traz camada de texto o OCR nunca roda sozinho, e forçá-lo
+   * empilharia blocos reconhecidos por cima dos nativos — texto duplicado, pior
+   * do que antes. A opção ficava sempre visível oferecendo algo que, no caso
+   * mais comum, ou não fazia nada ou estragava a página.
+   */
+  protected readonly showOcrPanel = computed(() => this.loadedPdf()?.overallType !== 'digital');
+
+  protected readonly alignOptions = [
+    { value: 'left' as const, icon: 'alignLeft' as const, label: 'Alinhar à esquerda' },
+    { value: 'center' as const, icon: 'alignCenter' as const, label: 'Centralizar' },
+    { value: 'right' as const, icon: 'alignRight' as const, label: 'Alinhar à direita' },
+    { value: 'justify' as const, icon: 'alignJustify' as const, label: 'Justificar' },
+  ];
+
   protected readonly blocksByPage = computed(() => {
     const map = new Map<number, TextEdit[]>();
     for (const edit of this.edits().values()) {
@@ -579,6 +700,8 @@ export class PdfComponent implements OnDestroy {
     this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
+    this.resetRasterState();
+    this.renderWarning.set(null);
     this.passwordError.set(null);
     this.pendingFile.set(file);
 
@@ -599,34 +722,53 @@ export class PdfComponent implements OnDestroy {
             const id = `p${page.index}-native-${i}`;
 
             const lineCount = Math.max(1, b.lineCount || 1);
-            const singleLineHPx = (b.h / lineCount) * page.height;
-            // Use a slightly smaller multiplier for multiline blocks (0.72 vs 0.82)
-            // to allow for browser word-wrap slack, avoiding the creation of extra lines
-            // that cause vertical overflow beyond the bounding box.
-            let calculatedFontSize = singleLineHPx * (lineCount > 1 ? 0.72 : 0.82);
-            // fitFontSizeToWidth assumes single-line text width. Applying it to
-            // multi-line text forces the font to grow gigantically.
-            if (lineCount === 1) {
-              const availWidthPx = b.w * page.width;
-              calculatedFontSize = Math.min(
-                singleLineHPx * 0.85,
-                fitFontSizeToWidth(b.text, availWidthPx, singleLineHPx * 0.85, b.bold ?? false),
-              );
+            // Corpo da fonte = caixa de UMA linha, medida pelo merger. Antes vinha
+            // de `h / lineCount`, que é o passo médio (caixa + entrelinha) e por
+            // isso vinha grande demais — daí o 0.72 de compensação em blocos
+            // multilinha, que encolhia o texto em relação ao original.
+            const singleLineHPx = b.lineBoxH * page.height;
+            // O texto agora carrega as quebras reais ('\n'), então NENHUMA linha
+            // pode estourar a largura: com pre-wrap, uma linha que estoura vira
+            // duas e empurra todo o resto do bloco para baixo. Daí o mínimo sobre
+            // todas as linhas, e não sobre a mais longa em caracteres — a mais
+            // longa em caracteres nem sempre é a mais larga em pixels.
+            const hint = singleLineHPx * 0.85;
+            const availWidthPx = b.w * page.width;
+            const fontStack = FONT_STACKS[b.fontFamily ?? 'Helvetica'];
+            let calculatedFontSize = b.lineTexts.reduce(
+              (min, lineText) =>
+                Math.min(min, fitFontSizeToWidth(lineText, availWidthPx, hint, b.bold ?? false, fontStack)),
+              hint,
+            );
+
+            // `fitFontSizeToWidth` aceita até 5% de folga sem ajustar, para não
+            // oscilar. Aqui a folga tem de ser zero: qualquer linha mais larga
+            // que a caixa quebra em duas e empurra o bloco inteiro para baixo.
+            // Mede e corrige o corpo, em vez de compensar alargando a caixa.
+            const widest = Math.max(
+              ...b.lineTexts.map((t) => measureTextWidth(t, calculatedFontSize, b.bold ?? false, fontStack)),
+            );
+            if (widest > availWidthPx && widest > 0) {
+              calculatedFontSize *= availWidthPx / widest;
             }
 
-            let blockW = b.w;
-            if (lineCount === 1) {
-              blockW = Math.min(0.96 - b.x, b.w * 1.08);
-            }
+            // Com o corpo medido, 1% de folga basta. Era 6% para absorver a
+            // tolerância acima, e uma caixa 6% mais larga que o texto desloca
+            // blocos centralizados e estica os justificados para fora da margem
+            // original. Blocos centralizados crescem para os dois lados.
+            const grownW = Math.min(0.99 - b.x, b.w * 1.01);
+            const isCentered = (b.textAlign ?? 'left') === 'center';
+            const blockW = grownW;
+            const blockX = isCentered ? Math.max(0, b.x - (grownW - b.w) / 2) : b.x;
 
             const blockObj = {
               id,
               pageIndex: page.index,
-              x: b.x,
+              x: blockX,
               y: b.y,
               w: blockW,
               h: b.h,
-              lineHeight: b.h / lineCount,
+              lineHeight: b.lineHeight,
               originalText: b.text,
               formattedText: b.formattedText,
               newText: null,
@@ -823,6 +965,37 @@ export class PdfComponent implements OnDestroy {
     }
   }
 
+  // ── Rasterização sob demanda ───────────────────────────────────────────────
+  //
+  // Só as páginas perto da viewport ficam rasterizadas; as que se afastam têm o
+  // backing store liberado. É isso que desacopla a nitidez do tamanho do
+  // documento: enquanto todas as páginas eram rasterizadas de uma vez, a única
+  // defesa contra estourar a memória de canvas era baixar a escala em função do
+  // número de páginas — e um edital de 20 páginas saía a 1.5×, com cara de fax.
+  // Com a janela fixa, o orçamento de pixels passa a ser dividido por
+  // RENDER_WINDOW e não por `pageCount`, então um documento de 200 páginas
+  // rasteriza tão nítido quanto um de duas.
+  //
+  // Uma página descartada não fica em branco: `canvasRendered` perde a entrada,
+  // o overlay volta a desenhar o texto em preto e a página continua legível e
+  // editável até ser rasterizada de novo.
+
+  /** Páginas rasterizadas ao mesmo tempo: as visíveis mais a folga de PREFETCH. */
+  private static readonly RENDER_WINDOW = 6;
+  /** Quantas páginas além das visíveis já vão rasterizadas, para a rolagem não alcançar. */
+  private static readonly PREFETCH = 1;
+
+  private viewportObserver: IntersectionObserver | null = null;
+  private readonly visiblePages = new Set<number>();
+  /** Página → zoom com que o raster dela foi produzido. */
+  private readonly rasterScale = new Map<number, number>();
+  private readonly failedPages = new Set<number>();
+  private renderInFlight = false;
+  private renderQueued = false;
+
+  /**
+   * Liga o observador de viewport. Substitui o antigo laço que rasterizava tudo.
+   */
   private async renderAllPages(): Promise<void> {
     const pdf = this.loadedPdf();
     if (!pdf) return;
@@ -836,9 +1009,12 @@ export class PdfComponent implements OnDestroy {
     }
     if (!this.pageCanvases || this.pageCanvases.length === 0) return;
 
-    // Calculate initial scale to fit width (only on first load)
-    if (this.scale() === 1.0) {
-      const container = this.pageCanvases.first.nativeElement.closest('.overflow-y-auto') as HTMLElement;
+    // Calculate initial scale to fit width (only on first load).
+    // O contêiner de rolagem usa `overflow-auto`; o seletor procurava
+    // `.overflow-y-auto` e nunca casava, então o ajuste à largura nunca rodava.
+    const container = this.pageCanvases.first.nativeElement.closest('.overflow-auto') as HTMLElement | null;
+    if (!this.didFitWidth) {
+      this.didFitWidth = true;
       if (container && pdf.pages[0]) {
         const availableWidth = container.clientWidth - 80; // p-6 padding + margin
         if (pdf.pages[0].width > availableWidth) {
@@ -848,30 +1024,197 @@ export class PdfComponent implements OnDestroy {
       }
     }
 
-    // Render each page to its respective canvas
-    for (const canvasRef of this.pageCanvases) {
-      const target = canvasRef.nativeElement;
-      const pageIndex = Number(target.dataset['page']);
-      if (!pageIndex) continue;
+    this.viewportObserver?.disconnect();
+    this.visiblePages.clear();
 
-      try {
-        // Renderiza em alta definição (3.0x - 3.5x dependendo da densidade da tela HiDPI/Retina)
-        // para supersampling cristalino, mantendo a imagem base do PDF tão nítida e afiada
-        // quanto os textos HTML editados pelo usuário.
-        const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-        const renderScale = Math.max(3.2, Math.round(dpr * 2.0 * 10) / 10);
-        const canvas = await this.loader.renderPageToCanvas(pdf.doc, pageIndex, renderScale);
-        target.width = canvas.width;
-        target.height = canvas.height;
-        target.getContext('2d')!.drawImage(canvas, 0, 0);
+    this.viewportObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const idx = Number((entry.target as HTMLCanvasElement).dataset['page']);
+          if (!idx) continue;
+          if (entry.isIntersecting) this.visiblePages.add(idx);
+          else this.visiblePages.delete(idx);
+        }
+        void this.pumpRenderQueue();
+      },
+      {
+        root: container,
+        // Meia viewport de folga em cima e embaixo: a página começa a rasterizar
+        // antes de aparecer, então a rolagem normal não alcança o rasterizador.
+        rootMargin: '50% 0px',
+        threshold: 0,
+      },
+    );
 
-        const rendered = new Set(this.canvasRendered());
-        rendered.add(pageIndex);
-        this.canvasRendered.set(rendered);
-      } catch (err) {
-        console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
+    for (const ref of this.pageCanvases) {
+      this.viewportObserver.observe(ref.nativeElement);
+    }
+
+    // O observador só dispara no próximo frame; a primeira página não pode
+    // esperar por isso.
+    this.visiblePages.add(this.currentPage());
+    await this.pumpRenderQueue();
+  }
+
+  /** Zoom que o raster precisa ter agora, dado o zoom de exibição. */
+  private currentRasterScale(pdf: LoadedPdf): number {
+    const first = pdf.pages[0];
+    if (!first) return 2;
+    return pageRenderScale({
+      pageWidth: first.width,
+      pageHeight: first.height,
+      // A janela, não o documento: é o que mantém a nitidez constante.
+      pageCount: Math.min(PdfComponent.RENDER_WINDOW, pdf.pages.length),
+      displayScale: this.scale(),
+      devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+    });
+  }
+
+  /** Páginas que devem estar rasterizadas agora, da mais central para a mais distante. */
+  private wantedPages(pageCount: number): number[] {
+    const visible = [...this.visiblePages].sort((a, b) => a - b);
+    if (visible.length === 0) return [this.currentPage()];
+
+    const wanted = new Set(visible);
+    for (let d = 1; d <= PdfComponent.PREFETCH; d++) {
+      wanted.add(Math.max(1, visible[0] - d));
+      wanted.add(Math.min(pageCount, visible[visible.length - 1] + d));
+    }
+
+    const centre = (visible[0] + visible[visible.length - 1]) / 2;
+    return [...wanted]
+      .sort((a, b) => Math.abs(a - centre) - Math.abs(b - centre))
+      .slice(0, PdfComponent.RENDER_WINDOW);
+  }
+
+  /**
+   * Rasteriza o que falta e descarta o que saiu da janela, uma página por vez.
+   *
+   * Sequencial e com mutex de propósito: duas rasterizações no mesmo canvas se
+   * atropelam, porque a segunda redefine `width` — o que limpa — enquanto a
+   * primeira ainda desenha. A lista de páginas desejadas é recalculada a cada
+   * volta, então uma rolagem rápida no meio do processo redireciona o trabalho
+   * em vez de esperar a fila antiga terminar.
+   */
+  private async pumpRenderQueue(): Promise<void> {
+    const pdf = this.loadedPdf();
+    if (!pdf) return;
+
+    if (this.renderInFlight) {
+      this.renderQueued = true;
+      return;
+    }
+    this.renderInFlight = true;
+
+    try {
+      for (;;) {
+        const scale = this.currentRasterScale(pdf);
+        const wanted = this.wantedPages(pdf.pages.length);
+        this.evictOutside(wanted);
+
+        const next = wanted.find(
+          (p) => !this.failedPages.has(p) && !this.isRasterFresh(p, scale),
+        );
+        if (next === undefined) break;
+
+        await this.rasterise(pdf, next, scale);
+      }
+    } finally {
+      this.renderInFlight = false;
+      if (this.renderQueued) {
+        this.renderQueued = false;
+        void this.pumpRenderQueue();
       }
     }
+  }
+
+  /**
+   * Um raster serve se foi feito no zoom atual ou acima. Ampliar exige refazer;
+   * reduzir não, porque o raster grande já está alocado e continua nítido — e
+   * refazê-lo para baixo só gastaria trabalho no caminho de volta.
+   */
+  private isRasterFresh(pageIndex: number, needed: number): boolean {
+    const have = this.rasterScale.get(pageIndex);
+    return have !== undefined && have >= needed / 1.2;
+  }
+
+  private canvasFor(pageIndex: number): HTMLCanvasElement | null {
+    return (
+      this.pageCanvases?.find((c) => Number(c.nativeElement.dataset['page']) === pageIndex)
+        ?.nativeElement ?? null
+    );
+  }
+
+  private async rasterise(pdf: LoadedPdf, pageIndex: number, scale: number): Promise<void> {
+    const target = this.canvasFor(pageIndex);
+    if (!target) return;
+
+    try {
+      if (this.rasterScale.has(pageIndex)) {
+        // Já tem imagem na tela (re-render por zoom). Definir `width` limpa o
+        // canvas, então rasteriza fora e transfere de uma vez — senão a página
+        // pisca em branco no meio da leitura.
+        const off = await renderPageToCanvas(pdf.doc, pageIndex, scale);
+        target.width = off.width;
+        target.height = off.height;
+        target.getContext('2d')!.drawImage(off, 0, 0);
+        releaseCanvas(off);
+      } else {
+        // Primeira rasterização: direto no canvas do DOM, sem canvas
+        // intermediário — não há nada na tela para preservar.
+        await renderPageIntoCanvas(pdf.doc, pageIndex, scale, target);
+      }
+
+      this.rasterScale.set(pageIndex, scale);
+      const rendered = new Set(this.canvasRendered());
+      rendered.add(pageIndex);
+      this.canvasRendered.set(rendered);
+    } catch (err) {
+      console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
+      // Marca para o laço não ficar tentando a mesma página para sempre.
+      this.failedPages.add(pageIndex);
+    }
+
+    this.publishRenderWarning();
+  }
+
+  /** Libera o backing store das páginas que saíram da janela. */
+  private evictOutside(wanted: number[]): void {
+    const keep = new Set(wanted);
+    let changed = false;
+    const rendered = new Set(this.canvasRendered());
+
+    for (const pageIndex of [...this.rasterScale.keys()]) {
+      if (keep.has(pageIndex)) continue;
+      const canvas = this.canvasFor(pageIndex);
+      if (canvas) releaseCanvas(canvas);
+      this.rasterScale.delete(pageIndex);
+      rendered.delete(pageIndex);
+      changed = true;
+    }
+
+    if (changed) this.canvasRendered.set(rendered);
+  }
+
+  /** Zera o estado de rasterização ao trocar de documento ou ao reiniciar. */
+  private resetRasterState(): void {
+    this.viewportObserver?.disconnect();
+    this.viewportObserver = null;
+    this.visiblePages.clear();
+    this.rasterScale.clear();
+    this.failedPages.clear();
+    this.didFitWidth = false;
+  }
+
+  private publishRenderWarning(): void {
+    const failed = [...this.failedPages].sort((a, b) => a - b);
+    this.renderWarning.set(
+      failed.length === 0
+        ? null
+        : `Não foi possível desenhar ${failed.length === 1 ? 'a página ' + failed[0] : failed.length + ' páginas'}. ` +
+          `O texto continua editável, mas imagens, tabelas e bordas não aparecem no editor. ` +
+          `Elas continuam intactas no arquivo exportado.`,
+    );
   }
 
   private zoomAnimFrame: number | null = null;
@@ -889,6 +1232,29 @@ export class PdfComponent implements OnDestroy {
         this.zoomAnimFrame = null;
       });
     }
+    this.scheduleZoomRerender();
+  }
+
+  /**
+   * Re-rasteriza quando o zoom passa do que o raster atual aguenta.
+   *
+   * Sem isso o canvas é rasterizado uma vez, no zoom inicial, e ampliar só
+   * estica esses pixels: o texto do canvas embaça enquanto o texto HTML de um
+   * bloco selecionado continua vetorial — lado a lado, parece que o editor
+   * degradou o documento.
+   *
+   * Quem decide se o raster de cada página ainda serve é `isRasterFresh`; aqui
+   * só há o debounce, para esperar o usuário parar de ampliar em vez de refazer
+   * o raster a cada passo da roda.
+   */
+  private zoomRerenderTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleZoomRerender(): void {
+    if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
+    this.zoomRerenderTimer = setTimeout(() => {
+      this.zoomRerenderTimer = null;
+      void this.pumpRenderQueue();
+    }, 400);
   }
 
   protected initialPinchDistance: number | null = null;
@@ -939,6 +1305,7 @@ export class PdfComponent implements OnDestroy {
     if (!isNaN(val)) {
       const next = Math.min(3, Math.max(0.3, val / 100));
       this.scale.set(Math.round(next * 100) / 100);
+      this.scheduleZoomRerender();
     }
     input.value = Math.round(this.scale() * 100).toString();
   }
@@ -1148,7 +1515,54 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected getBlockHtml(block: TextEdit): string {
-    return block.newText !== null ? block.newText : (block.formattedText || block.originalText);
+    const raw = block.newText !== null ? block.newText : (block.formattedText || block.originalText);
+    return block.textAlign === 'justify' ? this.asJustifiedLines(raw) : raw;
+  }
+
+  /**
+   * Reescreve um texto com quebras rígidas como uma linha por `<div>`, com
+   * `text-align-last: justify` em todas menos a última.
+   *
+   * `text-align: justify` sozinho não faz nada aqui, e isso é o CSS funcionando
+   * como especificado: a propriedade não estica a última linha de um bloco nem a
+   * linha imediatamente antes de uma quebra forçada. Como o texto carrega as
+   * quebras reais do PDF, **toda** linha vem antes de uma quebra forçada — então
+   * todas são "última linha" e nenhuma é justificada. Era por isso que o botão
+   * não fazia nada.
+   *
+   * Pôr `text-align-last: justify` no container resolveria isso e criaria outro
+   * problema: esticaria também a última linha de verdade, que é curta, e uma
+   * última linha esticada é a marca registrada de justificação mal feita. Daí
+   * uma linha por elemento, e a última fica de fora.
+   */
+  private asJustifiedLines(raw: string): string {
+    // Já editado pelo usuário: o contenteditable produz o próprio markup de
+    // linhas (<div>/<br>), e reescrevê-lo destruiria a edição.
+    if (/<div|<br/i.test(raw)) return raw;
+
+    const lines = raw.split('\n');
+    if (lines.length < 2) return raw;
+
+    // Sem atributos: o sanitizador de `[innerHTML]` do Angular remove `style`,
+    // então quem aplica o `text-align-last` é a regra `.pdf-justified > div` em
+    // styles.css, ligada pela classe do container — que é binding de template e
+    // não passa pelo sanitizador.
+    return lines.map((line) => `<div>${line || '<br>'}</div>`).join('');
+  }
+
+  /**
+   * Sessão de digitação em curso, para o histórico ter uma entrada por sessão e
+   * não uma por tecla — a caixa cresce a cada tecla, e sem isso cada caractere
+   * empilharia um "desfazer".
+   */
+  private editingSessionId: string | null = null;
+
+  protected onBlockInput(event: Event, id: string): void {
+    if (this.editingSessionId !== id) {
+      this.saveHistory();
+      this.editingSessionId = id;
+    }
+    this.growBlockToFit(event.target as HTMLElement, id);
   }
 
   protected onBlockBlur(event: FocusEvent, id: string): void {
@@ -1156,16 +1570,83 @@ export class PdfComponent implements OnDestroy {
     const html = el.innerHTML?.trim() || '';
     const text = el.textContent?.trim() || '';
 
+    const sessionSaved = this.editingSessionId === id;
+    this.editingSessionId = null;
+
     const block = this.edits().get(id);
     if (block) {
       const currentHtml = (block.newText ?? block.formattedText ?? block.originalText).trim();
       if (html !== currentHtml && text.length > 0) {
-        this.saveHistory();
+        // O histórico já foi salvo no primeiro caractere da sessão.
+        if (!sessionSaved) this.saveHistory();
         const newEdits = new Map(this.edits());
         newEdits.set(id, { ...block, newText: html });
         this.edits.set(newEdits);
       }
     }
+
+    // Última medida, para o caso de o conteúdo ter chegado por colagem ou
+    // execCommand, que nem sempre disparam 'input'.
+    this.growBlockToFit(el, id);
+  }
+
+  /**
+   * Cresce a caixa do bloco até caber o que foi digitado.
+   *
+   * Sem isto, o texto que passa da caixa fica visível enquanto o bloco está
+   * selecionado (o overflow é liberado na seleção) e **some ao clicar fora** —
+   * parece que o editor comeu o que se acabou de escrever. A caixa vem da bbox
+   * do PDF, que dimensiona o texto original e não tem por que limitar o novo.
+   *
+   * Cresce e nunca encolhe: encolher enquanto se apaga faria a caixa pular a
+   * cada tecla, e o texto abaixo dançar junto. O corpo da fonte não muda — quem
+   * dá lugar é a caixa, como no Acrobat.
+   *
+   * Mede o excesso (`scrollHeight - clientHeight`) em vez da altura total
+   * porque o container de texto é deslocado para compensar a meia-entrelinha, e
+   * comparar alturas absolutas faria a caixa crescer alguns décimos a cada
+   * foco, indefinidamente.
+   */
+  private growBlockToFit(el: HTMLElement, id: string): void {
+    const block = this.edits().get(id);
+    if (!block) return;
+
+    const page = this.loadedPdf()?.pages.find((p) => p.index === block.pageIndex);
+    if (!page) return;
+
+    const zoom = this.scale() || 1;
+    const overflowY = el.scrollHeight - el.clientHeight;
+    const overflowX = el.scrollWidth - el.clientWidth;
+
+    // Zona morta vertical de meia entrelinha. Todo bloco multilinha já nasce com
+    // alguns pixels de "transbordo" que não são texto escapando: a caixa vai do
+    // topo do primeiro glifo à base do último, enquanto a altura do conteúdo
+    // conta o passo inteiro da última linha — sobra o espaço do descendente.
+    // Sem a zona morta, só selecionar e clicar fora engordaria o bloco alguns
+    // pixels, toda vez, para sempre. Uma linha nova de verdade transborda o
+    // passo inteiro e passa folgado.
+    const lineHeightPx = this.getBlockLineHeightPx(block, page.height) * zoom;
+    const deadZoneY = Math.max(2, lineHeightPx * 0.6);
+
+    if (overflowY <= deadZoneY && overflowX <= 1) return;
+
+    const next = { ...block };
+
+    if (overflowY > deadZoneY) {
+      // Não passa da borda inferior da página: além dela o texto ficaria fora
+      // do papel, e o retângulo de cobertura do export junto.
+      next.h = Math.min(1 - block.y, block.h + overflowY / zoom / page.height);
+    }
+
+    if (overflowX > 1) {
+      // Blocos de uma linha só usam `nowrap` e transbordam para o lado, não para
+      // baixo. Aí quem cresce é a largura, até a margem direita da página.
+      next.w = Math.min(0.99 - block.x, block.w + overflowX / zoom / page.width);
+    }
+
+    const newEdits = new Map(this.edits());
+    newEdits.set(id, next);
+    this.edits.set(newEdits);
   }
 
   protected deleteBlock(id: string): void {
@@ -1233,6 +1714,27 @@ export class PdfComponent implements OnDestroy {
     return (block.baseFontSize || this.getBaseFontSize(block, pageHeight, pageHeight)) * (block.fontScale || 1.0) * 1.2;
   }
 
+  /**
+   * Deslocamento vertical (px de página, negativo) do container de texto dentro
+   * da bbox do bloco.
+   *
+   * `block.y` é o topo do glifo da PRIMEIRA linha, medido no PDF. O browser, por
+   * outro lado, centraliza a caixa de conteúdo (~1.15em) dentro da `line-height`
+   * — e a `line-height` aqui é o passo entre baselines do PDF, que é maior que
+   * 1.15em. Essa meia-entrelinha empurraria o bloco inteiro para baixo; aqui ela
+   * é descontada. Em blocos de uma linha só o valor é ~0.
+   */
+  /** Pilha CSS da família do bloco — ver FONT_STACKS. */
+  protected getBlockFontStack(block: TextEdit): string {
+    return FONT_STACKS[block.fontFamily ?? 'Helvetica'] ?? FONT_STACKS.Helvetica;
+  }
+
+  protected getBlockTextTopPx(block: TextEdit, pageHeight: number, pageWidth: number): number {
+    const lineHeightPx = this.getBlockLineHeightPx(block, pageHeight);
+    const fontPx = this.getBlockFontPx(block, pageHeight, pageWidth);
+    return -Math.max(0, (lineHeightPx - fontPx * 1.15) / 2);
+  }
+
   protected getBlockScalePercent(id: string): string {
     const block = this.edits().get(id);
     if (!block) return '100%';
@@ -1269,6 +1771,37 @@ export class PdfComponent implements OnDestroy {
 
   protected isBlockItalic(id: string): boolean {
     return this.edits().get(id)?.italic ?? false;
+  }
+
+  protected getBlockAlign(id: string): NonNullable<TextEdit['textAlign']> {
+    return this.edits().get(id)?.textAlign ?? 'left';
+  }
+
+  /**
+   * Define o alinhamento do bloco à mão.
+   *
+   * O `mergeNativeParagraphs` infere centralizado/justificado pela geometria —
+   * margens simétricas, centros de linha coincidentes, largura de margem a
+   * margem. Isso acerta a maioria dos casos e erra nos ambíguos, que são
+   * justamente os que o usuário nota. Daí o controle manual.
+   *
+   * Marca `styleModified` e materializa `newText`: sem isso o bloco continuaria
+   * "intocado" e o exporter não redesenharia nada, então o alinhamento sumiria
+   * no arquivo final.
+   */
+  protected setBlockAlign(id: string, align: NonNullable<TextEdit['textAlign']>): void {
+    const block = this.edits().get(id);
+    if (!block || block.textAlign === align) return;
+
+    this.saveHistory();
+    const newEdits = new Map(this.edits());
+    newEdits.set(id, {
+      ...block,
+      textAlign: align,
+      styleModified: true,
+      newText: block.newText ?? block.formattedText ?? block.originalText,
+    });
+    this.edits.set(newEdits);
   }
 
   protected toggleBlockItalic(id: string): void {
@@ -1403,10 +1936,15 @@ export class PdfComponent implements OnDestroy {
     this.edits.set(new Map());
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
+    this.resetRasterState();
+    this.renderWarning.set(null);
     this.selectedBlock.set(null);
   }
 
   ngOnDestroy(): void {
     void this.ocr.terminate();
+    this.viewportObserver?.disconnect();
+    if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
+    if (this.zoomAnimFrame !== null) cancelAnimationFrame(this.zoomAnimFrame);
   }
 }
