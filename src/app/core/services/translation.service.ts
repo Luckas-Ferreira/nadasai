@@ -36,9 +36,10 @@ const EN = {
   'nav.convert': 'Convert',
   'nav.resize': 'Resize',
   'nav.img_to_pdf': 'Images to PDF',
-  // Qualified with "PDF" on purpose: the rail shows the image and PDF modules at
-  // the same time, and two links reading exactly "Compress" are ambiguous to a
-  // screen reader, which announces the name with no idea which group it sits in.
+  // Qualified with "PDF" on purpose. The rail is scoped to one module now, but the
+  // command palette lists every module at once, and two results reading exactly
+  // "Compress" are ambiguous — to a screen reader most of all, which announces the
+  // name with no idea which group it sits in.
   'nav.merge_pdf': 'Merge PDF',
   'nav.compress_pdf': 'Compress PDF',
   'nav.split_pdf': 'Split PDF',
@@ -63,9 +64,26 @@ const EN = {
   'nav.short.sign_pdf': 'Sign',
   'nav.short.watermark_pdf': 'Watermark',
 
+  'module.image': 'Image',
+  'module.image_desc': 'Cut out, crop, compress, convert and resize.',
+  'module.pdf': 'PDF',
+  'module.pdf_desc': 'Edit, merge, split, protect and sign.',
+
+  'nav.modules': 'All modules',
+  'nav.module_current': 'Current module',
+  'nav.module_switch': 'Switch module',
+  'nav.module_tools': 'Tools in this module',
+  'nav.search': 'Search',
+  'nav.search_open': 'Search tools',
+  'nav.search_placeholder': 'What do you want to do?',
+  'nav.search_empty': 'No tool matches that.',
+  'nav.search_hint': '↑↓ to move · Enter to open · Esc to close',
+  'nav.home': 'Home',
+
   'hero.title': 'Your files never leave your computer.',
   'hero.subtitle':
     'No upload, no server. Everything — including the AI — runs right here, inside your browser. You do not have to take our word for it: the counter below is live.',
+  'hero.badge': '100% local processing · zero upload',
   'hero.sample': 'Use a sample image',
   'hero.sample_hint': 'No file at hand? Start with ours.',
   'hero.module_image': 'Module: Image',
@@ -414,9 +432,26 @@ const PT: Record<TranslationKey, string> = {
   'nav.short.sign_pdf': 'Assinar',
   'nav.short.watermark_pdf': 'Marca d\'Água',
 
+  'module.image': 'Imagem',
+  'module.image_desc': 'Recortar, cortar, comprimir, converter e redimensionar.',
+  'module.pdf': 'PDF',
+  'module.pdf_desc': 'Editar, juntar, dividir, proteger e assinar.',
+
+  'nav.modules': 'Todos os módulos',
+  'nav.module_current': 'Módulo atual',
+  'nav.module_switch': 'Trocar de módulo',
+  'nav.module_tools': 'Ferramentas deste módulo',
+  'nav.search': 'Buscar',
+  'nav.search_open': 'Buscar ferramentas',
+  'nav.search_placeholder': 'O que você quer fazer?',
+  'nav.search_empty': 'Nenhuma ferramenta corresponde.',
+  'nav.search_hint': '↑↓ para navegar · Enter para abrir · Esc para fechar',
+  'nav.home': 'Início',
+
   'hero.title': 'Seus arquivos não saem do seu computador.',
   'hero.subtitle':
     'Sem upload, sem servidor. Tudo — inclusive a inteligência artificial — roda aqui dentro, no seu navegador. E você não precisa acreditar: o contador abaixo é ao vivo.',
+  'hero.badge': '100% processamento local · zero upload',
   'hero.sample': 'Usar uma imagem de exemplo',
   'hero.sample_hint': 'Sem arquivo à mão? Comece com a nossa.',
   'hero.module_image': 'Módulo: Imagem',

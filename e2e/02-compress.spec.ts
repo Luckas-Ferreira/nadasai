@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDownload, openApp, primary, upload } from './helpers';
+import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
 
 test.describe('Comprimir', () => {
   test('compresses, reports savings, re-runs at a new quality and downloads WebP', async ({ page }) => {
@@ -70,12 +70,15 @@ test.describe('Comprimir', () => {
     await expect(page.getByRole('button', { name: 'Continuar editando' })).toBeVisible({ timeout: 30_000 });
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    await expect(page).toHaveURL(/localhost:4200\/$/);
+    // `/` redirects to the language root. Asserted without the port, which was
+    // hardcoded to 4200 and made the spec unrunnable against any other server.
+    await expect(page).toHaveURL(/\/pt$/);
     await expect(page.getByText('photo-min.webp')).toBeVisible();
     await expect(page.getByText('O que você quer fazer com ela?')).toBeVisible();
 
-    // The next tool hydrates from the chain — no second upload.
-    await page.getByRole('navigation', { name: 'Ferramentas' }).first().getByRole('link', { name: 'Redimensionar' }).click();
+    // The next tool hydrates from the chain — no second upload. Picked from the
+    // home grid: the rail is scoped to a module and the home belongs to none.
+    await pickFromHome(page, 'Redimensionar');
     await expect(page.getByRole('button', { name: 'Redimensionar', exact: true })).toBeVisible();
     await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
   });

@@ -38,6 +38,36 @@ export type ToolTone =
 
 export type ToolCategory = 'image' | 'pdf';
 
+/**
+ * A module is a family of tools, and it is the unit the shell navigates by.
+ *
+ * The rail lists the tools of ONE module — never all of them — because the tool
+ * list grows with every module while the viewport does not. At 15 tools the old
+ * global rail already ran past the bottom of a 700px window with no scroll, and
+ * the fix is not a scrollbar: it is scoping the list to what you are working on.
+ * So the length of the rail depends on the size of a module, and adding the
+ * fourth or the tenth module costs nothing in that layout.
+ *
+ * Adding a module is: an id here, an entry in MODULES, the two dictionary keys,
+ * and tools carrying that `category`. The rail, the switcher, the palette, the
+ * mobile bar and the home grid all read from this.
+ */
+export type ModuleId = ToolCategory;
+
+export interface ModuleDef {
+  readonly id: ModuleId;
+  readonly icon: IconName;
+  readonly nameKey: TranslationKey;
+  readonly descKey: TranslationKey;
+  /** Same `tone-*` contract as ToolDef: the value must exist in styles.css. */
+  readonly tone: ToolTone;
+}
+
+export const MODULES: readonly ModuleDef[] = [
+  { id: 'image', icon: 'image', nameKey: 'module.image', descKey: 'module.image_desc', tone: 'sky' },
+  { id: 'pdf', icon: 'pdf', nameKey: 'module.pdf', descKey: 'module.pdf_desc', tone: 'rose' },
+];
+
 export interface ToolDef {
   readonly id: ToolId;
   readonly pathPt: string;
@@ -257,4 +287,39 @@ export function toolById(id: ToolId): ToolDef {
   const tool = TOOLS.find((t) => t.id === id);
   if (!tool) throw new Error(`Unknown tool: ${id}`);
   return tool;
+}
+
+export function moduleById(id: ModuleId): ModuleDef {
+  const found = MODULES.find((m) => m.id === id);
+  if (!found) throw new Error(`Unknown module: ${id}`);
+  return found;
+}
+
+/** The tools of one module, in declaration order — which is the order the rail shows. */
+export function toolsOfModule(id: ModuleId): readonly ToolDef[] {
+  return TOOLS.filter((t) => t.category === id);
+}
+
+/**
+ * The localized path of a tool, without the language prefix.
+ *
+ * Every template used to inline `lang === 'en' ? tool.pathEn : tool.pathPt`, so
+ * each new nav surface repeated the conditional and any of them could drift.
+ */
+export function toolPath(tool: ToolDef, lang: 'pt' | 'en'): string {
+  return lang === 'en' ? tool.pathEn : tool.pathPt;
+}
+
+/**
+ * Resolves a router URL back to the tool it belongs to, matching either language.
+ *
+ * Matching the *path* rather than tracking navigation by hand is what keeps this
+ * honest across the legacy redirects: `/remove-bg` and `/imagem/remover-fundo`
+ * both land on `/pt/imagem/remover-fundo`, and only the final URL is consulted.
+ */
+export function toolFromUrl(url: string): ToolDef | null {
+  const path = url.split(/[?#]/)[0].replace(/\/+$/, '');
+  return (
+    TOOLS.find((t) => path.endsWith(`/${t.pathPt}`) || path.endsWith(`/${t.pathEn}`)) ?? null
+  );
 }
