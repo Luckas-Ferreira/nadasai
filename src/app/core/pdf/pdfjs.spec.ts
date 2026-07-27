@@ -48,6 +48,13 @@ describe('pageRenderScale', () => {
     expect(pageRenderScale({ ...A4, pageCount: 20, displayScale: 1 })).toBeGreaterThanOrEqual(2);
   });
 
+  it('entrega nitidez máxima quando recebe a janela de viewport, não o documento', () => {
+    // O componente passa o tamanho da janela de rasterização (6), e é isso que
+    // desacopla a nitidez do tamanho do documento: mesmo no zoom máximo, uma
+    // janela de 6 páginas cabe no orçamento sem nenhum corte.
+    expect(pageRenderScale({ ...A4, pageCount: 6, displayScale: 3 })).toBe(4);
+  });
+
   it('leva em conta a densidade da tela', () => {
     // Em displayScale 1 os dois lados ainda estão longe do teto; a 2 ambos
     // saturam em MAX_SCALE e o teste não mediria nada.
