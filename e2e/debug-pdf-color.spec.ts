@@ -1,10 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const PDF = join(__dirname, '..', '[AL] Edital Centelha 3  28-05-2026.pdf');
 
 test('edit-pdf: clicking a text block should show visible dark text (not white)', async ({ page }) => {
-  await page.goto('/pt/edit-pdf');
+  // Como os demais probes: o PDF fica solto na raiz e só existe na máquina de
+  // quem está depurando, então o teste pula em vez de falhar.
+  test.skip(!existsSync(PDF), `coloque o arquivo em ${PDF}`);
+
+  await page.goto('/pt/pdf/editar');
 
   // Upload the PDF
   await page.locator('input[type=file]').first().setInputFiles(PDF);

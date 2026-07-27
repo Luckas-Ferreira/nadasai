@@ -173,24 +173,29 @@ export class PdfExporterService {
                 : (scaledH * height) / lineCount)
             : fontSize * 1.2;
 
+          const fontFor = (seg: TextSegment) => {
+            if (seg.bold && seg.italic) return fontConfig.boldItalic;
+            if (seg.bold) return fontConfig.bold;
+            if (seg.italic) return fontConfig.italic;
+            return fontConfig.normal;
+          };
+
+          const boxWidth = edit.w * width;
+
           for (let l = 0; l < rawLines.length; l++) {
             const lineStr = rawLines[l];
             const segments = parseFormattedLine(lineStr, edit.bold ?? false, edit.italic ?? false);
 
             let totalLineWidth = 0;
             for (const seg of segments) {
-              let f = fontConfig.normal;
-              if (seg.bold && seg.italic) f = fontConfig.boldItalic;
-              else if (seg.bold) f = fontConfig.bold;
-              else if (seg.italic) f = fontConfig.italic;
-              totalLineWidth += f.widthOfTextAtSize(seg.text, fontSize);
+              totalLineWidth += fontFor(seg).widthOfTextAtSize(seg.text, fontSize);
             }
 
             let startX = edit.x * width;
             if (edit.textAlign === 'center') {
-              startX += Math.max(0, (edit.w * width - totalLineWidth) / 2);
+              startX += Math.max(0, (boxWidth - totalLineWidth) / 2);
             } else if (edit.textAlign === 'right') {
-              startX += Math.max(0, edit.w * width - totalLineWidth);
+              startX += Math.max(0, boxWidth - totalLineWidth);
             }
 
             const baseLineY = height - (edit.y + scaledH) * height + (scaledH * height * 0.25);
@@ -198,13 +203,45 @@ export class PdfExporterService {
               ? height - (edit.y * height) - (l * lineSpacing) - fontSize
               : baseLineY;
 
+            // ── Justificado ──────────────────────────────────────────────
+            // A última linha de um parágrafo nunca é esticada — é o que
+            // distingue justificação de "linha esticada à força", e é o padrão
+            // tipográfico que todo leitor reconhece sem saber nomear.
+            const isLastLine = l === rawLines.length - 1;
+            if (edit.textAlign === 'justify' && !isLastLine) {
+              const words: { text: string; font: (typeof fontConfig)['normal'] }[] = [];
+              for (const seg of segments) {
+                const f = fontFor(seg);
+                for (const w of seg.text.split(/\s+/)) {
+                  if (w) words.push({ text: w, font: f });
+                }
+              }
+
+              if (words.length > 1) {
+                const wordsWidth = words.reduce(
+                  (sum, w) => sum + w.font.widthOfTextAtSize(w.text, fontSize),
+                  0,
+                );
+                const gapWidth = (boxWidth - wordsWidth) / (words.length - 1);
+                const naturalSpace = fontConfig.normal.widthOfTextAtSize(' ', fontSize);
+
+                // Só justifica quando a linha realmente enche a medida. Uma
+                // linha curta demais renderia espaços enormes entre poucas
+                // palavras — pior do que deixá-la alinhada à esquerda.
+                if (gapWidth > 0 && gapWidth < naturalSpace * 4) {
+                  let x = edit.x * width;
+                  for (const w of words) {
+                    page.drawText(w.text, { x, y: lineY, size: fontSize, font: w.font, color: rgb(r, g, b) });
+                    x += w.font.widthOfTextAtSize(w.text, fontSize) + gapWidth;
+                  }
+                  continue;
+                }
+              }
+            }
+
             let currentX = startX;
             for (const seg of segments) {
-              let f = fontConfig.normal;
-              if (seg.bold && seg.italic) f = fontConfig.boldItalic;
-              else if (seg.bold) f = fontConfig.bold;
-              else if (seg.italic) f = fontConfig.italic;
-
+              const f = fontFor(seg);
               page.drawText(seg.text, {
                 x: currentX,
                 y: lineY,
