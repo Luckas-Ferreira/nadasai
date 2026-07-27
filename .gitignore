@@ -54,3 +54,9 @@ public/tessdata/
 
 # Terminal Paste Image folder
 .cp-images/
+
+# PDFs largados na raiz para depurar o editor. São documentos reais de quem está
+# depurando — históricos, editais, contratos — e costumam trazer CPF, RG e
+# endereço. Os probes em e2e/debug-*.spec.ts leem daqui e pulam se não acharem.
+/*.pdf
+probe-*.png
