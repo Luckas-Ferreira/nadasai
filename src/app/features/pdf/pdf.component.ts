@@ -20,6 +20,7 @@ import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
 import { baseFontSize, fitFontSizeToWidth } from './services/font-metrics';
 import { mergeNativeParagraphs } from './services/paragraph-merger';
+import { renderPageIntoCanvas, fitRenderScale } from '../../core/pdf/pdfjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -33,6 +34,23 @@ import { PdfPasswordPromptComponent } from '../../shared/ui/pdf-password-prompt.
 export type EditorTool = 'select' | 'add_text' | 'erase';
 
 const OCR_RENDER_SCALE = 3;
+
+/**
+ * Famílias do pdf-lib → pilhas CSS reais.
+ *
+ * `fontFamily` guarda o nome que o pdf-lib usa no export ('TimesRoman',
+ * 'Courier'), e esses nomes iam direto para o `font-family` do overlay. Nenhum
+ * browser conhece "TimesRoman": a família não resolvia, o texto renderizava na
+ * fonte padrão e ficava mais largo do que o `fitFontSizeToWidth` mediu — o que,
+ * com as quebras agora preservadas, gera uma linha extra e desloca o bloco.
+ */
+const FONT_STACKS: Record<NonNullable<TextEdit['fontFamily']>, string> = {
+  Helvetica: 'Helvetica, Arial, sans-serif',
+  Arial: 'Arial, Helvetica, sans-serif',
+  TimesRoman: '"Times New Roman", Times, serif',
+  Courier: '"Courier New", Courier, monospace',
+  Symbol: 'Helvetica, Arial, sans-serif',
+};
 
 export interface TextEdit {
   id: string;
@@ -83,6 +101,15 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
       @if (status() === 'error' && errorMessage()) {
         <div banner class="mb-5">
           <app-alert [message]="errorMessage()" [actionLabel]="i18n.t()['common.reset']" (action)="reset()" />
+        </div>
+      } @else if (renderWarning()) {
+        <div banner class="mb-5">
+          <app-alert
+            [message]="renderWarning()!"
+            tone="info"
+            dismissible
+            (dismiss)="renderWarning.set(null)"
+          />
         </div>
       }
 
@@ -185,10 +212,11 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                           [class.overflow-visible]="selectedBlock() === block.id"
                           [style.fontSize.px]="getBlockFontPx(block, page.height, page.width) * scale()"
                           [style.lineHeight.px]="getBlockLineHeightPx(block, page.height) * scale()"
+                          [style.top.px]="getBlockTextTopPx(block, page.height, page.width) * scale()"
                           [style.fontWeight]="block.bold ? 'bold' : 'normal'"
                           [style.fontStyle]="block.italic ? 'italic' : 'normal'"
                           [style.textAlign]="block.textAlign || 'left'"
-                          [style.fontFamily]="block.fontFamily || 'Helvetica, Arial, sans-serif'"
+                          [style.fontFamily]="getBlockFontStack(block)"
                           [style.fontStretch]="block.source === 'native' ? 'normal' : 'condensed'"
                           [style.color]="(!canvasRendered().has(page.index) || selectedBlock() === block.id || block.newText !== null || block.deleted) ? ((block.color && !isLightColor(block.color)) ? block.color : '#000000') : 'transparent'"
                           [style.background]="block.bgColor || ((selectedBlock() === block.id || block.newText !== null) ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : 'transparent')"
@@ -303,13 +331,18 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
             </div>
 
             <!-- Page selector / info -->
-            <div class="mt-4 flex items-center justify-between border-t border-line pt-3">
-              <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ loadedPdf()!.pageCount }}</span>
-              <div class="flex items-center gap-1">
-                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
-                <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= loadedPdf()!.pageCount" (click)="currentPage.set(currentPage() + 1)">›</button>
+            <!-- Guardado por loadedPdf(), não por status(): o painel abre em
+                 'loading', quando ainda não há documento, e a asserção não-nula
+                 estourava a cada ciclo de detecção de mudanças. -->
+            @if (loadedPdf(); as pdf) {
+              <div class="mt-4 flex items-center justify-between border-t border-line pt-3">
+                <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ pdf.pageCount }}</span>
+                <div class="flex items-center gap-1">
+                  <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
+                  <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="currentPage.set(currentPage() + 1)">›</button>
+                </div>
               </div>
-            </div>
+            }
 
             <!-- OCR tool option -->
             <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
@@ -475,6 +508,14 @@ export class PdfComponent implements OnDestroy {
   protected readonly pdfPassword = signal<string | null>(null);
   protected readonly passwordError = signal<string | null>(null);
   protected readonly errorMessage = signal('');
+
+  /**
+   * Falha ao rasterizar uma ou mais páginas. Não é fatal — o editor continua
+   * utilizável porque o overlay de texto vira texto preto visível — mas é o
+   * estado em que a página perde logos, tabelas e bordas, e sem aviso ele se
+   * parece com "o editor comeu meu documento".
+   */
+  protected readonly renderWarning = signal<string | null>(null);
   protected readonly loadedPdf = signal<LoadedPdf | null>(null);
   protected readonly currentPage = signal(1);
   protected readonly scale = signal(1.0);
@@ -579,6 +620,7 @@ export class PdfComponent implements OnDestroy {
     this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
+    this.renderWarning.set(null);
     this.passwordError.set(null);
     this.pendingFile.set(file);
 
@@ -599,34 +641,42 @@ export class PdfComponent implements OnDestroy {
             const id = `p${page.index}-native-${i}`;
 
             const lineCount = Math.max(1, b.lineCount || 1);
-            const singleLineHPx = (b.h / lineCount) * page.height;
-            // Use a slightly smaller multiplier for multiline blocks (0.72 vs 0.82)
-            // to allow for browser word-wrap slack, avoiding the creation of extra lines
-            // that cause vertical overflow beyond the bounding box.
-            let calculatedFontSize = singleLineHPx * (lineCount > 1 ? 0.72 : 0.82);
-            // fitFontSizeToWidth assumes single-line text width. Applying it to
-            // multi-line text forces the font to grow gigantically.
-            if (lineCount === 1) {
-              const availWidthPx = b.w * page.width;
-              calculatedFontSize = Math.min(
-                singleLineHPx * 0.85,
-                fitFontSizeToWidth(b.text, availWidthPx, singleLineHPx * 0.85, b.bold ?? false),
-              );
-            }
+            // Corpo da fonte = caixa de UMA linha, medida pelo merger. Antes vinha
+            // de `h / lineCount`, que é o passo médio (caixa + entrelinha) e por
+            // isso vinha grande demais — daí o 0.72 de compensação em blocos
+            // multilinha, que encolhia o texto em relação ao original.
+            const singleLineHPx = b.lineBoxH * page.height;
+            // O texto agora carrega as quebras reais ('\n'), então NENHUMA linha
+            // pode estourar a largura: com pre-wrap, uma linha que estoura vira
+            // duas e empurra todo o resto do bloco para baixo. Daí o mínimo sobre
+            // todas as linhas, e não sobre a mais longa em caracteres — a mais
+            // longa em caracteres nem sempre é a mais larga em pixels.
+            const hint = singleLineHPx * 0.85;
+            const availWidthPx = b.w * page.width;
+            const fontStack = FONT_STACKS[b.fontFamily ?? 'Helvetica'];
+            const calculatedFontSize = b.lineTexts.reduce(
+              (min, lineText) =>
+                Math.min(min, fitFontSizeToWidth(lineText, availWidthPx, hint, b.bold ?? false, fontStack)),
+              hint,
+            );
 
-            let blockW = b.w;
-            if (lineCount === 1) {
-              blockW = Math.min(0.96 - b.x, b.w * 1.08);
-            }
+            // Folga horizontal: medir com Helvetica nunca bate exatamente com a
+            // fonte embarcada, e 1% de estouro joga a última palavra para a linha
+            // seguinte. Blocos centralizados crescem para os dois lados, senão o
+            // centro visual desliza para a direita.
+            const grownW = Math.min(0.99 - b.x, b.w * 1.06);
+            const isCentered = (b.textAlign ?? 'left') === 'center';
+            const blockW = grownW;
+            const blockX = isCentered ? Math.max(0, b.x - (grownW - b.w) / 2) : b.x;
 
             const blockObj = {
               id,
               pageIndex: page.index,
-              x: b.x,
+              x: blockX,
               y: b.y,
               w: blockW,
               h: b.h,
-              lineHeight: b.h / lineCount,
+              lineHeight: b.lineHeight,
               originalText: b.text,
               formattedText: b.formattedText,
               newText: null,
@@ -836,9 +886,11 @@ export class PdfComponent implements OnDestroy {
     }
     if (!this.pageCanvases || this.pageCanvases.length === 0) return;
 
-    // Calculate initial scale to fit width (only on first load)
+    // Calculate initial scale to fit width (only on first load).
+    // O contêiner de rolagem usa `overflow-auto`; o seletor procurava
+    // `.overflow-y-auto` e nunca casava, então o ajuste à largura nunca rodava.
     if (this.scale() === 1.0) {
-      const container = this.pageCanvases.first.nativeElement.closest('.overflow-y-auto') as HTMLElement;
+      const container = this.pageCanvases.first.nativeElement.closest('.overflow-auto') as HTMLElement;
       if (container && pdf.pages[0]) {
         const availableWidth = container.clientWidth - 80; // p-6 padding + margin
         if (pdf.pages[0].width > availableWidth) {
@@ -848,30 +900,46 @@ export class PdfComponent implements OnDestroy {
       }
     }
 
+    // Renderiza em alta definição para supersampling nítido, mas com o total de
+    // pixels de todas as páginas dentro de um orçamento: um histórico de 6
+    // páginas a 3.2× pede ~120 MB de canvas, e ao estourar o navegador devolve
+    // páginas em branco silenciosamente — o texto do overlay aparecia sozinho,
+    // sem os logos, tabelas e bordas do documento.
+    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+    const maxScale = Math.max(3.2, Math.round(dpr * 2.0 * 10) / 10);
+    const first = pdf.pages[0];
+    const renderScale = first
+      ? fitRenderScale(first.width, first.height, pdf.pages.length, maxScale)
+      : maxScale;
+
     // Render each page to its respective canvas
+    const failed: number[] = [];
     for (const canvasRef of this.pageCanvases) {
       const target = canvasRef.nativeElement;
       const pageIndex = Number(target.dataset['page']);
       if (!pageIndex) continue;
 
       try {
-        // Renderiza em alta definição (3.0x - 3.5x dependendo da densidade da tela HiDPI/Retina)
-        // para supersampling cristalino, mantendo a imagem base do PDF tão nítida e afiada
-        // quanto os textos HTML editados pelo usuário.
-        const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-        const renderScale = Math.max(3.2, Math.round(dpr * 2.0 * 10) / 10);
-        const canvas = await this.loader.renderPageToCanvas(pdf.doc, pageIndex, renderScale);
-        target.width = canvas.width;
-        target.height = canvas.height;
-        target.getContext('2d')!.drawImage(canvas, 0, 0);
+        // Renderiza direto no canvas do DOM — passar por um canvas offscreen e
+        // copiar dobrava a memória alocada durante o laço.
+        await renderPageIntoCanvas(pdf.doc, pageIndex, renderScale, target);
 
         const rendered = new Set(this.canvasRendered());
         rendered.add(pageIndex);
         this.canvasRendered.set(rendered);
       } catch (err) {
         console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
+        failed.push(pageIndex);
       }
     }
+
+    this.renderWarning.set(
+      failed.length === 0
+        ? null
+        : `Não foi possível desenhar ${failed.length === 1 ? 'a página ' + failed[0] : failed.length + ' páginas'}. ` +
+          `O texto continua editável, mas imagens, tabelas e bordas não aparecem no editor. ` +
+          `Elas continuam intactas no arquivo exportado.`,
+    );
   }
 
   private zoomAnimFrame: number | null = null;
@@ -1231,6 +1299,27 @@ export class PdfComponent implements OnDestroy {
       return block.lineHeight * pageHeight * (block.fontScale || 1.0);
     }
     return (block.baseFontSize || this.getBaseFontSize(block, pageHeight, pageHeight)) * (block.fontScale || 1.0) * 1.2;
+  }
+
+  /**
+   * Deslocamento vertical (px de página, negativo) do container de texto dentro
+   * da bbox do bloco.
+   *
+   * `block.y` é o topo do glifo da PRIMEIRA linha, medido no PDF. O browser, por
+   * outro lado, centraliza a caixa de conteúdo (~1.15em) dentro da `line-height`
+   * — e a `line-height` aqui é o passo entre baselines do PDF, que é maior que
+   * 1.15em. Essa meia-entrelinha empurraria o bloco inteiro para baixo; aqui ela
+   * é descontada. Em blocos de uma linha só o valor é ~0.
+   */
+  /** Pilha CSS da família do bloco — ver FONT_STACKS. */
+  protected getBlockFontStack(block: TextEdit): string {
+    return FONT_STACKS[block.fontFamily ?? 'Helvetica'] ?? FONT_STACKS.Helvetica;
+  }
+
+  protected getBlockTextTopPx(block: TextEdit, pageHeight: number, pageWidth: number): number {
+    const lineHeightPx = this.getBlockLineHeightPx(block, pageHeight);
+    const fontPx = this.getBlockFontPx(block, pageHeight, pageWidth);
+    return -Math.max(0, (lineHeightPx - fontPx * 1.15) / 2);
   }
 
   protected getBlockScalePercent(id: string): string {

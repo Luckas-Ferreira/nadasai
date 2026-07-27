@@ -163,7 +163,15 @@ export class PdfExporterService {
 
           const rawLines = edit.newText.replace(/<br\s*\/?>/gi, '\n').replace(/<\/div>\s*<div>/gi, '\n').split('\n');
           const lineCount = rawLines.length;
-          const lineSpacing = lineCount > 1 ? (scaledH * height) / lineCount : fontSize * 1.2;
+          // Passo entre baselines: usa o passo real medido na origem quando existe.
+          // `h / lineCount` é o passo médio contando a caixa da última linha, então
+          // subestima em ~1/n e faz o bloco encolher para cima linha a linha — o
+          // mesmo erro que o overlay tinha.
+          const lineSpacing = lineCount > 1
+            ? (edit.lineHeight != null
+                ? edit.lineHeight * height * (edit.fontScale || 1.0)
+                : (scaledH * height) / lineCount)
+            : fontSize * 1.2;
 
           for (let l = 0; l < rawLines.length; l++) {
             const lineStr = rawLines[l];
