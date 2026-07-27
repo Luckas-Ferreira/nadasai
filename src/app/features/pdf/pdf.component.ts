@@ -18,7 +18,7 @@ import { PdfLoaderService, isLightColor, type LoadedPdf, type PdfPageInfo } from
 import { OcrService, type OcrBlock, type OcrLang } from './services/ocr.service';
 import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
-import { baseFontSize, fitFontSizeToWidth } from './services/font-metrics';
+import { baseFontSize, fitFontSizeToWidth, measureTextWidth } from './services/font-metrics';
 import { mergeNativeParagraphs } from './services/paragraph-merger';
 import { renderPageIntoCanvas, renderPageToCanvas, releaseCanvas, pageRenderScale } from '../../core/pdf/pdfjs';
 import { CommonModule } from '@angular/common';
@@ -220,6 +220,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                           [style.fontStretch]="block.source === 'native' ? 'normal' : 'condensed'"
                           [style.color]="(!canvasRendered().has(page.index) || selectedBlock() === block.id || block.newText !== null || block.deleted) ? ((block.color && !isLightColor(block.color)) ? block.color : '#000000') : 'transparent'"
                           [style.background]="block.bgColor || ((selectedBlock() === block.id || block.newText !== null) ? (inpaintBg().get(block.id) || 'rgb(255,255,255)') : 'transparent')"
+                          [class.pdf-justified]="block.textAlign === 'justify'"
                           [style.whiteSpace]="(block.lineHeight && block.h <= block.lineHeight * 1.3) ? 'nowrap' : 'pre-wrap'"
                           style="word-break: normal; overflow-wrap: normal;"
                           [attr.contenteditable]="activeTool() === 'select' && selectedBlock() === block.id ? 'true' : 'false'"
@@ -721,17 +722,28 @@ export class PdfComponent implements OnDestroy {
             const hint = singleLineHPx * 0.85;
             const availWidthPx = b.w * page.width;
             const fontStack = FONT_STACKS[b.fontFamily ?? 'Helvetica'];
-            const calculatedFontSize = b.lineTexts.reduce(
+            let calculatedFontSize = b.lineTexts.reduce(
               (min, lineText) =>
                 Math.min(min, fitFontSizeToWidth(lineText, availWidthPx, hint, b.bold ?? false, fontStack)),
               hint,
             );
 
-            // Folga horizontal: medir com Helvetica nunca bate exatamente com a
-            // fonte embarcada, e 1% de estouro joga a última palavra para a linha
-            // seguinte. Blocos centralizados crescem para os dois lados, senão o
-            // centro visual desliza para a direita.
-            const grownW = Math.min(0.99 - b.x, b.w * 1.06);
+            // `fitFontSizeToWidth` aceita até 5% de folga sem ajustar, para não
+            // oscilar. Aqui a folga tem de ser zero: qualquer linha mais larga
+            // que a caixa quebra em duas e empurra o bloco inteiro para baixo.
+            // Mede e corrige o corpo, em vez de compensar alargando a caixa.
+            const widest = Math.max(
+              ...b.lineTexts.map((t) => measureTextWidth(t, calculatedFontSize, b.bold ?? false, fontStack)),
+            );
+            if (widest > availWidthPx && widest > 0) {
+              calculatedFontSize *= availWidthPx / widest;
+            }
+
+            // Com o corpo medido, 1% de folga basta. Era 6% para absorver a
+            // tolerância acima, e uma caixa 6% mais larga que o texto desloca
+            // blocos centralizados e estica os justificados para fora da margem
+            // original. Blocos centralizados crescem para os dois lados.
+            const grownW = Math.min(0.99 - b.x, b.w * 1.01);
             const isCentered = (b.textAlign ?? 'left') === 'center';
             const blockW = grownW;
             const blockX = isCentered ? Math.max(0, b.x - (grownW - b.w) / 2) : b.x;
@@ -1490,7 +1502,39 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected getBlockHtml(block: TextEdit): string {
-    return block.newText !== null ? block.newText : (block.formattedText || block.originalText);
+    const raw = block.newText !== null ? block.newText : (block.formattedText || block.originalText);
+    return block.textAlign === 'justify' ? this.asJustifiedLines(raw) : raw;
+  }
+
+  /**
+   * Reescreve um texto com quebras rígidas como uma linha por `<div>`, com
+   * `text-align-last: justify` em todas menos a última.
+   *
+   * `text-align: justify` sozinho não faz nada aqui, e isso é o CSS funcionando
+   * como especificado: a propriedade não estica a última linha de um bloco nem a
+   * linha imediatamente antes de uma quebra forçada. Como o texto carrega as
+   * quebras reais do PDF, **toda** linha vem antes de uma quebra forçada — então
+   * todas são "última linha" e nenhuma é justificada. Era por isso que o botão
+   * não fazia nada.
+   *
+   * Pôr `text-align-last: justify` no container resolveria isso e criaria outro
+   * problema: esticaria também a última linha de verdade, que é curta, e uma
+   * última linha esticada é a marca registrada de justificação mal feita. Daí
+   * uma linha por elemento, e a última fica de fora.
+   */
+  private asJustifiedLines(raw: string): string {
+    // Já editado pelo usuário: o contenteditable produz o próprio markup de
+    // linhas (<div>/<br>), e reescrevê-lo destruiria a edição.
+    if (/<div|<br/i.test(raw)) return raw;
+
+    const lines = raw.split('\n');
+    if (lines.length < 2) return raw;
+
+    // Sem atributos: o sanitizador de `[innerHTML]` do Angular remove `style`,
+    // então quem aplica o `text-align-last` é a regra `.pdf-justified > div` em
+    // styles.css, ligada pela classe do container — que é binding de template e
+    // não passa pelo sanitizador.
+    return lines.map((line) => `<div>${line || '<br>'}</div>`).join('');
   }
 
   protected onBlockBlur(event: FocusEvent, id: string): void {

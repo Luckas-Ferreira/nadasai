@@ -122,6 +122,28 @@ export function fitFontSizeToWidth(
   return Math.max(4, (lo + hi) / 2);
 }
 
+/**
+ * Largura real de um texto, em px, na fonte e no corpo informados.
+ *
+ * Existe porque `fitFontSizeToWidth` aceita até 5% de folga sem ajustar (para
+ * não ficar instável), e esses 5% obrigavam a alargar a caixa do bloco em 6%
+ * para o texto não quebrar. Uma caixa 6% mais larga que o texto desloca blocos
+ * centralizados e, num bloco justificado, estica as linhas para além da margem
+ * original do documento. Com a medição exata dá para corrigir o corpo e manter
+ * a caixa na medida real.
+ */
+export function measureTextWidth(
+  text: string,
+  fontSizePx: number,
+  bold = false,
+  fontFamily = 'Helvetica, Arial, sans-serif',
+): number {
+  if (!text) return 0;
+  const ctx = _getMeasureCtx();
+  ctx.font = `${bold ? 'bold' : 'normal'} ${fontSizePx}px ${fontFamily}`;
+  return ctx.measureText(text).width;
+}
+
 /** Canvas singleton de medição — criado uma vez, nunca adicionado ao DOM. */
 let _measureCanvas: HTMLCanvasElement | null = null;
 let _measureCtx: CanvasRenderingContext2D | null = null;
