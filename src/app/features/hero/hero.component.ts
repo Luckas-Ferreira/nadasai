@@ -5,6 +5,7 @@ import { TOOLS } from '../../core/tools/tools';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import type { IconName } from '../../shared/ui/icon/icons';
 import { NetworkProofComponent } from '../../shared/ui/network-proof.component';
+import { FaqComponent } from '../../shared/ui/faq.component';
 
 /**
  * The modules the zero-upload engine expands to.
@@ -22,6 +23,7 @@ const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: Tr
     RouterLink,
     IconComponent,
     NetworkProofComponent,
+    FaqComponent,
   ],
   templateUrl: './hero.component.html',
 })

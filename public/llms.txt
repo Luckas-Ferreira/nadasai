@@ -32,3 +32,4 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 - [Sobre / About](https://nadasai.com/pt/sobre): Learn about Nada Sai's zero-server privacy architecture.
 - [Privacidade / Privacy Policy](https://nadasai.com/pt/privacidade): Read the 100% local processing privacy policy.
 - [Termos de Uso / Terms of Service](https://nadasai.com/pt/termos): Terms of service for using Nada Sai tools.
+- [FAQ / Perguntas Frequentes](https://nadasai.com/pt/faq): Frequently asked questions about offline browser privacy and PDF editing.

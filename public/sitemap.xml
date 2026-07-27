@@ -179,4 +179,22 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- FAQ -->
+  <url>
+    <loc>https://nadasai.com/pt/faq</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/faq" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/faq" />
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/faq</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/faq" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/faq" />
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
