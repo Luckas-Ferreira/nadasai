@@ -301,9 +301,8 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
       <div panel class="flex flex-col gap-4">
         @if (status() !== 'idle') {
 
+          <!-- ── 1. Ferramentas ──────────────────────────────────────────── -->
           <app-panel [heading]="i18n.t()['pdf.title']">
-
-            <!-- Tools section -->
             <div class="flex flex-col gap-1.5">
               @for (tool of editorTools; track tool.id) {
                 <button
@@ -317,7 +316,6 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
               <div class="border-t border-line my-1"></div>
 
-              <!-- Undo -->
               <button
                 class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all w-full text-left text-muted border border-transparent hover:text-text hover:bg-raised"
                 [class.opacity-40]="undoStack().length === 0"
@@ -329,57 +327,22 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                 Desfazer
               </button>
             </div>
+          </app-panel>
 
-            <!-- Page selector / info -->
-            <!-- Guardado por loadedPdf(), não por status(): o painel abre em
-                 'loading', quando ainda não há documento, e a asserção não-nula
-                 estourava a cada ciclo de detecção de mudanças. -->
-            @if (loadedPdf(); as pdf) {
-              <div class="mt-4 flex items-center justify-between border-t border-line pt-3">
-                <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ pdf.pageCount }}</span>
-                <div class="flex items-center gap-1">
-                  <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="currentPage.set(currentPage() - 1)">‹</button>
-                  <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="currentPage.set(currentPage() + 1)">›</button>
-                </div>
-              </div>
-            }
+          <!-- ── 2. Bloco selecionado ────────────────────────────────────────
+               Painel próprio, logo abaixo das ferramentas: é o que o usuário
+               quer ver no momento em que clica num texto. Antes ficava enterrado
+               entre a paginação e o zoom. -->
+          <app-panel heading="Bloco selecionado">
+            @if (selectedBlock(); as id) {
+              <div class="flex flex-col gap-3">
 
-            <!-- OCR tool option -->
-            <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Motor OCR</span>
-                <span class="text-[10px] text-accent font-medium px-1.5 py-0.5 rounded bg-accent/10">Tesseract.js</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <select
-                  class="flex-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
-                  [(ngModel)]="ocrLangValue"
-                >
-                  <option value="por+eng">Português + Inglês</option>
-                  <option value="por">Português</option>
-                  <option value="eng">Inglês</option>
-                </select>
-                <button
-                  appButton variant="secondary" size="sm"
-                  [disabled]="ocrRunning()"
-                  (click)="forceOcrOnCurrentPage()"
-                  title="Executa OCR na página atual"
-                >
-                  OCR Página
-                </button>
-              </div>
-            </div>
-
-            <!-- ── Text formatting (appears when a block is selected) ── -->
-            @if (selectedBlock()) {
-              <div class="mt-3 border-t border-line pt-3 flex flex-col gap-3">
-                <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Formatar Texto</span>
-
-                <!-- Font family -->
+                <!-- Fonte -->
                 <select
                   class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium outline-none hover:border-accent transition-colors cursor-pointer"
-                  [value]="getBlockFont(selectedBlock()!)"
-                  (change)="changeBlockFont(selectedBlock()!, $event)"
+                  [value]="getBlockFont(id)"
+                  (change)="changeBlockFont(id, $event)"
+                  title="Família da fonte"
                 >
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
@@ -388,66 +351,84 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   <option value="Symbol">Symbol</option>
                 </select>
 
-                <!-- Font size + B/I -->
+                <!-- Tamanho + negrito/itálico -->
                 <div class="flex items-center gap-2">
-                  <!-- Size stepper -->
                   <div class="flex flex-1 items-center rounded-lg border border-line bg-surface overflow-hidden">
-                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(selectedBlock()!, -5)">−</button>
+                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, -5)">−</button>
                     <input
                       type="text"
                       class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
-                      [value]="getBlockScalePercent(selectedBlock()!)"
-                      (change)="setBlockSizeFromInput(selectedBlock()!, $event)"
-                      (keydown.enter)="setBlockSizeFromInput(selectedBlock()!, $event)"
+                      [value]="getBlockScalePercent(id)"
+                      (change)="setBlockSizeFromInput(id, $event)"
+                      (keydown.enter)="setBlockSizeFromInput(id, $event)"
                       title="Tamanho (%)"
                     />
-                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(selectedBlock()!, 5)">+</button>
+                    <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, 5)">+</button>
                   </div>
 
-                  <!-- Bold -->
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-bold font-serif transition-all shrink-0"
-                    [class]="isBlockBold(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                    [class]="isBlockBold(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Negrito"
                     (mousedown)="$event.preventDefault()"
-                    (click)="toggleBlockBold(selectedBlock()!)"
+                    (click)="toggleBlockBold(id)"
                   >B</button>
 
-                  <!-- Italic -->
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm italic font-serif transition-all shrink-0"
-                    [class]="isBlockItalic(selectedBlock()!) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                    [class]="isBlockItalic(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Itálico"
                     (mousedown)="$event.preventDefault()"
-                    (click)="toggleBlockItalic(selectedBlock()!)"
+                    (click)="toggleBlockItalic(id)"
                   >I</button>
                 </div>
 
-                <!-- Color row -->
-                <div class="flex items-center gap-2">
-                  <!-- Text color -->
-                  <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor do texto">
-                    <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(selectedBlock()!)" (input)="changeBlockColor(selectedBlock()!, $event)" />
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
-                      <span class="text-xs font-bold text-text leading-none">A</span>
-                      <div class="h-2 w-7 rounded-sm mt-0.5" [style.background]="getBlockColor(selectedBlock()!)"></div>
-                    </div>
+                <!-- Alinhamento — o detector de layout acerta a maioria dos
+                     casos, mas não todos; aqui se corrige à mão. -->
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Alinhamento</span>
+                  <div class="flex items-center gap-1.5">
+                    @for (opt of alignOptions; track opt.value) {
+                      <button
+                        class="h-9 flex-1 flex items-center justify-center rounded-lg border transition-all"
+                        [class]="getBlockAlign(id) === opt.value ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
+                        [title]="opt.label"
+                        [attr.aria-label]="opt.label"
+                        [attr.aria-pressed]="getBlockAlign(id) === opt.value"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="setBlockAlign(id, opt.value)"
+                      >
+                        <app-icon [name]="opt.icon" [size]="15" />
+                      </button>
+                    }
                   </div>
+                </div>
 
-                  <!-- Background color -->
-                  <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor de fundo">
-                    <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(selectedBlock()!)" (input)="changeBlockBgColor(selectedBlock()!, $event)" />
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-text opacity-70"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-                      <div class="h-2 w-7 rounded-sm mt-0.5" [style.background]="getBlockBgColor(selectedBlock()!)"></div>
+                <!-- Cores -->
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Cores</span>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor do texto">
+                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(id)" (input)="changeBlockColor(id, $event)" />
+                      <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                        <app-icon name="text" [size]="12" class="text-text opacity-70" />
+                        <div class="h-2 w-7 rounded-sm" [style.background]="getBlockColor(id)"></div>
+                      </div>
+                    </div>
+
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor de fundo">
+                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(id)" (input)="changeBlockBgColor(id, $event)" />
+                      <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                        <app-icon name="square" [size]="12" class="text-text opacity-70" />
+                        <div class="h-2 w-7 rounded-sm" [style.background]="getBlockBgColor(id)"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="border-t border-line my-0.5"></div>
 
-                <!-- Delete + Deselect -->
-                <button appButton variant="danger" size="sm" block (click)="deleteBlock(selectedBlock()!)">
+                <button appButton variant="danger" size="sm" block (click)="deleteBlock(id)">
                   <app-icon name="close" [size]="13" />
                   Apagar bloco
                 </button>
@@ -455,27 +436,89 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   Desselecionar
                 </button>
               </div>
+            } @else {
+              <!-- Estado vazio: o painel some quando nada está selecionado fazia
+                   parecer que os controles tinham desaparecido. -->
+              <p class="text-xs text-muted leading-relaxed">
+                Clique num bloco de texto da página para trocar fonte, tamanho,
+                alinhamento e cor. Com o bloco selecionado, clique de novo no
+                texto para editá-lo.
+              </p>
             }
-
-            <!-- Zoom -->
-            <div class="mt-3 border-t border-line pt-3 flex flex-col gap-2">
-              <label class="text-[11px] font-semibold text-muted uppercase tracking-wider">Zoom</label>
-              <div class="flex items-center rounded-lg border border-line bg-surface overflow-hidden">
-                <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)">−</button>
-                <input
-                  type="text"
-                  class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2"
-                  [value]="(scale() * 100) | number:'1.0-0'"
-                  (change)="setZoomFromInput($event)"
-                  (keydown.enter)="setZoomFromInput($event)"
-                  title="Zoom %"
-                />
-                <span class="text-xs text-muted pr-2 select-none">%</span>
-                <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)">+</button>
-              </div>
-            </div>
-
           </app-panel>
+
+          <!-- ── 3. Visualização ──────────────────────────────────────────────
+               Paginação e zoom são navegação, não edição; juntos e depois do que
+               edita. Guardado por loadedPdf(), não por status(): o painel abre
+               em 'loading', quando ainda não há documento. -->
+          @if (loadedPdf(); as pdf) {
+            <app-panel heading="Visualização">
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ pdf.pageCount }}</span>
+                  <div class="flex items-center gap-1">
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)" aria-label="Página anterior">‹</button>
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="goToPage(currentPage() + 1)" aria-label="Próxima página">›</button>
+                  </div>
+                </div>
+
+                <div class="flex items-center rounded-lg border border-line bg-surface overflow-hidden">
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)" aria-label="Diminuir zoom">−</button>
+                  <input
+                    type="text"
+                    class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
+                    [value]="(scale() * 100) | number:'1.0-0'"
+                    (change)="setZoomFromInput($event)"
+                    (keydown.enter)="setZoomFromInput($event)"
+                    title="Zoom %"
+                  />
+                  <span class="text-xs text-muted pr-2 select-none">%</span>
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)" aria-label="Aumentar zoom">+</button>
+                </div>
+              </div>
+            </app-panel>
+          }
+
+          <!-- ── 4. Reconhecimento de texto ───────────────────────────────────
+               Só aparece quando há página digitalizada. Num PDF que já tem
+               camada de texto o OCR não roda sozinho, e forçá-lo empilharia
+               blocos reconhecidos por cima dos nativos — a opção estava sempre
+               visível oferecendo algo que ou não fazia nada ou piorava. -->
+          @if (showOcrPanel()) {
+            <app-panel heading="Reconhecimento de texto">
+              <div class="flex flex-col gap-2.5">
+                <p class="text-xs text-muted leading-relaxed">
+                  @if (currentPageIsScanned()) {
+                    Esta página é uma imagem digitalizada — o texto foi lido por OCR e pode conter erros.
+                  } @else {
+                    Este documento tem páginas digitalizadas. Esta aqui já tem texto digital.
+                  }
+                </p>
+
+                <select
+                  class="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
+                  [(ngModel)]="ocrLangValue"
+                  title="Idioma do reconhecimento"
+                >
+                  <option value="por+eng">Português + Inglês</option>
+                  <option value="por">Português</option>
+                  <option value="eng">Inglês</option>
+                </select>
+
+                <button
+                  appButton variant="secondary" size="sm" block
+                  [disabled]="ocrRunning()"
+                  (click)="forceOcrOnCurrentPage()"
+                  title="Reconhece o texto da página atual de novo"
+                >
+                  <app-icon name="scan" [size]="13" />
+                  Reconhecer esta página
+                </button>
+
+                <span class="text-[10px] text-muted/70">Tesseract.js — roda no seu navegador</span>
+              </div>
+            </app-panel>
+          }
 
           <app-action-bar
             [busy]="status() === 'exporting'"
@@ -584,6 +627,26 @@ export class PdfComponent implements OnDestroy {
   protected readonly currentPageInfo = computed<PdfPageInfo | undefined>(() =>
     this.loadedPdf()?.pages.find((p) => p.index === this.currentPage()),
   );
+
+  protected readonly currentPageIsScanned = computed(() => this.currentPageInfo()?.type === 'scanned');
+
+  /**
+   * O painel de OCR só faz sentido num documento que tenha alguma página
+   * digitalizada.
+   *
+   * Num PDF que já traz camada de texto o OCR nunca roda sozinho, e forçá-lo
+   * empilharia blocos reconhecidos por cima dos nativos — texto duplicado, pior
+   * do que antes. A opção ficava sempre visível oferecendo algo que, no caso
+   * mais comum, ou não fazia nada ou estragava a página.
+   */
+  protected readonly showOcrPanel = computed(() => this.loadedPdf()?.overallType !== 'digital');
+
+  protected readonly alignOptions = [
+    { value: 'left' as const, icon: 'alignLeft' as const, label: 'Alinhar à esquerda' },
+    { value: 'center' as const, icon: 'alignCenter' as const, label: 'Centralizar' },
+    { value: 'right' as const, icon: 'alignRight' as const, label: 'Alinhar à direita' },
+    { value: 'justify' as const, icon: 'alignJustify' as const, label: 'Justificar' },
+  ];
 
   protected readonly blocksByPage = computed(() => {
     const map = new Map<number, TextEdit[]>();
@@ -1569,6 +1632,37 @@ export class PdfComponent implements OnDestroy {
 
   protected isBlockItalic(id: string): boolean {
     return this.edits().get(id)?.italic ?? false;
+  }
+
+  protected getBlockAlign(id: string): NonNullable<TextEdit['textAlign']> {
+    return this.edits().get(id)?.textAlign ?? 'left';
+  }
+
+  /**
+   * Define o alinhamento do bloco à mão.
+   *
+   * O `mergeNativeParagraphs` infere centralizado/justificado pela geometria —
+   * margens simétricas, centros de linha coincidentes, largura de margem a
+   * margem. Isso acerta a maioria dos casos e erra nos ambíguos, que são
+   * justamente os que o usuário nota. Daí o controle manual.
+   *
+   * Marca `styleModified` e materializa `newText`: sem isso o bloco continuaria
+   * "intocado" e o exporter não redesenharia nada, então o alinhamento sumiria
+   * no arquivo final.
+   */
+  protected setBlockAlign(id: string, align: NonNullable<TextEdit['textAlign']>): void {
+    const block = this.edits().get(id);
+    if (!block || block.textAlign === align) return;
+
+    this.saveHistory();
+    const newEdits = new Map(this.edits());
+    newEdits.set(id, {
+      ...block,
+      textAlign: align,
+      styleModified: true,
+      newText: block.newText ?? block.formattedText ?? block.originalText,
+    });
+    this.edits.set(newEdits);
   }
 
   protected toggleBlockItalic(id: string): void {
