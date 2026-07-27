@@ -89,6 +89,38 @@ describe('mergeNativeParagraphs - Column Separation', () => {
   });
 });
 
+describe('mergeNativeParagraphs - alinhamento inferido', () => {
+  const linha = (text: string, x: number, y: number, w: number): PdfNativeBlock =>
+    ({ text, x, y, w, h: 0.011, fontSizePt: 9, isBold: false, isItalic: false });
+
+  it('não confunde parágrafo justificado com centralizado', () => {
+    // Num parágrafo justificado toda linha vai de margem a margem, então os
+    // centros caem todos em 0.5 — exatamente como num texto centralizado. Se a
+    // última linha por acaso for longa, o bloco passava por centralizado, e no
+    // export saía com cada linha numa sangria diferente. A margem ESQUERDA é o
+    // que separa os dois casos.
+    const justificado = mergeNativeParagraphs([
+      linha('primeira linha cheia que vai de margem a margem sem sobra alguma', 0.13, 0.30, 0.74),
+      linha('segunda linha cheia que vai de margem a margem sem sobra alguma', 0.13, 0.315, 0.74),
+      linha('terceira linha tambem cheia ate a margem direita da caixa toda', 0.13, 0.33, 0.73),
+    ]);
+
+    expect(justificado.length).toBe(1);
+    expect(justificado[0].textAlign).toBe('justify');
+  });
+
+  it('ainda reconhece um cabeçalho centralizado largo', () => {
+    // O caso oposto: linhas com sangrias diferentes, centros coincidindo.
+    const centralizado = mergeNativeParagraphs([
+      linha('Recredenciada conforme Portaria MEC No 463, de 30 de junho de 2021', 0.14, 0.16, 0.72),
+      linha('na secao 01, pag. 34, em 01/07/2021', 0.32, 0.175, 0.36),
+    ]);
+
+    expect(centralizado.length).toBe(1);
+    expect(centralizado[0].textAlign).toBe('center');
+  });
+});
+
 describe('mergeNativeParagraphs - células de tabela', () => {
   // Coordenadas reais extraídas de um histórico acadêmico: uma linha da tabela
   // de disciplinas. O código fica numa coluna com corpo maior; o nome e o
