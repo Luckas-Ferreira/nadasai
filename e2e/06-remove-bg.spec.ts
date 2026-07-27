@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectDownload, openApp, upload } from './helpers';
+import { expectDownload, openApp, pickFromHome, upload } from './helpers';
 
 /**
  * Alpha at a fractional point of the retouch canvas, read from the real bitmap.
@@ -83,14 +83,17 @@ test.describe('Remover fundo', () => {
   });
 
   test('picking the tool from home runs it, without a second click', async ({ page }) => {
-    await openApp(page);
+    // A file in the chain, put there by another tool — the home has no uploader.
+    // Crop is the carrier and nothing is applied there, so the history stays empty,
+    // which matters: remove-bg auto-runs only when it is not already in it.
+    await openApp(page, '/pt/imagem/cortar');
     await upload(page);
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
 
     // The file is already in the chain, so choosing the tool IS the request. This
     // used to land on a loaded image and wait for a button press that could not
     // have meant anything else.
-    await page.getByRole('navigation', { name: 'Ferramentas' }).first()
-      .getByRole('link', { name: 'Remover fundo' }).click();
+    await pickFromHome(page, 'Remover fundo');
 
     await expect(page.getByRole('button', { name: 'Ver original' })).toBeVisible({
       timeout: 360_000,
@@ -157,8 +160,7 @@ test.describe('Remover fundo', () => {
     // Re-entering with remove-bg already in the history: the file is a finished
     // cutout, so auto-running would spend inference chewing on its own transparent
     // output. It waits, and offers the button instead.
-    await page.getByRole('navigation', { name: 'Ferramentas' }).first()
-      .getByRole('link', { name: 'Remover fundo' }).click();
+    await pickFromHome(page, 'Remover fundo');
 
     await expect(page.getByRole('button', { name: 'Remover fundo', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Ver original' })).toHaveCount(0);

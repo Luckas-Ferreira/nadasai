@@ -1,116 +1,95 @@
 <section class="mx-auto w-full max-w-[1240px]">
-  <!-- Hero Banner & Live Network Proof -->
-  <div class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
-    <header class="max-w-2xl">
-      <div class="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-bold text-accent border border-line mb-3 shadow-2xs">
-        <app-icon name="check" [size]="14" class="shrink-0" />
-        <span>100% Processamento Local · Zero Upload</span>
-      </div>
-      <h1 class="text-3xl font-bold tracking-tight md:text-4xl text-text leading-tight">
-        {{ i18n.t()['hero.title'] }}
-      </h1>
-      <p class="mt-3 text-base text-muted leading-relaxed">
-        Todas as ferramentas para editar Imagens e PDFs direto no seu navegador. Tudo roda no seu computador, de forma rápida, privada e sem enviar nenhum byte para servidores.
-      </p>
-    </header>
+  <!-- The claim, and the instrument that backs it, side by side.
 
-    <!-- Network Monitor / Live Proof widget -->
+       Only the left column swaps mid-chain: `continueEdit()` routes here, so this
+       page has to answer "what next?" rather than pitch to someone who has already
+       read the pitch — and it puts the tool grid at the top of the fold, which is
+       what the rail used to do before it became module-scoped. The proof widget
+       stays in BOTH states on purpose: right after processing a file is exactly
+       when "did anything leave?" is worth answering. -->
+  <div class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
+    @if (state.session()) {
+      <header class="max-w-2xl">
+        <h1 class="text-2xl">{{ i18n.t()['hero.loaded'] }}</h1>
+        <p class="mt-1 text-base text-muted">{{ i18n.t()['hero.next_step'] }}</p>
+      </header>
+    } @else {
+      <header class="max-w-2xl">
+        <div
+          class="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-line bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent"
+        >
+          <app-icon name="check" [size]="14" class="shrink-0" />
+          <span>{{ i18n.t()['hero.badge'] }}</span>
+        </div>
+
+        <!-- text-3xl IS the cap (28px). `md:text-4xl` and `font-bold` used to be
+             here and generated no CSS at all — the tokens stop at 3xl and at 600. -->
+        <h1 class="text-3xl font-semibold text-text">{{ i18n.t()['hero.title'] }}</h1>
+
+        <p class="mt-3 text-base text-muted">{{ i18n.t()['hero.subtitle'] }}</p>
+      </header>
+    }
+
     <aside class="min-w-0">
       <app-network-proof />
     </aside>
   </div>
 
-  <!-- MODULE 1: IMAGE TOOLS -->
-  <div class="mt-10 mb-4 flex items-center gap-3">
-    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-      <app-icon name="image" [size]="18" />
+  <!-- One block per module, driven by MODULES: the tenth module needs no markup. -->
+  @for (mod of modules; track mod.id) {
+    <div class="mb-4 mt-10 flex items-center gap-3">
+      <span
+        [style.--tone-fg]="'var(--tone-' + mod.tone + '-fg)'"
+        [style.--tone-bg]="'var(--tone-' + mod.tone + '-bg)'"
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--tone-bg)] text-[color:var(--tone-fg)]"
+      >
+        <app-icon [name]="mod.icon" [size]="18" />
+      </span>
+
+      <h2 class="text-lg font-semibold text-text">{{ i18n.t()[mod.nameKey] }}</h2>
+      <span class="font-mono text-xs text-faint tabular">{{ tools(mod.id).length }}</span>
+      <span class="h-px flex-1 bg-line"></span>
     </div>
-    <h2 class="text-lg font-bold text-text">Ferramentas de Imagem</h2>
-    <span class="h-px flex-1 bg-line"></span>
-  </div>
 
-  <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    @for (tool of imageTools; track tool.id) {
-      <li>
-        <a
-          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
-          [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-          [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
-          class="group flex h-full items-start gap-3.5 rounded-xl border border-line
-                 bg-surface p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--tone-fg)]
-                 hover:bg-raised hover:shadow-md"
-        >
-          <span
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--tone-bg)]
-                   text-[color:var(--tone-fg)] transition-transform group-hover:scale-110"
+    <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (tool of tools(mod.id); track tool.id) {
+        <li>
+          <a
+            [routerLink]="path(tool)"
+            [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+            [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
+            class="group flex h-full items-start gap-3.5 rounded-lg border border-line bg-surface p-4
+                   transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--tone-fg)] hover:bg-raised"
           >
-            <app-icon [name]="tool.icon" [size]="20" />
-          </span>
-
-          <span class="min-w-0 flex-1">
-            <span class="block text-base font-semibold text-text group-hover:text-accent transition-colors">
-              {{ i18n.t()[tool.navKey] }}
+            <span
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[var(--tone-bg)]
+                     text-[color:var(--tone-fg)] transition-transform group-hover:scale-105"
+            >
+              <app-icon [name]="tool.icon" [size]="20" />
             </span>
-            <span class="mt-1 block text-xs text-muted leading-relaxed">
-              {{ i18n.t()[tool.descKey] }}
+
+            <span class="min-w-0 flex-1">
+              <span class="block text-base font-semibold text-text transition-colors group-hover:text-accent">
+                {{ i18n.t()[tool.navKey] }}
+              </span>
+              <span class="mt-1 block text-xs text-muted">{{ i18n.t()[tool.descKey] }}</span>
             </span>
-          </span>
 
-          <span class="ml-1 self-center text-faint opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5">
-            <app-icon name="arrowRight" [size]="16" />
-          </span>
-        </a>
-      </li>
-    }
-  </ul>
-
-  <!-- MODULE 2: PDF TOOLS -->
-  <div class="mt-12 mb-4 flex items-center gap-3">
-    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500">
-      <app-icon name="pdf" [size]="18" />
-    </div>
-    <h2 class="text-lg font-bold text-text">Ferramentas de PDF</h2>
-    <span class="h-px flex-1 bg-line"></span>
-  </div>
-
-  <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    @for (tool of pdfTools; track tool.id) {
-      <li>
-        <a
-          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
-          [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-          [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
-          class="group flex h-full items-start gap-3.5 rounded-xl border border-line
-                 bg-surface p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[color:var(--tone-fg)]
-                 hover:bg-raised hover:shadow-md"
-        >
-          <span
-            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--tone-bg)]
-                   text-[color:var(--tone-fg)] transition-transform group-hover:scale-110"
-          >
-            <app-icon [name]="tool.icon" [size]="20" />
-          </span>
-
-          <span class="min-w-0 flex-1">
-            <span class="block text-base font-semibold text-text group-hover:text-accent transition-colors">
-              {{ i18n.t()[tool.navKey] }}
+            <span
+              class="ml-1 self-center text-faint opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+            >
+              <app-icon name="arrowRight" [size]="16" />
             </span>
-            <span class="mt-1 block text-xs text-muted leading-relaxed">
-              {{ i18n.t()[tool.descKey] }}
-            </span>
-          </span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
 
-          <span class="ml-1 self-center text-faint opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5">
-            <app-icon name="arrowRight" [size]="16" />
-          </span>
-        </a>
-      </li>
-    }
-  </ul>
-
-  <!-- COMING SOON SECTION -->
-  <div class="mt-12 mb-4 flex items-center gap-3">
-    <h2 class="text-xs font-semibold uppercase tracking-wider text-faint">{{ i18n.t()['hero.soon_section'] }}</h2>
+  <div class="mb-4 mt-12 flex items-center gap-3">
+    <h2 class="text-xs font-semibold uppercase tracking-wider text-faint">
+      {{ i18n.t()['hero.soon_section'] }}
+    </h2>
     <span class="h-px flex-1 bg-line"></span>
   </div>
 
@@ -118,23 +97,21 @@
     @for (item of soon; track item.icon) {
       <li
         aria-disabled="true"
-        class="flex h-full items-start gap-3.5 rounded-xl border border-dashed border-line p-4 opacity-60"
+        class="flex h-full items-start gap-3.5 rounded-lg border border-dashed border-line p-4 opacity-60"
       >
         <span
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line
-                 bg-raised text-faint"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-faint"
         >
           <app-icon [name]="item.icon" [size]="18" />
         </span>
 
         <span class="min-w-0">
           <span class="block text-base font-semibold text-muted">{{ i18n.t()[item.nameKey] }}</span>
-          <span class="mt-1 block text-xs text-faint leading-relaxed">{{ i18n.t()[item.descKey] }}</span>
+          <span class="mt-1 block text-xs text-faint">{{ i18n.t()[item.descKey] }}</span>
         </span>
       </li>
     }
   </ul>
 
-  <!-- FAQ SECTION -->
   <app-faq />
 </section>
