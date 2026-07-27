@@ -31,6 +31,35 @@ test('probe: painel de edição do PDF', async ({ page }) => {
   });
   console.log('[PROBE] blocos estourando a caixa (esperado 0):', JSON.stringify(overflow));
 
+  // Estilo da superfície de leitura: os tokens do Tailwind v4 só existem se o
+  // nome da variável casar, e um token inexistente não gera classe nenhuma —
+  // falha silenciosa que deixaria o fundo transparente.
+  console.log(
+    '[PROBE] estilo do stage:',
+    JSON.stringify(
+      await page.evaluate(() => {
+        const scroll = document.querySelector<HTMLElement>('.doc-scroll')!;
+        const sheet = document.querySelector<HTMLElement>('canvas[data-page]')!.parentElement!;
+        const cs = getComputedStyle(scroll);
+        const cssSheet = getComputedStyle(sheet);
+        return {
+          fundo: cs.backgroundColor,
+          bordaRaio: cs.borderRadius,
+          bordaCor: cs.borderColor,
+          folhaRaio: cssSheet.borderRadius,
+          // O Tailwind v4 compõe box-shadow com quatro slots vazios (inset,
+          // inset-ring, ring-offset, ring) antes do valor real. Só interessam as
+          // camadas pintadas.
+          folhaSombra: cssSheet.boxShadow
+            .split(/,(?![^(]*\))/)
+            .map((s) => s.trim())
+            .filter((s) => !s.startsWith('rgba(0, 0, 0, 0)')),
+          canvasRaio: getComputedStyle(document.querySelector('canvas[data-page]')!).borderRadius,
+        };
+      }),
+    ),
+  );
+
   const panels = () => page.locator('[panel] h2').allTextContents();
   console.log('[PROBE] painéis (nada selecionado):', JSON.stringify(await panels()));
 

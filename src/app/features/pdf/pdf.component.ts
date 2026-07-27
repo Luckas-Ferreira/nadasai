@@ -133,8 +133,11 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
             />
           }
         } @else {
-          <!-- Scroll container -->
-          <div class="flex-1 overflow-auto bg-stage p-6 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y"
+          <!-- Scroll container.
+               Usa o doc-stage e não o image-stage: ver o comentário do token em
+               styles.css. Arredondado e com borda para virar uma superfície de
+               leitura enquadrada, em vez de uma laje que encosta nas beiradas. -->
+          <div class="doc-scroll flex-1 overflow-auto rounded-xl border border-doc-stage-line bg-doc-stage p-6 sm:p-8 max-h-[calc(100dvh-120px)] relative touch-pan-x touch-pan-y"
                (click)="onCanvasAreaClick($event)"
                (wheel)="onWheel($event)"
                (touchstart)="onTouchStart($event)"
@@ -177,12 +180,17 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
             @if (loadedPdf()) {
               @for (page of loadedPdf()!.pages; track page.index) {
+                <!-- A folha. Sem overflow-hidden no wrapper, de propósito: as
+                     alças de redimensionamento de um bloco selecionado ficam a
+                     -4px das bordas e a de mover a -14px, e seriam decepadas.
+                     Quem arredonda é o canvas, que respeita border-radius ao
+                     pintar. -->
                 <div
-                  class="relative mx-auto mb-6 shadow-pop shrink-0 bg-white"
+                  class="relative mx-auto mb-7 shrink-0 rounded-md bg-white shadow-page"
                   [style.width.px]="page.width * scale()"
                   [style.height.px]="page.height * scale()"
                 >
-                  <canvas #pageCanvas [attr.data-page]="page.index" class="block h-full w-full"></canvas>
+                  <canvas #pageCanvas [attr.data-page]="page.index" class="block h-full w-full rounded-md"></canvas>
 
                   <!-- Paragraph / text block overlays -->
                   <div class="absolute inset-0" style="overflow: visible;">
