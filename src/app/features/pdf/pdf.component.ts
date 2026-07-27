@@ -522,8 +522,6 @@ export class PdfComponent implements OnDestroy {
   protected readonly isLightColor = isLightColor;
   protected readonly canvasRendered = signal<Set<number>>(new Set());
 
-  /** Zoom com que o raster atual foi produzido — base do gatilho de re-render. */
-  private renderedAtScale = 0;
   /** O ajuste à largura é só na primeira renderização; depois o zoom é do usuário. */
   private didFitWidth = false;
   protected readonly activeTool = signal<EditorTool>('select');
@@ -625,8 +623,7 @@ export class PdfComponent implements OnDestroy {
     this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
-    this.renderedAtScale = 0;
-    this.didFitWidth = false;
+    this.resetRasterState();
     this.renderWarning.set(null);
     this.passwordError.set(null);
     this.pendingFile.set(file);
@@ -880,34 +877,41 @@ export class PdfComponent implements OnDestroy {
     }
   }
 
+  // ── Rasterização sob demanda ───────────────────────────────────────────────
+  //
+  // Só as páginas perto da viewport ficam rasterizadas; as que se afastam têm o
+  // backing store liberado. É isso que desacopla a nitidez do tamanho do
+  // documento: enquanto todas as páginas eram rasterizadas de uma vez, a única
+  // defesa contra estourar a memória de canvas era baixar a escala em função do
+  // número de páginas — e um edital de 20 páginas saía a 1.5×, com cara de fax.
+  // Com a janela fixa, o orçamento de pixels passa a ser dividido por
+  // RENDER_WINDOW e não por `pageCount`, então um documento de 200 páginas
+  // rasteriza tão nítido quanto um de duas.
+  //
+  // Uma página descartada não fica em branco: `canvasRendered` perde a entrada,
+  // o overlay volta a desenhar o texto em preto e a página continua legível e
+  // editável até ser rasterizada de novo.
+
+  /** Páginas rasterizadas ao mesmo tempo: as visíveis mais a folga de PREFETCH. */
+  private static readonly RENDER_WINDOW = 6;
+  /** Quantas páginas além das visíveis já vão rasterizadas, para a rolagem não alcançar. */
+  private static readonly PREFETCH = 1;
+
+  private viewportObserver: IntersectionObserver | null = null;
+  private readonly visiblePages = new Set<number>();
+  /** Página → zoom com que o raster dela foi produzido. */
+  private readonly rasterScale = new Map<number, number>();
+  private readonly failedPages = new Set<number>();
+  private renderInFlight = false;
+  private renderQueued = false;
+
+  /**
+   * Liga o observador de viewport. Substitui o antigo laço que rasterizava tudo.
+   */
   private async renderAllPages(): Promise<void> {
     const pdf = this.loadedPdf();
     if (!pdf) return;
 
-    // Duas rasterizações no mesmo canvas se atropelam: a segunda redefine
-    // `width` (o que limpa) enquanto a primeira ainda está desenhando, e a
-    // página fica pela metade. Zoom durante um render em curso é justamente
-    // esse caso, então enfileira em vez de concorrer.
-    if (this.renderInFlight) {
-      this.renderQueued = true;
-      return;
-    }
-    this.renderInFlight = true;
-    try {
-      await this.renderAllPagesInner(pdf);
-    } finally {
-      this.renderInFlight = false;
-      if (this.renderQueued) {
-        this.renderQueued = false;
-        await this.renderAllPages();
-      }
-    }
-  }
-
-  private renderInFlight = false;
-  private renderQueued = false;
-
-  private async renderAllPagesInner(pdf: LoadedPdf): Promise<void> {
     // Retry up to 60 times (3.0s) for Angular to complete DOM mounting of all page canvases
     for (let attempt = 0; attempt < 60; attempt++) {
       if (this.pageCanvases && this.pageCanvases.length === pdf.pages.length) {
@@ -920,9 +924,9 @@ export class PdfComponent implements OnDestroy {
     // Calculate initial scale to fit width (only on first load).
     // O contêiner de rolagem usa `overflow-auto`; o seletor procurava
     // `.overflow-y-auto` e nunca casava, então o ajuste à largura nunca rodava.
+    const container = this.pageCanvases.first.nativeElement.closest('.overflow-auto') as HTMLElement | null;
     if (!this.didFitWidth) {
       this.didFitWidth = true;
-      const container = this.pageCanvases.first.nativeElement.closest('.overflow-auto') as HTMLElement;
       if (container && pdf.pages[0]) {
         const availableWidth = container.clientWidth - 80; // p-6 padding + margin
         if (pdf.pages[0].width > availableWidth) {
@@ -932,53 +936,190 @@ export class PdfComponent implements OnDestroy {
       }
     }
 
-    // Resolução do raster derivada do zoom em que a página vai ser exibida.
-    const displayScale = this.scale();
-    const first = pdf.pages[0];
-    const renderScale = first
-      ? pageRenderScale({
-          pageWidth: first.width,
-          pageHeight: first.height,
-          pageCount: pdf.pages.length,
-          displayScale,
-          devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
-        })
-      : 2;
-    this.renderedAtScale = displayScale;
+    this.viewportObserver?.disconnect();
+    this.visiblePages.clear();
 
-    // Render each page to its respective canvas
-    const failed: number[] = [];
-    for (const canvasRef of this.pageCanvases) {
-      const target = canvasRef.nativeElement;
-      const pageIndex = Number(target.dataset['page']);
-      if (!pageIndex) continue;
-
-      try {
-        if (this.canvasRendered().has(pageIndex)) {
-          // Re-render por zoom: a página já está na tela. Definir `width` limpa
-          // o canvas, então rasteriza fora e transfere de uma vez — senão as
-          // páginas piscam em branco uma a uma enquanto o laço avança.
-          const off = await renderPageToCanvas(pdf.doc, pageIndex, renderScale);
-          target.width = off.width;
-          target.height = off.height;
-          target.getContext('2d')!.drawImage(off, 0, 0);
-          releaseCanvas(off);
-        } else {
-          // Primeira rasterização: direto no canvas do DOM. Passar por um canvas
-          // offscreen e copiar dobraria a memória alocada durante o laço, e aqui
-          // não há nada na tela para preservar.
-          await renderPageIntoCanvas(pdf.doc, pageIndex, renderScale, target);
-
-          const rendered = new Set(this.canvasRendered());
-          rendered.add(pageIndex);
-          this.canvasRendered.set(rendered);
+    this.viewportObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const idx = Number((entry.target as HTMLCanvasElement).dataset['page']);
+          if (!idx) continue;
+          if (entry.isIntersecting) this.visiblePages.add(idx);
+          else this.visiblePages.delete(idx);
         }
-      } catch (err) {
-        console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
-        failed.push(pageIndex);
-      }
+        void this.pumpRenderQueue();
+      },
+      {
+        root: container,
+        // Meia viewport de folga em cima e embaixo: a página começa a rasterizar
+        // antes de aparecer, então a rolagem normal não alcança o rasterizador.
+        rootMargin: '50% 0px',
+        threshold: 0,
+      },
+    );
+
+    for (const ref of this.pageCanvases) {
+      this.viewportObserver.observe(ref.nativeElement);
     }
 
+    // O observador só dispara no próximo frame; a primeira página não pode
+    // esperar por isso.
+    this.visiblePages.add(this.currentPage());
+    await this.pumpRenderQueue();
+  }
+
+  /** Zoom que o raster precisa ter agora, dado o zoom de exibição. */
+  private currentRasterScale(pdf: LoadedPdf): number {
+    const first = pdf.pages[0];
+    if (!first) return 2;
+    return pageRenderScale({
+      pageWidth: first.width,
+      pageHeight: first.height,
+      // A janela, não o documento: é o que mantém a nitidez constante.
+      pageCount: Math.min(PdfComponent.RENDER_WINDOW, pdf.pages.length),
+      displayScale: this.scale(),
+      devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+    });
+  }
+
+  /** Páginas que devem estar rasterizadas agora, da mais central para a mais distante. */
+  private wantedPages(pageCount: number): number[] {
+    const visible = [...this.visiblePages].sort((a, b) => a - b);
+    if (visible.length === 0) return [this.currentPage()];
+
+    const wanted = new Set(visible);
+    for (let d = 1; d <= PdfComponent.PREFETCH; d++) {
+      wanted.add(Math.max(1, visible[0] - d));
+      wanted.add(Math.min(pageCount, visible[visible.length - 1] + d));
+    }
+
+    const centre = (visible[0] + visible[visible.length - 1]) / 2;
+    return [...wanted]
+      .sort((a, b) => Math.abs(a - centre) - Math.abs(b - centre))
+      .slice(0, PdfComponent.RENDER_WINDOW);
+  }
+
+  /**
+   * Rasteriza o que falta e descarta o que saiu da janela, uma página por vez.
+   *
+   * Sequencial e com mutex de propósito: duas rasterizações no mesmo canvas se
+   * atropelam, porque a segunda redefine `width` — o que limpa — enquanto a
+   * primeira ainda desenha. A lista de páginas desejadas é recalculada a cada
+   * volta, então uma rolagem rápida no meio do processo redireciona o trabalho
+   * em vez de esperar a fila antiga terminar.
+   */
+  private async pumpRenderQueue(): Promise<void> {
+    const pdf = this.loadedPdf();
+    if (!pdf) return;
+
+    if (this.renderInFlight) {
+      this.renderQueued = true;
+      return;
+    }
+    this.renderInFlight = true;
+
+    try {
+      for (;;) {
+        const scale = this.currentRasterScale(pdf);
+        const wanted = this.wantedPages(pdf.pages.length);
+        this.evictOutside(wanted);
+
+        const next = wanted.find(
+          (p) => !this.failedPages.has(p) && !this.isRasterFresh(p, scale),
+        );
+        if (next === undefined) break;
+
+        await this.rasterise(pdf, next, scale);
+      }
+    } finally {
+      this.renderInFlight = false;
+      if (this.renderQueued) {
+        this.renderQueued = false;
+        void this.pumpRenderQueue();
+      }
+    }
+  }
+
+  /**
+   * Um raster serve se foi feito no zoom atual ou acima. Ampliar exige refazer;
+   * reduzir não, porque o raster grande já está alocado e continua nítido — e
+   * refazê-lo para baixo só gastaria trabalho no caminho de volta.
+   */
+  private isRasterFresh(pageIndex: number, needed: number): boolean {
+    const have = this.rasterScale.get(pageIndex);
+    return have !== undefined && have >= needed / 1.2;
+  }
+
+  private canvasFor(pageIndex: number): HTMLCanvasElement | null {
+    return (
+      this.pageCanvases?.find((c) => Number(c.nativeElement.dataset['page']) === pageIndex)
+        ?.nativeElement ?? null
+    );
+  }
+
+  private async rasterise(pdf: LoadedPdf, pageIndex: number, scale: number): Promise<void> {
+    const target = this.canvasFor(pageIndex);
+    if (!target) return;
+
+    try {
+      if (this.rasterScale.has(pageIndex)) {
+        // Já tem imagem na tela (re-render por zoom). Definir `width` limpa o
+        // canvas, então rasteriza fora e transfere de uma vez — senão a página
+        // pisca em branco no meio da leitura.
+        const off = await renderPageToCanvas(pdf.doc, pageIndex, scale);
+        target.width = off.width;
+        target.height = off.height;
+        target.getContext('2d')!.drawImage(off, 0, 0);
+        releaseCanvas(off);
+      } else {
+        // Primeira rasterização: direto no canvas do DOM, sem canvas
+        // intermediário — não há nada na tela para preservar.
+        await renderPageIntoCanvas(pdf.doc, pageIndex, scale, target);
+      }
+
+      this.rasterScale.set(pageIndex, scale);
+      const rendered = new Set(this.canvasRendered());
+      rendered.add(pageIndex);
+      this.canvasRendered.set(rendered);
+    } catch (err) {
+      console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
+      // Marca para o laço não ficar tentando a mesma página para sempre.
+      this.failedPages.add(pageIndex);
+    }
+
+    this.publishRenderWarning();
+  }
+
+  /** Libera o backing store das páginas que saíram da janela. */
+  private evictOutside(wanted: number[]): void {
+    const keep = new Set(wanted);
+    let changed = false;
+    const rendered = new Set(this.canvasRendered());
+
+    for (const pageIndex of [...this.rasterScale.keys()]) {
+      if (keep.has(pageIndex)) continue;
+      const canvas = this.canvasFor(pageIndex);
+      if (canvas) releaseCanvas(canvas);
+      this.rasterScale.delete(pageIndex);
+      rendered.delete(pageIndex);
+      changed = true;
+    }
+
+    if (changed) this.canvasRendered.set(rendered);
+  }
+
+  /** Zera o estado de rasterização ao trocar de documento ou ao reiniciar. */
+  private resetRasterState(): void {
+    this.viewportObserver?.disconnect();
+    this.viewportObserver = null;
+    this.visiblePages.clear();
+    this.rasterScale.clear();
+    this.failedPages.clear();
+    this.didFitWidth = false;
+  }
+
+  private publishRenderWarning(): void {
+    const failed = [...this.failedPages].sort((a, b) => a - b);
     this.renderWarning.set(
       failed.length === 0
         ? null
@@ -1007,17 +1148,16 @@ export class PdfComponent implements OnDestroy {
   }
 
   /**
-   * Re-rasteriza as páginas quando o zoom passa do que o raster atual aguenta.
+   * Re-rasteriza quando o zoom passa do que o raster atual aguenta.
    *
    * Sem isso o canvas é rasterizado uma vez, no zoom inicial, e ampliar só
    * estica esses pixels: o texto do canvas embaça enquanto o texto HTML de um
    * bloco selecionado continua vetorial — lado a lado, parece que o editor
    * degradou o documento.
    *
-   * Só sobe, nunca desce: diminuir o zoom não precisa de mais pixels, e
-   * re-rasterizar para baixo só desperdiçaria trabalho no caminho de volta. O
-   * limiar de 1.2× evita re-render a cada passo do scroll do mouse, e o debounce
-   * espera o usuário parar de ampliar.
+   * Quem decide se o raster de cada página ainda serve é `isRasterFresh`; aqui
+   * só há o debounce, para esperar o usuário parar de ampliar em vez de refazer
+   * o raster a cada passo da roda.
    */
   private zoomRerenderTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -1025,9 +1165,7 @@ export class PdfComponent implements OnDestroy {
     if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
     this.zoomRerenderTimer = setTimeout(() => {
       this.zoomRerenderTimer = null;
-      if (!this.loadedPdf()) return;
-      if (this.scale() <= this.renderedAtScale * 1.2) return;
-      void this.renderAllPages();
+      void this.pumpRenderQueue();
     }, 400);
   }
 
@@ -1565,11 +1703,14 @@ export class PdfComponent implements OnDestroy {
     this.edits.set(new Map());
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
+    this.resetRasterState();
+    this.renderWarning.set(null);
     this.selectedBlock.set(null);
   }
 
   ngOnDestroy(): void {
     void this.ocr.terminate();
+    this.viewportObserver?.disconnect();
     if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
     if (this.zoomAnimFrame !== null) cancelAnimationFrame(this.zoomAnimFrame);
   }
