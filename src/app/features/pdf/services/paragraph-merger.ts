@@ -434,7 +434,25 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
     // Para blocos multilinha (2+ linhas), verifica se os centros X de cada linha coincidem no meio da página.
     const lineCenters = group.map((l) => l.x + l.w / 2);
     const avgCenter = lineCenters.reduce((a, b) => a + b, 0) / lineCenters.length;
-    const isMultiLineCenter = group.length >= 2 && Math.abs(avgCenter - 0.5) < 0.08 && lineCenters.every((c) => Math.abs(c - avgCenter) < 0.04);
+
+    // Margem esquerda irregular é o que separa centralizado de justificado.
+    //
+    // Os centros coincidirem no meio da página não basta: num parágrafo
+    // justificado toda linha vai de margem a margem, então todos os centros
+    // caem em 0.5 também. Se a última linha por acaso for longa, o bloco inteiro
+    // passa por centralizado — e no export um parágrafo do edital saía com as
+    // linhas centralizadas, cada uma com uma sangria diferente.
+    //
+    // Num texto centralizado as linhas começam em x diferentes, por construção.
+    // Num justificado ou alinhado à esquerda, todas começam na mesma margem.
+    const leftEdges = group.map((l) => l.x);
+    const leftEdgeSpread = Math.max(...leftEdges) - Math.min(...leftEdges);
+
+    const isMultiLineCenter =
+      group.length >= 2 &&
+      Math.abs(avgCenter - 0.5) < 0.08 &&
+      lineCenters.every((c) => Math.abs(c - avgCenter) < 0.04) &&
+      leftEdgeSpread > 0.01;
 
     const isCentered = isSymmetric && (group.length === 1 || isMultiLineCenter);
 
