@@ -321,4 +321,25 @@
   .cutout-scan {
     animation: cutout-scan 1100ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
   }
+
+  /* Justificação dos blocos do editor de PDF.
+     Mora aqui, e não em `styles` do componente, porque o alvo é markup injetado
+     via [innerHTML]: a encapsulação emulada do Angular carimba o atributo
+     _ngcontent só nos elementos do template, e uma regra escopada nunca casaria
+     com esses <div>.
+
+     `text-align: justify` sozinho não estica linha nenhuma aqui, e isso é o CSS
+     funcionando como especificado: ele não justifica a última linha de um bloco
+     nem a linha logo antes de uma quebra forçada. Como o texto do editor carrega
+     as quebras reais do PDF, toda linha é uma dessas — e nenhuma era justificada.
+     Uma linha por <div> mais `text-align-last` resolve; o `:last-child` fica de
+     fora porque uma última linha esticada é a assinatura de justificação mal
+     feita. Não usar `style=` inline nos <div>: o sanitizador do Angular o remove. */
+  .pdf-justified > div {
+    text-align-last: justify;
+  }
+
+  .pdf-justified > div:last-child {
+    text-align-last: auto;
+  }
 }

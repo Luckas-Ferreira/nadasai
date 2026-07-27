@@ -17,6 +17,20 @@ test('probe: painel de edição do PDF', async ({ page }) => {
   await page.waitForSelector('canvas[data-page]', { timeout: 60_000 });
   await page.waitForTimeout(4000);
 
+  // A caixa dos blocos foi apertada de 6% para 1% de folga, agora que o corpo da
+  // fonte é medido exatamente. Se algum texto passar da caixa, ele quebra numa
+  // linha a mais e empurra o bloco todo — é o que esta contagem vigia.
+  const overflow = await page.evaluate(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-block-id]'));
+    const estourando = els.filter((el) => el.scrollWidth > el.clientWidth + 1);
+    return {
+      total: els.length,
+      estourandoNaLargura: estourando.length,
+      exemplos: estourando.slice(0, 3).map((el) => (el.textContent ?? '').slice(0, 40)),
+    };
+  });
+  console.log('[PROBE] blocos estourando a caixa (esperado 0):', JSON.stringify(overflow));
+
   const panels = () => page.locator('[panel] h2').allTextContents();
   console.log('[PROBE] painéis (nada selecionado):', JSON.stringify(await panels()));
 
@@ -53,6 +67,66 @@ test('probe: painel de edição do PDF', async ({ page }) => {
   await page.getByLabel('Justificar').click();
   await page.waitForTimeout(400);
   console.log('[PROBE] text-align após clicar em Justificar:', await alignOf());
+
+  // ── Justificado de verdade: mede a largura pintada de cada linha ─────────
+  // A prova é geométrica. Numa linha justificada o texto ocupa a caixa inteira;
+  // se o CSS estiver tratando a linha como "última", ela fica na largura natural.
+  const multiline = await page.evaluate(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-block-id]'));
+    // Um bloco com várias linhas — só nele a justificação é observável.
+    const target = els.find((el) => (el.textContent ?? '').length > 90 && el.getBoundingClientRect().height > 25);
+    return target?.dataset['blockId'] ?? null;
+  });
+
+  if (multiline) {
+    const lineWidths = async () =>
+      page.evaluate((id) => {
+        const el = document.querySelector<HTMLElement>(`[data-block-id="${id}"]`)!;
+        const boxW = el.getBoundingClientRect().width;
+        const range = document.createRange();
+        const widths: number[] = [];
+        for (const node of Array.from(el.childNodes)) {
+          range.selectNodeContents(node);
+          const rects = Array.from(range.getClientRects()).filter((r) => r.width > 1);
+          for (const r of rects) widths.push(+(r.width / boxW).toFixed(3));
+        }
+        return { boxW: Math.round(boxW), fracoesDaCaixa: widths };
+      }, multiline);
+
+    await page.locator(`[data-block-id="${multiline}"]`).click();
+    await page.waitForTimeout(300);
+    await page.getByLabel('Alinhar à esquerda').click();
+    await page.waitForTimeout(400);
+    console.log('[PROBE] multilinha alinhado à esquerda:', JSON.stringify(await lineWidths()));
+
+    await page.getByLabel('Justificar').click();
+    await page.waitForTimeout(400);
+    console.log('[PROBE] multilinha justificado:', JSON.stringify(await lineWidths()));
+
+    console.log(
+      '[PROBE] interno:',
+      JSON.stringify(
+        await page.evaluate((id) => {
+          const el = document.querySelector<HTMLElement>(`[data-block-id="${id}"]`)!;
+          const cs = getComputedStyle(el);
+          const firstChild = el.firstElementChild as HTMLElement | null;
+          return {
+            html: el.innerHTML.slice(0, 200),
+            textAlign: cs.textAlign,
+            textAlignLast: cs.textAlignLast,
+            whiteSpace: cs.whiteSpace,
+            filhoTag: firstChild?.tagName ?? null,
+            filhoAlignLast: firstChild ? getComputedStyle(firstChild).textAlignLast : null,
+            filhoW: firstChild ? Math.round(firstChild.getBoundingClientRect().width) : null,
+          };
+        }, multiline),
+        null,
+        2,
+      ),
+    );
+  } else {
+    console.log('[PROBE] nenhum bloco multilinha encontrado para medir justificação');
+  }
 
   // ── OCR: este documento é 100% digital, o painel não deve existir ────────
   const ocrPanel = await page.locator('[panel]').getByText('Reconhecimento de texto').count();
