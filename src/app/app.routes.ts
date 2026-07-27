@@ -196,6 +196,15 @@ export const routes: Routes = [
         path: 'termos',
         title: 'Termos de Uso — Nada Sai',
         loadComponent: () => import('./features/terms/terms.component').then((m) => m.TermsComponent),
+      },
+      {
+        path: 'faq',
+        title: 'Perguntas Frequentes — Nada Sai',
+        loadComponent: () => import('./shared/ui/faq.component').then((m) => m.FaqComponent),
+        data: {
+          metaDescription: 'Respostas para todas as suas dúvidas sobre segurança, privacidade, edição de PDF e remoção de fundo 100% offline no Nada Sai.',
+          metaKeywords: 'faq nada sai, duvidas nada sai, seguranca pdf offline, privacidade de imagem'
+        }
       }
     ]
   },
@@ -362,6 +371,15 @@ export const routes: Routes = [
         path: 'terms',
         title: 'Terms of Use — Nada Sai',
         loadComponent: () => import('./features/terms/terms.component').then((m) => m.TermsComponent),
+      },
+      {
+        path: 'faq',
+        title: 'Frequently Asked Questions — Nada Sai',
+        loadComponent: () => import('./shared/ui/faq.component').then((m) => m.FaqComponent),
+        data: {
+          metaDescription: 'Answers to all your questions about security, privacy, PDF editing, and background removal 100% offline with Nada Sai.',
+          metaKeywords: 'faq nada sai, questions offline pdf, privacy image editing'
+        }
       }
     ]
   },

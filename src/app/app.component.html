@@ -40,6 +40,7 @@
           <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/about' : '/sobre')" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
           <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/privacy' : '/privacidade')" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
           <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/terms' : '/termos')" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
+          <a [routerLink]="'/' + i18n.currentLang() + '/faq'" class="hover:text-muted">{{ i18n.t()['app.footer.faq'] }}</a>
         </nav>
       </div>
     </footer>

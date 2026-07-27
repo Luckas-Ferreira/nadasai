@@ -61,6 +61,8 @@ const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
 
   'termos': { pt: '/pt/termos', en: '/en/terms' },
   'terms': { pt: '/pt/termos', en: '/en/terms' },
+
+  'faq': { pt: '/pt/faq', en: '/en/faq' },
 };
 
 @Injectable({
@@ -220,6 +222,93 @@ export class SeoService {
           'description': description,
           'isPartOf': { '@id': `${DOMAIN}/#website` },
           'inLanguage': lang === 'en' ? 'en-US' : 'pt-BR'
+        },
+        {
+          '@type': 'FAQPage',
+          '@id': `${url}#faq`,
+          'mainEntity': lang === 'en' ? [
+            {
+              '@type': 'Question',
+              'name': 'How does Nada Sai edit PDFs and remove backgrounds without server uploads?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Nada Sai leverages modern browser APIs, WebAssembly, Web Workers, and local WebGPU/TensorFlow models. All processing for your images and PDF documents executes directly inside your device memory and CPU — zero bytes of your content are ever sent over the internet.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'Is it safe to process confidential business documents or personal photos?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes, 100% secure. Because no file data is ever transmitted across the network to external servers, your sensitive files never leave your device. You can even disconnect your Wi-Fi and continue editing offline.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'Are all image and PDF tools free to use?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes! All PDF editing tools (merge, split, compress, sign, watermark, edit text) and image tools (background removal, crop, convert, resize) are completely free with no daily caps or mandatory accounts.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'How do I merge or compress PDFs without losing quality?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Our native vector PDF engine merges pages while retaining exact original fonts, vector curves, and raster layers, optimizing file size without blurring text.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'Can I use Nada Sai offline without an internet connection?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Yes! Once loaded in your browser, the application assets and local AI models are cached locally. You can turn off your internet connection and keep using all tools.'
+              }
+            }
+          ] : [
+            {
+              '@type': 'Question',
+              'name': 'Como o Nada Sai edita PDFs e remove fundo sem enviar arquivos para servidores?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'O Nada Sai utiliza recursos modernos do navegador, como WebAssembly, Web Workers e modelos locais de IA (WebGPU/TensorFlow). Todo o processamento dos seus documentos e imagens roda diretamente na memória e no processador do seu próprio dispositivo — nenhum byte é enviado para a internet.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'É seguro editar documentos confidenciais ou fotos pessoais no Nada Sai?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Sim, 100% seguro. Como nenhum dado de arquivo é transmitido para servidores externos, seus arquivos sigilosos nunca saem do seu computador. Você pode inclusive usar as ferramentas com o Wi-Fi desligado.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'As ferramentas do Nada Sai são totalmente gratuitas?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Sim! Todas as ferramentas de edição de PDF (juntar, dividir, comprimir, assinar, marca d\'água, editar texto) e ferramentas de imagem (remover fundo, cortar, converter) são gratuitas, sem limite diário e sem cadastro.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'Como juntar ou comprimir PDFs mantendo a qualidade original?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Nosso motor vetorial nativo combina as páginas preservando fontes originais, curvas e imagens, otimizando o tamanho do arquivo sem embaçar os textos.'
+              }
+            },
+            {
+              '@type': 'Question',
+              'name': 'Posso usar o Nada Sai offline sem conexão com a internet?',
+              'acceptedAnswer': {
+                '@type': 'Answer',
+                'text': 'Sim! Após carregar a página pela primeira vez, a aplicação e os modelos locais de IA ficam salvos no seu navegador. Você pode desligar a internet e continuar utilizando todas as ferramentas normalmente.'
+              }
+            }
+          ]
         }
       ]
     };
