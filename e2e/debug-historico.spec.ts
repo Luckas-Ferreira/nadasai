@@ -90,6 +90,30 @@ test('probe: estado do editor com o histórico acadêmico', async ({ page }) => 
   });
   console.log('[PROBE] blocks:', JSON.stringify(blocks, null, 2));
 
+  // ── 2b. Supersampling: pixels do raster por pixel de tela ────────────────
+  const superSample = () =>
+    page.evaluate(() => {
+      const c = document.querySelector<HTMLCanvasElement>('canvas[data-page="1"]')!;
+      const cssW = c.getBoundingClientRect().width;
+      const zoomInput = document.querySelector<HTMLInputElement>('input[title*="Zoom" i], input[value$="%"]');
+      return {
+        backingW: c.width,
+        cssW: Math.round(cssW),
+        ratio: +(c.width / Math.max(1, cssW)).toFixed(2),
+        zoom: zoomInput?.value ?? '?',
+      };
+    });
+
+  console.log('[PROBE] nitidez no zoom inicial:', JSON.stringify(await superSample()));
+
+  // Amplia (o zoom é Ctrl+roda) e espera o re-render debounced (400ms).
+  await page.mouse.move(600, 400);
+  await page.keyboard.down('Control');
+  for (let i = 0; i < 15; i++) await page.mouse.wheel(0, -400);
+  await page.keyboard.up('Control');
+  await page.waitForTimeout(4000);
+  console.log('[PROBE] nitidez após ampliar:', JSON.stringify(await superSample()));
+
   // ── 3. Banner de aviso ───────────────────────────────────────────────────
   const alerts = await page.locator('[role=alert]').allTextContents();
   console.log('[PROBE] alerts:', JSON.stringify(alerts));

@@ -135,23 +135,53 @@ export async function renderPageIntoCanvas(
   return canvas;
 }
 
+/** Amostras por pixel de dispositivo. 2× é o ponto em que o texto para de serrilhar. */
+const SUPERSAMPLE = 2;
+/** Piso: abaixo disto o raster fica visivelmente mole mesmo sem zoom. */
+const MIN_SCALE = 2.5;
+/** Teto: acima disto o ganho é imperceptível e o custo de memória, não. */
+const MAX_SCALE = 4;
+/** ~256 MB de backing store somando todas as páginas. Só morde com zoom alto. */
+const BUDGET_PX = 64_000_000;
+
 /**
- * Escala de renderização que mantém o total de pixels de TODAS as páginas
- * dentro de um orçamento, para que documentos longos não estourem a memória de
- * canvas do navegador (o sintoma é página em branco, sem exceção).
+ * Escala de rasterização de uma página, derivada do zoom em que ela vai ser
+ * **exibida**.
  *
- * 24 Mpx ≈ 96 MB de backing store somando todas as páginas — folgado no desktop
- * e ainda dentro do que um navegador móvel aceita.
+ * Uma escala fixa erra dos dois lados. No zoom padrão ela desperdiça memória
+ * rasterizando muito acima do que a tela mostra; e assim que o usuário amplia
+ * além do fator de supersampling, o navegador passa a esticar o raster — o
+ * texto do canvas fica mole enquanto o texto HTML de um bloco selecionado
+ * continua vetorial e nítido, e a diferença entre os dois salta aos olhos.
+ *
+ * O orçamento total continua como teto, mas generoso e proporcional ao que a
+ * tela pede, em vez de dividir uma cota fixa pelo número de páginas — o que
+ * fazia um edital de 20 páginas rasterizar a 1.5× e parecer um fax.
  */
-export function fitRenderScale(
-  pageWidth: number,
-  pageHeight: number,
-  pageCount: number,
-  maxScale: number,
-  budgetPx = 24_000_000,
-): number {
-  const areaAt1x = Math.max(1, pageWidth * pageHeight) * Math.max(1, pageCount);
-  return Math.max(1, Math.min(maxScale, Math.sqrt(budgetPx / areaAt1x)));
+export function pageRenderScale(opts: {
+  pageWidth: number;
+  pageHeight: number;
+  pageCount: number;
+  displayScale: number;
+  devicePixelRatio?: number;
+  budgetPx?: number;
+}): number {
+  const dpr = opts.devicePixelRatio ?? 1;
+  const wanted = Math.min(MAX_SCALE, Math.max(MIN_SCALE, opts.displayScale * dpr * SUPERSAMPLE));
+
+  const areaAt1x = Math.max(1, opts.pageWidth * opts.pageHeight) * Math.max(1, opts.pageCount);
+  const maxByBudget = Math.sqrt((opts.budgetPx ?? BUDGET_PX) / areaAt1x);
+
+  // Sem piso: o orçamento manda. Um piso qualquer anula o teto assim que o
+  // documento é longo o bastante (300 páginas a 1.5× já pedem ~1.3 GB), e a
+  // memória de canvas estourada não lança erro — devolve página em branco.
+  //
+  // Limitação conhecida: o componente rasteriza TODAS as páginas de uma vez, e é
+  // isso que torna o orçamento necessário. A correção de verdade para
+  // documentos muito longos é rasterizar sob demanda, conforme a página entra na
+  // viewport, e liberar as que saem — aí a escala pode ser sempre a que a tela
+  // pede. Enquanto isso não existe, acima de ~50 páginas o raster amolece.
+  return Math.min(wanted, maxByBudget);
 }
 
 /**

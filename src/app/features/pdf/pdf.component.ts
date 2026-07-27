@@ -20,7 +20,7 @@ import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
 import { baseFontSize, fitFontSizeToWidth } from './services/font-metrics';
 import { mergeNativeParagraphs } from './services/paragraph-merger';
-import { renderPageIntoCanvas, fitRenderScale } from '../../core/pdf/pdfjs';
+import { renderPageIntoCanvas, renderPageToCanvas, releaseCanvas, pageRenderScale } from '../../core/pdf/pdfjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -521,6 +521,11 @@ export class PdfComponent implements OnDestroy {
   protected readonly scale = signal(1.0);
   protected readonly isLightColor = isLightColor;
   protected readonly canvasRendered = signal<Set<number>>(new Set());
+
+  /** Zoom com que o raster atual foi produzido — base do gatilho de re-render. */
+  private renderedAtScale = 0;
+  /** O ajuste à largura é só na primeira renderização; depois o zoom é do usuário. */
+  private didFitWidth = false;
   protected readonly activeTool = signal<EditorTool>('select');
   protected readonly selectedBlock = signal<string | null>(null);
   protected readonly currentOcrPage = signal(0);
@@ -620,6 +625,8 @@ export class PdfComponent implements OnDestroy {
     this.undoStack.set([]);
     this.ocrBlocks.set(new Map());
     this.canvasRendered.set(new Set());
+    this.renderedAtScale = 0;
+    this.didFitWidth = false;
     this.renderWarning.set(null);
     this.passwordError.set(null);
     this.pendingFile.set(file);
@@ -877,6 +884,30 @@ export class PdfComponent implements OnDestroy {
     const pdf = this.loadedPdf();
     if (!pdf) return;
 
+    // Duas rasterizações no mesmo canvas se atropelam: a segunda redefine
+    // `width` (o que limpa) enquanto a primeira ainda está desenhando, e a
+    // página fica pela metade. Zoom durante um render em curso é justamente
+    // esse caso, então enfileira em vez de concorrer.
+    if (this.renderInFlight) {
+      this.renderQueued = true;
+      return;
+    }
+    this.renderInFlight = true;
+    try {
+      await this.renderAllPagesInner(pdf);
+    } finally {
+      this.renderInFlight = false;
+      if (this.renderQueued) {
+        this.renderQueued = false;
+        await this.renderAllPages();
+      }
+    }
+  }
+
+  private renderInFlight = false;
+  private renderQueued = false;
+
+  private async renderAllPagesInner(pdf: LoadedPdf): Promise<void> {
     // Retry up to 60 times (3.0s) for Angular to complete DOM mounting of all page canvases
     for (let attempt = 0; attempt < 60; attempt++) {
       if (this.pageCanvases && this.pageCanvases.length === pdf.pages.length) {
@@ -889,7 +920,8 @@ export class PdfComponent implements OnDestroy {
     // Calculate initial scale to fit width (only on first load).
     // O contêiner de rolagem usa `overflow-auto`; o seletor procurava
     // `.overflow-y-auto` e nunca casava, então o ajuste à largura nunca rodava.
-    if (this.scale() === 1.0) {
+    if (!this.didFitWidth) {
+      this.didFitWidth = true;
       const container = this.pageCanvases.first.nativeElement.closest('.overflow-auto') as HTMLElement;
       if (container && pdf.pages[0]) {
         const availableWidth = container.clientWidth - 80; // p-6 padding + margin
@@ -900,17 +932,19 @@ export class PdfComponent implements OnDestroy {
       }
     }
 
-    // Renderiza em alta definição para supersampling nítido, mas com o total de
-    // pixels de todas as páginas dentro de um orçamento: um histórico de 6
-    // páginas a 3.2× pede ~120 MB de canvas, e ao estourar o navegador devolve
-    // páginas em branco silenciosamente — o texto do overlay aparecia sozinho,
-    // sem os logos, tabelas e bordas do documento.
-    const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-    const maxScale = Math.max(3.2, Math.round(dpr * 2.0 * 10) / 10);
+    // Resolução do raster derivada do zoom em que a página vai ser exibida.
+    const displayScale = this.scale();
     const first = pdf.pages[0];
     const renderScale = first
-      ? fitRenderScale(first.width, first.height, pdf.pages.length, maxScale)
-      : maxScale;
+      ? pageRenderScale({
+          pageWidth: first.width,
+          pageHeight: first.height,
+          pageCount: pdf.pages.length,
+          displayScale,
+          devicePixelRatio: typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+        })
+      : 2;
+    this.renderedAtScale = displayScale;
 
     // Render each page to its respective canvas
     const failed: number[] = [];
@@ -920,13 +954,25 @@ export class PdfComponent implements OnDestroy {
       if (!pageIndex) continue;
 
       try {
-        // Renderiza direto no canvas do DOM — passar por um canvas offscreen e
-        // copiar dobrava a memória alocada durante o laço.
-        await renderPageIntoCanvas(pdf.doc, pageIndex, renderScale, target);
+        if (this.canvasRendered().has(pageIndex)) {
+          // Re-render por zoom: a página já está na tela. Definir `width` limpa
+          // o canvas, então rasteriza fora e transfere de uma vez — senão as
+          // páginas piscam em branco uma a uma enquanto o laço avança.
+          const off = await renderPageToCanvas(pdf.doc, pageIndex, renderScale);
+          target.width = off.width;
+          target.height = off.height;
+          target.getContext('2d')!.drawImage(off, 0, 0);
+          releaseCanvas(off);
+        } else {
+          // Primeira rasterização: direto no canvas do DOM. Passar por um canvas
+          // offscreen e copiar dobraria a memória alocada durante o laço, e aqui
+          // não há nada na tela para preservar.
+          await renderPageIntoCanvas(pdf.doc, pageIndex, renderScale, target);
 
-        const rendered = new Set(this.canvasRendered());
-        rendered.add(pageIndex);
-        this.canvasRendered.set(rendered);
+          const rendered = new Set(this.canvasRendered());
+          rendered.add(pageIndex);
+          this.canvasRendered.set(rendered);
+        }
       } catch (err) {
         console.error(`[PdfComponent] Error rendering canvas for page ${pageIndex}:`, err);
         failed.push(pageIndex);
@@ -957,6 +1003,32 @@ export class PdfComponent implements OnDestroy {
         this.zoomAnimFrame = null;
       });
     }
+    this.scheduleZoomRerender();
+  }
+
+  /**
+   * Re-rasteriza as páginas quando o zoom passa do que o raster atual aguenta.
+   *
+   * Sem isso o canvas é rasterizado uma vez, no zoom inicial, e ampliar só
+   * estica esses pixels: o texto do canvas embaça enquanto o texto HTML de um
+   * bloco selecionado continua vetorial — lado a lado, parece que o editor
+   * degradou o documento.
+   *
+   * Só sobe, nunca desce: diminuir o zoom não precisa de mais pixels, e
+   * re-rasterizar para baixo só desperdiçaria trabalho no caminho de volta. O
+   * limiar de 1.2× evita re-render a cada passo do scroll do mouse, e o debounce
+   * espera o usuário parar de ampliar.
+   */
+  private zoomRerenderTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleZoomRerender(): void {
+    if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
+    this.zoomRerenderTimer = setTimeout(() => {
+      this.zoomRerenderTimer = null;
+      if (!this.loadedPdf()) return;
+      if (this.scale() <= this.renderedAtScale * 1.2) return;
+      void this.renderAllPages();
+    }, 400);
   }
 
   protected initialPinchDistance: number | null = null;
@@ -1007,6 +1079,7 @@ export class PdfComponent implements OnDestroy {
     if (!isNaN(val)) {
       const next = Math.min(3, Math.max(0.3, val / 100));
       this.scale.set(Math.round(next * 100) / 100);
+      this.scheduleZoomRerender();
     }
     input.value = Math.round(this.scale() * 100).toString();
   }
@@ -1497,5 +1570,7 @@ export class PdfComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     void this.ocr.terminate();
+    if (this.zoomRerenderTimer !== null) clearTimeout(this.zoomRerenderTimer);
+    if (this.zoomAnimFrame !== null) cancelAnimationFrame(this.zoomAnimFrame);
   }
 }
