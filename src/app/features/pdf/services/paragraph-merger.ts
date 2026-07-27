@@ -10,6 +10,14 @@ export interface MergedParagraphBlock {
   y: number;
   w: number;
   h: number;
+  /**
+   * Passo real entre baselines (fração da altura da página), medido pelos y das
+   * linhas do grupo — não `h / lineCount`, que subestima o passo porque `h`
+   * cobre (n-1) passos + a caixa da última linha.
+   */
+  lineHeight: number;
+  /** Altura da caixa de UMA linha (fração da altura da página) — o corpo da fonte. */
+  lineBoxH: number;
   fontSizePt?: number;
   bold?: boolean;
   italic?: boolean;
@@ -69,15 +77,23 @@ function isItalicFont(fontName?: string): boolean {
 // ─── Junção de linhas em parágrafo ─────────────────────────────────────────
 
 /**
- * Une as linhas de um grupo em um único texto contínuo, deixando que o CSS 
- * (word-wrap) faça a quebra de linha visual de acordo com a largura da caixa
- * delimitadora (Option B).
+ * Une as linhas de um grupo **preservando as quebras reais do PDF** ('\n').
+ *
+ * A versão anterior unia com espaço e deixava o CSS re-quebrar dentro da bbox.
+ * Isso é o que embaralhava documentos com layout de formulário/tabela: a quebra
+ * do browser cai em posições diferentes das do PDF (métricas de fonte diferentes,
+ * bbox arredondada), então cada linha desliza vertical e horizontalmente, e um
+ * bloco de 6 linhas vira 3 linhas compridas em cima do bloco de baixo.
+ *
+ * Com '\n' + `white-space: pre-wrap` no overlay, cada linha renderiza no mesmo
+ * lugar em que o PDF a desenhou, mesmo quando o agrupamento de parágrafo erra e
+ * junta linhas que deveriam ser blocos separados — o erro deixa de ser visual e
+ * passa a ser só uma questão de granularidade de seleção.
  *
  * Regras:
- *   • Linha hifenizada (termina com '-'): remove o hífen e une a próxima sem
- *     espaço (hifenização tipográfica).
- *   • Linha comum: insere ' ' (espaço) para unir o fluxo do parágrafo,
- *     removendo as quebras rígidas que atrapalhariam a edição de texto livre.
+ *   • Linha hifenizada (termina com '-'): remove o hífen e emenda sem quebra,
+ *     porque ali a quebra é artefato de tipografia, não do conteúdo.
+ *   • Linha comum: '\n'.
  */
 export function joinParagraphLines(lines: { text: string }[]): string {
   let result = '';
@@ -89,14 +105,26 @@ export function joinParagraphLines(lines: { text: string }[]): string {
         // Hifenização: remove o hífen e une sem espaço.
         result = result.slice(0, -1) + raw;
       } else {
-        // Linha comum: une com espaço, permitindo fluxo contínuo (CSS word-wrap).
-        result += ' ' + raw;
+        result += '\n' + raw;
       }
     } else {
       result = raw;
     }
   }
   return result;
+}
+
+/**
+ * Retorna true se a linha termina com ':' — o formato de rótulo de formulário
+ * ("Curso:", "Data de Nascimento:", "Nº do CPF:").
+ *
+ * Uma coluna de rótulos é geometricamente indistinguível de um parágrafo
+ * estreito: mesmo x, larguras parecidas, espaçamento regular. O ':' é o único
+ * sinal barato que separa os dois casos, e é o que impede a coluna inteira de
+ * rótulos do histórico acadêmico de virar um parágrafo só.
+ */
+function isFormLabel(text: string): boolean {
+  return /:\s*$/.test(text);
 }
 
 // ─── Mesclagem principal ───────────────────────────────────────────────────
@@ -292,16 +320,44 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
       // Título / Cabeçalho de Seção: títulos de seção nunca devem ser mesclados com o corpo do texto!
       const isHeaderSeparator = lastLine.isTitle || line.isTitle;
 
-      // Linha anterior curta indica fim de parágrafo. Medido em relação às linhas do próprio parágrafo candidato.
-      const paraMaxW = Math.max(...candidatePara.map((l) => l.w));
-      const paraMaxRight = Math.max(...candidatePara.map((l) => l.x + l.w));
+      // Rótulo de formulário: "Curso:" nunca continua em "Status:".
+      const isLabelBoundary = isFormLabel(lastLine.text) || isFormLabel(line.text);
+
+      // Linha anterior curta indica fim de parágrafo: numa prosa, a linha só
+      // quebra porque bateu na margem, então toda linha não-final chega perto da
+      // medida do bloco. A medida tem que incluir a linha que está entrando —
+      // medindo só contra o próprio grupo, um grupo de 1 linha se compara consigo
+      // mesmo, `isLastLineShort` é sempre falso e qualquer linha alinhada abaixo
+      // é absorvida. Era essa a porta pela qual as linhas de tabela entravam.
+      const measureW = Math.max(...candidatePara.map((l) => l.w), line.w);
+      const measureRight = Math.max(...candidatePara.map((l) => l.x + l.w), line.x + line.w);
       const isLastLineShort =
-        lastLine.w < paraMaxW * 0.70 && (lastLine.x + lastLine.w) < paraMaxRight - 0.04;
+        lastLine.w < measureW * 0.75 && (lastLine.x + lastLine.w) < measureRight - 0.02;
+
+      // Passo entre baselines constante: prosa tem entrelinha uniforme, tabela
+      // não (as linhas do histórico saltam sempre que uma célula tem 2 linhas).
+      // Só dá para verificar a partir da 3ª linha, quando já existe um passo.
+      let isUniformPitch = true;
+      if (candidatePara.length >= 2) {
+        const prevPitch = lastLine.y - candidatePara[candidatePara.length - 2].y;
+        if (prevPitch > 0) {
+          isUniformPitch = Math.abs(baselineDist - prevPitch) <= prevPitch * 0.25;
+        }
+      }
 
       const isNormalSpacing = baselineDist <= avgH * 2.2 || gap <= avgH * 1.5;
       const isAligned = xOverlap > 0 || leftDiff < 0.08;
 
-      if (isNormalSpacing && !fsMismatch && !boldMismatch && !isHeaderSeparator && !isLastLineShort && isAligned) {
+      if (
+        isNormalSpacing &&
+        !fsMismatch &&
+        !boldMismatch &&
+        !isHeaderSeparator &&
+        !isLabelBoundary &&
+        !isLastLineShort &&
+        isUniformPitch &&
+        isAligned
+      ) {
         candidatePara.push(line);
         placed = true;
         break;
@@ -324,8 +380,18 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
     // e para o editor calcular fitFontSizeToWidth pela linha mais longa).
     const lineTexts = group.map((l) => l.text);
 
-    // Texto unido com '\n' entre linhas (Option A: preserva quebras reais).
+    // Texto unido com '\n' entre linhas — preserva as quebras reais do PDF.
     const text = joinParagraphLines(group);
+
+    // Caixa de uma linha = maior altura de linha do grupo (o corpo da fonte).
+    const lineBoxH = Math.max(...group.map((l) => l.h));
+    // Passo real entre baselines. `h / lineCount` erra por ~8% por linha porque
+    // `h` cobre (n-1) passos + uma caixa; num bloco de 6 linhas isso já desloca
+    // a última meia linha para cima.
+    const lineHeight =
+      group.length > 1
+        ? (group[group.length - 1].y - group[0].y) / (group.length - 1)
+        : maxY - minY;
 
     const fontSizes = group
       .map((l) => l.fontSizePt)
@@ -339,11 +405,18 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
     const dominantLine = [...group].sort((a, b) => b.w - a.w)[0];
 
     // Centralização: exige que as margens esquerda e direita sejam simétricas (< 0.05)
-    // E que a largura do bloco seja menor que 0.68 da página.
+    // E que a largura do bloco não vá de margem a margem.
+    //
+    // O teto era 0.68 e derrubava cabeçalhos centralizados largos (o bloco
+    // "Recredenciada conforme Portaria MEC..." mede 0.72) para 'justify', que com
+    // as quebras agora preservadas estica cada linha até a borda da caixa. O
+    // desempate contra prosa justificada continua sendo o teste de centros por
+    // linha abaixo: numa prosa justificada a última linha é curta e seu centro
+    // foge do centro médio.
     const blockW = maxX - minX;
     const leftMargin = minX;
     const rightMargin = 1 - maxX;
-    const isSymmetric = Math.abs(leftMargin - rightMargin) < 0.05 && blockW < 0.68;
+    const isSymmetric = Math.abs(leftMargin - rightMargin) < 0.05 && blockW < 0.80;
 
     // Para blocos multilinha (2+ linhas), verifica se os centros X de cada linha coincidem no meio da página.
     const lineCenters = group.map((l) => l.x + l.w / 2);
@@ -373,6 +446,8 @@ export function mergeNativeParagraphs(rawBlocks: PdfNativeBlock[]): MergedParagr
       y: minY,
       w: blockW,
       h: maxY - minY,
+      lineHeight,
+      lineBoxH,
       fontSizePt: avgFontSizePt,
       bold: isBoldGroup,
       italic: italicCount > group.length / 2,
