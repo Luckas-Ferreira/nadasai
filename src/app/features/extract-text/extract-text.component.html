@@ -1,0 +1,116 @@
+<app-tool-page [toolId]="'extract-text'">
+  @if (errorKey(); as key) {
+    <div banner class="mb-5">
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="runOcr()" />
+    </div>
+  }
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else {
+      <app-preview-surface [src]="sourceUrl()" [busy]="busy()" [alt]="i18n.t()['common.original']" />
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['extract_text.title']">
+        <div class="flex flex-col gap-4">
+          <!-- Document Language Selector -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">{{ i18n.t()['extract_text.lang'] }}</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                (click)="selectedLang.set('por+eng'); runOcr()"
+                [class]="selectedLang() === 'por+eng'
+                  ? 'flex items-center justify-center rounded-lg border border-accent bg-accent-soft p-2.5 text-xs font-semibold text-accent'
+                  : 'flex items-center justify-center rounded-lg border border-line bg-surface p-2.5 text-xs font-medium text-text hover:bg-raised'"
+              >
+                PT + EN
+              </button>
+              <button
+                type="button"
+                (click)="selectedLang.set('por'); runOcr()"
+                [class]="selectedLang() === 'por'
+                  ? 'flex items-center justify-center rounded-lg border border-accent bg-accent-soft p-2.5 text-xs font-semibold text-accent'
+                  : 'flex items-center justify-center rounded-lg border border-line bg-surface p-2.5 text-xs font-medium text-text hover:bg-raised'"
+              >
+                Português
+              </button>
+            </div>
+          </div>
+
+          <!-- Extracted Text Area -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-medium text-text">Texto Extraído</label>
+              @if (copied()) {
+                <span class="text-2xs font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse">
+                  {{ i18n.t()['extract_text.copied'] }}
+                </span>
+              }
+            </div>
+            <textarea
+              [value]="extractedText()"
+              (input)="extractedText.set($any($event.target).value)"
+              rows="8"
+              placeholder="O texto lido da foto aparecerá aqui..."
+              class="w-full rounded-lg border border-line bg-surface p-3 font-mono text-xs text-text placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            ></textarea>
+          </div>
+
+          <!-- Text Statistics Bar -->
+          @if (extractedText()) {
+            <div class="grid grid-cols-3 gap-2 rounded-lg border border-line bg-raised p-2.5 text-center text-2xs">
+              <div class="flex flex-col">
+                <span class="font-bold text-text">{{ charCount() }}</span>
+                <span class="text-muted">{{ i18n.t()['extract_text.chars'] }}</span>
+              </div>
+              <div class="flex flex-col border-x border-line">
+                <span class="font-bold text-text">{{ wordCount() }}</span>
+                <span class="text-muted">{{ i18n.t()['extract_text.words'] }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-accent">{{ confidence() }}%</span>
+                <span class="text-muted">{{ i18n.t()['extract_text.confidence'] }}</span>
+              </div>
+            </div>
+          }
+
+          <!-- Quick Action Buttons -->
+          <div class="flex gap-2">
+            <button
+              type="button"
+              (click)="copyText()"
+              [disabled]="!extractedText() || busy()"
+              class="flex-1 flex items-center justify-center gap-2 rounded-lg border border-accent bg-accent-soft p-2.5 text-xs font-semibold text-accent hover:bg-accent/15 disabled:opacity-50 transition-all"
+            >
+              <app-icon name="copy" [size]="14" />
+              {{ copied() ? i18n.t()['extract_text.copied'] : i18n.t()['extract_text.copy'] }}
+            </button>
+            <button
+              type="button"
+              (click)="downloadTxt()"
+              [disabled]="!extractedText() || busy()"
+              class="flex-1 flex items-center justify-center gap-2 rounded-lg border border-line bg-surface p-2.5 text-xs font-semibold text-text hover:bg-raised disabled:opacity-50 transition-all"
+            >
+              <app-icon name="download" [size]="14" />
+              {{ i18n.t()['extract_text.download_txt'] }}
+            </button>
+          </div>
+        </div>
+      </app-panel>
+
+      <app-action-bar
+        [busy]="busy()"
+        [canDownload]="!!extractedText()"
+        [canContinue]="false"
+        (primary)="runOcr()"
+        (download)="downloadTxt()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

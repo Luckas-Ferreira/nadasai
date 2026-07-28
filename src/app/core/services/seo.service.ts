@@ -15,6 +15,12 @@ const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
   'imagem/melhorar-qualidade': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
   'image/upscale': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
 
+  'imagem/extrair-texto': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
+  'image/extract-text': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
+
+  'audio/cortar': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
+  'audio/cut': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
+
   'imagem/cortar': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
   'image/crop': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
 
