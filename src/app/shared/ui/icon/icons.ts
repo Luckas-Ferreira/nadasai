@@ -48,6 +48,7 @@ export const ICONS = {
   eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Zm12 0a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z',
   search: 'M20.5 20.5 16 16m1.5-5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z',
   modules: 'M4.5 4.5h6v6h-6v-6Zm9 0h6v6h-6v-6Zm-9 9h6v6h-6v-6Zm9 0h6v6h-6v-6Z',
+  sparkles: 'M12 3l2.2 4.8L19 10l-4.8 2.2L12 17l-2.2-4.8L5 10l4.8-2.2L12 3Zm7 12l1.1 2.4L22 18.5l-2.4 1.1L18.5 22l-1.1-2.4L15 18.5l2.4-1.1L18.5 15Z',
 } as const;
 
 export type IconName = keyof typeof ICONS;
