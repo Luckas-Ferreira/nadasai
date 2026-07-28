@@ -143,7 +143,7 @@ export class CommandPaletteComponent {
   protected readonly rowIdle = `${this.ROW} text-text`;
 
   /**
-   * Every tool, indexed for search: its own name plus its module's, folded once.
+   * Every tool, indexed for search: label, description, and extensive synonyms (PT & EN).
    *
    * Rebuilt when the language changes and not per keystroke — `i18n.t()` is a
    * signal, so reading it here is what makes the index switch dictionaries.
@@ -153,24 +153,41 @@ export class CommandPaletteComponent {
     return TOOLS.map((tool) => {
       const label = dict[tool.navKey];
       const moduleName = dict[moduleById(tool.category).nameKey];
-      return { tool, label, moduleName, haystack: fold(`${label} ${moduleName} ${dict[tool.shortKey]}`) };
+      const shortKey = dict[tool.shortKey];
+      const title = dict[tool.titleKey];
+      const desc = dict[tool.descKey];
+
+      const allKeywords = [...tool.keywordsPt, ...tool.keywordsEn].join(' ');
+      const haystack = fold(`${label} ${shortKey} ${moduleName} ${title} ${desc} ${allKeywords}`);
+
+      return { tool, label, moduleName, haystack };
     });
   });
 
   protected readonly hits = computed<Hit[]>(() => {
-    const needle = fold(this.query().trim());
+    const rawQuery = fold(this.query().trim());
     const entries = this.index();
 
-    if (!needle) {
+    if (!rawQuery) {
       return entries.map(({ tool, label, moduleName }) => ({ tool, label, moduleName, score: 0 }));
     }
 
+    const tokens = rawQuery.split(/\s+/).filter(Boolean);
+
     return entries
       .map(({ tool, label, moduleName, haystack }) => {
-        const at = haystack.indexOf(needle);
-        if (at < 0) return null;
-        // A prefix beats a word start beats a match buried mid-word.
-        const score = at === 0 ? 0 : haystack[at - 1] === ' ' ? 1 : 2;
+        const matchesAll = tokens.every((token) => haystack.includes(token));
+        if (!matchesAll) return null;
+
+        const firstToken = tokens[0];
+        const labelFolded = fold(label);
+        let score = 2;
+        if (labelFolded.startsWith(firstToken)) {
+          score = 0;
+        } else if (labelFolded.includes(` ${firstToken}`)) {
+          score = 1;
+        }
+
         return { tool, label, moduleName, score };
       })
       .filter((hit): hit is Hit => hit !== null)

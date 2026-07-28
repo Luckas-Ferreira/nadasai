@@ -57,6 +57,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/melhorar-qualidade',
+        title: 'Melhorar Qualidade da Imagem — Nada Sai',
+        loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
+        data: {
+          metaDescription: 'Aumente a resolução e melhore a nitidez de fotos em 2x e 4x com inteligência artificial 100% offline.',
+          metaKeywords: 'melhorar qualidade da foto, aumentar resolucao, upscale imagem, desembaçar foto'
+        }
+      },
+      {
         path: 'imagem/cortar',
         title: 'Cortar — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
@@ -229,6 +238,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Remove image backgrounds automatically, free and offline. Your photos are not sent to any server.',
           metaKeywords: 'remove background, erase background, transparent background maker, png background'
+        }
+      },
+      {
+        path: 'image/upscale',
+        title: 'Enhance Image Quality — Nada Sai',
+        loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
+        data: {
+          metaDescription: 'Increase image resolution and enhance sharpness in 2x and 4x with 100% offline AI.',
+          metaKeywords: 'upscale image, enhance photo quality, increase resolution, unblur photo'
         }
       },
       {

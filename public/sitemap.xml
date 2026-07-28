@@ -36,6 +36,24 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Melhorar Qualidade -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/melhorar-qualidade</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/upscale" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/melhorar-qualidade" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/melhorar-qualidade" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/upscale</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/melhorar-qualidade" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/upscale" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/melhorar-qualidade" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Cortar -->
   <url>
     <loc>https://nadasai.com/pt/imagem/cortar</loc>
