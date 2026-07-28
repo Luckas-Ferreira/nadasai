@@ -19,6 +19,8 @@ export const DOC_A = join(DIR, 'doc-a.pdf');
 export const DOC_B = join(DIR, 'doc-b.pdf');
 /** One page of full-bleed photographic raster: the case compression actually helps. */
 export const SCAN = join(DIR, 'scan.pdf');
+/** Four seconds of real stereo PCM for the audio cutter. */
+export const CLIP = join(DIR, 'clip.wav');
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -215,11 +217,56 @@ function makeRgb(width: number, height: number): Buffer {
   return rgb;
 }
 
+/**
+ * A real WAV, because `decodeAudioData` is the gate the cut-audio tool opens on
+ * and it rejects anything malformed outright.
+ *
+ * WAV rather than MP3 for the same reason the images above are hand-encoded:
+ * there is no encoder to depend on and no binary to commit. It is deliberately
+ * NOT a constant tone — the level steps between blocks and drops to silence in
+ * the middle, so the waveform has a shape a human watching the headed run can
+ * check the selection against.
+ */
+function makeWav(seconds: number, sampleRate = 44100, channels = 2): Buffer {
+  const frames = Math.round(seconds * sampleRate);
+  const bytesPerFrame = channels * 2;
+  const buf = Buffer.alloc(44 + frames * bytesPerFrame);
+
+  buf.write('RIFF', 0);
+  buf.writeUInt32LE(36 + frames * bytesPerFrame, 4);
+  buf.write('WAVE', 8);
+  buf.write('fmt ', 12);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20); // PCM
+  buf.writeUInt16LE(channels, 22);
+  buf.writeUInt32LE(sampleRate, 24);
+  buf.writeUInt32LE(sampleRate * bytesPerFrame, 28);
+  buf.writeUInt16LE(bytesPerFrame, 32);
+  buf.writeUInt16LE(16, 34);
+  buf.write('data', 36);
+  buf.writeUInt32LE(frames * bytesPerFrame, 40);
+
+  for (let i = 0; i < frames; i++) {
+    const t = i / sampleRate;
+    const level = t < 1 ? 0.9 : t < 1.8 ? 0.25 : t < 2.2 ? 0 : t < 3.2 ? 0.7 : 0.4;
+    const hz = t < 2.2 ? 440 : 660;
+    const sample = Math.sin(2 * Math.PI * hz * t) * level;
+
+    for (let ch = 0; ch < channels; ch++) {
+      const value = sample * (ch === 0 ? 1 : 0.8);
+      buf.writeInt16LE(Math.round(value < 0 ? value * 0x8000 : value * 0x7fff), 44 + i * bytesPerFrame + ch * 2);
+    }
+  }
+
+  return buf;
+}
+
 export default function globalSetup(): void {
   mkdirSync(DIR, { recursive: true });
   writeFileSync(PHOTO, makePng(800, 600));
   writeFileSync(PHOTO_TALL, makePng(400, 700));
   writeFileSync(NOT_AN_IMAGE, 'definitely not a PNG\n');
+  writeFileSync(CLIP, makeWav(4));
 
   writeFileSync(
     DOC_A,

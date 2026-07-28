@@ -68,6 +68,24 @@
      own viewer all put a neutral mid grey behind the page, and they are right.
      A shade below --base so the page reads as paper on a desk rather than as
      another card on the page. */
+  /* The waveform, painted by a <canvas> onto the white sheet that sits on the
+     doc-stage — the same surface the PDF editor reads a page on, for the same
+     reason: a waveform is a document you scan and scrub, not a picture whose
+     brightness you are judging, so the dark image stage does not apply to it.
+     On white the ordinary foreground ramp is exactly right, which is why `keep`
+     and `drop` ARE --accent and --danger rather than a second set of blues and
+     reds that would drift from them. `keep` is what survives the cut, `drop` is
+     what remove mode throws away, `idle` is audio outside the selection.
+     A canvas takes no Tailwind class, so the component reads these off the root
+     element at paint time — still the rule (no hex in a component), resolved at
+     runtime instead of by the class generator. */
+  --color-wave-idle: #94a3b8;
+  --color-wave-keep: var(--accent);
+  --color-wave-drop: var(--danger);
+  --color-wave-grid: #e2e8f0;
+  --color-wave-label: var(--faint);
+  --color-wave-playhead: #0f172a;
+
   --color-doc-stage: #ccd4df;
   --color-doc-stage-line: #b3bdca;
   --color-doc-scroll-thumb: #97a3b4;

@@ -11,6 +11,11 @@ export type ErrorCode =
   | 'pdf_too_large'
   | 'pdf_encrypted'
   | 'pdf_export_failed'
+  | 'audio_unsupported'
+  | 'audio_too_large'
+  | 'audio_too_long'
+  | 'audio_decode_failed'
+  | 'audio_empty_selection'
   | 'generic';
 
 /**
@@ -37,6 +42,11 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   pdf_too_large: 'error.pdf_too_large',
   pdf_encrypted: 'error.pdf_encrypted',
   pdf_export_failed: 'error.pdf_export_failed',
+  audio_unsupported: 'error.audio_unsupported',
+  audio_too_large: 'error.audio_too_large',
+  audio_too_long: 'error.audio_too_long',
+  audio_decode_failed: 'error.audio_decode_failed',
+  audio_empty_selection: 'error.audio_empty_selection',
   generic: 'error.generic',
 };
 
