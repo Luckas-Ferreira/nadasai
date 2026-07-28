@@ -53,6 +53,58 @@ export function computePeaks(channels: readonly Float32Array[], buckets: number)
   return { min, max };
 }
 
+export interface ThumbOptions {
+  readonly width: number;
+  readonly height: number;
+  readonly color: string;
+  readonly background: string;
+}
+
+/**
+ * Paints peaks into a standalone canvas — the thumbnail a track shows in the
+ * reorderable strip.
+ *
+ * It exists so `app-page-grid` can be reused unchanged: that component knows
+ * nothing about Files or audio, only a label and an image URL, so giving a track
+ * a picture of itself is all it takes to get the same drag-and-drop, the same
+ * arrow buttons and the same page-sheet styling the PDF tools have. A bespoke
+ * track list would have been a second implementation of all of it.
+ */
+export function renderPeaksToCanvas(peaks: Peaks, opts: ThumbOptions): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(opts.width));
+  canvas.height = Math.max(1, Math.round(opts.height));
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  ctx.fillStyle = opts.background;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const mid = canvas.height / 2;
+  const scale = mid * 0.86;
+  const total = peaks.max.length;
+  const perColumn = total / canvas.width;
+
+  ctx.fillStyle = opts.color;
+  for (let column = 0; column < canvas.width; column++) {
+    const from = Math.floor(column * perColumn);
+    const to = Math.max(from + 1, Math.floor((column + 1) * perColumn));
+
+    let lo = 0;
+    let hi = 0;
+    for (let i = from; i < to && i < total; i++) {
+      if (peaks.min[i] < lo) lo = peaks.min[i];
+      if (peaks.max[i] > hi) hi = peaks.max[i];
+    }
+
+    const top = mid - hi * scale;
+    ctx.fillRect(column, top, 1, Math.max(1, mid - lo * scale - top));
+  }
+
+  return canvas;
+}
+
 /**
  * Tick spacing for the ruler: the largest "round" interval that keeps labels
  * from colliding. Hardcoding, say, 10s turns a 2-hour file into a grey smear of

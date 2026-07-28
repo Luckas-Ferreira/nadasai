@@ -16,6 +16,8 @@ export type ErrorCode =
   | 'audio_too_long'
   | 'audio_decode_failed'
   | 'audio_empty_selection'
+  | 'audio_needs_two'
+  | 'audio_rate_mismatch'
   | 'generic';
 
 /**
@@ -47,6 +49,8 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   audio_too_long: 'error.audio_too_long',
   audio_decode_failed: 'error.audio_decode_failed',
   audio_empty_selection: 'error.audio_empty_selection',
+  audio_needs_two: 'error.audio_needs_two',
+  audio_rate_mismatch: 'error.audio_rate_mismatch',
   generic: 'error.generic',
 };
 

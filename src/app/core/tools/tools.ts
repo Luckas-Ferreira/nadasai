@@ -6,6 +6,7 @@ export type ToolId =
   | 'upscale'
   | 'extract-text'
   | 'cut-audio'
+  | 'merge-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -160,6 +161,30 @@ export const TOOLS: readonly ToolDef[] = [
       'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
       'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice',
       'remove part of audio', 'split audio'
+    ],
+  },
+  {
+    id: 'merge-audio',
+    pathPt: 'audio/juntar',
+    pathEn: 'audio/merge',
+    icon: 'merge',
+    category: 'audio',
+    navKey: 'nav.merge_audio',
+    shortKey: 'nav.short.merge_audio',
+    titleKey: 'mergeaudio.title',
+    descKey: 'mergeaudio.subtitle',
+    suffix: 'merged',
+    tone: 'sky',
+    keywordsPt: [
+      'juntar audio', 'unir audios', 'mesclar mp3', 'combinar musicas', 'juntar mp3',
+      'colar audios', 'emendar audio', 'juntar varios audios', 'unir faixas',
+      'juntar audios do whatsapp', 'fazer mixtape', 'crossfade', 'juntar podcast',
+      'concatenar audio', 'juntar wav'
+    ],
+    keywordsEn: [
+      'merge audio', 'join mp3', 'combine audio files', 'audio joiner', 'concatenate audio',
+      'merge songs', 'stitch audio', 'crossfade tracks', 'combine wav', 'append audio',
+      'make a mixtape', 'merge voice notes', 'join podcast segments'
     ],
   },
   {

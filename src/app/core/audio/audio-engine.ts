@@ -3,12 +3,27 @@ import { AppError } from '../errors';
 /** A stretch of the source timeline, in seconds. */
 export type Segment = readonly [start: number, end: number];
 
+/** A piece of audio to play, from any buffer. */
+export interface PlayClip {
+  readonly buffer: AudioBuffer;
+  readonly from: number;
+  readonly to: number;
+}
+
 export interface PlayPlan {
   readonly buffer: AudioBuffer;
   /** Played back to back, in order — the same list the cutter concatenates. */
   readonly segments: readonly Segment[];
   readonly fadeIn: number;
   readonly fadeOut: number;
+}
+
+export interface ClipPlan {
+  readonly clips: readonly PlayClip[];
+  readonly fadeIn: number;
+  readonly fadeOut: number;
+  /** Seconds of equal-power overlap between consecutive clips. 0 = butt join. */
+  readonly crossfade?: number;
 }
 
 /**
@@ -19,6 +34,9 @@ const LEAD_SECONDS = 0.03;
 
 /** Matches SPLICE_FADE_SECONDS in the cutter, so the preview clicks where the file would. */
 const SPLICE_FADE_SECONDS = 0.004;
+
+/** Points in an equal-power ramp. More is pointless; fewer is audibly steppy. */
+const CURVE_POINTS = 64;
 
 /**
  * Decoding and playback for the audio tools.
@@ -37,7 +55,7 @@ const SPLICE_FADE_SECONDS = 0.004;
  */
 export class AudioEngine {
   private ctx: AudioContext | null = null;
-  private gain: GainNode | null = null;
+  private nodes: AudioNode[] = [];
   private sources: AudioBufferSourceNode[] = [];
 
   /** Context time at which the current playback's result timeline starts. */
@@ -53,45 +71,92 @@ export class AudioEngine {
     }
   }
 
-  /**
-   * Plays the plan and returns once it has been scheduled. `onEnded` fires when
-   * the last segment finishes on its own — not when `stop()` cuts it short,
-   * because that path already knows.
-   */
+  /** Segments of ONE buffer, played back to back. What the cutter previews. */
   async play(plan: PlayPlan, onEnded: () => void): Promise<void> {
+    await this.playClips(
+      {
+        clips: plan.segments.map(([from, to]) => ({ buffer: plan.buffer, from, to })),
+        fadeIn: plan.fadeIn,
+        fadeOut: plan.fadeOut,
+      },
+      onEnded,
+    );
+  }
+
+  /**
+   * Plays the clips and returns once they are scheduled. `onEnded` fires when
+   * the last one finishes on its own — not when `stop()` cuts it short, because
+   * that path already knows.
+   *
+   * Every clip gets its OWN gain node, and that is what makes a crossfade
+   * possible at all: the overlap needs one clip ramping down while another ramps
+   * up, which a single shared envelope cannot express. With no crossfade the
+   * clip gains sit at 1 and the master carries everything, exactly as before.
+   */
+  async playClips(plan: ClipPlan, onEnded: () => void): Promise<void> {
     this.stop();
 
-    const segments = plan.segments.filter(([from, to]) => to - from > 0.001);
-    if (!segments.length) return;
+    const clips = plan.clips.filter((clip) => clip.to - clip.from > 0.001);
+    if (!clips.length) return;
 
     const ctx = this.context();
     // Autoplay policy leaves a context created outside a gesture suspended, and
     // a suspended context schedules everything and plays none of it, silently.
     if (ctx.state === 'suspended') await ctx.resume();
 
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    this.gain = gain;
+    const lengths = clips.map((clip) => clip.to - clip.from);
+    const overlap = clampCrossfade(plan.crossfade ?? 0, lengths);
+    const total = lengths.reduce((sum, length) => sum + length, 0) - overlap * (clips.length - 1);
 
-    const total = segments.reduce((sum, [from, to]) => sum + (to - from), 0);
+    const master = ctx.createGain();
+    master.connect(ctx.destination);
+    this.nodes.push(master);
+
     const origin = ctx.currentTime + LEAD_SECONDS;
     this.originTime = origin;
     this.playLength = total;
 
+    const joins: number[] = [];
     let offset = 0;
-    for (const [from, to] of segments) {
+    let lastNode: AudioBufferSourceNode | null = null;
+    let lastEnd = -Infinity;
+
+    for (let i = 0; i < clips.length; i++) {
+      const clip = clips[i];
+      const length = lengths[i];
+
+      const gain = ctx.createGain();
+      gain.connect(master);
+      this.nodes.push(gain);
+
       const node = ctx.createBufferSource();
-      node.buffer = plan.buffer;
+      node.buffer = clip.buffer;
       node.connect(gain);
-      node.start(origin + offset, from, to - from);
+      node.start(origin + offset, clip.from, length);
       this.sources.push(node);
-      offset += to - from;
+
+      // NOT simply the last clip scheduled: with a crossfade every clip ends at
+      // a different time, and "finished" means the one that ends last.
+      if (offset + length > lastEnd) {
+        lastEnd = offset + length;
+        lastNode = node;
+      }
+
+      if (overlap > 0) {
+        if (i > 0) rampIn(gain.gain, origin + offset, overlap);
+        if (i < clips.length - 1) rampOut(gain.gain, origin + offset + length - overlap, overlap);
+      } else if (i < clips.length - 1) {
+        joins.push(offset + length);
+      }
+
+      offset += length - (i < clips.length - 1 ? overlap : 0);
     }
 
-    applyEnvelope(gain.gain, origin, total, plan.fadeIn, plan.fadeOut, joinTimes(segments));
+    // With a crossfade there is no discontinuity left to hide, so no dips.
+    applyEnvelope(master.gain, origin, total, plan.fadeIn, plan.fadeOut, joins);
 
-    const last = this.sources[this.sources.length - 1];
-    last.onended = () => {
+    if (!lastNode) return;
+    lastNode.onended = () => {
       // A node stopped by `stop()` also fires onended; the reset there clears
       // the handler first, so reaching here means playback ran to the end.
       this.teardownNodes();
@@ -137,13 +202,47 @@ export class AudioEngine {
       node.disconnect();
     }
     this.sources = [];
-    this.gain?.disconnect();
-    this.gain = null;
+
+    for (const node of this.nodes) node.disconnect();
+    this.nodes = [];
   }
 }
 
+/**
+ * An overlap longer than half the shortest clip would make that clip's fade-in
+ * and fade-out collide, and two `setValueCurveAtTime` calls that overlap on one
+ * param throw. Clamping is also what the user means: you cannot cross-fade two
+ * seconds of a one-second jingle.
+ */
+function clampCrossfade(requested: number, lengths: readonly number[]): number {
+  if (requested <= 0 || lengths.length < 2) return 0;
+  return Math.max(0, Math.min(requested, Math.min(...lengths) / 2));
+}
+
+/**
+ * Equal power, not linear.
+ *
+ * Two linear ramps crossing sum to 0.5 at the midpoint in amplitude, which is
+ * about -6 dB of power — an audible hole in the middle of every transition.
+ * sin/cos keeps the sum of squares at 1 the whole way across, which is what
+ * makes a crossfade sound like one continuous track.
+ */
+function rampIn(param: AudioParam, at: number, seconds: number): void {
+  param.setValueCurveAtTime(curve((t) => Math.sin((t * Math.PI) / 2)), at, seconds);
+}
+
+function rampOut(param: AudioParam, at: number, seconds: number): void {
+  param.setValueCurveAtTime(curve((t) => Math.cos((t * Math.PI) / 2)), at, seconds);
+}
+
+function curve(shape: (t: number) => number): Float32Array {
+  const values = new Float32Array(CURVE_POINTS);
+  for (let i = 0; i < CURVE_POINTS; i++) values[i] = shape(i / (CURVE_POINTS - 1));
+  return values;
+}
+
 /** Result-time offsets where two segments meet. */
-function joinTimes(segments: readonly Segment[]): number[] {
+export function joinTimes(segments: readonly Segment[]): number[] {
   const joins: number[] = [];
   let offset = 0;
   for (let i = 0; i < segments.length - 1; i++) {
