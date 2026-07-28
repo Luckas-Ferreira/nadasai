@@ -14,7 +14,6 @@ import { FaqComponent } from '../../shared/ui/faq.component';
  */
 const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: TranslationKey }> = [
   { icon: 'doc', nameKey: 'hero.soon.doc', descKey: 'hero.soon.doc_desc' },
-  { icon: 'audio', nameKey: 'hero.soon.audio', descKey: 'hero.soon.audio_desc' },
 ];
 
 /**

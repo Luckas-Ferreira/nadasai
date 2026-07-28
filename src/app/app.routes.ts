@@ -79,8 +79,8 @@ export const routes: Routes = [
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Corte e apare músicas, áudios do WhatsApp ou podcasts 100% offline no seu navegador. Com forma de onda visual e ajuste fino.',
-          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som'
+          metaDescription: 'Corte músicas, áudios do WhatsApp e podcasts 100% offline no navegador: forma de onda, alças arrastáveis, tempos precisos e fade in/out.',
+          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som, remover trecho de audio'
         }
       },
       {
@@ -281,8 +281,8 @@ export const routes: Routes = [
         title: 'Cut Audio & MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Cut and trim songs, voice notes, or podcasts 100% offline in your browser. Visual waveform display and precision controls.',
-          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker'
+          metaDescription: 'Cut songs, voice notes and podcasts 100% offline in your browser: waveform, draggable handles, exact timecodes and fade in/out.',
+          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker, remove part of audio'
         }
       },
       {
