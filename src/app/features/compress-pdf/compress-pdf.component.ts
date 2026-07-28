@@ -155,8 +155,14 @@ export class CompressPdfComponent {
       this.resultBlob.set(blob);
       this.ranLevel.set(this.level());
 
+      // No cast here, ever. This read `'cpdf.kept_original' as TranslationKey`,
+      // and that key does not exist in either dictionary — the cast is the one
+      // thing that can silence the compile error the i18n design is built to
+      // produce. `t()[key]` then returned undefined, so the notice rendered as
+      // an empty info alert: the compressor correctly kept the original and the
+      // user was handed back a byte-identical file with nothing saying why.
       if (keptOriginal) {
-        this.noticeKey.set('cpdf.kept_original' as TranslationKey);
+        this.noticeKey.set('cpdf.no_gain');
       }
     } catch (err) {
       console.error('Compressing failed:', err);
