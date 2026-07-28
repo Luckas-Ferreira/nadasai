@@ -54,6 +54,42 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Extrair Texto / OCR -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/extrair-texto</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/extract-text</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Cortar Áudio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/cut</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Cortar -->
   <url>
     <loc>https://nadasai.com/pt/imagem/cortar</loc>

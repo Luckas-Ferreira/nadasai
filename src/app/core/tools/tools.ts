@@ -4,6 +4,8 @@ import type { TranslationKey } from '../services/translation.service';
 export type ToolId =
   | 'remove-bg'
   | 'upscale'
+  | 'extract-text'
+  | 'cut-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -30,7 +32,7 @@ export type ToolTone =
   | 'teal'
   | 'fuchsia';
 
-export type ToolCategory = 'image' | 'pdf';
+export type ToolCategory = 'image' | 'pdf' | 'audio';
 
 export type ModuleId = ToolCategory;
 
@@ -45,6 +47,7 @@ export interface ModuleDef {
 export const MODULES: readonly ModuleDef[] = [
   { id: 'image', icon: 'image', nameKey: 'module.image', descKey: 'module.image_desc', tone: 'sky' },
   { id: 'pdf', icon: 'pdf', nameKey: 'module.pdf', descKey: 'module.pdf_desc', tone: 'rose' },
+  { id: 'audio', icon: 'audio', nameKey: 'module.audio', descKey: 'module.audio_desc', tone: 'violet' },
 ];
 
 export interface ToolDef {
@@ -110,6 +113,51 @@ export const TOOLS: readonly ToolDef[] = [
       'upscale image', 'enhance photo quality', 'increase resolution', 'unblur image',
       'hd photo', 'super resolution', 'ai upscale', 'image sharpener', 'enhance image',
       '4k upscaler', 'photo enhancer', 'deblur', 'enlarge photo'
+    ],
+  },
+  {
+    id: 'extract-text',
+    pathPt: 'imagem/extrair-texto',
+    pathEn: 'image/extract-text',
+    icon: 'scan',
+    category: 'image',
+    navKey: 'nav.extract_text',
+    shortKey: 'nav.short.extract_text',
+    titleKey: 'extract_text.title',
+    descKey: 'extract_text.subtitle',
+    suffix: 'txt',
+    tone: 'teal',
+    keywordsPt: [
+      'extrair texto', 'ocr', 'copiar texto de foto', 'ler foto', 'imagem para texto',
+      'pdf para texto', 'reconhecer texto', 'copiar recibo', 'ler documento', 'scan texto',
+      'extrair caracteres', 'copiar documento', 'digitalizar texto'
+    ],
+    keywordsEn: [
+      'extract text', 'ocr', 'image to text', 'copy text from photo', 'photo to text',
+      'pdf to text', 'scan text', 'character recognition', 'text extractor', 'read photo',
+      'copy document text', 'digitize text'
+    ],
+  },
+  {
+    id: 'cut-audio',
+    pathPt: 'audio/cortar',
+    pathEn: 'audio/cut',
+    icon: 'audio',
+    category: 'audio',
+    navKey: 'nav.cut_audio',
+    shortKey: 'nav.short.cut_audio',
+    titleKey: 'cut_audio.title',
+    descKey: 'cut_audio.subtitle',
+    suffix: 'cut',
+    tone: 'violet',
+    keywordsPt: [
+      'cortar audio', 'aparar mp3', 'cortar musica', 'cortar som', 'editor de audio',
+      'cortar faixa', 'cortar podcast', 'toque de celular', 'cortar ogg', 'cortar wav',
+      'cortar m4a', 'fatia de audio', 'remover trecho de audio', 'recortar som'
+    ],
+    keywordsEn: [
+      'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
+      'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice'
     ],
   },
   {

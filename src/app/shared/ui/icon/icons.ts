@@ -49,6 +49,7 @@ export const ICONS = {
   search: 'M20.5 20.5 16 16m1.5-5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0Z',
   modules: 'M4.5 4.5h6v6h-6v-6Zm9 0h6v6h-6v-6Zm-9 9h6v6h-6v-6Zm9 0h6v6h-6v-6Z',
   sparkles: 'M12 3l2.2 4.8L19 10l-4.8 2.2L12 17l-2.2-4.8L5 10l4.8-2.2L12 3Zm7 12l1.1 2.4L22 18.5l-2.4 1.1L18.5 22l-1.1-2.4L15 18.5l2.4-1.1L18.5 15Z',
+  copy: 'M8 7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2V7Zm-4 4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2',
 } as const;
 
 export type IconName = keyof typeof ICONS;
