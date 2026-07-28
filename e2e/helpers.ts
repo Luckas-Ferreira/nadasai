@@ -8,6 +8,8 @@ export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 export const DOC_A = join(__dirname, 'fixtures', 'assets', 'doc-a.pdf');
 export const DOC_B = join(__dirname, 'fixtures', 'assets', 'doc-b.pdf');
 export const SCAN = join(__dirname, 'fixtures', 'assets', 'scan.pdf');
+export const CLIP = join(__dirname, 'fixtures', 'assets', 'clip.wav');
+export const CLIP_B = join(__dirname, 'fixtures', 'assets', 'clip-b.wav');
 
 /**
  * The app is Portuguese-only, so there is nothing to pin: the language no longer

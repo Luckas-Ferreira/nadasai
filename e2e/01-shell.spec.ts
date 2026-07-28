@@ -11,13 +11,14 @@ test.describe('Shell: home, nav, i18n', () => {
     await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
     // The home walks MODULES, so the headings ARE the module names.
-    await expect(page.getByRole('heading', { name: 'Imagem', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'PDF', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ferramentas de Imagem' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ferramentas de PDF' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ferramentas de Áudio' })).toBeVisible();
 
     // Not `exact`: a card's accessible name is its title AND its description
     // ("Remover fundo Recorte pessoas, produtos e objetos."). Only the rail has
     // links named by the label alone.
-    for (const name of ['Remover fundo', 'Cortar', 'Juntar PDF', 'Marca d\'Água']) {
+    for (const name of ['Remover fundo', 'Cortar', 'Juntar PDF', 'Marca d\'Água', 'Cortar áudio']) {
       await expect(page.getByRole('link', { name: new RegExp(`^${name}`) }).first()).toBeVisible();
     }
 
@@ -47,8 +48,10 @@ test.describe('Shell: home, nav, i18n', () => {
 
     await expect(page.getByRole('heading', { name: 'Em breve' })).toBeVisible();
 
-    // PDF shipped and is a real module now; these two are still promises.
-    for (const name of ['Documentos', 'Áudio']) {
+    // PDF and Áudio shipped and are real modules now, so they left this list —
+    // a roadmap that still advertises what the grid above already links to is
+    // the product telling you it has not noticed itself.
+    for (const name of ['Documentos']) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
     }

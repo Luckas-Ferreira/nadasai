@@ -1,0 +1,247 @@
+<app-tool-page [toolId]="'merge-audio'" [forceLoaded]="tracks().length > 0">
+  <div banner [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
+
+  <div stage>
+    @if (!tracks().length) {
+      <app-dropzone
+        multiple
+        [accept]="acceptAttr"
+        [titleKey]="'mergeaudio.drag'"
+        [hintKey]="'mergeaudio.drag_hint'"
+        (filesSelected)="addFiles($event)"
+      />
+
+      @if (reading()) {
+        <p class="mt-3 text-center text-sm tabular text-muted" aria-live="polite">
+          {{ i18n.t()['mergeaudio.reading'] }} · {{ progress() ?? 0 }}%
+        </p>
+      }
+    } @else {
+      <div class="relative overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage p-4">
+        <app-page-grid
+          [items]="items()"
+          [ariaLabel]="i18n.t()['mergeaudio.tracks']"
+          (reorder)="reorder($event)"
+          (remove)="removeAt($event)"
+        />
+
+        <p class="mt-3 text-xs text-faint">{{ i18n.t()['mergeaudio.reorder_hint'] }}</p>
+
+        @if (busy() || reading()) {
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px]"
+          >
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+
+            <p class="text-sm font-medium text-text">
+              {{ reading() ? i18n.t()['mergeaudio.reading'] : i18n.t()['mergeaudio.working'] }}
+            </p>
+
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/70">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress() ?? 0"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs tabular text-faint" aria-live="polite">
+                {{ progress() ?? 0 }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Transport -->
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button
+            appButton
+            variant="secondary"
+            size="sm"
+            [disabled]="!canRun()"
+            (click)="togglePlay()"
+          >
+            <app-icon [name]="playing() ? 'pause' : 'play'" [size]="14" />
+            {{ playing() ? i18n.t()['cut_audio.pause'] : i18n.t()['cut_audio.play'] }}
+          </button>
+
+          <span class="text-xs text-faint">{{ i18n.t()['mergeaudio.play_hint'] }}</span>
+        </div>
+
+        <p class="font-mono text-xs tabular text-muted">{{ timecode(totalDuration()) }}</p>
+      </div>
+
+      @if (!full()) {
+        <div class="mt-3">
+          <app-dropzone
+            multiple
+            compact
+            [accept]="acceptAttr"
+            [titleKey]="'mergeaudio.add_more'"
+            (filesSelected)="addFiles($event)"
+          />
+        </div>
+      }
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (tracks().length) {
+      <app-panel [heading]="i18n.t()['mergeaudio.panel_join']">
+        <app-segmented
+          [options]="joinOptions()"
+          [value]="joinMode()"
+          (valueChange)="setJoinMode($event)"
+          [columns]="3"
+          [ariaLabel]="i18n.t()['mergeaudio.join']"
+        />
+
+        @if (joinMode() === 'butt') {
+          <p class="mt-2 text-xs leading-relaxed text-faint">
+            {{ i18n.t()['mergeaudio.join_butt_hint'] }}
+          </p>
+        }
+
+        @if (joinMode() === 'crossfade') {
+          <div class="mt-3 flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="merge-crossfade">
+              {{ i18n.t()['mergeaudio.crossfade_seconds'] }}
+            </label>
+            <input
+              id="merge-crossfade"
+              type="number"
+              min="0"
+              max="30"
+              step="0.5"
+              [value]="crossfade().toFixed(1)"
+              (change)="commitSeconds($any($event.target), 'crossfade')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+
+          <p class="mt-2 text-xs leading-relaxed text-faint">
+            {{ i18n.t()['mergeaudio.join_crossfade_hint'] }}
+          </p>
+
+          <!-- The service clamps to half the shortest track; saying so beats
+               silently applying a different number than the field shows. -->
+          @if (effectiveCrossfade() < crossfade()) {
+            <p class="mt-2 rounded-md bg-raised px-2.5 py-2 text-xs leading-relaxed text-muted">
+              {{ i18n.t()['mergeaudio.crossfade_clamped'] }}
+              <span class="font-mono tabular">{{ timecode(effectiveCrossfade()) }}</span>
+            </p>
+          }
+        }
+
+        @if (joinMode() === 'gap') {
+          <div class="mt-3 flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="merge-gap">
+              {{ i18n.t()['mergeaudio.gap_seconds'] }}
+            </label>
+            <input
+              id="merge-gap"
+              type="number"
+              min="0"
+              max="30"
+              step="0.5"
+              [value]="gap().toFixed(1)"
+              (change)="commitSeconds($any($event.target), 'gap')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+
+          <p class="mt-2 text-xs leading-relaxed text-faint">
+            {{ i18n.t()['mergeaudio.join_gap_hint'] }}
+          </p>
+        }
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['cut_audio.panel_fades']">
+        <p class="mb-3 text-xs leading-relaxed text-faint">{{ i18n.t()['cut_audio.fades_hint'] }}</p>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="merge-fade-in">
+              {{ i18n.t()['cut_audio.fade_in'] }}
+            </label>
+            <input
+              id="merge-fade-in"
+              type="number"
+              min="0"
+              step="0.1"
+              [value]="fadeIn().toFixed(1)"
+              (change)="commitSeconds($any($event.target), 'in')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="merge-fade-out">
+              {{ i18n.t()['cut_audio.fade_out'] }}
+            </label>
+            <input
+              id="merge-fade-out"
+              type="number"
+              min="0"
+              step="0.1"
+              [value]="fadeOut().toFixed(1)"
+              (change)="commitSeconds($any($event.target), 'out')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['cut_audio.panel_output']">
+        <div class="flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['mergeaudio.tracks'] }}</span>
+          <span class="font-mono tabular text-text">{{ tracks().length }}</span>
+        </div>
+
+        <div class="mt-2 flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['cut_audio.result_length'] }}</span>
+          <span class="font-mono tabular text-text">{{ timecode(totalDuration()) }}</span>
+        </div>
+
+        <div class="mt-2 flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['cut_audio.result_size'] }}</span>
+          <span class="font-mono tabular text-text">≈ {{ estimatedSize() }}</span>
+        </div>
+
+        <p class="mt-3 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['cut_audio.output_note'] }}
+        </p>
+
+        @if (!stale()) {
+          @if (result(); as res) {
+            <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
+              <span class="text-sm font-medium text-success">{{ i18n.t()['cut_audio.ready'] }}</span>
+              <span class="font-mono text-sm font-medium tabular text-success">
+                {{ timecode(res.duration) }}
+              </span>
+            </div>
+          }
+        }
+      </app-panel>
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['mergeaudio.btn'] : null"
+        [primaryDisabled]="!canRun() || reading()"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+
+      @if (!canRun()) {
+        <p class="text-center text-xs text-faint">{{ i18n.t()['mergeaudio.needs_two'] }}</p>
+      }
+    }
+  </div>
+</app-tool-page>

@@ -6,6 +6,7 @@ export type ToolId =
   | 'upscale'
   | 'extract-text'
   | 'cut-audio'
+  | 'merge-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -142,7 +143,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'cut-audio',
     pathPt: 'audio/cortar',
     pathEn: 'audio/cut',
-    icon: 'audio',
+    icon: 'scissors',
     category: 'audio',
     navKey: 'nav.cut_audio',
     shortKey: 'nav.short.cut_audio',
@@ -153,11 +154,37 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsPt: [
       'cortar audio', 'aparar mp3', 'cortar musica', 'cortar som', 'editor de audio',
       'cortar faixa', 'cortar podcast', 'toque de celular', 'cortar ogg', 'cortar wav',
-      'cortar m4a', 'fatia de audio', 'remover trecho de audio', 'recortar som'
+      'cortar m4a', 'fatia de audio', 'remover trecho de audio', 'recortar som',
+      'tirar pedaco do audio', 'cortar audio do whatsapp'
     ],
     keywordsEn: [
       'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
-      'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice'
+      'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice',
+      'remove part of audio', 'split audio'
+    ],
+  },
+  {
+    id: 'merge-audio',
+    pathPt: 'audio/juntar',
+    pathEn: 'audio/merge',
+    icon: 'merge',
+    category: 'audio',
+    navKey: 'nav.merge_audio',
+    shortKey: 'nav.short.merge_audio',
+    titleKey: 'mergeaudio.title',
+    descKey: 'mergeaudio.subtitle',
+    suffix: 'merged',
+    tone: 'sky',
+    keywordsPt: [
+      'juntar audio', 'unir audios', 'mesclar mp3', 'combinar musicas', 'juntar mp3',
+      'colar audios', 'emendar audio', 'juntar varios audios', 'unir faixas',
+      'juntar audios do whatsapp', 'fazer mixtape', 'crossfade', 'juntar podcast',
+      'concatenar audio', 'juntar wav'
+    ],
+    keywordsEn: [
+      'merge audio', 'join mp3', 'combine audio files', 'audio joiner', 'concatenate audio',
+      'merge songs', 'stitch audio', 'crossfade tracks', 'combine wav', 'append audio',
+      'make a mixtape', 'merge voice notes', 'join podcast segments'
     ],
   },
   {
