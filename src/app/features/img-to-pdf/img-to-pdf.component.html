@@ -24,7 +24,7 @@
         (filesSelected)="addFiles($event)"
       />
     } @else {
-      <div class="relative overflow-hidden rounded-xl border border-stage-line bg-stage p-4">
+      <div class="relative overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage p-4">
         <app-page-grid
           [items]="items()"
           [ariaLabel]="i18n.t()['imgpdf.pages']"
@@ -32,24 +32,24 @@
           (remove)="removeAt($event)"
         />
 
-        <p class="mt-3 text-xs text-white/45">{{ i18n.t()['imgpdf.reorder_hint'] }}</p>
+        <p class="mt-3 text-xs text-faint">{{ i18n.t()['imgpdf.reorder_hint'] }}</p>
 
         @if (busy()) {
           <div
-            class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px]"
+            class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px]"
           >
-            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
 
-            <p class="text-sm font-medium text-white">{{ i18n.t()['imgpdf.building'] }}</p>
+            <p class="text-sm font-medium text-text">{{ i18n.t()['imgpdf.building'] }}</p>
 
             <div class="w-56">
-              <div class="h-1 overflow-hidden rounded-full bg-white/10">
+              <div class="h-1 overflow-hidden rounded-full bg-white/70">
                 <div
                   class="h-full rounded-full bg-accent transition-[width] duration-300"
                   [style.width.%]="progress() ?? 0"
                 ></div>
               </div>
-              <p class="mt-2 text-center text-xs text-white/50 tabular" aria-live="polite">
+              <p class="mt-2 text-center text-xs text-faint tabular" aria-live="polite">
                 {{ progress() ?? 0 }}%
               </p>
             </div>

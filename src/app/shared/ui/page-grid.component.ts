@@ -18,8 +18,15 @@ export interface PageItem {
  * nothing on a touch screen and nothing from the keyboard. The arrow buttons are
  * the real control; the drag is the shortcut for people holding a mouse.
  *
- * It sits on `bg-stage`, dark in both themes like every other surface that holds
- * an image, so its own type is white-on-stage rather than the page tokens.
+ * It sits on `bg-doc-stage` — the grey surround the PDF editor reads a page on —
+ * and each tile is a sheet: white, 6px, `shadow-page`. These ARE pages of a
+ * document, so they get the document surface and the ordinary page tokens; the
+ * dark image stage is for judging a picture's brightness, which is not what
+ * anyone is doing while reordering page four.
+ *
+ * The drag-over state is an `outline`, not a border: `shadow-page` already
+ * carries a 1px ring, a second border would double it, and an outline costs no
+ * layout so the tile does not shift under the cursor mid-drag.
  *
  * Shared by img-to-pdf (images becoming pages) and merge-pdf (pages of real
  * PDFs), which is why it knows nothing about Files — just a label and a URL.
@@ -80,7 +87,7 @@ export interface PageItem {
             </button>
           </div>
 
-          <div class="flex items-center justify-between border-t border-white/10 px-1 py-1">
+          <div class="flex items-center justify-between border-t border-line px-1 py-1">
             <button
               type="button"
               [attr.aria-label]="i18n.t()['pages.move_left']"
@@ -91,7 +98,7 @@ export interface PageItem {
               <app-icon name="chevronLeft" [size]="14" />
             </button>
 
-            <span class="min-w-0 truncate px-1 text-2xs text-white/45">{{ item.label }}</span>
+            <span class="min-w-0 truncate px-1 text-2xs text-faint">{{ item.label }}</span>
 
             <button
               type="button"
@@ -123,21 +130,22 @@ export class PageGridComponent {
   protected readonly over = signal<number | null>(null);
 
   private readonly tile =
-    'group relative flex cursor-grab flex-col overflow-hidden rounded-md border bg-white/5 ' +
-    'transition-colors active:cursor-grabbing';
+    'group relative flex cursor-grab flex-col overflow-hidden rounded-md bg-white shadow-page ' +
+    'transition-opacity active:cursor-grabbing';
 
   /**
-   * Built in TS rather than as `[class.border-white/10]` bindings: the slash in
-   * an opacity-modified utility is not a valid class-binding name.
+   * Built in TS rather than as class bindings: the outline is three utilities
+   * that must appear and disappear together, and only when they are absent does
+   * `shadow-page`'s own ring read as the tile's single edge.
    */
   protected tileClass(index: number): string {
-    const border = this.over() === index ? 'border-accent' : 'border-white/10';
-    return `${this.tile} ${border}${this.from() === index ? ' opacity-40' : ''}`;
+    const outline = this.over() === index ? ' outline outline-2 outline-accent' : '';
+    return `${this.tile}${outline}${this.from() === index ? ' opacity-40' : ''}`;
   }
 
   protected readonly stepButton =
-    'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-white/60 ' +
-    'transition-colors hover:bg-white/10 hover:text-white disabled:opacity-25 disabled:pointer-events-none';
+    'flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-muted ' +
+    'transition-colors hover:bg-raised hover:text-text disabled:opacity-25 disabled:pointer-events-none';
 
   protected onDragStart(event: DragEvent, index: number): void {
     this.from.set(index);
