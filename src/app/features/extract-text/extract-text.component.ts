@@ -5,7 +5,6 @@ import { saveBlob } from '../../core/image/download';
 import { suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
-import { ImageStateService } from '../../core/services/image-state.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -40,9 +39,9 @@ export class ExtractTextComponent {
   protected readonly tool = toolById('extract-text');
   private readonly ocr = inject(OcrService);
 
-  protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
 
+  protected readonly currentFile = signal<File | null>(null);
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly extractedText = signal<string>('');
   protected readonly confidence = signal<number>(0);
@@ -52,8 +51,6 @@ export class ExtractTextComponent {
   protected readonly errorKey = signal<TranslationKey | null>(null);
 
   protected readonly selectedLang = signal<OcrLang>('por+eng');
-
-  protected readonly sourceFile = this.state.currentFile;
 
   protected readonly charCount = computed(() => {
     const txt = this.extractedText();
@@ -65,18 +62,10 @@ export class ExtractTextComponent {
     return txt ? txt.trim().split(/\s+/).filter(Boolean).length : 0;
   });
 
-  constructor() {
-    const file = this.sourceFile();
-    if (file) {
-      this.sourceUrl.set(this.urls.create(file));
-      void this.runOcr();
-    }
-  }
-
   protected onFile(file: File): void {
     this.errorKey.set(null);
     try {
-      this.state.load(file);
+      this.currentFile.set(file);
       this.sourceUrl.set(this.urls.create(file));
       this.extractedText.set('');
       this.confidence.set(0);
@@ -87,7 +76,7 @@ export class ExtractTextComponent {
   }
 
   protected async runOcr(): Promise<void> {
-    const file = this.sourceFile();
+    const file = this.currentFile();
     if (!file || this.busy()) return;
 
     this.busy.set(true);
@@ -145,7 +134,7 @@ export class ExtractTextComponent {
 
   protected downloadTxt(): void {
     const txt = this.extractedText();
-    const file = this.sourceFile();
+    const file = this.currentFile();
     if (!txt || !file) return;
 
     const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
@@ -156,6 +145,6 @@ export class ExtractTextComponent {
     this.extractedText.set('');
     this.confidence.set(0);
     this.sourceUrl.set(null);
-    this.state.clear();
+    this.currentFile.set(null);
   }
 }
