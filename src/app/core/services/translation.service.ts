@@ -130,6 +130,8 @@ const EN = {
   'faq.a5': 'Yes! Once loaded in your browser, the application assets and local AI models are cached locally. You can turn off your internet connection and keep using all tools.',
 
   'common.drag': 'Drop an image here',
+  'common.drag_audio': 'Drop an audio file here',
+  'common.drag_audio_hint': 'Supports MP3, WAV, OGG, M4A, AAC, FLAC',
   'common.or': 'or',
   'common.upload_btn': 'Choose file',
   'common.change_image': 'Change image',
@@ -544,6 +546,8 @@ const PT: Record<TranslationKey, string> = {
   'faq.a5': 'Sim! Após carregar a página pela primeira vez, a aplicação e os modelos locais de IA ficam salvos no seu navegador. Você pode desligar a internet e continuar utilizando todas as ferramentas normalmente.',
 
   'common.drag': 'Solte uma imagem aqui',
+  'common.drag_audio': 'Solte um arquivo de áudio aqui',
+  'common.drag_audio_hint': 'Suporta MP3, WAV, OGG, M4A, AAC, FLAC, WEBM',
   'common.or': 'ou',
   'common.upload_btn': 'Escolher arquivo',
   'common.change_image': 'Trocar imagem',
