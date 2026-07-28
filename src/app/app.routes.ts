@@ -79,8 +79,17 @@ export const routes: Routes = [
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Corte e apare músicas, áudios do WhatsApp ou podcasts 100% offline no seu navegador. Com forma de onda visual e ajuste fino.',
-          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som'
+          metaDescription: 'Corte músicas, áudios do WhatsApp e podcasts 100% offline no navegador: forma de onda, alças arrastáveis, tempos precisos e fade in/out.',
+          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som, remover trecho de audio'
+        }
+      },
+      {
+        path: 'audio/juntar',
+        title: 'Juntar Áudios e MP3 — Nada Sai',
+        loadComponent: () => import('./features/merge-audio/merge-audio.component').then((m) => m.MergeAudioComponent),
+        data: {
+          metaDescription: 'Junte vários áudios em um só arquivo 100% offline no navegador: arraste para reordenar, com crossfade, silêncio entre faixas e fade in/out.',
+          metaKeywords: 'juntar audio, unir audios, mesclar mp3, combinar musicas, emendar audio, crossfade, juntar audios do whatsapp'
         }
       },
       {
@@ -281,8 +290,17 @@ export const routes: Routes = [
         title: 'Cut Audio & MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Cut and trim songs, voice notes, or podcasts 100% offline in your browser. Visual waveform display and precision controls.',
-          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker'
+          metaDescription: 'Cut songs, voice notes and podcasts 100% offline in your browser: waveform, draggable handles, exact timecodes and fade in/out.',
+          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker, remove part of audio'
+        }
+      },
+      {
+        path: 'audio/merge',
+        title: 'Merge Audio & MP3 — Nada Sai',
+        loadComponent: () => import('./features/merge-audio/merge-audio.component').then((m) => m.MergeAudioComponent),
+        data: {
+          metaDescription: 'Join several audio files into one 100% offline in your browser: drag to reorder, with crossfade, gaps between tracks and fade in/out.',
+          metaKeywords: 'merge audio, join mp3, audio joiner, combine audio files, concatenate audio, crossfade tracks, stitch audio'
         }
       },
       {
