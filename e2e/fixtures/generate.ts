@@ -21,6 +21,9 @@ export const DOC_B = join(DIR, 'doc-b.pdf');
 export const SCAN = join(DIR, 'scan.pdf');
 /** Four seconds of real stereo PCM for the audio cutter. */
 export const CLIP = join(DIR, 'clip.wav');
+/** A second, shorter and mono — the merge spec needs two distinguishable tracks,
+ *  and mono-next-to-stereo is the case the merger has to widen. */
+export const CLIP_B = join(DIR, 'clip-b.wav');
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
   let c = n;
@@ -267,6 +270,7 @@ export default function globalSetup(): void {
   writeFileSync(PHOTO_TALL, makePng(400, 700));
   writeFileSync(NOT_AN_IMAGE, 'definitely not a PNG\n');
   writeFileSync(CLIP, makeWav(4));
+  writeFileSync(CLIP_B, makeWav(3, 44100, 1));
 
   writeFileSync(
     DOC_A,
