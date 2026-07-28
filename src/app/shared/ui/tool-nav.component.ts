@@ -1,22 +1,37 @@
-import { ChangeDetectionStrategy, Component, booleanAttribute, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ActiveToolService } from '../../core/services/active-tool.service';
 import { TranslationService } from '../../core/services/translation.service';
-import { TOOLS } from '../../core/tools/tools';
+import { type ToolDef, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
 
 const LINK =
   'relative flex shrink-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors';
-// Rail tokens, not white/xx: the rail is light in the light theme, and literal
-// white text on it is invisible.
+// Rail tokens, not white/xx: the rail is light, and literal white text on it is
+// invisible.
 const ACTIVE = `${LINK} bg-rail-active text-accent`;
 const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 
 /**
- * The sidebar rail (and, on mobile, a scrollable strip).
+ * The rail: the tools of the module you are in, and nothing else.
+ *
+ * It used to list every tool of every module, grouped under two collapsible
+ * headers. That shape had a hard ceiling — at 15 tools the list already ran past
+ * the bottom of a 700px window, and the container had no scroll, so the last PDF
+ * tools were simply unreachable. Scoping to one module fixes it structurally
+ * instead: the rail's length now tracks the size of a module, not the size of the
+ * product, so the tenth module costs nothing here.
+ *
+ * `overflow-y-auto` stays on the container anyway, as the floor for a module that
+ * one day carries twenty tools.
+ *
+ * Renders nothing outside a module (home, /sobre, /faq). Those pages are the
+ * launcher and the reading — the top bar's switcher and the palette are how you
+ * leave them, and a rail there would be listing a module you are not in.
  *
  * Active state is resolved in TS rather than with an arbitrary `[&.is-active]:`
- * Tailwind variant — the CSS parser silently DROPS those rules, which would
- * leave the current tool with no highlight at all.
+ * Tailwind variant — the CSS parser silently DROPS those rules, which would leave
+ * the current tool with no highlight at all.
  */
 @Component({
   selector: 'app-tool-nav',
@@ -24,98 +39,28 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, IconComponent],
   template: `
-    <nav
-      class="flex gap-1"
-      [class.flex-col]="!horizontal()"
-      [attr.aria-label]="i18n.t()['nav.tools']"
-    >
-      @if (!horizontal()) {
-        <!-- Image Module -->
-        <button 
-          (click)="imageOpen.set(!imageOpen())"
-          class="group flex items-center justify-between w-full px-2.5 py-2 text-2xs font-semibold uppercase tracking-wider text-rail-faint hover:text-rail-text transition-colors mt-2 first:mt-0"
+    @if (module(); as mod) {
+      <nav class="flex flex-col gap-0.5" [attr.aria-label]="i18n.t()['nav.tools']">
+        <p
+          class="flex items-baseline gap-2 px-2.5 pb-1.5 pt-1 text-2xs font-semibold uppercase tracking-wider text-rail-faint"
         >
-          <span>Módulo de Imagem</span>
-          <app-icon 
-            [name]="imageOpen() ? 'chevronDown' : 'chevronRight'" 
-            [size]="14" 
-            class="opacity-60 group-hover:opacity-100 transition-opacity" 
-          />
-        </button>
-        
-        @if (imageOpen()) {
-          <div class="flex flex-col gap-0.5 mb-2">
-            @for (tool of imageTools; track tool.id) {
-              <a
-                [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
-                routerLinkActive
-                #rla="routerLinkActive"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                [class]="rla.isActive ? active : idle"
-              >
-                @if (rla.isActive) {
-                  <span class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent"></span>
-                }
-                <span
-                  [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-                  class="shrink-0 text-[color:var(--tone-fg)]"
-                >
-                  <app-icon [name]="tool.icon" [size]="16" />
-                </span>
-                {{ i18n.t()[tool.navKey] }}
-              </a>
-            }
-          </div>
-        }
+          <span>{{ i18n.t()[mod.nameKey] }}</span>
+          <span class="font-mono tabular normal-case tracking-normal">{{ tools().length }}</span>
+        </p>
 
-        <!-- PDF Module -->
-        <button 
-          (click)="pdfOpen.set(!pdfOpen())"
-          class="group flex items-center justify-between w-full px-2.5 py-2 text-2xs font-semibold uppercase tracking-wider text-rail-faint hover:text-rail-text transition-colors mt-2"
-        >
-          <span>Módulo de PDF</span>
-          <app-icon 
-            [name]="pdfOpen() ? 'chevronDown' : 'chevronRight'" 
-            [size]="14" 
-            class="opacity-60 group-hover:opacity-100 transition-opacity" 
-          />
-        </button>
-        
-        @if (pdfOpen()) {
-          <div class="flex flex-col gap-0.5">
-            @for (tool of pdfTools; track tool.id) {
-              <a
-                [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
-                routerLinkActive
-                #rla="routerLinkActive"
-                [attr.aria-current]="rla.isActive ? 'page' : null"
-                [class]="rla.isActive ? active : idle"
-              >
-                @if (rla.isActive) {
-                  <span class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent"></span>
-                }
-                <span
-                  [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-                  class="shrink-0 text-[color:var(--tone-fg)]"
-                >
-                  <app-icon [name]="tool.icon" [size]="16" />
-                </span>
-                {{ i18n.t()[tool.navKey] }}
-              </a>
-            }
-          </div>
-        }
-
-      } @else {
-        <!-- Mobile flat list fallback (if used somewhere else) -->
-        @for (tool of tools; track tool.id) {
+        @for (tool of tools(); track tool.id) {
           <a
-            [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
+            [routerLink]="path(tool)"
             routerLinkActive
             #rla="routerLinkActive"
             [attr.aria-current]="rla.isActive ? 'page' : null"
             [class]="rla.isActive ? active : idle"
           >
+            @if (rla.isActive) {
+              <span
+                class="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent"
+              ></span>
+            }
             <span
               [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
               class="shrink-0 text-[color:var(--tone-fg)]"
@@ -125,20 +70,37 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
             {{ i18n.t()[tool.navKey] }}
           </a>
         }
-      }
-    </nav>
+
+        <a
+          [routerLink]="'/' + i18n.currentLang()"
+          class="mt-2 flex items-center gap-2.5 rounded-md border-t border-rail-line px-2.5 pb-2 pt-3 text-xs text-rail-faint transition-colors hover:text-rail-text"
+        >
+          <app-icon name="modules" [size]="14" class="shrink-0" />
+          {{ i18n.t()['nav.modules'] }}
+        </a>
+      </nav>
+    }
   `,
 })
 export class ToolNavComponent {
   protected readonly i18n = inject(TranslationService);
-  protected readonly tools = TOOLS;
-  protected readonly imageTools = TOOLS.filter(t => t.category === 'image');
-  protected readonly pdfTools = TOOLS.filter(t => t.category === 'pdf');
+  private readonly activeTool = inject(ActiveToolService);
+
   protected readonly active = ACTIVE;
   protected readonly idle = IDLE;
 
-  readonly horizontal = input(false, { transform: booleanAttribute });
+  protected readonly module = computed(() => {
+    const id = this.activeTool.module();
+    return id ? moduleById(id) : null;
+  });
 
-  protected readonly imageOpen = signal(true);
-  protected readonly pdfOpen = signal(true);
+  protected readonly tools = computed(() => {
+    const id = this.activeTool.module();
+    return id ? toolsOfModule(id) : [];
+  });
+
+  protected path(tool: ToolDef): string {
+    const lang = this.i18n.currentLang();
+    return `/${lang}/${toolPath(tool, lang)}`;
+  }
 }

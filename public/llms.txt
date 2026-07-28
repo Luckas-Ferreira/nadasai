@@ -9,6 +9,8 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 ## Image Tools
 
 - [Remover Fundo / Remove Background](https://nadasai.com/pt/imagem/remover-fundo): Automatically remove background from photos locally using AI.
+- [Melhorar Qualidade / Enhance Quality](https://nadasai.com/pt/imagem/melhorar-qualidade): Upscale image resolution (2x, 4x) and sharpen details 100% offline using AI.
+- [Extrair Texto / Extract Text (OCR)](https://nadasai.com/pt/imagem/extrair-texto): Recognize and copy text from photos, receipts, and scanned documents 100% offline.
 - [Cortar Imagem / Crop Image](https://nadasai.com/pt/imagem/cortar): Crop and resize images with custom aspect ratios.
 - [Comprimir Imagem / Compress Image](https://nadasai.com/pt/imagem/comprimir): Reduce image file sizes without quality loss.
 - [Converter Imagem / Convert Image](https://nadasai.com/pt/imagem/converter): Convert images between PNG, JPG, and WebP formats.
@@ -26,6 +28,10 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 - [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Add password encryption to PDF files.
 - [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw or add digital signatures and stamps to PDFs.
 - [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Add custom text watermarks to PDF pages.
+
+## Audio Tools
+
+- [Cortar Áudio / Cut Audio](https://nadasai.com/pt/audio/cortar): Trim songs, voice notes, or podcasts 100% offline with visual waveform display.
 
 ## Information & Legal
 

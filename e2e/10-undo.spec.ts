@@ -1,8 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openApp, upload } from './helpers';
-
-const rail = (page: import('@playwright/test').Page) =>
-  page.getByRole('navigation', { name: 'Ferramentas' }).first();
+import { openApp, pickFromHome, upload } from './helpers';
 
 /**
  * Stepping back through the chain.
@@ -23,7 +20,8 @@ test.describe('Undo', () => {
     await page.getByRole('button', { name: 'Comprimir', exact: true }).click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    await rail(page).getByRole('link', { name: 'Redimensionar' }).click();
+    // From the home, which is where Keep editing lands: the grid, not the rail.
+    await pickFromHome(page, 'Redimensionar');
     await page.getByRole('button', { name: 'Redimensionar', exact: true }).click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 
@@ -57,12 +55,13 @@ test.describe('Undo', () => {
 
     // A tool reads its source once, when constructed. Undoing while one is open
     // would otherwise leave it rendering the old file forever.
-    await rail(page).getByRole('link', { name: 'Cortar' }).click();
-    await expect(page).toHaveURL(/\/crop$/);
+    await pickFromHome(page, 'Cortar');
+    await expect(page).toHaveURL(/\/cortar$/);
 
     await page.getByRole('button', { name: 'Desfazer Comprimir' }).click();
 
-    await expect(page).toHaveURL(/\/$/);
+    // `/` redirects to the language root, so the home is `/pt`, never a bare `/`.
+    await expect(page).toHaveURL(/\/pt$/);
     await expect(page.locator('app-current-file-bar')).toContainText('photo.png');
   });
 });

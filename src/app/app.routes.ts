@@ -57,6 +57,33 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/melhorar-qualidade',
+        title: 'Melhorar Qualidade da Imagem — Nada Sai',
+        loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
+        data: {
+          metaDescription: 'Aumente a resolução e melhore a nitidez de fotos em 2x e 4x com inteligência artificial 100% offline.',
+          metaKeywords: 'melhorar qualidade da foto, aumentar resolucao, upscale imagem, desembaçar foto'
+        }
+      },
+      {
+        path: 'imagem/extrair-texto',
+        title: 'Extrair Texto de Imagem (OCR) — Nada Sai',
+        loadComponent: () => import('./features/extract-text/extract-text.component').then((m) => m.ExtractTextComponent),
+        data: {
+          metaDescription: 'Extraia e copie texto de fotos, recibos e documentos digitalizados 100% offline no seu navegador.',
+          metaKeywords: 'extrair texto de imagem, ocr online offline, copiar texto de foto, converter imagem em texto, leitor de recibos'
+        }
+      },
+      {
+        path: 'audio/cortar',
+        title: 'Cortar Áudio e MP3 — Nada Sai',
+        loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
+        data: {
+          metaDescription: 'Corte e apare músicas, áudios do WhatsApp ou podcasts 100% offline no seu navegador. Com forma de onda visual e ajuste fino.',
+          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som'
+        }
+      },
+      {
         path: 'imagem/cortar',
         title: 'Cortar — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
@@ -229,6 +256,33 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Remove image backgrounds automatically, free and offline. Your photos are not sent to any server.',
           metaKeywords: 'remove background, erase background, transparent background maker, png background'
+        }
+      },
+      {
+        path: 'image/upscale',
+        title: 'Enhance Image Quality — Nada Sai',
+        loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
+        data: {
+          metaDescription: 'Increase image resolution and enhance sharpness in 2x and 4x with 100% offline AI.',
+          metaKeywords: 'upscale image, enhance photo quality, increase resolution, unblur photo'
+        }
+      },
+      {
+        path: 'image/extract-text',
+        title: 'Extract Text from Image (OCR) — Nada Sai',
+        loadComponent: () => import('./features/extract-text/extract-text.component').then((m) => m.ExtractTextComponent),
+        data: {
+          metaDescription: 'Recognize and copy text from photos, receipts, and scanned documents 100% offline in your browser.',
+          metaKeywords: 'extract text from image, offline ocr, copy text from photo, image to text, read receipt photo'
+        }
+      },
+      {
+        path: 'audio/cut',
+        title: 'Cut Audio & MP3 — Nada Sai',
+        loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
+        data: {
+          metaDescription: 'Cut and trim songs, voice notes, or podcasts 100% offline in your browser. Visual waveform display and precision controls.',
+          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker'
         }
       },
       {
