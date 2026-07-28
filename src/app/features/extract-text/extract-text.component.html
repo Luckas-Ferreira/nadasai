@@ -7,7 +7,7 @@
 
   <div stage>
     @if (!sourceUrl()) {
-      <app-dropzone (fileSelected)="onFile($event)" />
+      <app-dropzone accept="image/*,application/pdf,.pdf" (fileSelected)="onFile($event)" />
     } @else {
       <app-preview-surface [src]="sourceUrl()" [busy]="busy()" [alt]="i18n.t()['common.original']" />
     }

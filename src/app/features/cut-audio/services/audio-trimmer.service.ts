@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 
+export type CutMode = 'keep' | 'delete';
+
 export interface TrimOptions {
   startTime: number;
   endTime: number;
   fadeIn: number;  // in seconds
   fadeOut: number; // in seconds
-  format?: 'wav' | 'mp3';
+  mode?: CutMode;
 }
 
 @Injectable({
@@ -39,13 +41,16 @@ export class AudioTrimmerService {
   }
 
   /**
-   * Draws a professional visual waveform onto a canvas element with high DPI scaling.
+   * Draws a pro-grade visual waveform onto canvas with Fade In/Out ramps and crisp DPI scaling.
    */
   renderWaveform(
     canvas: HTMLCanvasElement,
     buffer: AudioBuffer,
     startTime: number,
     endTime: number,
+    fadeIn = 0,
+    fadeOut = 0,
+    mode: CutMode = 'keep',
     playheadTime: number | null = null
   ): void {
     const ctx = canvas.getContext('2d');
@@ -54,7 +59,6 @@ export class AudioTrimmerService {
     const width = canvas.clientWidth || canvas.width;
     const height = canvas.clientHeight || canvas.height;
 
-    // High DPI Canvas crispness
     const dpr = window.devicePixelRatio || 1;
     if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
       canvas.width = width * dpr;
@@ -74,11 +78,22 @@ export class AudioTrimmerService {
     const startPx = (startTime / duration) * width;
     const endPx = (endTime / duration) * width;
 
-    // Background selection region highlight
-    ctx.fillStyle = 'rgba(124, 58, 237, 0.12)';
-    ctx.fillRect(startPx, 0, endPx - startPx, height);
+    // Region selection fill
+    if (mode === 'keep') {
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+      ctx.fillRect(startPx, 0, endPx - startPx, height);
+    } else {
+      // Delete mode (red highlight for section being removed)
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.2)';
+      ctx.fillRect(startPx, 0, endPx - startPx, height);
+    }
 
-    // Draw Waveform bars
+    // Draw Waveform bars with vertical gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#38bdf8');
+    gradient.addColorStop(0.5, '#8b5cf6');
+    gradient.addColorStop(1, '#6366f1');
+
     for (let i = 0; i < width; i++) {
       const sampleIdx = Math.floor(i * step);
       let min = 1.0;
@@ -94,27 +109,82 @@ export class AudioTrimmerService {
       const y = (height - barHeight) / 2;
 
       const inSelection = i >= startPx && i <= endPx;
-      ctx.fillStyle = inSelection ? '#8b5cf6' : 'rgba(148, 163, 184, 0.4)';
 
-      ctx.fillRect(i, y, 1.5, barHeight);
+      if (mode === 'keep') {
+        ctx.fillStyle = inSelection ? gradient : 'rgba(148, 163, 184, 0.35)';
+      } else {
+        ctx.fillStyle = inSelection ? '#f43f5e' : gradient;
+      }
+
+      ctx.fillRect(i, y, 1.8, barHeight);
+    }
+
+    // Render Fade In Envelope Curve
+    if (fadeIn > 0 && mode === 'keep') {
+      const fadeInPx = Math.min(endPx - startPx, (fadeIn / duration) * width);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(startPx, height);
+      ctx.lineTo(startPx, 0);
+      ctx.lineTo(startPx + fadeInPx, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(startPx, height);
+      ctx.lineTo(startPx + fadeInPx, 0);
+      ctx.stroke();
+    }
+
+    // Render Fade Out Envelope Curve
+    if (fadeOut > 0 && mode === 'keep') {
+      const fadeOutPx = Math.min(endPx - startPx, (fadeOut / duration) * width);
+      ctx.fillStyle = 'rgba(244, 63, 94, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(endPx - fadeOutPx, 0);
+      ctx.lineTo(endPx, 0);
+      ctx.lineTo(endPx, height);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(endPx - fadeOutPx, 0);
+      ctx.lineTo(endPx, height);
+      ctx.stroke();
     }
 
     // Start handle line (Green / Primary)
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.strokeStyle = '#10b981';
     ctx.beginPath();
     ctx.moveTo(startPx, 0);
     ctx.lineTo(startPx, height);
     ctx.stroke();
 
-    // End handle line (Red / Rose)
+    // Start handle knob
+    ctx.fillStyle = '#10b981';
+    ctx.beginPath();
+    ctx.arc(startPx, 10, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // End handle line (Rose)
     ctx.strokeStyle = '#f43f5e';
     ctx.beginPath();
     ctx.moveTo(endPx, 0);
     ctx.lineTo(endPx, height);
     ctx.stroke();
 
-    // Playhead line (White / Amber)
+    // End handle knob
+    ctx.fillStyle = '#f43f5e';
+    ctx.beginPath();
+    ctx.arc(endPx, 10, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Playhead line (Amber)
     if (playheadTime !== null && playheadTime >= 0 && playheadTime <= duration) {
       const playPx = (playheadTime / duration) * width;
       ctx.strokeStyle = '#f59e0b';
@@ -123,51 +193,82 @@ export class AudioTrimmerService {
       ctx.moveTo(playPx, 0);
       ctx.lineTo(playPx, height);
       ctx.stroke();
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(playPx, height - 10, 5, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     ctx.restore();
   }
 
   /**
-   * Cuts the AudioBuffer from startTime to endTime, applies Fade In/Out, and exports to a WAV Blob.
+   * Cuts the AudioBuffer according to mode (keep selection OR delete selection)
+   * and applies Fade In/Out ramps.
    */
   async trimAudio(buffer: AudioBuffer, options: TrimOptions): Promise<Blob> {
     const sampleRate = buffer.sampleRate;
     const numChannels = buffer.numberOfChannels;
+    const mode = options.mode ?? 'keep';
 
     const startSample = Math.floor(options.startTime * sampleRate);
     const endSample = Math.floor(options.endTime * sampleRate);
-    const trimmedLength = Math.max(1, endSample - startSample);
+    const totalSamples = buffer.length;
 
     const ctx = this.getAudioContext();
-    const trimmedBuffer = ctx.createBuffer(numChannels, trimmedLength, sampleRate);
+    let trimmedBuffer: AudioBuffer;
 
-    const fadeInSamples = Math.floor((options.fadeIn || 0) * sampleRate);
-    const fadeOutSamples = Math.floor((options.fadeOut || 0) * sampleRate);
+    if (mode === 'keep') {
+      const trimmedLength = Math.max(1, endSample - startSample);
+      trimmedBuffer = ctx.createBuffer(numChannels, trimmedLength, sampleRate);
 
-    for (let c = 0; c < numChannels; c++) {
-      const srcData = buffer.getChannelData(c);
-      const destData = trimmedBuffer.getChannelData(c);
+      const fadeInSamples = Math.floor((options.fadeIn || 0) * sampleRate);
+      const fadeOutSamples = Math.floor((options.fadeOut || 0) * sampleRate);
 
-      for (let i = 0; i < trimmedLength; i++) {
-        let sample = srcData[startSample + i] || 0;
+      for (let c = 0; c < numChannels; c++) {
+        const srcData = buffer.getChannelData(c);
+        const destData = trimmedBuffer.getChannelData(c);
 
-        // Apply Fade In gain ramp
-        if (fadeInSamples > 0 && i < fadeInSamples) {
-          sample *= i / fadeInSamples;
+        for (let i = 0; i < trimmedLength; i++) {
+          let sample = srcData[startSample + i] || 0;
+
+          if (fadeInSamples > 0 && i < fadeInSamples) {
+            sample *= i / fadeInSamples;
+          }
+
+          if (fadeOutSamples > 0 && i > trimmedLength - fadeOutSamples) {
+            const remaining = trimmedLength - i;
+            sample *= Math.max(0, remaining / fadeOutSamples);
+          }
+
+          destData[i] = sample;
+        }
+      }
+    } else {
+      // Delete Region mode: concatenate part 1 (0..startSample) + part 2 (endSample..totalSamples)
+      const part1Length = Math.max(0, startSample);
+      const part2Length = Math.max(0, totalSamples - endSample);
+      const totalLength = Math.max(1, part1Length + part2Length);
+
+      trimmedBuffer = ctx.createBuffer(numChannels, totalLength, sampleRate);
+
+      for (let c = 0; c < numChannels; c++) {
+        const srcData = buffer.getChannelData(c);
+        const destData = trimmedBuffer.getChannelData(c);
+
+        // Copy part 1
+        for (let i = 0; i < part1Length; i++) {
+          destData[i] = srcData[i];
         }
 
-        // Apply Fade Out gain ramp
-        if (fadeOutSamples > 0 && i > trimmedLength - fadeOutSamples) {
-          const remaining = trimmedLength - i;
-          sample *= Math.max(0, remaining / fadeOutSamples);
+        // Copy part 2
+        for (let i = 0; i < part2Length; i++) {
+          destData[part1Length + i] = srcData[endSample + i];
         }
-
-        destData[i] = sample;
       }
     }
 
-    // Encode trimmed AudioBuffer to high-fidelity 16-bit PCM WAV Blob
     return this.audioBufferToWavBlob(trimmedBuffer);
   }
 
@@ -199,7 +300,7 @@ export class AudioTrimmerService {
 
     // FMT sub-chunk
     this.writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true); // subchunk1size (16 for PCM)
+    view.setUint32(16, 16, true);
     view.setUint16(20, format, true);
     view.setUint16(22, numChannels, true);
     view.setUint32(24, sampleRate, true);
@@ -211,7 +312,6 @@ export class AudioTrimmerService {
     this.writeString(view, 36, 'data');
     view.setUint32(40, dataLength, true);
 
-    // Write PCM samples
     let offset = 44;
     for (let i = 0; i < result.length; i++, offset += 2) {
       const s = Math.max(-1, Math.min(1, result[i]));
