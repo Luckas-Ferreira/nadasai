@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, ElementRef, booleanAttribute, inject, input, signal, viewChild } from '@angular/core';
 import { TranslationService } from '../../core/services/translation.service';
+import { IconComponent } from './icon/icon.component';
 
 /**
- * Before/after divider. Replaces the two-tab hack in remove-bg, which made you
- * flip back and forth instead of seeing both at once.
+ * Before/after divider with zoom inspection capabilities.
  */
 @Component({
   selector: 'app-compare-slider',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [IconComponent],
   template: `
     <!-- touch-none: without it a touch drag scrolls the page instead of moving the divider. -->
     <div
@@ -25,7 +26,9 @@ import { TranslationService } from '../../core/services/translation.service';
           [src]="after()"
           [alt]="i18n.t()['common.result']"
           draggable="false"
-          class="max-h-[min(62vh,600px)] max-w-full object-contain"
+          [class]="isZoomed()
+            ? 'max-h-[min(62vh,600px)] max-w-full object-contain scale-[2.2] transition-transform duration-200 origin-center'
+            : 'max-h-[min(62vh,600px)] max-w-full object-contain transition-transform duration-200'"
         />
       </div>
 
@@ -36,7 +39,9 @@ import { TranslationService } from '../../core/services/translation.service';
             [src]="before()"
             [alt]="i18n.t()['common.original']"
             draggable="false"
-            class="max-h-[min(62vh,600px)] max-w-full object-contain"
+            [class]="isZoomed()
+              ? 'max-h-[min(62vh,600px)] max-w-full object-contain scale-[2.2] transition-transform duration-200 origin-center'
+              : 'max-h-[min(62vh,600px)] max-w-full object-contain transition-transform duration-200'"
           />
         </div>
       </div>
@@ -69,6 +74,16 @@ import { TranslationService } from '../../core/services/translation.service';
       <span class="pointer-events-none absolute right-4 top-4 rounded-sm bg-black/60 px-2 py-1 text-2xs font-medium uppercase text-white/80">
         {{ i18n.t()['common.result'] }}
       </span>
+
+      <!-- Zoom Inspector Toggle Button -->
+      <button
+        type="button"
+        (click)="$event.stopPropagation(); isZoomed.set(!isZoomed())"
+        class="absolute right-4 bottom-4 z-10 rounded-md bg-black/75 px-2.5 py-1 text-2xs font-semibold text-white shadow-pop hover:bg-black transition-all flex items-center gap-1.5"
+      >
+        <app-icon name="search" [size]="13" />
+        {{ isZoomed() ? 'Zoom 100%' : 'Zoom 2x (Ver Detalhes)' }}
+      </button>
     </div>
   `,
 })
@@ -83,19 +98,9 @@ export class CompareSliderComponent {
   private readonly frame = viewChild.required<ElementRef<HTMLElement>>('frame');
 
   protected readonly position = signal(50);
+  protected readonly isZoomed = signal(false);
   private dragging = false;
 
-  /**
-   * preventDefault is the whole reason this drag works.
-   *
-   * Both layers are <img>, and an image is natively draggable: pressing on one
-   * started an HTML5 image drag, which swallows the pointer stream. The divider
-   * jumped a few pixels and then stuck while the browser fell back to selecting
-   * text across the page — `select-none` cannot help, because the selection is
-   * happening everywhere the pointer went, not in here. `draggable="false"` on
-   * the images kills the drag at the source; this kills it for anything else the
-   * default action might start.
-   */
   protected startDrag(event: PointerEvent): void {
     event.preventDefault();
     this.dragging = true;

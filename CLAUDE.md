@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-ImgWork is a client-side image toolbox (remove background, crop, compress, convert, resize) built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no image ever leaves the user's machine — that privacy claim is in the footer, so keep any new feature client-side.
+The product is **Nada Sai** (`nadasai.com`; the npm package and `dist/` folder are still called `imgwork`) — a client-side file toolbox built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no file ever leaves the user's machine — that claim is the product, not a footer detail, so keep any new feature client-side. `NetworkProbeService` instruments it at runtime (see *Offline, PWA and the proof*).
+
+Fifteen tools in two families, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf'`):
+
+- **image** — remove-bg, crop, compress, convert, resize, img-to-pdf
+- **pdf** — edit-pdf (the editor, with OCR), merge, compress, split, pdf-to-img, organize, protect, sign, watermark
+
+Three libraries divide the PDF work and the split matters: **pdf.js** reads and rasterises (always through `core/pdf/pdfjs.ts`), **pdf-lib** writes page-level output (the `features/*/services/*.service.ts` layer), and **jspdf** builds a PDF out of rasters — images→PDF in `core/image/converters.ts`, and `protect-pdf`, which needs encryption pdf-lib cannot do. Note that protect-pdf imports jspdf **statically**, unlike everywhere else; it is inside a lazy route so the initial bundle is safe, but it is a deviation, not the pattern.
 
 ## Commands
 
@@ -15,10 +22,19 @@ npm test                  # Karma + Jasmine in Chrome (watch mode)
 npm test -- --watch=false --browsers=ChromeHeadless   # single CI-style run
 ng test --include='**/converters.spec.ts'             # run one spec file
 
-npm run e2e               # Playwright, HEADED — drives all five tools in a real window
+npm run e2e               # Playwright, HEADED — drives the tools in a real window
 npm run e2e -- 04-convert # one spec file
 npm run e2e:ui            # interactive runner
+npm run e2e:report        # last HTML report
+
+npx playwright test -c playwright.debug.config.ts debug-table   # a diagnostic probe (see below)
 ```
+
+**There is no linter and no formatter.** No ESLint, Prettier or `npm run lint` — `tsc` under `strict` + `strictTemplates` is the only gate besides the tests. Do not invent a lint step; match the surrounding file instead.
+
+`e2e/debug-*.spec.ts` are **not** part of the suite — `playwright.config.ts` ignores them by `testIgnore` and they only run through `playwright.debug.config.ts`. They read a real PDF dropped at the repo root, which `/*.pdf` in `.gitignore` keeps out of git precisely because those documents are somebody's real records (CPF, RG, address). A probe that finds no file skips.
+
+Two things at the root are dead weight, not live infrastructure: `cypress/` + `cypress.config.js` (no cypress in `package.json` — the suite predates Playwright) and the `test-*.js` / `test-tesseract*.mjs` node scratch scripts. Don't extend them; Playwright is the e2e runner.
 
 **The background-removal model is fetched at install/build time, not committed.** `scripts/fetch-model.mjs` runs on `postinstall` and `prebuild`; it downloads the 42 MB int8 IS-Net once into `public/model/`, sliced into ~22 MiB parts + a manifest, and is a no-op once the parts are on disk. So `npm ci && npm run build` on a fresh box produces a complete deploy — but if `public/model/` is empty and you skip install, the remove-bg tool 404s on its weights. Do **not** commit these files or swap the source to an RMBG/BRIA checkpoint (non-commercial licence only — see `fetch-model.mjs`).
 
@@ -53,7 +69,7 @@ E2E lives in `e2e/`. It uploads a real image, runs each tool and asserts on the 
 
 ### The chain (`ImageStateService`)
 
-`core/services/image-state.service.ts` holds one `EditSession { file, originalName, history }` and is the only shared state. It is what makes tools chainable:
+`core/services/image-state.service.ts` holds one `EditSession { file, originalName, history }` and is the only shared state. It is what makes the five single-image tools chainable — **remove-bg, crop, compress, convert, resize and nothing else**. img-to-pdf and all nine PDF tools deliberately stay off it (see below); if you are adding a tool, decide which of the two shapes it is before writing anything.
 
 1. A tool reads `state.currentFile()` in its constructor to hydrate.
 2. After processing, `continueEdit()` calls `state.apply(toolId, blob, suffix, ext)` and routes to `/`.
@@ -78,9 +94,38 @@ Shared pieces: `app-dropzone`, `app-preview-surface`, `app-compare-slider`, `app
 
 `app-action-bar` takes a **nullable `primaryLabel`**, and every tool passes null once pressing the button could only reproduce the result already on screen. Each computes this as a `stale` signal: the settings its `run()` actually reads, versus the ones the current result was made with (`ranQuality`, `ranSettings`, `ranBox`, …). A primary button that recomputes identical bytes reads as "it didn't work" — on remove-bg it re-ran seconds of inference to land back where you started. Note the mirror-image bug this replaced: the templates once hid the button behind `*ngIf="!result()"`, so changing a quality or format meant re-uploading. The label must come back the instant a setting changes. Remove-bg is the tool to think about here — `run()` reads *nothing* but the file, and the backdrop is composited at export, so its button is simply gone once a cutout exists.
 
-Register the tool once in `core/tools/tools.ts`; the nav, the home grid and the filename suffix all read from there.
+Templates live in a sibling `*.component.html` for every feature. `features/pdf/pdf.component.ts` is the one inline template, and only because it is ~2k lines of editor that nobody should scroll past to reach the class.
 
-**`img-to-pdf` is the one tool that does not live on the chain, and that is not an oversight.** `ImageStateService` holds exactly one file per session — that is what makes the other tools chainable — and a reorderable page list is not a chain, so the list is local component state. It still *reads* the chain on construction (a crop flows into page one) and it never calls `apply()`, because a PDF is terminal for the same reason `TERMINAL_FORMATS` blocks convert. Consequences worth knowing: `<app-tool-page>` gets `[forceLoaded]` because its default `loaded` watches the chain, which is empty here; the output filename comes off **page one**, not `originalName`; and `stale` has to include the page order, or dragging page 3 to the front would leave the stale PDF downloadable. `app-dropzone` grew `multiple` + `filesSelected` for it — emitted *alongside* `fileSelected`, never instead of it, so the five single-file tools are untouched.
+**Registering a tool touches five places, and skipping any of them is a silent bug, not a compile error:**
+
+1. `core/tools/tools.ts` — the `ToolId` union and a `ToolDef`. The rail, the home grid, the mobile bar, the palette and the filename suffix all read from here, and the tool's `category` must be an id in `MODULES` (`tools.spec.ts` enforces it — `moduleById` throws, so a stray category takes the shell down on that route rather than degrading). `tone` must also exist as `tone-<value>` in `styles.css`, in both halves (the utility and the token pair).
+2. `app.routes.ts` — **two** entries, `pt/<caminho-em-português>` and `en/<english-path>`, each with `title` + `data.metaDescription`/`metaKeywords`, plus a legacy redirect if the path ever shipped under another URL. The file is a long literal list on purpose: these are indexed URLs.
+3. `core/services/seo.service.ts` — both spellings in `ROUTE_MAPPINGS`, which is what emits `hreflang`/canonical. A route missing here loses its alternate-language link.
+4. The EN and PT dictionaries in `translation.service.ts` — `navKey`, `shortKey`, `titleKey`, `descKey`. This one *is* a compile error (see i18n), which is the point.
+5. `ngsw-config.json`, but only if the tool pulls a new runtime asset directory; the existing groups already cover `pdfjs/`, `tesseract/`, `tessdata/`, `model/`, `ort/`.
+
+The language is derived from the URL prefix, not stored: `TranslationService` subscribes to `NavigationEnd` and flips on `/en` vs `/pt`. So a tool reachable only under one prefix is a tool half the site cannot see.
+
+Adding a **module** is `MODULES` in `tools.ts` plus `module.<id>` / `module.<id>_desc` in both dictionaries. Nothing in the shell or the home page needs touching: the rail, the switcher, the mobile bar, the palette and the home grid all walk `MODULES`.
+
+### The shell (`app.component.html`)
+
+Three surfaces, and which of them exist depends on where you are:
+
+- **`app-top-bar`** — always. Wordmark, the module switcher, the palette trigger. It is the only place the brand is stated (the rail used to carry a 24px copy of it, and the mobile header a second one).
+- **`app-tool-nav`** (the rail, desktop) and **`app-mobile-tool-bar`** — only inside a module. Both list the tools of the *current* module and nothing else.
+- **`app-command-palette`** — always, `⌘K`/`Ctrl K`, reaching every tool of every module.
+
+**The rail is scoped to one module, and that is the whole design.** A global rail has a hard ceiling: at 15 tools the list already ran past the bottom of a 700px window, and the container had no `overflow-y-auto`, so the last PDF tools were simply unreachable. Adding a scrollbar treats the symptom — the length of a global list grows with the product. Scoped, the rail's height tracks the size of a *module*, so the tenth module costs nothing in that layout. Two consequences carry the rest of the design:
+
+- Crossing modules needs a control that is always present, hence the switcher in the top bar; and finding a tool by name needs something that ignores scoping, hence the palette. **Neither is decoration — remove either one and part of the product becomes unreachable from a tool page.** The switcher lands on a module's *first* tool because there is no per-module landing route (adding one means two localized paths plus an SEO mapping); the rail reveals the rest on arrival.
+- No module → no rail and no mobile bar (home, `/sobre`, `/faq`). Those pages are the launcher and the reading; the home grid *is* the navigation there, and `main` gets the full width.
+
+`ActiveToolService` resolves "where am I" by matching the URL against the declared `pathPt`/`pathEn` — never by path prefix, because `img-to-pdf` lives at `imagem/para-pdf` while the PDF module lives under `pdf/…`, so a prefix rule files it in the wrong module. It reads `urlAfterRedirects`, which is what makes it survive the legacy redirects.
+
+The mobile bar is **one** scrolling row with the active tool pulled into view on navigation. It was a `grid-cols-5`, honest to its comment ("everything at once, nothing behind a scroll") only while a module had five tools; with nine it silently became two rows. The auto-scroll is what makes the row acceptable — the scroll strip *it* replaced was abandoned because the current tool could sit off-screen with nothing saying so.
+
+**`img-to-pdf` is the one *image* tool that does not live on the chain, and that is not an oversight — every PDF tool later followed its pattern (`merge-pdf`'s header comment cites it).** `ImageStateService` holds exactly one file per session — that is what makes the other tools chainable — and a reorderable page list is not a chain, so the list is local component state. It still *reads* the chain on construction (a crop flows into page one) and it never calls `apply()`, because a PDF is terminal for the same reason `TERMINAL_FORMATS` blocks convert. Consequences worth knowing: `<app-tool-page>` gets `[forceLoaded]` because its default `loaded` watches the chain, which is empty here; the output filename comes off **page one**, not `originalName`; and `stale` has to include the page order, or dragging page 3 to the front would leave the stale PDF downloadable. `app-dropzone` grew `multiple` + `filesSelected` for it — emitted *alongside* `fileSelected`, never instead of it, so the five single-file tools are untouched.
 
 `encodePdfFromImages` in `core/image/converters.ts` backs it, and `encodePdf` is now a one-line wrapper over it. Two things there are load-bearing: the loop is **sequential** (mapping it through `Promise.all` holds every decoded canvas at once — thirty 12 MP photos is gigabytes of RGBA), and `maxLongSide` caps the raster for the multi-image path only. Without the cap a batch of phone photos builds a 50 MB PDF at 2-3 MB per page; single-image convert passes no cap, because there the user asked for that one image at full resolution.
 
@@ -102,6 +147,20 @@ Three constraints worth knowing before you "improve" this:
 - **Anything without an alpha channel (JPEG, PDF) must be flattened first**, or transparency serializes as black. `encodeImage`/`encodePdf` already do this; a pixel test guards it.
 - **`jspdf` is lazily imported** inside `encodePdf`. It drags in html2canvas (~350 kB); importing it statically put that in the convert chunk for everyone. Keep it dynamic.
 
+### PDF tools
+
+Nine of the fifteen tools are PDF tools and they share almost nothing with the image chain. The shape is always the same, so read one (`split-pdf` is the plainest) before writing another:
+
+- **`core/pdf/pdfjs.ts` is the only door to pdf.js.** `getPdfjs()` memoizes the import and pins the self-hosted worker; `openPdf(file, password?)` validates the type, enforces `MAX_PDF_BYTES` (100 MB) and maps pdf.js failures onto `pdf_encrypted` / `pdf_unsupported`; `closePdf` tears down the worker; `releaseCanvas` drops a backing store. Do not call `getDocument` yourself — every call must carry `pdfAssetUrls()`, and the failure mode when it doesn't is *not* an exception. pdf.js logs and continues, so the page renders with pieces missing (that is how the logos vanished from an academic transcript: the missing decoder was `openjpeg.wasm`).
+- **Render into the canvas that is already in the DOM** (`renderPageIntoCanvas`), not into an offscreen one you then blit. Two canvases alive at once is 2× video memory — ~40 MB per A4 at 3.2× — and a browser over the limit does not throw, it hands back a blank canvas.
+- **Each tool owns a stateless `providedIn: 'root'` service under `features/<tool>/services/`.** It takes Files and options, returns a Blob, throws `AppError`, and reports progress through a callback. All UI state stays in the component, which is what lets Angular drop it on navigation.
+- **`pdf-lib` is imported dynamically in every one of those services** (`const { PDFDocument } = await import('pdf-lib')`), same reasoning as jspdf: nobody who came to crop an image should pay for it. Type-only imports are fine and are used (`import type { PDFFont }`).
+- **Password-protected files are a two-step flow, not an error.** `openPdf` throws `pdf_encrypted`; the component parks the file in a `pendingFile` signal, shows `<app-pdf-password-prompt>`, and re-opens with the password, which is then threaded through every later `openPdf` call for that document.
+- **The lib choice per tool is forced by capability, not preference.** pdf-lib rearranges pages and draws on them (merge, split, organize, sign, watermark, the editor's export) and it can neither rasterise nor encrypt — so compress-pdf's lossy levels and protect-pdf go through pdf.js + a re-encode instead, which is why both destroy vector text. compress-pdf compensates by re-drawing the old text layer invisibly over the raster so Ctrl+F still works; `PdfExporterService` uses the same trick to make OCR'd scans searchable.
+- **`merge` copies per source *file*, not per page.** `copyPages` clones the resource tree it walks, so calling it once per page duplicates shared fonts and colour profiles until the merged file is larger than its inputs. The copies are then consumed in insertion order, never looked up by page index — keying by index collapses a page used twice into one object and produces a corrupt file.
+- `app-page-grid` is the reorderable thumbnail strip, shared by img-to-pdf and merge-pdf; it knows nothing about Files, only a label and a URL. Drag-and-drop is the shortcut, the arrow buttons are the real control (drag does nothing on touch or from a keyboard).
+- **`fflate` (zip output for split-pdf and pdf-to-img) is imported but not declared in `package.json`** — it resolves today only because jspdf depends on it. If you touch either tool, declare it.
+
 ### Background removal (`background-removal.service.ts`)
 
 Unlike the other tools, this doesn't route through `core/image/` — it's a self-contained service, and the file's header comment is the real spec (read it before touching this). Four things carry the design:
@@ -121,11 +180,22 @@ Every failure path maps through `core/errors.ts` → `toMessageKey(err)` → an 
 
 Hand-rolled, not `@angular/localize`. `TranslationService` derives `TranslationKey` from the EN dictionary and types PT as a total `Record` over it, so **a missing key is a compile error**. (The compress button once rendered with no label at all because its key simply didn't exist.) Templates read `i18n.t()['some.key']` — bracket access is mandatory under `noPropertyAccessFromIndexSignature`. A spec asserts key parity between languages.
 
+### Offline, PWA and the proof
+
+The app is a service-worker PWA, and that is downstream of the privacy claim: a tool that never uploads has no reason to need the network twice. Four services carry it, each with its own header comment worth reading before you touch it.
+
+- **`ngsw-config.json` splits assets by cost.** `app` and `assets` prefetch; `ai` (`model/`, `ort/`) and `pdf` (`pdfjs/`, `tesseract/`, `tessdata/`) are **lazy** — prefetching 42 MB of weights on first paint would make the home page feel broken. A new runtime asset directory that isn't listed here works online and disappears offline.
+- **`AppUpdateService` blocks the screen between `VERSION_DETECTED` and the reload**, on purpose: once ngsw swaps the manifest, the lazy chunk the old page asks for on the next click may not exist, and the user gets a chunk-load error instead of a tool. It stays invisible when nothing needed downloading.
+- **`ModelPrefetchService` exists so the rule in `BackgroundRemovalService` can stay intact.** Per-run state belongs to the component; a 42 MB download is global, idempotent and outlives navigation, so it lives here — and it awaits the *same* memoised promise the real run uses, so a prefetch in flight *is* the first run's download.
+- **`NetworkProbeService` is an instrument, not a claim.** It wraps fetch / XHR / sendBeacon / WebSocket and counts **file egress only** — a body carrying a File, Blob, ArrayBuffer, typed array, or FormData containing a File. Counting all outbound bytes was tried and is wrong in both directions: a login or a checkout would light it up the day billing ships, and a corporate antivirus doing TLS interception (Kaspersky, on the machine this was built) injects a script that POSTs its own telemetry — which had the product accusing itself, on its own home page, of the one thing it exists to prevent. `09-offline` and `08-proof` in the e2e suite guard this behaviour, and `09-offline` is the reason Playwright boots a real production build on 4300.
+
 ## Design system
 
 `src/styles.css` is the whole thing — there is no `tailwind.config.js`. It resets Tailwind's stock scales (`--color-*: initial`, `--radius-*`, `--text-*`, `--font-weight-*`, `--shadow-*`) and redefines only what the product uses. **`bg-teal-600`, `font-black`, `rounded-3xl`, `text-6xl` and `shadow-xl` therefore generate no CSS at all.** That is deliberate: the previous design read as machine-generated, and this makes the old look unreachable rather than merely discouraged.
 
-The palette is Tailwind's **slate** ramp with a **blue** accent, on **Inter** (self-hosted via `@fontsource/inter` — a webfont CDN would be a network request on every load, which contradicts the footer's privacy claim and breaks the app offline).
+The palette is Tailwind's **slate** ramp with a **blue** accent, on **Nunito** (self-hosted via `@fontsource/nunito`, weights 400–700 only — a webfont CDN would be a network request on every load, which contradicts the privacy claim and breaks the app offline). `@fontsource/inter` is still in `package.json` but nothing imports it; the typeface is Nunito.
+
+**There is one theme and it is light.** The app used to ship a dark default plus a sun/moon toggle; both are gone, there is no `ThemeService`, and `:root` declares `color-scheme: light` with a single set of values. Two consequences: a `dark:` variant or a `prefers-color-scheme` block in a component is dead code, and every foreground token is tuned for **WCAG AAA against white** (`--muted` at 9.5:1, `--accent` at 7.5:1) — pick an existing token rather than a lighter shade of one. The header comment in `styles.css` and the `colorScheme: 'dark'` line in `playwright.config.ts` still describe the two-theme era; the tokens below them are the truth.
 
 Rules the tokens enforce:
 
@@ -134,12 +204,14 @@ Rules the tokens enforce:
 - Numbers (sizes, dimensions, percentages) use `font-mono tabular`.
 - Radii: 6px controls, 8px panels, 10px the preview stage.
 
-Four things about the colour tokens are load-bearing:
+Five things about the colour tokens are load-bearing:
 
-- **`accent` and `accent-fill` are different jobs.** `accent` is the foreground blue (links, active tool, focus rings) and *lightens* in dark mode to stay legible on slate. `accent-fill` is the solid blue behind white text (primary button) and stays saturated in both themes. Using `bg-accent` as a fill turns the button pastel in dark mode.
-- **Dark mode lifts its surfaces** (rail `slate-950` → base `slate-900` → panel `slate-800` → input `slate-700`). Depth comes from the steps *between* surfaces, not from pushing everything toward black — that was the "escuro demais" complaint.
-- **The rail flips with the theme**, so anything rendered on it must use the `rail-*` tokens (`text-rail-muted`, `bg-rail-hover`, …), never `text-white/50`. Literal white on the light rail is invisible. `<app-segmented onRail>` exists for this.
-- **The image stage (`bg-stage`) stays dark in both themes** — a light surround visibly skews how you judge an image's brightness. But it is only for surfaces that actually *contain the image*: the empty dropzone is themed, because a black slab on a light page is just a black slab.
+- **Never hardcode a hex in a component** — add a semantic token in `styles.css`. Every colour resolves through a variable, which is what made deleting a whole theme a token edit rather than a sweep through templates.
+- **Depth is page-vs-card plus a 1px line**, never a heavy shadow: `--base` sits a shade below pure white (`#e9edf3`) so the white surfaces lift on their own.
+- **`accent` and `accent-fill` are different jobs** even though they currently hold the same blue. `accent` is the foreground (links, active tool, focus rings); `accent-fill` is the solid behind white text (primary button, with `--on-accent` as its text). They are separate tokens so a future accent that must lighten for legibility can move without turning every primary button pastel.
+- **The rail has its own foreground tokens** (`text-rail-muted`, `bg-rail-hover`, `bg-rail-active`, …) and anything rendered on it must use them, never `text-white/50` — literal white on the light rail is invisible, and that is exactly how light mode read as broken back when the rail was dark. `<app-segmented onRail>` exists for this.
+- **Each tool's `tone` needs a `--tone-<name>-fg` / `--tone-<name>-bg` pair**, and the foregrounds are deliberately dark (`amber` is `#92400e`, not amber-500) because they carry text on a tinted badge at AAA.
+- **The image stage (`bg-stage`) is the one dark surface left, and it survived the theme deletion for a reason** — a light surround visibly skews how you judge an image's brightness. But it is only for surfaces that actually *contain the image*: the empty dropzone is themed, because a black slab on a light page is just a black slab.
 - **A document you read is not an image you judge, so it gets `bg-doc-stage` instead.** The PDF editor's scrolling page surface is the one place that reads a whole document rather than inspecting a picture, and the reason `bg-stage` is dark does not reach it — nobody colour-grades a transcript. Near-black there fights the white page for attention and glares over a long read, which is why Acrobat, Preview and Chrome's own viewer all use a neutral mid grey. The page itself is a sheet: 6px radius, and `shadow-page` — a 1px ring so white does not bleed into the grey, a short shadow to seat it, a long one for height. The page wrapper deliberately has no `overflow-hidden` (a selected block's resize handles sit at -4px and its move handle at -14px, and would be clipped); the canvas carries the radius, since canvases honour `border-radius` when painting. The page-thumbnail tools (merge, organize, split, pdf-to-img) keep the dark stage on purpose — small previews on a dark backdrop read as a lightbox, which is what they are.
 
 Icons go in `shared/ui/icon/icons.ts` and render via `<app-icon>`; inline `<svg>` in a template is not the pattern.
@@ -147,7 +219,8 @@ Icons go in `shared/ui/icon/icons.ts` and render via `<app-icon>`; inline `<svg>
 ## Conventions
 
 - Angular 19 control flow (`@if` / `@for`) — `*ngIf`/`*ngFor`/`ngClass` are gone and should stay gone.
-- Signal-based inputs (`input()`, `output()`, `model()`), `ChangeDetectionStrategy.OnPush`, `inject()`.
-- TypeScript `strict` with `strictTemplates`.
-- Production budget errors at 1 MB initial (currently ~304 kB). Heavy deps must stay in lazy chunks.
-- UI copy is in the dictionary in both PT and EN; comments and commit messages are mixed PT/EN.
+- Signal-based inputs (`input()`, `output()`, `model()`), `ChangeDetectionStrategy.OnPush`, `inject()`. Standalone components only; there is no NgModule.
+- Every route is `loadComponent`, so a heavy dependency reached by exactly one tool costs only that tool — which is the whole reason the dynamic `import()`s above are worth defending.
+- TypeScript `strict` with `strictTemplates` and `noPropertyAccessFromIndexSignature`. No linter (see Commands).
+- Production budget errors at 1 MB initial. Heavy deps must stay in lazy chunks — re-measure with `npm run build` rather than trusting a number written here.
+- UI copy is in the dictionary in both PT and EN; comments and commit messages are mixed PT/EN, and both are written to explain *why*, often naming the bug the code exists to prevent. Match that when you touch a commented block: a comment that only restates the line is worse than none.

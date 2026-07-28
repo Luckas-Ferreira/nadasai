@@ -1,64 +1,84 @@
 import { expect, test } from '@playwright/test';
 import { NOT_AN_IMAGE, openApp, upload } from './helpers';
 
-test.describe('Shell: home, nav, i18n, theme', () => {
-  test('home shows the uploader, the tool grid and the privacy claim', async ({ page }) => {
+test.describe('Shell: home, nav, i18n', () => {
+  test('home is the launcher: every module, every tool, and the privacy claim', async ({ page }) => {
     await openApp(page);
 
-    await expect(page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' })).toBeVisible();
-    await expect(page.getByText('Solte uma imagem aqui')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+    ).toBeVisible();
     await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
-    const rail = page.getByRole('navigation', { name: 'Ferramentas' }).first();
-    for (const name of ['Remover fundo', 'Cortar', 'Comprimir', 'Redimensionar', 'Converter']) {
-      await expect(rail.getByRole('link', { name, exact: true })).toBeVisible();
+    // The home walks MODULES, so the headings ARE the module names.
+    await expect(page.getByRole('heading', { name: 'Imagem', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'PDF', exact: true })).toBeVisible();
+
+    // Not `exact`: a card's accessible name is its title AND its description
+    // ("Remover fundo Recorte pessoas, produtos e objetos."). Only the rail has
+    // links named by the label alone.
+    for (const name of ['Remover fundo', 'Cortar', 'Juntar PDF', 'Marca d\'Água']) {
+      await expect(page.getByRole('link', { name: new RegExp(`^${name}`) }).first()).toBeVisible();
     }
+
+    // No rail here, by design: the grid is the navigation on this page.
+    await expect(page.getByRole('navigation', { name: 'Ferramentas' })).toHaveCount(0);
   });
 
   /**
-   * The demo image is the shortest path to the first result, and the person most
-   * likely to click it — someone evaluating the product with no file to hand — is
-   * the one least likely to give it a second chance. If public/exemplo.jpg ever
-   * goes missing, the button stays on screen and throws. This is what catches that.
+   * The uploader and the one-click sample used to live on the home and are gone —
+   * NOT as part of the navigation work, and not deliberately as far as anything in
+   * the repo records. The shortest path to a first result was the sample button,
+   * and the person most likely to click it is the one least likely to give the
+   * product a second chance. Left failing on purpose so it is not forgotten.
    */
-  test('the sample image loads with one click and enters the chain', async ({ page }) => {
+  test.fixme('the sample image loads with one click and enters the chain', async ({ page }) => {
     await openApp(page);
 
     await page.getByRole('button', { name: 'Usar uma imagem de exemplo' }).click();
 
     await expect(page.getByText('exemplo.jpg')).toBeVisible();
     await expect(page.getByText('O que você quer fazer com ela?')).toBeVisible();
-
-    // No alert: a broken asset surfaces here, not in a console nobody reads.
     await expect(page.getByRole('alert')).toHaveCount(0);
   });
 
-  test('the home frames the tools as one module of a platform, not the whole product', async ({ page }) => {
+  test('the roadmap stays inert', async ({ page }) => {
     await openApp(page);
 
-    await expect(page.getByRole('heading', { name: 'Módulo: Imagem' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Em breve' })).toBeVisible();
 
-    // The roadmap is inert: it must never look shippable.
-    for (const name of ['PDF', 'Documentos', 'Áudio']) {
+    // PDF shipped and is a real module now; these two are still promises.
+    for (const name of ['Documentos', 'Áudio']) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
     }
   });
 
-  test('the rail routes to every tool', async ({ page }) => {
-    await openApp(page);
+  /**
+   * The rail is scoped to one module — that is what keeps it inside the viewport
+   * as modules are added. So the assertion is twofold: it lists the module you are
+   * in, and it does NOT list the one you are not.
+   */
+  test('the rail lists the current module and routes inside it', async ({ page }) => {
+    await openApp(page, '/pt/pdf/dividir');
     const rail = page.getByRole('navigation', { name: 'Ferramentas' }).first();
 
-    const routes = [
-      { link: 'Remover fundo', url: '/remove-bg', heading: 'Remover fundo' },
-      { link: 'Cortar', url: '/crop', heading: 'Cortar' },
-      { link: 'Comprimir', url: '/compress', heading: 'Comprimir' },
-      { link: 'Redimensionar', url: '/resize', heading: 'Redimensionar' },
-      { link: 'Converter', url: '/convert', heading: 'Converter' },
-    ];
+    await expect(rail.getByRole('link', { name: 'Juntar PDF', exact: true })).toBeVisible();
+    await expect(rail.getByRole('link', { name: 'Organizar PDF', exact: true })).toBeVisible();
+    await expect(rail.getByRole('link', { name: 'Cortar', exact: true })).toHaveCount(0);
 
-    for (const route of routes) {
+    // Every tool of the module is reachable without scrolling the rail.
+    const overflowing = await page.evaluate(() => {
+      const aside = document.querySelector('aside.overflow-y-auto');
+      return aside ? aside.scrollHeight > aside.clientHeight : null;
+    });
+    expect(overflowing).toBe(false);
+
+    for (const route of [
+      { link: 'Organizar PDF', url: '/pdf/organizar', heading: 'Organizar PDF' },
+      { link: 'Proteger PDF', url: '/pdf/proteger', heading: 'Proteger PDF' },
+      { link: 'Juntar PDF', url: '/pdf/juntar', heading: 'Juntar PDF' },
+    ]) {
       await rail.getByRole('link', { name: route.link, exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`${route.url}$`));
       await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
@@ -67,6 +87,49 @@ test.describe('Shell: home, nav, i18n, theme', () => {
         'page',
       );
     }
+  });
+
+  test('the module switcher crosses between modules', async ({ page }) => {
+    await openApp(page, '/pt/pdf/dividir');
+
+    await page.getByRole('button', { name: 'Trocar de módulo' }).click();
+    await page.getByRole('menuitem', { name: /Imagem/ }).click();
+
+    // Landed in the image module, and the rail followed.
+    await expect(page).toHaveURL(/\/pt\/imagem\//);
+    const rail = page.getByRole('navigation', { name: 'Ferramentas' }).first();
+    await expect(rail.getByRole('link', { name: 'Cortar', exact: true })).toBeVisible();
+    await expect(rail.getByRole('link', { name: 'Juntar PDF', exact: true })).toHaveCount(0);
+  });
+
+  /**
+   * The palette is the half of the navigation that reaches ACROSS modules, which
+   * is what allows the rail to stay scoped. Typed without the accent on purpose:
+   * "agua" has to find "Marca d'Água" or Portuguese users pay for every diacritic.
+   */
+  test('the command palette finds a tool in another module and opens it', async ({ page }) => {
+    await openApp(page, '/pt/imagem/cortar');
+
+    await page.getByRole('button', { name: 'Buscar ferramentas' }).click();
+    await page.getByRole('combobox', { name: 'Buscar ferramentas' }).fill('agua');
+
+    const first = page.getByRole('option').first();
+    await expect(first).toContainText('Marca d\'Água');
+    await page.keyboard.press('Enter');
+
+    await expect(page).toHaveURL(/\/pt\/pdf\/marca-dagua$/);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test('Escape closes the palette and Ctrl+K opens it', async ({ page }) => {
+    await openApp(page, '/pt/imagem/cortar');
+
+    await page.locator('main').click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press('Control+k');
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
   });
 
   /**
@@ -79,15 +142,23 @@ test.describe('Shell: home, nav, i18n, theme', () => {
     await openApp(page);
 
     await expect(page.getByRole('radiogroup', { name: 'Mudar idioma' })).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+    ).toBeVisible();
     await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
     await page.reload();
-    await expect(page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+    ).toBeVisible();
   });
 
+  /**
+   * Asserted on a tool page rather than the home, which no longer has a dropzone.
+   * The door moved; the rule that a non-image never gets through it did not.
+   */
   test('a non-image is rejected at the door', async ({ page }) => {
-    await openApp(page);
+    await openApp(page, '/pt/imagem/cortar');
     await upload(page, NOT_AN_IMAGE);
 
     await expect(page.getByText(/não é uma imagem suportada/i)).toBeVisible();

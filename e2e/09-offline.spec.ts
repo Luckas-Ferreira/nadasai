@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectDownload, openApp, primary, upload } from './helpers';
+import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
 
 /**
  * The pitch, as a test: pull the plug and keep working.
@@ -17,8 +17,6 @@ import { expectDownload, openApp, primary, upload } from './helpers';
  */
 test.use({ baseURL: 'http://localhost:4300' });
 
-const rail = (page: Page) => page.getByRole('navigation', { name: 'Ferramentas' }).first();
-
 /**
  * The worker registers with registerWhenStable, then prefetches every asset
  * group. Going offline before that drains would test the browser's HTTP cache,
@@ -32,17 +30,20 @@ async function serviceWorkerReady(page: Page): Promise<void> {
 
 test.describe('Offline', () => {
   test('with the network cut, a tool still processes and downloads', async ({ page, context }) => {
-    await openApp(page);
+    // The file enters through a tool (the home has no uploader), then the chain
+    // continues from the home grid — which is also a lazy route, so the offline
+    // assertion still covers the thing that used to hang.
+    await openApp(page, '/pt/imagem/cortar');
     await serviceWorkerReady(page);
 
     await upload(page);
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     await context.setOffline(true);
 
     await expect(page.locator('app-network-proof')).toContainText('Você está sem internet');
 
     // Navigating here is the exact thing that used to hang: a lazy chunk.
-    // Exact: the PDF module has its own "Comprimir PDF" in the same rail.
-    await rail(page).getByRole('link', { name: 'Comprimir', exact: true }).click();
+    await pickFromHome(page, 'Comprimir');
     await primary(page, 'Comprimir').click();
     await expectDownload(page, /^photo-min\.webp$/);
   });
@@ -59,13 +60,14 @@ test.describe('Offline', () => {
   test('the AI removes a background with the network cut', async ({ page, context }) => {
     test.setTimeout(600_000); // a 55 MB cold cache, then two real WASM inference runs
 
-    await openApp(page);
+    await openApp(page, '/pt/imagem/cortar');
     await serviceWorkerReady(page);
 
     // Pass one, online: this is what pulls the model weights into the cache.
-    // Arriving from the rail carries the file in and runs on its own.
+    // Arriving with the file already in the chain runs the tool on its own.
     await upload(page);
-    await rail(page).getByRole('link', { name: 'Remover fundo' }).click();
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
+    await pickFromHome(page, 'Remover fundo');
     // The model is tens of MB, fetched before the first run can even start.
     await page.getByRole('button', { name: 'Baixar' }).waitFor({ timeout: 300_000 });
 

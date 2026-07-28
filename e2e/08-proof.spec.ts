@@ -1,8 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDownload, openApp, primary, upload } from './helpers';
-
-const rail = (page: import('@playwright/test').Page) =>
-  page.getByRole('navigation', { name: 'Ferramentas' }).first();
+import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
 
 /**
  * The product is one claim: the file never leaves the machine. Everything else —
@@ -39,16 +36,14 @@ test.describe('Zero-upload, asserted from outside the app', () => {
       }
     });
 
-    await openApp(page);
-
     // Drive real work through two tools — a leak would happen here, not at rest.
+    await openApp(page, '/pt/imagem/comprimir');
     await upload(page);
-    // Exact: the PDF module has its own "Comprimir PDF" in the same rail.
-    await rail(page).getByRole('link', { name: 'Comprimir', exact: true }).click();
     await primary(page, 'Comprimir').click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    await rail(page).getByRole('link', { name: 'Redimensionar' }).click();
+    // Keep editing lands on the home, where the grid is the navigation.
+    await pickFromHome(page, 'Redimensionar');
     await page.getByRole('button', { name: '400', exact: true }).click();
     await primary(page, 'Redimensionar').click();
     await expectDownload(page, /^photo-resized\.webp$/);
@@ -58,7 +53,9 @@ test.describe('Zero-upload, asserted from outside the app', () => {
     // The photo fixture is ~KB of pixels. Nothing carrying a payload went out.
     expect(uploads, 'a request carried a body — the image may have been uploaded').toEqual([]);
 
-    // And only now: the instrument the user is shown agrees with Playwright.
+    // And only now: the instrument the user is shown agrees with Playwright. It
+    // stays on the home mid-chain, which is the point — the counter is worth most
+    // right after a file has been through two tools.
     await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     const proof = page.locator('app-network-proof');
     await expect(proof).toContainText('0 bytes');

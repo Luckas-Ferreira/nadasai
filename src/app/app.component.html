@@ -1,104 +1,64 @@
 <app-splash-screen />
-<div class="flex min-h-dvh bg-base">
-  <!-- Rail. Stays dark in both themes: it anchors the layout and frames the stage. -->
-  <!-- Rail. Flips with the theme, so everything inside it reads rail-* tokens. -->
-  <aside class="sticky top-0 hidden h-dvh w-[228px] shrink-0 flex-col border-r border-rail-line bg-rail md:flex">
-    <a [routerLink]="'/' + i18n.currentLang()" class="flex h-14 items-center gap-2.5 px-4">
-      <img src="logo.webp" alt="" class="h-6 w-6 object-contain" />
-      <span class="text-md font-semibold text-rail-text">Nada Sai</span>
-    </a>
 
-    <div class="px-3 py-2">
-      <app-tool-nav />
-    </div>
+<div class="flex min-h-dvh flex-col bg-base">
+  <!-- One identity surface for every viewport. The rail no longer carries the
+       logo, so it gets its whole height for tools. -->
+  <app-top-bar />
 
-  </aside>
-
-  <div class="flex min-w-0 flex-1 flex-col">
-    <!-- Mobile top bar: one clean row. The tools no longer live here as a
-         cut-off scroll strip — they moved to the fixed bottom tab bar below,
-         so nothing gets clipped and the current tool is always visible. -->
-    <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-surface px-4 md:hidden">
-      <a [routerLink]="'/' + i18n.currentLang()" class="flex items-center gap-2">
-        <img src="logo.webp" alt="" class="h-5 w-5 object-contain" />
-        <span class="text-md font-semibold">Nada Sai</span>
-      </a>
-    </header>
-
-    <app-current-file-bar />
-
-    <!-- Extra bottom padding on mobile so the last controls clear the tab bar. -->
-    <main class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
-      <router-outlet />
-    </main>
-
-    <footer class="border-t border-line px-5 py-4 md:px-8">
-      <div class="flex flex-col gap-1.5 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
-        <p>{{ i18n.t()['app.footer.secure'] }}</p>
-
-        <nav class="flex gap-4">
-          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/about' : '/sobre')" class="hover:text-muted">{{ i18n.t()['app.footer.about'] }}</a>
-          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/privacy' : '/privacidade')" class="hover:text-muted">{{ i18n.t()['app.footer.privacy'] }}</a>
-          <a [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/terms' : '/termos')" class="hover:text-muted">{{ i18n.t()['app.footer.terms'] }}</a>
-          <a [routerLink]="'/' + i18n.currentLang() + '/faq'" class="hover:text-muted">{{ i18n.t()['app.footer.faq'] }}</a>
-        </nav>
-      </div>
-    </footer>
-  </div>
-
-  <!-- Mobile tab bar. Fixed to the bottom, shows every tool at once (icon +
-       one-word label), so the 5th tool is never hidden behind a scroll. -->
-  <div class="fixed inset-x-0 bottom-0 z-40 flex flex-col border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
-    <!-- Mobile Tabs -->
-    <div class="flex border-b border-line">
-      <button 
-        (click)="mobileTab = 'image'"
-        class="flex-1 py-2 text-xs font-semibold uppercase tracking-wider transition-colors"
-        [class.text-accent]="mobileTab === 'image'"
-        [class.text-muted]="mobileTab !== 'image'"
-        [class.bg-raised]="mobileTab === 'image'"
+  <div class="flex min-w-0 flex-1">
+    <!-- The rail. Scoped to the current module, so it renders nothing on the home
+         page and on the institutional routes. `top-14` because the top bar above
+         it is sticky and 56px tall; the scroll is the floor for a module that one
+         day carries twenty tools. -->
+    @if (activeTool.module()) {
+      <aside
+        class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[228px] shrink-0 overflow-y-auto border-r border-rail-line bg-rail px-3 py-3 md:block"
       >
-        Imagem
-      </button>
-      <div class="w-px bg-line"></div>
-      <button 
-        (click)="mobileTab = 'pdf'"
-        class="flex-1 py-2 text-xs font-semibold uppercase tracking-wider transition-colors"
-        [class.text-accent]="mobileTab === 'pdf'"
-        [class.text-muted]="mobileTab !== 'pdf'"
-        [class.bg-raised]="mobileTab === 'pdf'"
-      >
-        PDF
-      </button>
-    </div>
+        <app-tool-nav />
+      </aside>
+    }
 
-    <!-- Mobile Tab Content -->
-    <nav
-      class="grid grid-cols-5"
-      [attr.aria-label]="i18n.t()['nav.tools']"
-    >
-      @for (tool of (mobileTab === 'image' ? imageTools : pdfTools); track tool.id) {
-        <a
-          [routerLink]="'/' + i18n.currentLang() + '/' + (i18n.currentLang() === 'en' ? tool.pathEn : tool.pathPt)"
-          routerLinkActive
-          #rla="routerLinkActive"
-          [attr.aria-current]="rla.isActive ? 'page' : null"
-          class="flex flex-col items-center gap-1 px-1 py-2 text-2xs font-medium transition-colors"
-          [class.text-accent]="rla.isActive"
-          [class.text-muted]="!rla.isActive"
+    <div class="flex min-w-0 flex-1 flex-col">
+      <app-current-file-bar />
+
+      <!-- Extra bottom padding on mobile so the last controls clear the tool bar. -->
+      <main class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+        <router-outlet />
+      </main>
+
+      <footer class="border-t border-line px-5 py-4 md:px-8">
+        <div
+          class="flex flex-col gap-1.5 text-xs text-faint sm:flex-row sm:items-center sm:justify-between"
         >
-          <span
-            [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
-            class="text-[color:var(--tone-fg)]"
-          >
-            <app-icon [name]="tool.icon" [size]="20" />
-          </span>
-          <span class="max-w-full truncate">{{ i18n.t()[tool.shortKey] }}</span>
-        </a>
-      }
-    </nav>
+          <p>{{ i18n.t()['app.footer.secure'] }}</p>
+
+          <nav class="flex gap-4">
+            <a
+              [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/about' : '/sobre')"
+              class="hover:text-muted"
+              >{{ i18n.t()['app.footer.about'] }}</a
+            >
+            <a
+              [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/privacy' : '/privacidade')"
+              class="hover:text-muted"
+              >{{ i18n.t()['app.footer.privacy'] }}</a
+            >
+            <a
+              [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/terms' : '/termos')"
+              class="hover:text-muted"
+              >{{ i18n.t()['app.footer.terms'] }}</a
+            >
+            <a [routerLink]="'/' + i18n.currentLang() + '/faq'" class="hover:text-muted">{{
+              i18n.t()['app.footer.faq']
+            }}</a>
+          </nav>
+        </div>
+      </footer>
+    </div>
   </div>
 
+  <app-mobile-tool-bar />
+  <app-command-palette />
   <app-model-download-bar />
   <app-update-overlay />
 </div>

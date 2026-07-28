@@ -3,6 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs';
+import { toolFromUrl } from '../tools/tools';
 
 const DOMAIN = 'https://nadasai.com';
 
@@ -10,6 +11,15 @@ const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
   '': { pt: '/pt', en: '/en' },
   'imagem/remover-fundo': { pt: '/pt/imagem/remover-fundo', en: '/en/image/remove-bg' },
   'image/remove-bg': { pt: '/pt/imagem/remover-fundo', en: '/en/image/remove-bg' },
+
+  'imagem/melhorar-qualidade': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
+  'image/upscale': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
+
+  'imagem/extrair-texto': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
+  'image/extract-text': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
+
+  'audio/cortar': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
+  'audio/cut': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
 
   'imagem/cortar': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
   'image/crop': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
@@ -108,10 +118,15 @@ export class SeoService {
       this.meta.updateTag({ name: 'description', content: metaDesc });
 
       // Meta Keywords
+      const tool = toolFromUrl(url);
+      const toolKeywords = tool
+        ? (isEnglish ? tool.keywordsEn : tool.keywordsPt).join(', ')
+        : null;
+
       const defaultKeywords = isEnglish
         ? 'edit image, edit pdf, remove background, offline, privacy, image tools, pdf tools'
         : 'editar imagem, editar pdf, remover fundo, offline, privacidade, ferramentas de imagem, ferramentas de pdf';
-      const metaKeywords = data['metaKeywords'] || defaultKeywords;
+      const metaKeywords = data['metaKeywords'] || toolKeywords || defaultKeywords;
       this.meta.updateTag({ name: 'keywords', content: metaKeywords });
 
       // Meta Robots
