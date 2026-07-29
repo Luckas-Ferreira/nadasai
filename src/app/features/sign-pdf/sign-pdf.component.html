@@ -26,9 +26,9 @@
         />
       }
     } @else {
-      <div class="relative flex flex-col items-center justify-center min-h-[380px] overflow-hidden rounded-xl border border-stage-line bg-stage p-4 md:p-6">
+      <div class="relative flex flex-col items-center justify-center min-h-[380px] overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage p-4 md:p-6">
         <!-- Stage Page Navigation Bar -->
-        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-3 border-b border-white/10 text-xs bg-stage/60 backdrop-blur-sm z-10">
+        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-3 border-b border-doc-stage-line text-xs bg-doc-stage/70 backdrop-blur-sm z-10">
           <div class="flex items-center gap-2">
             <button
               appButton
@@ -36,12 +36,12 @@
               size="sm"
               [disabled]="selectedPageIndex() <= 1"
               (click)="changePage(selectedPageIndex() - 1)"
-              class="text-white/70 hover:text-white"
+              class="text-muted hover:text-text"
             >
               <app-icon name="chevronLeft" [size]="14" />
             </button>
 
-            <span class="font-mono text-white/90">
+            <span class="font-mono text-text">
               Página {{ selectedPageIndex() }} de {{ pageCount() }}
             </span>
 
@@ -51,14 +51,14 @@
               size="sm"
               [disabled]="selectedPageIndex() >= pageCount()"
               (click)="changePage(selectedPageIndex() + 1)"
-              class="text-white/70 hover:text-white"
+              class="text-muted hover:text-text"
             >
               <app-icon name="arrowRight" [size]="14" />
             </button>
           </div>
 
           <div class="flex items-center gap-3">
-            <span class="text-xs text-white/60 font-mono">
+            <span class="text-xs text-faint font-mono">
               {{ placedSignatures().length }} assinatura(s) no documento
             </span>
 
@@ -66,7 +66,7 @@
               appButton
               variant="ghost"
               size="sm"
-              class="text-white/50 hover:text-white"
+              class="text-faint hover:text-text"
               (click)="reset()"
             >
               <app-icon name="close" [size]="14" />
@@ -79,20 +79,23 @@
         <div class="mt-12 flex items-center justify-center w-full flex-1 relative">
           @if (renderingPreview()) {
             <div class="flex flex-col items-center justify-center gap-3 py-16">
-              <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
-              <p class="text-sm font-medium text-white/80">Carregando página…</p>
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+              <p class="text-sm font-medium text-muted">Carregando página…</p>
             </div>
           } @else if (previewUrl()) {
-            <div class="relative max-h-[52vh] overflow-hidden rounded-lg shadow-2xl border border-white/10 bg-white">
+            <div class="relative max-h-[52vh] overflow-hidden rounded-md bg-white shadow-page">
               <img [src]="previewUrl()" [alt]="'Página ' + selectedPageIndex()" class="max-h-[52vh] w-auto object-contain block" />
 
-              <!-- Overlay Bounding Boxes for all signatures on this page -->
+              <!-- Overlay Bounding Boxes for all signatures on this page.
+                   The unselected outline is `border-line-strong`, not
+                   `border-white`: this box sits ON the page, and the page is
+                   white — a white dashed border there was invisible. -->
               @for (sig of currentPageSignatures(); track sig.id) {
                 <div
                   class="absolute border-2 rounded transition-all duration-75 flex items-center justify-center p-1 shadow-md cursor-pointer"
                   [class.border-accent]="sig.id === activeSignatureId()"
                   [class.bg-accent-soft]="sig.id === activeSignatureId()"
-                  [class.border-white]="sig.id !== activeSignatureId()"
+                  [class.border-line-strong]="sig.id !== activeSignatureId()"
                   [class.border-dashed]="sig.id !== activeSignatureId()"
                   [style.left.%]="sig.xPercent"
                   [style.top.%]="sig.yPercent"
@@ -108,9 +111,9 @@
 
         <!-- Processing Overlay -->
         @if (busy()) {
-          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-stage/85 backdrop-blur-[3px] z-20">
-            <div class="h-7 w-7 animate-spin rounded-full border-2 border-white/15 border-t-accent"></div>
-            <p class="text-sm font-medium text-white">{{ i18n.t()['signpdf.working'] }}</p>
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px] z-20">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm font-medium text-text">{{ i18n.t()['signpdf.working'] }}</p>
           </div>
         }
       </div>

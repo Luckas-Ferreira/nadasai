@@ -1,260 +1,331 @@
-<app-tool-page [toolId]="'cut-audio'">
-  @if (errorKey(); as key) {
-    <div banner class="mb-5">
-      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="downloadCutAudio()" />
-    </div>
-  }
+<app-tool-page [toolId]="'cut-audio'" [forceLoaded]="!!buffer()">
+  <div banner [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
 
   <div stage>
-    @if (!sourceUrl()) {
-      <app-dropzone
-        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm"
-        titleKey="common.drag_audio"
-        hintKey="common.drag_audio_hint"
-        (fileSelected)="onFile($event)"
-      />
+    @if (!buffer()) {
+      @if (loading()) {
+        <div
+          class="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-line bg-surface"
+        >
+          <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+          <p class="text-sm font-medium text-muted">{{ i18n.t()['cut_audio.decoding'] }}</p>
+        </div>
+      } @else {
+        <app-dropzone
+          [accept]="acceptAttr"
+          [titleKey]="'cut_audio.drag'"
+          [hintKey]="'cut_audio.drag_hint'"
+          (fileSelected)="onFile($event)"
+        />
+      }
     } @else {
-      <div class="flex flex-col items-center justify-center gap-5 p-4 w-full max-w-4xl">
-        <!-- Main Studio Waveform Display Box -->
-        <div class="relative w-full overflow-hidden rounded-2xl border border-stage-line bg-stage p-5 shadow-lg">
-          <canvas
-            #waveformCanvas
-            (pointerdown)="onCanvasPointerDown($event)"
-            (pointermove)="onCanvasPointerMove($event)"
-            (pointerup)="onCanvasPointerUp($event)"
-            class="h-52 w-full cursor-pointer rounded-xl bg-surface/80 touch-none select-none"
-          ></canvas>
-
-          <!-- Waveform Header Info Overlay -->
-          <div class="mt-3 flex items-center justify-between text-xs text-muted font-mono px-2">
-            <span class="flex items-center gap-2">
-              <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-sm animate-pulse"></span>
-              Início: <strong class="text-text font-bold">{{ formatTime(startTime()) }}</strong>
-            </span>
-            <span class="rounded-full bg-accent-soft px-3 py-1 text-accent font-bold text-sm shadow-sm">
-              {{ playheadTime() !== null ? formatTime(playheadTime()!) : formatTime(startTime()) }} / {{ formatTime(totalDuration()) }}
-            </span>
-            <span class="flex items-center gap-2">
-              Fim: <strong class="text-text font-bold">{{ formatTime(endTime()) }}</strong>
-              <span class="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-sm animate-pulse"></span>
+      <div class="flex flex-col gap-3">
+        <!-- Source bar. Themed, not on the surround: it is chrome about the file,
+             not part of the thing being read. -->
+        <div class="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs">
+          <div class="flex min-w-0 items-center gap-2">
+            <app-icon name="audio" [size]="14" class="shrink-0 text-faint" />
+            <span class="truncate font-medium text-text">{{ file()?.name }}</span>
+            <span class="shrink-0 font-mono tabular text-faint">
+              {{ clock(duration()) }} · {{ sourceSize() }}
             </span>
           </div>
+
+          <button appButton variant="ghost" size="sm" class="shrink-0" (click)="reset()">
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
         </div>
 
-        <!-- Integrated Waveform Sliders (Início & Fim) directly under the canvas -->
-        <div class="w-full flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <!-- Start Time Slider & Micro Buttons -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-text flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                Início do corte
-              </span>
-              <div class="flex items-center gap-1">
-                <button
-                  type="button"
-                  (click)="adjustStart(-0.5)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >-0.5s</button>
-                <button
-                  type="button"
-                  (click)="adjustStart(-0.1)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >-0.1s</button>
-                <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular px-1">
-                  {{ formatTime(startTime()) }}
-                </span>
-                <button
-                  type="button"
-                  (click)="adjustStart(0.1)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >+0.1s</button>
-                <button
-                  type="button"
-                  (click)="adjustStart(0.5)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >+0.5s</button>
+        <!--
+          The reading surface, identical in kind to the PDF editor's: doc-stage
+          rather than the dark image stage, rounded and bordered so it reads as a
+          framed surface instead of a slab that runs into the edges. A waveform
+          you scrub is a document, not a picture whose brightness you are
+          judging — see the token comment in styles.css.
+
+          Horizontal scrolling lives HERE, on the surround, and the sheet inside
+          is `sticky left-0`: the spacer is as wide as the whole timeline at the
+          current zoom, so the browser's own scrollbar and momentum drive the
+          view, while the canvas only ever paints the window in front of it. A
+          canvas as wide as the timeline would blow past the maximum canvas size
+          at any real zoom on a long track.
+        -->
+        <div class="relative rounded-xl border border-doc-stage-line bg-doc-stage p-4 sm:p-5">
+          <div
+            #scroller
+            class="doc-scroll overflow-x-auto overflow-y-hidden touch-pan-x [scrollbar-gutter:stable]"
+            (scroll)="onScroll()"
+            (wheel)="onWheel($event)"
+            (touchstart)="onTouchStart($event)"
+            (touchmove)="onTouchMove($event)"
+            (touchend)="onTouchEnd($event)"
+          >
+            <div [style.width.px]="scrollWidth()" [style.height.px]="canvasHeight">
+              <!-- The sheet. Same recipe as a PDF page: white, 6px, shadow-page.
+                   Width bound, never `w-full` — see the viewWidth comment. -->
+              <div
+                class="sticky left-0 overflow-hidden rounded-md bg-white shadow-page"
+                [style.width.px]="viewWidth()"
+              >
+                <canvas
+                  #wave
+                  tabindex="0"
+                  role="img"
+                  class="block w-full touch-none outline-none"
+                  [style.height.px]="canvasHeight"
+                  [attr.aria-label]="
+                    i18n.t()['cut_audio.wave_label'] +
+                    ' ' +
+                    timecode(selStart()) +
+                    ' — ' +
+                    timecode(selEnd())
+                  "
+                  (pointerdown)="onPointerDown($event)"
+                  (pointermove)="onPointerMove($event)"
+                  (pointerup)="onPointerUp($event)"
+                  (pointercancel)="onPointerUp($event)"
+                  (keydown)="onCanvasKey($event)"
+                ></canvas>
               </div>
             </div>
-            <input
-              type="range"
-              min="0"
-              [max]="totalDuration()"
-              step="0.05"
-              [ngModel]="startTime()"
-              (ngModelChange)="onStartChange($event)"
-              class="w-full cursor-pointer accent-emerald-500"
-            />
           </div>
 
-          <!-- End Time Slider & Micro Buttons -->
-          <div class="flex flex-col gap-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold text-text flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full bg-rose-500"></span>
-                Fim do corte
-              </span>
-              <div class="flex items-center gap-1">
-                <button
-                  type="button"
-                  (click)="adjustEnd(-0.5)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >-0.5s</button>
-                <button
-                  type="button"
-                  (click)="adjustEnd(-0.1)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >-0.1s</button>
-                <span class="font-mono text-xs font-bold text-rose-600 dark:text-rose-400 tabular px-1">
-                  {{ formatTime(endTime()) }}
-                </span>
-                <button
-                  type="button"
-                  (click)="adjustEnd(0.1)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >+0.1s</button>
-                <button
-                  type="button"
-                  (click)="adjustEnd(0.5)"
-                  class="rounded bg-raised px-1.5 py-0.5 text-2xs font-mono font-medium hover:bg-line transition-all"
-                >+0.5s</button>
+          @if (busy()) {
+            <div
+              class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-doc-stage/85 backdrop-blur-[3px]"
+            >
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+              <p class="text-sm font-medium text-text">{{ i18n.t()['cut_audio.working'] }}</p>
+              <div class="w-56">
+                <div class="h-1 overflow-hidden rounded-full bg-white/70">
+                  <div
+                    class="h-full rounded-full bg-accent transition-[width] duration-300"
+                    [style.width.%]="progress() ?? 0"
+                  ></div>
+                </div>
+                <p class="mt-2 text-center text-xs tabular text-muted" aria-live="polite">
+                  {{ progress() ?? 0 }}%
+                </p>
               </div>
             </div>
-            <input
-              type="range"
-              min="0"
-              [max]="totalDuration()"
-              step="0.05"
-              [ngModel]="endTime()"
-              (ngModelChange)="onEndChange($event)"
-              class="w-full cursor-pointer accent-rose-500"
-            />
+          }
+        </div>
+
+        <!-- Transport -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button
+              appButton
+              variant="secondary"
+              size="sm"
+              [disabled]="!canRun()"
+              (click)="togglePlay()"
+            >
+              <app-icon [name]="playing() ? 'pause' : 'play'" [size]="14" />
+              {{ playing() ? i18n.t()['cut_audio.pause'] : i18n.t()['cut_audio.play'] }}
+            </button>
+
+            <span class="text-xs text-faint">{{ i18n.t()['cut_audio.play_hint'] }}</span>
           </div>
+
+          <p class="font-mono text-xs tabular text-muted">
+            {{ timecode(selStart()) }} → {{ timecode(selEnd()) }}
+            <span class="text-faint">({{ timecode(selectionLength()) }})</span>
+          </p>
         </div>
 
-        <!-- Audio Player Control Deck -->
-        <div class="flex items-center justify-center gap-3 w-full">
-          <button
-            type="button"
-            (click)="seekToStart()"
-            title="Ir para o início do corte"
-            class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-sm hover:text-text hover:bg-raised transition-all"
-          >
-            <app-icon name="undo" [size]="16" />
-          </button>
-
-          <button
-            type="button"
-            (click)="togglePlay()"
-            class="flex items-center gap-3 rounded-full bg-accent px-8 py-3.5 text-sm font-bold text-white shadow-pop hover:bg-accent-hover hover:scale-105 active:scale-95 transition-all"
-          >
-            <app-icon [name]="isPlaying() ? 'close' : 'audio'" [size]="18" />
-            {{ isPlaying() ? i18n.t()['cut_audio.pause'] : i18n.t()['cut_audio.play'] }}
-          </button>
-
-          <button
-            type="button"
-            (click)="seekToEnd()"
-            title="Ir para o fim do corte"
-            class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-sm hover:text-text hover:bg-raised transition-all"
-          >
-            <app-icon name="arrowRight" [size]="16" />
-          </button>
-        </div>
-
-        <p class="text-2xs text-faint text-center">
-          💡 Clique ou arraste as hastes (verde e vermelha) na onda para definir o corte com precisão.
-        </p>
+        <p class="text-2xs text-faint">{{ i18n.t()['cut_audio.wave_hint'] }}</p>
       </div>
     }
   </div>
 
   <div panel class="flex flex-col gap-4">
-    @if (sourceUrl()) {
-      <app-panel [heading]="i18n.t()['cut_audio.title']">
-        <div class="flex flex-col gap-5">
-          <!-- Cut Action Mode -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold text-text">Modo de corte</label>
-            <div class="grid grid-cols-2 gap-1.5 rounded-xl border border-line bg-raised p-1 text-xs font-semibold">
-              <button
-                type="button"
-                (click)="cutMode.set('keep'); redrawWaveform()"
-                class="rounded-lg py-2 transition-all text-center flex items-center justify-center gap-1.5"
-                [class.bg-surface]="cutMode() === 'keep'"
-                [class.text-accent]="cutMode() === 'keep'"
-                [class.shadow-sm]="cutMode() === 'keep'"
-                [class.text-muted]="cutMode() !== 'keep'"
-              >
-                ✂️ Manter Seleção
-              </button>
-              <button
-                type="button"
-                (click)="cutMode.set('delete'); redrawWaveform()"
-                class="rounded-lg py-2 transition-all text-center flex items-center justify-center gap-1.5"
-                [class.bg-surface]="cutMode() === 'delete'"
-                [class.text-rose-500]="cutMode() === 'delete'"
-                [class.shadow-sm]="cutMode() === 'delete'"
-                [class.text-muted]="cutMode() !== 'delete'"
-              >
-                🗑️ Remover Trecho
-              </button>
-            </div>
+    @if (buffer()) {
+      <app-panel [heading]="i18n.t()['cut_audio.panel_selection']">
+        <app-segmented
+          [options]="modeOptions()"
+          [value]="mode()"
+          (valueChange)="setMode($event)"
+          [columns]="2"
+          [ariaLabel]="i18n.t()['cut_audio.mode']"
+        />
+
+        <p class="mt-2 text-xs leading-relaxed text-faint">
+          {{
+            mode() === 'keep'
+              ? i18n.t()['cut_audio.mode_keep_hint']
+              : i18n.t()['cut_audio.mode_remove_hint']
+          }}
+        </p>
+
+        <div class="mt-3 grid grid-cols-2 gap-2">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="cut-start">
+              {{ i18n.t()['cut_audio.start'] }}
+            </label>
+            <input
+              id="cut-start"
+              type="text"
+              inputmode="decimal"
+              [value]="timecode(selStart())"
+              (focus)="focusHandle('start')"
+              (change)="commitTime($any($event.target), 'start')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
           </div>
 
-          <!-- Total Duration Badge -->
-          <div class="flex items-center justify-between rounded-xl border border-accent/20 bg-accent-soft p-3.5">
-            <span class="text-xs font-medium text-text">Duração final:</span>
-            <span class="font-mono text-base font-bold text-accent tabular">{{ formatTime(outputDuration()) }}</span>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="cut-end">
+              {{ i18n.t()['cut_audio.end'] }}
+            </label>
+            <input
+              id="cut-end"
+              type="text"
+              inputmode="decimal"
+              [value]="timecode(selEnd())"
+              (focus)="focusHandle('end')"
+              (change)="commitTime($any($event.target), 'end')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+        </div>
+
+        <button appButton variant="secondary" size="sm" class="mt-2 w-full" (click)="selectAll()">
+          {{ i18n.t()['cut_audio.select_all'] }}
+        </button>
+      </app-panel>
+
+      <!-- Zoom is navigation, not editing — same place and same control as the
+           PDF editor's "Visualização" panel. -->
+      <app-panel [heading]="i18n.t()['cut_audio.panel_view']">
+        <div class="flex flex-col gap-2.5">
+          <div class="flex items-center overflow-hidden rounded-lg border border-line bg-surface">
+            <button
+              class="px-3 py-2 font-medium text-muted transition-colors hover:bg-raised hover:text-text disabled:opacity-30"
+              [disabled]="!canZoomOut()"
+              [attr.aria-label]="i18n.t()['cut_audio.zoom_out']"
+              (click)="zoomBy(1 / 1.5)"
+            >
+              −
+            </button>
+            <input
+              type="text"
+              class="min-w-0 flex-1 border-none bg-transparent py-2 text-center text-sm font-medium tabular outline-none"
+              [value]="zoomPercent()"
+              (change)="setZoomFromInput($any($event.target))"
+              (keydown.enter)="setZoomFromInput($any($event.target))"
+              [title]="i18n.t()['cut_audio.zoom']"
+            />
+            <span class="select-none pr-2 text-xs text-muted">%</span>
+            <button
+              class="px-3 py-2 font-medium text-muted transition-colors hover:bg-raised hover:text-text disabled:opacity-30"
+              [disabled]="!canZoomIn()"
+              [attr.aria-label]="i18n.t()['cut_audio.zoom_in']"
+              (click)="zoomBy(1.5)"
+            >
+              +
+            </button>
           </div>
 
-          <!-- Fade In / Fade Out Sliders -->
-          @if (cutMode() === 'keep') {
-            <div class="flex flex-col gap-3 rounded-xl border border-line bg-surface p-3.5">
-              <span class="text-xs font-semibold text-text">Efeitos de Suavização</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button appButton variant="secondary" size="sm" (click)="fitAll()">
+              {{ i18n.t()['cut_audio.zoom_fit'] }}
+            </button>
+            <button
+              appButton
+              variant="secondary"
+              size="sm"
+              [disabled]="selectionLength() <= 0"
+              (click)="zoomToSelection()"
+            >
+              {{ i18n.t()['cut_audio.zoom_selection'] }}
+            </button>
+          </div>
 
-              <div class="flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="text-2xs font-medium text-muted">{{ i18n.t()['cut_audio.fade_in'] }}</label>
-                  <span class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">{{ fadeIn() }}s</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.5"
-                  [ngModel]="fadeIn()"
-                  (ngModelChange)="onFadeInChange($event)"
-                  class="w-full cursor-pointer accent-emerald-500"
-                />
-              </div>
-
-              <div class="flex flex-col gap-1.5">
-                <div class="flex items-center justify-between">
-                  <label class="text-2xs font-medium text-muted">{{ i18n.t()['cut_audio.fade_out'] }}</label>
-                  <span class="font-mono text-xs font-bold text-rose-600 dark:text-rose-400">{{ fadeOut() }}s</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.5"
-                  [ngModel]="fadeOut()"
-                  (ngModelChange)="onFadeOutChange($event)"
-                  class="w-full cursor-pointer accent-rose-500"
-                />
-              </div>
-            </div>
-          }
+          <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['cut_audio.zoom_hint'] }}</p>
         </div>
       </app-panel>
 
+      <app-panel [heading]="i18n.t()['cut_audio.panel_fades']">
+        <p class="mb-3 text-xs leading-relaxed text-faint">{{ i18n.t()['cut_audio.fades_hint'] }}</p>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="cut-fade-in">
+              {{ i18n.t()['cut_audio.fade_in'] }}
+            </label>
+            <input
+              id="cut-fade-in"
+              type="number"
+              min="0"
+              step="0.1"
+              [value]="fadeIn().toFixed(1)"
+              (change)="commitFade($any($event.target), 'in')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-faint" for="cut-fade-out">
+              {{ i18n.t()['cut_audio.fade_out'] }}
+            </label>
+            <input
+              id="cut-fade-out"
+              type="number"
+              min="0"
+              step="0.1"
+              [value]="fadeOut().toFixed(1)"
+              (change)="commitFade($any($event.target), 'out')"
+              class="w-full rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-xs tabular text-text outline-none focus:border-accent"
+            />
+          </div>
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['cut_audio.panel_output']">
+        <div class="flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['cut_audio.result_length'] }}</span>
+          <span class="font-mono tabular text-text">{{ timecode(resultLength()) }}</span>
+        </div>
+
+        <div class="mt-2 flex justify-between text-sm">
+          <span class="text-muted">{{ i18n.t()['cut_audio.result_size'] }}</span>
+          <span class="font-mono tabular text-text">≈ {{ estimatedSize() }}</span>
+        </div>
+
+        <p class="mt-3 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['cut_audio.output_note'] }}
+        </p>
+
+        <!-- Only while the result still matches the settings above it. The
+             previous file stays downloadable after a setting changes — that is
+             the app's pattern — but a green "ready" badge sitting next to the
+             length of a cut that has not run yet claims those two numbers are
+             the same file, and they are not. -->
+        @if (!stale()) {
+          @if (result(); as res) {
+            <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
+              <span class="text-sm font-medium text-success">{{ i18n.t()['cut_audio.ready'] }}</span>
+              <span class="font-mono text-sm font-medium tabular text-success">
+                {{ timecode(res.duration) }}
+              </span>
+            </div>
+          }
+        }
+      </app-panel>
+
       <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['cut_audio.btn'] : null"
+        [primaryDisabled]="!canRun()"
         [busy]="busy()"
-        [canDownload]="!!audioBuffer()"
-        [canContinue]="false"
-        (primary)="downloadCutAudio()"
-        (download)="downloadCutAudio()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
         (reset)="reset()"
       />
     }
