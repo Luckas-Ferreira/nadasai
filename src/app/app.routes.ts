@@ -17,6 +17,8 @@ export const routes: Routes = [
   { path: 'protect-pdf', redirectTo: 'pt/pdf/proteger', pathMatch: 'full' },
   { path: 'sign-pdf', redirectTo: 'pt/pdf/assinar', pathMatch: 'full' },
   { path: 'watermark-pdf', redirectTo: 'pt/pdf/marca-dagua', pathMatch: 'full' },
+  { path: 'convert-audio', redirectTo: 'pt/audio/converter', pathMatch: 'full' },
+  { path: 'audio/converter', redirectTo: 'pt/audio/converter', pathMatch: 'full' },
   { path: 'sobre', redirectTo: 'pt/sobre', pathMatch: 'full' },
   { path: 'privacidade', redirectTo: 'pt/privacidade', pathMatch: 'full' },
   { path: 'termos', redirectTo: 'pt/termos', pathMatch: 'full' },
@@ -90,6 +92,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Junte vários áudios em um só arquivo 100% offline no navegador: arraste para reordenar, com crossfade, silêncio entre faixas e fade in/out.',
           metaKeywords: 'juntar audio, unir audios, mesclar mp3, combinar musicas, emendar audio, crossfade, juntar audios do whatsapp'
+        }
+      },
+      {
+        path: 'audio/converter',
+        title: 'Converter Áudio e MP3 — Nada Sai',
+        loadComponent: () => import('./features/convert-audio/convert-audio.component').then((m) => m.ConvertAudioComponent),
+        data: {
+          metaDescription: 'Converta arquivos de áudio (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline no seu navegador. Rápido, gratuito e seguro.',
+          metaKeywords: 'converter audio, mp3 para wav, wav para mp3, ogg para mp3, m4a para mp3, conversor de audio offline'
         }
       },
       {
@@ -301,6 +312,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Join several audio files into one 100% offline in your browser: drag to reorder, with crossfade, gaps between tracks and fade in/out.',
           metaKeywords: 'merge audio, join mp3, audio joiner, combine audio files, concatenate audio, crossfade tracks, stitch audio'
+        }
+      },
+      {
+        path: 'audio/convert',
+        title: 'Convert Audio & MP3 — Nada Sai',
+        loadComponent: () => import('./features/convert-audio/convert-audio.component').then((m) => m.ConvertAudioComponent),
+        data: {
+          metaDescription: 'Convert audio files (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline in your browser. Fast, free, and private.',
+          metaKeywords: 'convert audio, mp3 to wav, wav to mp3, ogg to mp3, m4a to mp3, offline audio converter'
         }
       },
       {
