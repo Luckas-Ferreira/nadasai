@@ -6,6 +6,7 @@ export type ToolId =
   | 'upscale'
   | 'extract-text'
   | 'cut-audio'
+  | 'convert-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -158,6 +159,29 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
       'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice'
+    ],
+  },
+  {
+    id: 'convert-audio',
+    pathPt: 'audio/converter',
+    pathEn: 'audio/convert',
+    icon: 'convert',
+    category: 'audio',
+    navKey: 'nav.convert_audio',
+    shortKey: 'nav.short.convert_audio',
+    titleKey: 'convert_audio.title',
+    descKey: 'convert_audio.subtitle',
+    suffix: 'converted',
+    tone: 'sky',
+    keywordsPt: [
+      'converter audio', 'mudar formato audio', 'mp3 para wav', 'wav para mp3',
+      'ogg para mp3', 'm4a para mp3', 'flac para mp3', 'conversor de audio',
+      'transformar audio', 'converter musica', 'converter gravacao', 'aac para mp3'
+    ],
+    keywordsEn: [
+      'convert audio', 'audio format converter', 'mp3 to wav', 'wav to mp3',
+      'ogg to mp3', 'm4a to mp3', 'flac to mp3', 'audio converter', 'sound converter',
+      'change audio format', 'convert music file'
     ],
   },
   {
