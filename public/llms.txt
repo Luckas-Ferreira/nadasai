@@ -32,6 +32,7 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 ## Audio Tools
 
 - [Cortar Áudio / Cut Audio](https://nadasai.com/pt/audio/cortar): Trim songs, voice notes, or podcasts 100% offline with visual waveform display.
+- [Juntar Áudios / Merge Audio](https://nadasai.com/pt/audio/juntar): Join several audio files into one 100% offline, with crossfade or gaps between tracks.
 
 ## Information & Legal
 
