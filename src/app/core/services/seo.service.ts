@@ -22,6 +22,8 @@ const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
   'audio/cut': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
   'audio/juntar': { pt: '/pt/audio/juntar', en: '/en/audio/merge' },
   'audio/merge': { pt: '/pt/audio/juntar', en: '/en/audio/merge' },
+  'audio/converter': { pt: '/pt/audio/converter', en: '/en/audio/convert' },
+  'audio/convert': { pt: '/pt/audio/converter', en: '/en/audio/convert' },
 
   'imagem/cortar': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
   'image/crop': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },

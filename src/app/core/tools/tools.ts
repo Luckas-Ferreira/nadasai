@@ -6,6 +6,8 @@ export type ToolId =
   | 'upscale'
   | 'extract-text'
   | 'cut-audio'
+  | 'merge-audio'
+  | 'convert-audio'
   | 'crop'
   | 'compress'
   | 'convert'
