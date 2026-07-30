@@ -1,4 +1,4 @@
-<app-tool-page [toolId]="'convert-audio'">
+<app-tool-page [toolId]="'convert-audio'" [forceLoaded]="!!audioBuffer()">
   @if (errorKey(); as key) {
     <div banner class="mb-5">
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="downloadConvertedAudio()" />
@@ -9,8 +9,8 @@
     @if (!sourceUrl()) {
       <app-dropzone
         accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm"
-        titleKey="common.drag_audio"
-        hintKey="common.drag_audio_hint"
+        [titleKey]="'convert_audio.drag'"
+        [hintKey]="'convert_audio.drag_hint'"
         (fileSelected)="onFile($event)"
       />
     } @else {
@@ -64,20 +64,15 @@
               {{ i18n.t()['convert_audio.target_format'] }}
             </label>
             <div class="grid grid-cols-3 gap-2">
-              @for (fmt of ['mp3', 'wav', 'ogg', 'm4a', 'webm', 'flac']; track fmt) {
+              @for (fmt of formats; track fmt) {
                 <button
                   type="button"
                   (click)="targetFormat.set(fmt)"
-                  class="rounded-xl border py-2.5 px-3 text-xs font-bold uppercase transition-all flex flex-col items-center justify-center gap-1"
-                  [class.border-sky-500]="targetFormat() === fmt"
-                  [class.bg-sky-500/10]="targetFormat() === fmt"
-                  [class.text-sky-500]="targetFormat() === fmt"
-                  [class.border-line]="targetFormat() !== fmt"
-                  [class.bg-raised]="targetFormat() !== fmt"
-                  [class.text-muted]="targetFormat() !== fmt"
-                  [class.hover:text-text]="targetFormat() !== fmt"
+                  [class]="targetFormat() === fmt
+                    ? 'flex items-center justify-center rounded-lg border border-accent bg-accent-soft px-3 py-2.5 text-xs font-semibold uppercase text-accent'
+                    : 'flex items-center justify-center rounded-lg border border-line bg-surface px-3 py-2.5 text-xs font-medium uppercase text-text hover:bg-raised'"
                 >
-                  <span>{{ fmt }}</span>
+                  {{ fmt }}
                 </button>
               }
             </div>

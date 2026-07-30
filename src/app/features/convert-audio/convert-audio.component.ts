@@ -64,6 +64,16 @@ export class ConvertAudioComponent implements AfterViewInit, OnDestroy {
   protected readonly sourceFormat = signal<string>('MP3');
 
   // Converter options
+  // Typed on the class, not inline in the template: an inline array literal infers
+  // `string[]`, and `targetFormat.set(fmt)` then fails strictTemplates.
+  protected readonly formats: readonly TargetAudioFormat[] = [
+    'mp3',
+    'wav',
+    'ogg',
+    'm4a',
+    'webm',
+    'flac',
+  ];
   protected readonly targetFormat = signal<TargetAudioFormat>('mp3');
   protected readonly channels = signal<AudioChannels>('original');
   protected readonly sampleRate = signal<number>(0); // 0 = original
