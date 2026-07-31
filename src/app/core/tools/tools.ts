@@ -18,6 +18,7 @@ export type ToolId =
   | 'compress-pdf'
   | 'split-pdf'
   | 'pdf-to-img'
+  | 'pdf-to-word'
   | 'organize-pdf'
   | 'protect-pdf'
   | 'sign-pdf'
@@ -430,6 +431,30 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'pdf to image', 'pdf to jpg', 'pdf to png', 'export pdf as photo',
       'convert pdf pages to picture', 'rasterize pdf', 'pdf to photo'
+    ],
+  },
+  {
+    id: 'pdf-to-word',
+    pathPt: 'pdf/para-word',
+    pathEn: 'pdf/to-word',
+    icon: 'doc',
+    category: 'pdf',
+    navKey: 'nav.pdf_to_word',
+    shortKey: 'nav.short.pdf_to_word',
+    titleKey: 'p2w.title',
+    descKey: 'p2w.subtitle',
+    suffix: 'word',
+    tone: 'indigo',
+    keywordsPt: [
+      'pdf para word', 'converter pdf em word', 'pdf para docx', 'pdf em doc',
+      'transformar pdf em word', 'pdf editavel', 'editar pdf no word',
+      'converter pdf para documento', 'pdf para texto', 'extrair texto do pdf',
+      'pdf digitalizado para word', 'ocr pdf para word'
+    ],
+    keywordsEn: [
+      'pdf to word', 'convert pdf to word', 'pdf to docx', 'pdf to doc',
+      'editable pdf', 'pdf to document', 'pdf converter word', 'pdf to text',
+      'scanned pdf to word', 'ocr pdf to word'
     ],
   },
   {

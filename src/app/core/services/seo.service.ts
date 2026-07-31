@@ -55,6 +55,9 @@ const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
   'pdf/para-imagem': { pt: '/pt/pdf/para-imagem', en: '/en/pdf/to-image' },
   'pdf/to-image': { pt: '/pt/pdf/para-imagem', en: '/en/pdf/to-image' },
 
+  'pdf/para-word': { pt: '/pt/pdf/para-word', en: '/en/pdf/to-word' },
+  'pdf/to-word': { pt: '/pt/pdf/para-word', en: '/en/pdf/to-word' },
+
   'pdf/organizar': { pt: '/pt/pdf/organizar', en: '/en/pdf/organize' },
   'pdf/organize': { pt: '/pt/pdf/organizar', en: '/en/pdf/organize' },
 

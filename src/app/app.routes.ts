@@ -194,6 +194,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/para-word',
+        title: 'PDF para Word — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-word/pdf-to-word.component').then((m) => m.PdfToWordComponent),
+        data: {
+          metaDescription: 'Converta PDF em Word (.docx) editável 100% offline no seu navegador. Reconhece PDF digitalizado com OCR e nada é enviado para servidor.',
+          metaKeywords: 'pdf para word, converter pdf em word, pdf para docx, pdf editavel, pdf digitalizado para word'
+        }
+      },
+      {
         path: 'pdf/organizar',
         title: 'Organizar PDF — Nada Sai',
         loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
@@ -411,6 +420,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Convert PDF pages into JPG, PNG or WEBP images 100% offline in your browser. High resolution and zero uploads.',
           metaKeywords: 'pdf to image, convert pdf to jpg, pdf to png, pdf to photo'
+        }
+      },
+      {
+        path: 'pdf/to-word',
+        title: 'PDF to Word — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-word/pdf-to-word.component').then((m) => m.PdfToWordComponent),
+        data: {
+          metaDescription: 'Convert PDF to an editable Word (.docx) file 100% offline in your browser. Reads scanned PDFs with OCR and nothing is ever uploaded.',
+          metaKeywords: 'pdf to word, convert pdf to word, pdf to docx, editable pdf, scanned pdf to word'
         }
       },
       {
