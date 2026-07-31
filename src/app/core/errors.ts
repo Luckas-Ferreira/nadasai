@@ -11,6 +11,7 @@ export type ErrorCode =
   | 'pdf_too_large'
   | 'pdf_encrypted'
   | 'pdf_export_failed'
+  | 'pdf_no_text'
   | 'audio_unsupported'
   | 'audio_too_large'
   | 'audio_too_long'
@@ -44,6 +45,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   pdf_too_large: 'error.pdf_too_large',
   pdf_encrypted: 'error.pdf_encrypted',
   pdf_export_failed: 'error.pdf_export_failed',
+  pdf_no_text: 'error.pdf_no_text',
   audio_unsupported: 'error.audio_unsupported',
   audio_too_large: 'error.audio_too_large',
   audio_too_long: 'error.audio_too_long',

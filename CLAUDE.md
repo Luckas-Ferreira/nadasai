@@ -6,11 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The product is **Nada Sai** (`nadasai.com`; the npm package and `dist/` folder are still called `imgwork`) — a client-side file toolbox built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no file ever leaves the user's machine — that claim is the product, not a footer detail, so keep any new feature client-side. `NetworkProbeService` instruments it at runtime (see *Offline, PWA and the proof*).
 
-Nineteen tools in three modules, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf' | 'audio'`):
+Twenty-one tools in three modules, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf' | 'audio'`):
 
 - **image** — remove-bg, upscale, extract-text (OCR), crop, compress, convert, resize, img-to-pdf
-- **pdf** — edit-pdf (the editor, with OCR), merge, compress, split, pdf-to-img, organize, protect, sign, watermark
-- **audio** — cut-audio, merge-audio
+- **pdf** — edit-pdf (the editor, with OCR), merge, compress, split, pdf-to-img, pdf-to-word, organize, protect, sign, watermark
+- **audio** — cut-audio, merge-audio, convert-audio
+
+**`pdf-to-word` writes .docx and reuses the editor's extraction wholesale.** `docx` (MIT, dynamically imported like jspdf and pdf-lib) is only the writer; the reading is `PdfLoaderService` + `mergeNativeParagraphs` for a digital page and `OcrService.recognise` for a scanned one, both already tuned against real documents. Two things had to be added on top, and both are about a .docx being *linear and handed off* where the editor's output is *absolutely positioned and on screen*. The mergers return blocks in group-creation order, which no previous consumer cared about — unsorted, a scan came out with every line's right half before its left half, all words present and unreadable, which reads as an OCR fault rather than an ordering one (`inReadingOrder`, bands by vertical overlap; a tolerance comparator was tried first and is not transitive, so `Array.sort` could return any permutation). And the OCR font estimate needs its own clamp: a rasterised transcript produced 1pt–42.5pt against 5–12pt on the *native* read of the same file, and 1pt in Word is invisible with nothing on screen to blame. `clampOcrFontSizePt` bounds it relative to the page median and then absolutely — in that order, or a junk page's high median lifts the relative floor above the absolute ceiling and pins the whole page.
 
 Three libraries divide the PDF work and the split matters: **pdf.js** reads and rasterises (always through `core/pdf/pdfjs.ts`), **pdf-lib** writes page-level output (the `features/*/services/*.service.ts` layer), and **jspdf** builds a PDF out of rasters — images→PDF in `core/image/converters.ts`, and `protect-pdf`, which needs encryption pdf-lib cannot do. Note that protect-pdf imports jspdf **statically**, unlike everywhere else; it is inside a lazy route so the initial bundle is safe, but it is a deviation, not the pattern.
 
