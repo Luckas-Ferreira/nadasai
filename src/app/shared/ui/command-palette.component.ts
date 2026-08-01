@@ -16,11 +16,7 @@ import { TOOLS, type ToolDef, moduleById, toolPath } from '../../core/tools/tool
 import { IconComponent } from './icon/icon.component';
 
 /**
- * Fold accents and case away so "juncao" finds "Junção" and "pdf" finds "PDF".
- *
- * Portuguese is the default language and half the tool names carry a diacritic;
- * a plain `includes` would make those tools reachable only by typing the accent,
- * which nobody does mid-search.
+ * Fold accents and normalize case to lower for accent-insensitive search.
  */
 function fold(value: string): string {
   return value
@@ -29,6 +25,32 @@ function fold(value: string): string {
     .toLowerCase();
 }
 
+/**
+ * Conversational stop words in Portuguese & English.
+ * Stripping these allows natural language queries like "eu quero converter um áudio"
+ * or "I want to compress an audio file" to isolate intent tokens ("converter", "audio").
+ */
+const STOP_WORDS = new Set(
+  [
+    // PT conversational phrases, pronouns, prepositions & articles
+    'eu', 'tu', 'ele', 'ela', 'nós', 'nos', 'vós', 'vos', 'eles', 'elas', 'você', 'voce', 'vocês', 'voces',
+    'quero', 'queria', 'gostaria', 'preciso', 'precisava', 'desejo', 'desejava', 'busco', 'buscando',
+    'como', 'faço', 'faco', 'fazer', 'posso', 'consigo', 'pode', 'podemos', 'consiga',
+    'modo', 'de', 'para', 'pra', 'por', 'em', 'um', 'uma', 'uns', 'umas',
+    'do', 'da', 'dos', 'das', 'no', 'na', 'nos', 'nas', 'ao', 'aos',
+    'se', 'que', 'tem', 'ter', 'com', 'sem', 'meu', 'minha', 'meus', 'minhas',
+    'seu', 'sua', 'seus', 'suas', 'o', 'a', 'os', 'as', 'este', 'esta', 'isto',
+    'arquivo', 'arquivos', 'ferramenta', 'ferramentas', 'opcao', 'opção',
+    'ajuda', 'favor', 'obrigado', 'obrigada', 'qual', 'quais', 'onde',
+    // EN conversational phrases, pronouns, prepositions & articles
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'want', 'wanted', 'would',
+    'like', 'need', 'needed', 'how', 'can', 'could', 'do', 'does', 'did',
+    'to', 'a', 'an', 'the', 'of', 'in', 'on', 'for', 'with', 'without',
+    'my', 'your', 'our', 'their', 'file', 'files', 'tool', 'tools',
+    'option', 'options', 'help', 'please', 'thanks', 'where', 'which', 'is', 'are'
+  ].map((w) => fold(w))
+);
+
 interface Hit {
   readonly tool: ToolDef;
   readonly label: string;
@@ -36,20 +58,6 @@ interface Hit {
   readonly score: number;
 }
 
-/**
- * The command palette: every tool of every module, one query away.
- *
- * This is the half of the navigation that scales without bound. The rail is
- * scoped to the current module by design, so it deliberately cannot show you a
- * tool from somewhere else — this is what covers that, and it is why the rail is
- * allowed to stay short. A module added tomorrow is searchable here for free.
- *
- * Matching is prefix-first (`score`), because a list reordered by relevance is
- * the difference between typing two letters and reading nine results. The list
- * is FLAT rather than grouped by module, with the module name on the right: a
- * grouped list needs the keyboard index to walk across group boundaries, which
- * is a whole class of off-by-one bugs bought for nothing here.
- */
 @Component({
   selector: 'app-command-palette',
   standalone: true,
@@ -144,9 +152,6 @@ export class CommandPaletteComponent {
 
   /**
    * Every tool, indexed for search: label, description, and extensive synonyms (PT & EN).
-   *
-   * Rebuilt when the language changes and not per keystroke — `i18n.t()` is a
-   * signal, so reading it here is what makes the index switch dictionaries.
    */
   private readonly index = computed(() => {
     const dict = this.i18n.t();
@@ -172,63 +177,113 @@ export class CommandPaletteComponent {
       return entries.map(({ tool, label, moduleName }) => ({ tool, label, moduleName, score: 0 }));
     }
 
-    const tokens = rawQuery.split(/\s+/).filter(Boolean);
+    const allTokens = rawQuery.split(/\s+/).filter(Boolean);
+    const filteredTokens = allTokens.filter((t) => !STOP_WORDS.has(t));
+    const tokens = filteredTokens.length > 0 ? filteredTokens : allTokens;
 
     return entries
       .map(({ tool, label, moduleName, haystack }) => {
-        const matchesAll = tokens.every((token) => haystack.includes(token));
-        if (!matchesAll) return null;
-
-        const firstToken = tokens[0];
+        let score = 0;
         const labelFolded = fold(label);
-        let score = 2;
-        if (labelFolded.startsWith(firstToken)) {
-          score = 0;
-        } else if (labelFolded.includes(` ${firstToken}`)) {
-          score = 1;
+        const shortKeyFolded = fold(this.i18n.t()[tool.shortKey]);
+        const titleFolded = fold(this.i18n.t()[tool.titleKey]);
+
+        // 1. Exact phrase match in full haystack
+        if (haystack.includes(rawQuery)) {
+          score += 120;
+        }
+
+        // 2. Token match checks
+        let matchedTokenCount = 0;
+
+        for (const token of tokens) {
+          if (!token) continue;
+          let tokenMatched = false;
+
+          if (labelFolded.startsWith(token) || shortKeyFolded.startsWith(token)) {
+            score += 80;
+            tokenMatched = true;
+          } else if (labelFolded.includes(token) || shortKeyFolded.includes(token)) {
+            score += 50;
+            tokenMatched = true;
+          } else if (titleFolded.includes(token)) {
+            score += 35;
+            tokenMatched = true;
+          }
+
+          if (haystack.includes(token)) {
+            score += 25;
+            tokenMatched = true;
+          } else if (token.length >= 3) {
+            const stem = token.slice(0, Math.min(token.length, 5));
+            if (haystack.includes(stem)) {
+              score += 15;
+              tokenMatched = true;
+            }
+          }
+
+          if (tokenMatched) {
+            matchedTokenCount++;
+          }
+        }
+
+        // 3. Category boost
+        const queryHasAudio = tokens.some((t) =>
+          ['audio', 'som', 'musica', 'mp3', 'wav', 'ogg', 'm4a', 'flac', 'sound', 'song'].some((k) => t.includes(k))
+        );
+        if (queryHasAudio && tool.category === 'audio') {
+          score += 40;
+        }
+
+        const queryHasPdf = tokens.some((t) =>
+          ['pdf', 'documento', 'document', 'page', 'pagina'].some((k) => t.includes(k))
+        );
+        if (queryHasPdf && tool.category === 'pdf') {
+          score += 40;
+        }
+
+        const queryHasImage = tokens.some((t) =>
+          ['imagem', 'foto', 'photo', 'image', 'png', 'jpg', 'webp', 'figura'].some((k) => t.includes(k))
+        );
+        if (queryHasImage && tool.category === 'image') {
+          score += 40;
+        }
+
+        if (matchedTokenCount === 0 && score <= 0) {
+          return null;
+        }
+
+        if (matchedTokenCount === tokens.length) {
+          score += 50;
         }
 
         return { tool, label, moduleName, score };
       })
       .filter((hit): hit is Hit => hit !== null)
-      .sort((a, b) => a.score - b.score);
+      .sort((a, b) => b.score - a.score);
   });
 
   constructor() {
     const destroy = inject(DestroyRef);
 
-    /**
-     * The shortcut lives on the window because it must work from anywhere,
-     * including while the focus sits in a tool's own input.
-     */
     const onKeydown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         this.palette.toggle();
         return;
       }
-      // Also on the window, not only on the input: clicking the dialog's chrome
-      // moves focus off the field, and Escape has to keep working there.
       if (event.key === 'Escape' && this.palette.open()) this.palette.close();
     };
     window.addEventListener('keydown', onKeydown);
     destroy.onDestroy(() => window.removeEventListener('keydown', onKeydown));
 
-    // Opening resets the query: a palette that reopens with the last search
-    // already typed hides the full list behind a filter nobody asked for twice.
     effect(() => {
       if (!this.palette.open()) return;
       this.query.set('');
       this.cursor.set(0);
-      // Deferred by a task: at the moment `open` flips, the @if has not rendered
-      // the input yet, so the view query still reads undefined.
       setTimeout(() => this.field()?.nativeElement.focus());
     });
 
-    /**
-     * The page must not scroll behind the overlay. Set on the element rather than
-     * the body because `body` is not the scroll container here — the shell is.
-     */
     effect((onCleanup) => {
       if (!this.palette.open()) return;
       const root = document.documentElement;

@@ -8,6 +8,7 @@ export type ToolId =
   | 'cut-audio'
   | 'merge-audio'
   | 'convert-audio'
+  | 'compress-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -210,6 +211,30 @@ export const TOOLS: readonly ToolDef[] = [
       'convert audio', 'audio format converter', 'mp3 to wav', 'wav to mp3',
       'ogg to mp3', 'm4a to mp3', 'flac to mp3', 'audio converter', 'sound converter',
       'change audio format', 'convert music file'
+    ],
+  },
+  {
+    id: 'compress-audio',
+    pathPt: 'audio/comprimir',
+    pathEn: 'audio/compress',
+    icon: 'compress',
+    category: 'audio',
+    navKey: 'nav.compress_audio',
+    shortKey: 'nav.short.compress_audio',
+    titleKey: 'compress_audio.title',
+    descKey: 'compress_audio.subtitle',
+    suffix: 'compressed',
+    tone: 'emerald',
+    keywordsPt: [
+      'comprimir audio', 'reduzir tamanho mp3', 'comprimir mp3', 'diminuir audio',
+      'comprimir arquivo de som', 'mp3 menor', 'compactar audio', 'reduzir tamanho arquivo de audio',
+      'comprimir wav', 'comprimir ogg', 'comprimir m4a', 'audio menor', 'otimizar audio',
+      'bitrate menor', 'reduzir bitrate'
+    ],
+    keywordsEn: [
+      'compress audio', 'reduce audio file size', 'shrink mp3', 'audio compressor',
+      'lower bitrate', 'compress mp3', 'compress wav', 'reduce mp3 size', 'audio file reducer',
+      'make audio smaller', 'compress ogg', 'reduce audio bitrate'
     ],
   },
   {

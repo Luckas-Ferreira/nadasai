@@ -19,6 +19,7 @@ export const routes: Routes = [
   { path: 'watermark-pdf', redirectTo: 'pt/pdf/marca-dagua', pathMatch: 'full' },
   { path: 'convert-audio', redirectTo: 'pt/audio/converter', pathMatch: 'full' },
   { path: 'audio/converter', redirectTo: 'pt/audio/converter', pathMatch: 'full' },
+  { path: 'audio/comprimir', redirectTo: 'pt/audio/comprimir', pathMatch: 'full' },
   { path: 'sobre', redirectTo: 'pt/sobre', pathMatch: 'full' },
   { path: 'privacidade', redirectTo: 'pt/privacidade', pathMatch: 'full' },
   { path: 'termos', redirectTo: 'pt/termos', pathMatch: 'full' },
@@ -101,6 +102,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Converta arquivos de áudio (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline no seu navegador. Rápido, gratuito e seguro.',
           metaKeywords: 'converter audio, mp3 para wav, wav para mp3, ogg para mp3, m4a para mp3, conversor de audio offline'
+        }
+      },
+      {
+        path: 'audio/comprimir',
+        title: 'Comprimir Áudio e MP3 — Nada Sai',
+        loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
+        data: {
+          metaDescription: 'Comprima arquivos de áudio MP3, WAV, OGG e M4A 100% offline no navegador. Reduza o tamanho sem instalar nada.',
+          metaKeywords: 'comprimir audio, reduzir tamanho mp3, comprimir mp3 online, compactar audio, mp3 menor, bitrate menor'
         }
       },
       {
@@ -330,6 +340,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Convert audio files (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline in your browser. Fast, free, and private.',
           metaKeywords: 'convert audio, mp3 to wav, wav to mp3, ogg to mp3, m4a to mp3, offline audio converter'
+        }
+      },
+      {
+        path: 'audio/compress',
+        title: 'Compress Audio & MP3 — Nada Sai',
+        loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
+        data: {
+          metaDescription: 'Compress MP3, WAV, OGG, M4A audio files 100% offline in your browser. Reduce size without installing anything.',
+          metaKeywords: 'compress audio, shrink mp3, reduce audio file size, audio compressor, lower bitrate, compress mp3 online'
         }
       },
       {

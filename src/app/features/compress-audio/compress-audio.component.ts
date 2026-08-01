@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import {
   ACCEPT_AUDIO_ATTR,
@@ -31,23 +30,15 @@ import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
 import {
-  AudioBitrate,
-  AudioChannels,
-  AudioConverterService,
-  ConvertResult,
-  TargetAudioFormat,
-} from './services/audio-converter.service';
+  AudioCompressorService,
+  type CompressBitrate,
+  type CompressChannels,
+} from './services/audio-compressor.service';
 
-/** CSS pixels. The ruler strip lives inside the same canvas, at the top. */
+/** CSS pixels — same recipe as cut-audio and convert-audio. */
 const CANVAS_HEIGHT = 208;
 const RULER_HEIGHT = 24;
-
-/**
- * Peaks are computed ONCE per file, at a resolution that covers the deepest
- * zoom — never per pixel width and never per scroll position.
- */
 const PEAK_BUCKETS = 131_072;
-
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 64;
 
@@ -61,11 +52,10 @@ interface WaveColors {
 }
 
 @Component({
-  selector: 'app-convert-audio',
+  selector: 'app-compress-audio',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
     ToolPageComponent,
     DropzoneComponent,
     PanelComponent,
@@ -74,17 +64,12 @@ interface WaveColors {
     IconComponent,
     ButtonDirective,
   ],
-  templateUrl: './convert-audio.component.html',
+  templateUrl: './compress-audio.component.html',
 })
-export class ConvertAudioComponent implements OnDestroy {
-  protected readonly tool = toolById('convert-audio');
-  private readonly converter = inject(AudioConverterService);
+export class CompressAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
-
-  /**
-   * Owned by the component — holds a live AudioContext for playback. Per-run
-   * state that must die with the view.
-   */
+  protected readonly tool = toolById('compress-audio');
+  private readonly compressor = inject(AudioCompressorService);
   private readonly engine = new AudioEngine();
 
   protected readonly acceptAttr = ACCEPT_AUDIO_ATTR;
@@ -94,9 +79,9 @@ export class ConvertAudioComponent implements OnDestroy {
   protected readonly currentFile = signal<File | null>(null);
   protected readonly audioBuffer = signal<AudioBuffer | null>(null);
   protected readonly loading = signal(false);
-  protected readonly sourceFormat = signal<string>('MP3');
+  protected readonly sourceFormat = signal<string>('');
 
-  // View
+  // View / waveform
   protected readonly zoomLevel = signal(1);
   protected readonly viewStart = signal(0);
   protected readonly viewWidth = signal(0);
@@ -105,26 +90,25 @@ export class ConvertAudioComponent implements OnDestroy {
   protected readonly playing = signal(false);
   protected readonly playhead = signal<number | null>(null);
 
-  // Run / convert
+  // Options
+  protected readonly bitrate = signal<CompressBitrate>('128');
+  protected readonly channels = signal<CompressChannels>('original');
+  protected readonly sampleRate = signal<number>(0);
+
+  // Run
   protected readonly busy = signal(false);
   protected readonly progress = signal<number | null>(null);
+  protected readonly result = signal<{ blob: Blob; filename: string } | null>(null);
+  protected readonly outputExt = signal<string>(''); // actual ext of last result
   protected readonly errorKey = signal<TranslationKey | null>(null);
-  /** Actual output extension after conversion — may differ from targetFormat on fallback */
-  protected readonly outputExt = signal<string>('');
 
-  // Converter options
-  protected readonly formats: readonly TargetAudioFormat[] = [
-    'mp3',
-    'wav',
-    'ogg',
-    'm4a',
-    'webm',
-    'flac',
+  protected readonly bitrateOptions: readonly { value: CompressBitrate; label: string }[] = [
+    { value: '32', label: '32 kbps' },
+    { value: '64', label: '64 kbps' },
+    { value: '128', label: '128 kbps' },
+    { value: '192', label: '192 kbps' },
+    { value: '320', label: '320 kbps' },
   ];
-  protected readonly targetFormat = signal<TargetAudioFormat>('mp3');
-  protected readonly channels = signal<AudioChannels>('original');
-  protected readonly sampleRate = signal<number>(0); // 0 = original
-  protected readonly bitrate = signal<AudioBitrate>('320');
 
   private readonly canvasRef = viewChild<ElementRef<HTMLCanvasElement>>('wave');
   private readonly scrollerRef = viewChild<ElementRef<HTMLElement>>('scroller');
@@ -132,28 +116,40 @@ export class ConvertAudioComponent implements OnDestroy {
   private observer: ResizeObserver | null = null;
   private frame = 0;
   private colors: WaveColors | null = null;
+  private _pinchDistance = 0;
+  private _pinchZoom = 1;
 
   // ---------------------------------------------------------------- computed
 
   protected readonly duration = computed(() => this.audioBuffer()?.duration ?? 0);
 
   protected readonly sourceSize = computed(() => {
-    const file = this.currentFile();
-    return file ? formatBytes(file.size) : '';
+    const f = this.currentFile();
+    return f ? formatBytes(f.size) : '';
+  });
+
+  protected readonly estimatedSize = computed(() => {
+    const buffer = this.audioBuffer();
+    if (!buffer) return null;
+    const bytes = this.compressor.estimatedBytes(buffer, {
+      bitrate: this.bitrate(),
+      channels: this.channels(),
+      sampleRate: this.sampleRate(),
+      sourceFormat: this.sourceFormat().toLowerCase() || 'mp3',
+    });
+    return formatBytes(bytes);
   });
 
   protected readonly peaks = computed<Peaks | null>(() => {
     const buffer = this.audioBuffer();
     if (!buffer) return null;
-
-    const channels: Float32Array[] = [];
-    for (let ch = 0; ch < buffer.numberOfChannels; ch++) channels.push(buffer.getChannelData(ch));
-    return computePeaks(channels, Math.min(PEAK_BUCKETS, buffer.length));
+    const chs: Float32Array[] = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch++) chs.push(buffer.getChannelData(ch));
+    return computePeaks(chs, Math.min(PEAK_BUCKETS, buffer.length));
   });
 
   protected readonly viewLength = computed(() => this.duration() / this.zoomLevel());
   protected readonly scrollWidth = computed(() => Math.round(this.viewWidth() * this.zoomLevel()));
-
   protected readonly zoomPercent = computed(() => Math.round(this.zoomLevel() * 100));
   protected readonly canZoomOut = computed(() => this.zoomLevel() > MIN_ZOOM + 1e-6);
   protected readonly canZoomIn = computed(() => this.zoomLevel() < MAX_ZOOM - 1e-6);
@@ -161,31 +157,22 @@ export class ConvertAudioComponent implements OnDestroy {
   // ---------------------------------------------------------------- lifecycle
 
   constructor() {
-    // Wire ResizeObserver when the scroller appears/disappears.
     effect((onCleanup) => {
       const el = this.scrollerRef()?.nativeElement;
       if (!el) return;
 
-      const observer = new ResizeObserver((entries) => {
-        const width = Math.round(entries[0].contentRect.width);
-        if (width > 0) this.viewWidth.set(width);
+      const obs = new ResizeObserver((entries) => {
+        const w = Math.round(entries[0].contentRect.width);
+        if (w > 0) this.viewWidth.set(w);
       });
-      observer.observe(el);
-      this.observer = observer;
-
-      onCleanup(() => {
-        observer.disconnect();
-        this.observer = null;
-      });
+      obs.observe(el);
+      this.observer = obs;
+      onCleanup(() => { obs.disconnect(); this.observer = null; });
     });
 
-    // Single redraw path for all visual inputs.
     effect(() => {
-      this.peaks();
-      this.viewWidth();
-      this.viewStart();
-      this.zoomLevel();
-      this.playhead();
+      this.peaks(); this.viewWidth(); this.viewStart();
+      this.zoomLevel(); this.playhead();
       this.draw();
     });
   }
@@ -201,31 +188,27 @@ export class ConvertAudioComponent implements OnDestroy {
   protected async onFile(file: File): Promise<void> {
     this.stopPlayback();
     this.errorKey.set(null);
+    this.result.set(null);
     this.loading.set(true);
 
     try {
       assertUsableAudio(file);
-
       const ctx = new (window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = await ctx.decodeAudioData(arrayBuffer);
+      const ab = await file.arrayBuffer();
+      const buffer = await ctx.decodeAudioData(ab);
       void ctx.close();
 
       if (buffer.duration > 3 * 3600) throw new AppError('audio_too_long');
 
-      const fmt = file.name.split('.').pop()?.toLowerCase() ?? 'audio';
-      this.sourceFormat.set(fmt.toUpperCase());
-
+      const fmt = file.name.split('.').pop()?.toLowerCase() ?? 'mp3';
+      this.sourceFormat.set(fmt);
       this.currentFile.set(file);
       this.audioBuffer.set(buffer);
       this.zoomLevel.set(1);
       this.viewStart.set(0);
-
-      // Default target: swap mp3↔wav
-      this.targetFormat.set(fmt === 'mp3' ? 'wav' : 'mp3');
     } catch (err) {
-      console.error('[ConvertAudio] could not open the audio file:', err);
+      console.error('[CompressAudio] onFile error:', err);
       this.currentFile.set(null);
       this.audioBuffer.set(null);
       this.errorKey.set(toMessageKey(err));
@@ -238,6 +221,7 @@ export class ConvertAudioComponent implements OnDestroy {
     this.stopPlayback();
     this.currentFile.set(null);
     this.audioBuffer.set(null);
+    this.result.set(null);
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
@@ -248,13 +232,10 @@ export class ConvertAudioComponent implements OnDestroy {
   protected setZoom(next: number, anchorTime?: number, anchorFraction = 0.5): void {
     const clamped = clamp(next, MIN_ZOOM, MAX_ZOOM);
     const anchor = anchorTime ?? this.viewStart() + this.viewLength() / 2;
-
     this.zoomLevel.set(clamped);
-
     const length = this.duration() / clamped;
     const start = clamp(anchor - anchorFraction * length, 0, Math.max(0, this.duration() - length));
     this.viewStart.set(start);
-
     requestAnimationFrame(() => {
       const el = this.scrollerRef()?.nativeElement;
       if (!el || this.duration() <= 0) return;
@@ -262,99 +243,85 @@ export class ConvertAudioComponent implements OnDestroy {
     });
   }
 
-  protected zoomBy(factor: number): void {
-    this.setZoom(this.zoomLevel() * factor);
-  }
+  protected zoomBy(factor: number): void { this.setZoom(this.zoomLevel() * factor); }
+  protected fitAll(): void { this.setZoom(MIN_ZOOM); }
 
   protected setZoomFromInput(input: HTMLInputElement): void {
-    const value = parseInt(input.value, 10);
-    if (!Number.isNaN(value)) this.setZoom(value / 100);
+    const v = parseInt(input.value, 10);
+    if (!Number.isNaN(v)) this.setZoom(v / 100);
     input.value = String(this.zoomPercent());
-  }
-
-  protected fitAll(): void {
-    this.setZoom(MIN_ZOOM);
   }
 
   protected onScroll(): void {
     const el = this.scrollerRef()?.nativeElement;
-    const width = this.scrollWidth();
-    if (!el || width <= 0 || this.duration() <= 0) return;
-
-    this.viewStart.set(clamp((el.scrollLeft / width) * this.duration(), 0, this.duration()));
+    const w = this.scrollWidth();
+    if (!el || w <= 0 || this.duration() <= 0) return;
+    this.viewStart.set(clamp((el.scrollLeft / w) * this.duration(), 0, this.duration()));
   }
 
   protected onWheel(event: WheelEvent): void {
     const el = this.scrollerRef()?.nativeElement;
     if (!el) return;
-
     if (event.ctrlKey || event.metaKey) {
       if (event.cancelable) event.preventDefault();
-      const fraction = clamp((event.clientX - el.getBoundingClientRect().left) / el.clientWidth, 0, 1);
-      const anchor = this.viewStart() + fraction * this.viewLength();
-      this.setZoom(this.zoomLevel() * (event.deltaY > 0 ? 1 / 1.2 : 1.2), anchor, fraction);
+      const frac = clamp((event.clientX - el.getBoundingClientRect().left) / el.clientWidth, 0, 1);
+      const anchor = this.viewStart() + frac * this.viewLength();
+      this.setZoom(this.zoomLevel() * (event.deltaY > 0 ? 1 / 1.2 : 1.2), anchor, frac);
       return;
     }
-
     if (this.zoomLevel() > MIN_ZOOM && Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
       if (event.cancelable) event.preventDefault();
       el.scrollLeft += event.deltaY;
     }
   }
 
-  protected onTouchStart(event: TouchEvent): void {
-    if (event.touches.length !== 2) return;
-    this._pinchDistance = touchDistance(event);
+  protected onTouchStart(e: TouchEvent): void {
+    if (e.touches.length !== 2) return;
+    this._pinchDistance = touchDist(e);
     this._pinchZoom = this.zoomLevel();
   }
 
-  protected onTouchMove(event: TouchEvent): void {
-    if (event.touches.length !== 2 || this._pinchDistance <= 0) return;
-    if (event.cancelable) event.preventDefault();
-    this.setZoom((this._pinchZoom * touchDistance(event)) / this._pinchDistance);
+  protected onTouchMove(e: TouchEvent): void {
+    if (e.touches.length !== 2 || this._pinchDistance <= 0) return;
+    if (e.cancelable) e.preventDefault();
+    this.setZoom((this._pinchZoom * touchDist(e)) / this._pinchDistance);
   }
 
-  protected onTouchEnd(event: TouchEvent): void {
-    if (event.touches.length < 2) this._pinchDistance = 0;
-  }
-
-  private _pinchDistance = 0;
-  private _pinchZoom = 1;
-
-  // ---------------------------------------------------------------- canvas click → seek
-
-  protected onCanvasClick(event: PointerEvent): void {
-    const el = this.canvasRef()?.nativeElement;
-    const width = this.viewWidth();
-    if (!el || width <= 0 || this.duration() <= 0) return;
-
-    const x = event.clientX - el.getBoundingClientRect().left;
-    const time = this.xToTime(x);
-    this.stopPlayback();
-    this.startPlayback(time);
+  protected onTouchEnd(e: TouchEvent): void {
+    if (e.touches.length < 2) this._pinchDistance = 0;
   }
 
   // ---------------------------------------------------------------- playback
 
+  protected onCanvasClick(event: PointerEvent): void {
+    const el = this.canvasRef()?.nativeElement;
+    if (!el || this.viewWidth() <= 0 || this.duration() <= 0) return;
+    const x = event.clientX - el.getBoundingClientRect().left;
+    const time = this.xToTime(x);
+    this.stopPlayback();
+    void this.startPlayback(time);
+  }
+
   protected async togglePlay(): Promise<void> {
-    if (this.playing()) {
-      this.stopPlayback();
-      return;
-    }
+    if (this.playing()) { this.stopPlayback(); return; }
     await this.startPlayback(this.playhead() ?? 0);
   }
 
   private async startPlayback(seekTime = 0): Promise<void> {
     const buffer = this.audioBuffer();
     if (!buffer) return;
-
     await this.engine.play(
       { buffer, segments: [[seekTime, buffer.duration]], fadeIn: 0, fadeOut: 0 },
       () => this.stopPlayback(),
     );
-
     this.playing.set(true);
-    this.trackPlayhead(seekTime);
+    const step = () => {
+      const elapsed = this.engine.elapsed();
+      if (elapsed === null) return;
+      this.playhead.set(seekTime + elapsed);
+      this.frame = requestAnimationFrame(step);
+    };
+    this.frame = requestAnimationFrame(step);
   }
 
   private stopPlayback(): void {
@@ -364,19 +331,9 @@ export class ConvertAudioComponent implements OnDestroy {
     this.playhead.set(null);
   }
 
-  private trackPlayhead(startOffset: number): void {
-    const step = () => {
-      const elapsed = this.engine.elapsed();
-      if (elapsed === null) return;
-      this.playhead.set(startOffset + elapsed);
-      this.frame = requestAnimationFrame(step);
-    };
-    this.frame = requestAnimationFrame(step);
-  }
+  // ---------------------------------------------------------------- run
 
-  // ---------------------------------------------------------------- run / convert
-
-  protected async downloadConvertedAudio(): Promise<void> {
+  protected async run(): Promise<void> {
     const buffer = this.audioBuffer();
     const file = this.currentFile();
     if (!buffer || !file || this.busy()) return;
@@ -384,24 +341,25 @@ export class ConvertAudioComponent implements OnDestroy {
     this.stopPlayback();
     this.busy.set(true);
     this.errorKey.set(null);
-    this.progress.set(10);
+    this.progress.set(0);
 
     try {
-      const { blob, ext }: ConvertResult = await this.converter.convertAudio(
+      const { blob, ext } = await this.compressor.compress(
         buffer,
         {
-          targetFormat: this.targetFormat(),
+          bitrate: this.bitrate(),
           channels: this.channels(),
           sampleRate: this.sampleRate(),
-          bitrate: this.bitrate(),
+          sourceFormat: this.sourceFormat() || 'mp3',
         },
         (pct) => this.progress.set(pct),
       );
 
       this.outputExt.set(ext);
-      saveBlob(blob, suffixedName(file.name, this.tool.suffix, ext));
+      const filename = suffixedName(file.name, this.tool.suffix, ext);
+      this.result.set({ blob, filename });
     } catch (err) {
-      console.error('[ConvertAudio] export error:', err);
+      console.error('[CompressAudio] run error:', err);
       this.errorKey.set(toMessageKey(err));
     } finally {
       this.busy.set(false);
@@ -409,42 +367,38 @@ export class ConvertAudioComponent implements OnDestroy {
     }
   }
 
+  protected download(): void {
+    const r = this.result();
+    if (r) saveBlob(r.blob, r.filename);
+  }
+
   // ---------------------------------------------------------------- formatting
 
-  protected clock(seconds: number): string {
-    return formatClock(seconds);
-  }
-
-  protected timecode(seconds: number): string {
-    return formatTimecode(seconds);
-  }
+  protected clock(s: number): string { return formatClock(s); }
+  protected timecode(s: number): string { return formatTimecode(s); }
 
   // ---------------------------------------------------------------- painting
 
-  private timeToX(seconds: number): number {
-    const length = this.viewLength();
-    return length > 0 ? ((seconds - this.viewStart()) / length) * this.viewWidth() : 0;
+  private timeToX(s: number): number {
+    const len = this.viewLength();
+    return len > 0 ? ((s - this.viewStart()) / len) * this.viewWidth() : 0;
   }
 
   private xToTime(x: number): number {
-    const time = this.viewStart() + (x / this.viewWidth()) * this.viewLength();
-    return clamp(time, 0, this.duration());
+    return clamp(this.viewStart() + (x / this.viewWidth()) * this.viewLength(), 0, this.duration());
   }
 
   private draw(): void {
     const el = this.canvasRef()?.nativeElement;
     const peaks = this.peaks();
     const width = this.viewWidth();
-    const duration = this.duration();
-    if (!el || !peaks || width <= 0 || duration <= 0) return;
+    const dur = this.duration();
+    if (!el || !peaks || width <= 0 || dur <= 0) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const pixelWidth = Math.round(width * dpr);
-    const pixelHeight = Math.round(CANVAS_HEIGHT * dpr);
-    if (el.width !== pixelWidth || el.height !== pixelHeight) {
-      el.width = pixelWidth;
-      el.height = pixelHeight;
-    }
+    const pw = Math.round(width * dpr);
+    const ph = Math.round(CANVAS_HEIGHT * dpr);
+    if (el.width !== pw || el.height !== ph) { el.width = pw; el.height = ph; }
 
     const ctx = el.getContext('2d');
     if (!ctx) return;
@@ -453,7 +407,6 @@ export class ConvertAudioComponent implements OnDestroy {
     ctx.clearRect(0, 0, width, CANVAS_HEIGHT);
 
     const colors = this.waveColors();
-
     this.drawRuler(ctx, width, colors);
     this.drawWaveform(ctx, peaks, width, colors);
     this.drawPlayhead(ctx, colors);
@@ -467,17 +420,15 @@ export class ConvertAudioComponent implements OnDestroy {
     ctx.font = '10px ui-monospace, "Segoe UI Mono", Menlo, monospace';
     ctx.textBaseline = 'top';
 
-    for (let time = Math.ceil(from / step) * step; time <= from + length + 1e-6; time += step) {
-      const x = Math.round(this.timeToX(time)) + 0.5;
-
+    for (let t = Math.ceil(from / step) * step; t <= from + length + 1e-6; t += step) {
+      const x = Math.round(this.timeToX(t)) + 0.5;
       ctx.fillStyle = colors.grid;
       ctx.fillRect(x, RULER_HEIGHT - 6, 1, 6);
       ctx.fillRect(x, RULER_HEIGHT, 1, CANVAS_HEIGHT - RULER_HEIGHT);
 
-      const label = step < 1 ? formatTimecode(time).slice(0, -2) : formatClock(time);
-      const labelWidth = ctx.measureText(label).width;
-      if (x + labelWidth + 4 > width || x < 2) continue;
-
+      const label = step < 1 ? formatTimecode(t).slice(0, -2) : formatClock(t);
+      const lw = ctx.measureText(label).width;
+      if (x + lw + 4 > width || x < 2) continue;
       ctx.fillStyle = colors.label;
       ctx.fillText(label, x + 4, 3);
     }
@@ -497,37 +448,32 @@ export class ConvertAudioComponent implements OnDestroy {
     const total = peaks.max.length;
     const bucketFrom = (this.viewStart() / this.duration()) * total;
     const bucketSpan = (this.viewLength() / this.duration()) * total;
-
     const columns = Math.floor(width);
-    const perColumn = bucketSpan / columns;
+    const perCol = bucketSpan / columns;
 
-    for (let column = 0; column < columns; column++) {
-      const from = Math.floor(bucketFrom + column * perColumn);
-      const to = Math.max(from + 1, Math.floor(bucketFrom + (column + 1) * perColumn));
+    for (let col = 0; col < columns; col++) {
+      const from = Math.floor(bucketFrom + col * perCol);
+      const to = Math.max(from + 1, Math.floor(bucketFrom + (col + 1) * perCol));
 
-      let lo = 0;
-      let hi = 0;
+      let lo = 0, hi = 0;
       for (let i = Math.max(0, from); i < to && i < total; i++) {
         if (peaks.min[i] < lo) lo = peaks.min[i];
         if (peaks.max[i] > hi) hi = peaks.max[i];
       }
 
       ctx.fillStyle = colors.keep;
-
       const yTop = mid - hi * scale;
-      const yBottom = mid - lo * scale;
-      ctx.fillRect(column, yTop, 1, Math.max(1, yBottom - yTop));
+      const yBot = mid - lo * scale;
+      ctx.fillRect(col, yTop, 1, Math.max(1, yBot - yTop));
     }
   }
 
   private drawPlayhead(ctx: CanvasRenderingContext2D, colors: WaveColors): void {
     const head = this.playhead();
     if (head === null) return;
-
     const x = Math.round(this.timeToX(head)) + 0.5;
     ctx.fillStyle = colors.playhead;
     ctx.fillRect(x - 0.5, RULER_HEIGHT - 4, 1.5, CANVAS_HEIGHT - RULER_HEIGHT + 4);
-
     ctx.beginPath();
     ctx.moveTo(x - 4, RULER_HEIGHT - 8);
     ctx.lineTo(x + 4, RULER_HEIGHT - 8);
@@ -536,15 +482,10 @@ export class ConvertAudioComponent implements OnDestroy {
     ctx.fill();
   }
 
-  /**
-   * Colours resolved from design tokens at first paint (same pattern as cut-audio).
-   */
   private waveColors(): WaveColors {
     if (this.colors) return this.colors;
-
     const style = getComputedStyle(document.documentElement);
-    const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
-
+    const token = (n: string, fb: string) => style.getPropertyValue(n).trim() || fb;
     this.colors = {
       idle: token('--color-wave-idle', '#94a3b8'),
       keep: token('--color-wave-keep', '#1d4ed8'),
@@ -557,12 +498,11 @@ export class ConvertAudioComponent implements OnDestroy {
   }
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
 }
 
-function touchDistance(event: TouchEvent): number {
-  const a = event.touches[0];
-  const b = event.touches[1];
+function touchDist(e: TouchEvent): number {
+  const a = e.touches[0], b = e.touches[1];
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
