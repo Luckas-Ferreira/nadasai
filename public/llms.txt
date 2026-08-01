@@ -1,10 +1,10 @@
 # Nada Sai
 
-> Nada Sai is a free, 100% client-side, browser-based web application for editing images and PDF documents. All processing runs locally in the user's browser using WebAssembly and Web Workers — zero files or user data are ever uploaded to any server.
+> Nada Sai is a free, 100% client-side, browser-based web application for editing images, PDF documents, and audio files. All processing runs locally in the user's browser using WebAssembly, WebAudio, and Web Workers — zero files or user data are ever uploaded to any server.
 
 ## Overview
 
-Nada Sai provides private, offline-first image manipulation (background removal, cropping, compression, conversion, resizing) and PDF editing (merging, splitting, page reordering, signing, watermarking, password protection, and OCR text extraction).
+Nada Sai provides private, offline-first image manipulation (background removal, cropping, compression, conversion, resizing), PDF editing (merging, splitting, page reordering, signing, watermarking, password protection, OCR text extraction), and audio processing (cutting, joining, format conversion, and bitrate compression).
 
 ## Image Tools
 
@@ -24,6 +24,7 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 - [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Extract or separate pages from a PDF.
 - [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Shrink PDF file size 100% offline.
 - [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Convert PDF pages into high-resolution PNG, JPG, or WebP images.
+- [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Convert PDF documents into editable Word (.docx) files.
 - [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): Reorder, rotate, or delete PDF pages.
 - [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Add password encryption to PDF files.
 - [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw or add digital signatures and stamps to PDFs.
@@ -33,10 +34,12 @@ Nada Sai provides private, offline-first image manipulation (background removal,
 
 - [Cortar Áudio / Cut Audio](https://nadasai.com/pt/audio/cortar): Trim songs, voice notes, or podcasts 100% offline with visual waveform display.
 - [Juntar Áudios / Merge Audio](https://nadasai.com/pt/audio/juntar): Join several audio files into one 100% offline, with crossfade or gaps between tracks.
+- [Converter Áudio / Convert Audio](https://nadasai.com/pt/audio/converter): Convert audio files between MP3, WAV, OGG, M4A, AAC, and FLAC formats 100% offline.
+- [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Shrink audio file sizes by adjusting bitrate (32 to 320 kbps) 100% offline.
 
 ## Information & Legal
 
 - [Sobre / About](https://nadasai.com/pt/sobre): Learn about Nada Sai's zero-server privacy architecture.
 - [Privacidade / Privacy Policy](https://nadasai.com/pt/privacidade): Read the 100% local processing privacy policy.
 - [Termos de Uso / Terms of Service](https://nadasai.com/pt/termos): Terms of service for using Nada Sai tools.
-- [FAQ / Perguntas Frequentes](https://nadasai.com/pt/faq): Frequently asked questions about offline browser privacy and PDF editing.
+- [FAQ / Perguntas Frequentes](https://nadasai.com/pt/faq): Frequently asked questions about offline browser privacy, audio tools, and PDF editing.
