@@ -407,9 +407,117 @@
   </url>
   <url>
     <loc>https://nadasai.com/en/pdf/watermark</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/marca-dagua" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/marca-dagua" />
     <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/watermark" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/marca-dagua" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Criptografar Arquivo / Encrypt File -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/criptografar-arquivo</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/encrypt-file</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Hash de Arquivo / File Hash & Checksum -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/hash-de-arquivo</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/file-hash</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Gerador de Senhas / Password Generator -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/gerador-de-senha</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/password-generator" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/password-generator</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/password-generator" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Remover EXIF / Remove EXIF -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/remover-exif</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/remove-exif" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/remover-exif" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/remover-exif" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/remove-exif</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/remover-exif" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/remove-exif" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/remover-exif" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Censurar Imagem / Redact Image -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/censurar-imagem</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/redact-image" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/censurar-imagem" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/censurar-imagem" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/redact-image</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/censurar-imagem" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/redact-image" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/censurar-imagem" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Comparar Texto / Diff Checker -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/comparar-texto</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/diff-checker</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

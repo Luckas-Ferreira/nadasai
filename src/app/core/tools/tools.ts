@@ -23,7 +23,13 @@ export type ToolId =
   | 'organize-pdf'
   | 'protect-pdf'
   | 'sign-pdf'
-  | 'watermark-pdf';
+  | 'watermark-pdf'
+  | 'encrypt-file'
+  | 'file-hash'
+  | 'password-generator'
+  | 'remove-exif'
+  | 'redact-image'
+  | 'diff-checker';
 
 export type ToolTone =
   | 'violet'
@@ -36,7 +42,7 @@ export type ToolTone =
   | 'teal'
   | 'fuchsia';
 
-export type ToolCategory = 'image' | 'pdf' | 'audio';
+export type ToolCategory = 'image' | 'pdf' | 'audio' | 'privacy';
 
 export type ModuleId = ToolCategory;
 
@@ -52,6 +58,7 @@ export const MODULES: readonly ModuleDef[] = [
   { id: 'image', icon: 'image', nameKey: 'module.image', descKey: 'module.image_desc', tone: 'sky' },
   { id: 'pdf', icon: 'pdf', nameKey: 'module.pdf', descKey: 'module.pdf_desc', tone: 'rose' },
   { id: 'audio', icon: 'audio', nameKey: 'module.audio', descKey: 'module.audio_desc', tone: 'violet' },
+  { id: 'privacy', icon: 'shield', nameKey: 'module.privacy', descKey: 'module.privacy_desc', tone: 'emerald' },
 ];
 
 export interface ToolDef {
@@ -568,6 +575,132 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'watermark pdf', 'add watermark', 'draft stamp', 'confidential watermark',
       'text watermark', 'stamp text', 'overlay text'
+    ],
+  },
+  {
+    id: 'encrypt-file',
+    pathPt: 'privacidade/criptografar-arquivo',
+    pathEn: 'privacy/encrypt-file',
+    icon: 'lock',
+    category: 'privacy',
+    navKey: 'nav.encrypt_file',
+    shortKey: 'nav.short.encrypt_file',
+    titleKey: 'encrypt.title',
+    descKey: 'encrypt.subtitle',
+    suffix: 'enc',
+    tone: 'emerald',
+    keywordsPt: [
+      'criptografar arquivo', 'descriptografar arquivo', 'senha em arquivo', 'protecao aes-256',
+      'seguranca de arquivo', 'bloquear arquivo com senha', 'criptografia local', 'proteger documento'
+    ],
+    keywordsEn: [
+      'encrypt file', 'decrypt file', 'password protect file', 'aes-256 encryption',
+      'file security', 'lock file', 'local encryption', 'protect file'
+    ],
+  },
+  {
+    id: 'file-hash',
+    pathPt: 'privacidade/hash-de-arquivo',
+    pathEn: 'privacy/file-hash',
+    icon: 'hash',
+    category: 'privacy',
+    navKey: 'nav.file_hash',
+    shortKey: 'nav.short.file_hash',
+    titleKey: 'hash.title',
+    descKey: 'hash.subtitle',
+    suffix: 'hash',
+    tone: 'teal',
+    keywordsPt: [
+      'hash de arquivo', 'sha256', 'md5', 'sha512', 'checksum', 'verificar integridade',
+      'integridade de arquivo', 'hash local', 'gerar hash'
+    ],
+    keywordsEn: [
+      'file hash', 'sha256 generator', 'md5 hash', 'checksum verifier', 'file integrity',
+      'hash calculator', 'local hash'
+    ],
+  },
+  {
+    id: 'password-generator',
+    pathPt: 'privacidade/gerador-de-senha',
+    pathEn: 'privacy/password-generator',
+    icon: 'key',
+    category: 'privacy',
+    navKey: 'nav.password_generator',
+    shortKey: 'nav.short.password_generator',
+    titleKey: 'passgen.title',
+    descKey: 'passgen.subtitle',
+    suffix: 'txt',
+    tone: 'amber',
+    keywordsPt: [
+      'gerador de senha', 'senha segura', 'senha forte', 'gerar senha aleatoria',
+      'entropia de senha', 'gerar senha forte offline', 'seguranca'
+    ],
+    keywordsEn: [
+      'password generator', 'secure password', 'strong password', 'random password',
+      'password strength', 'offline password generator'
+    ],
+  },
+  {
+    id: 'remove-exif',
+    pathPt: 'privacidade/remover-exif',
+    pathEn: 'privacy/remove-exif',
+    icon: 'eyeOff',
+    category: 'privacy',
+    navKey: 'nav.remove_exif',
+    shortKey: 'nav.short.remove_exif',
+    titleKey: 'exif.title',
+    descKey: 'exif.subtitle',
+    suffix: 'noexif',
+    tone: 'rose',
+    keywordsPt: [
+      'remover exif', 'limpar gps da foto', 'apagar metadados', 'remover dados de foto',
+      'privacidade de foto', 'remover modelo de camera', 'foto sem gps'
+    ],
+    keywordsEn: [
+      'remove exif', 'strip photo gps', 'clean metadata', 'remove metadata',
+      'photo privacy', 'strip camera info'
+    ],
+  },
+  {
+    id: 'redact-image',
+    pathPt: 'privacidade/censurar-imagem',
+    pathEn: 'privacy/redact-image',
+    icon: 'brush',
+    category: 'privacy',
+    navKey: 'nav.redact_image',
+    shortKey: 'nav.short.redact_image',
+    titleKey: 'redact.title',
+    descKey: 'redact.subtitle',
+    suffix: 'redacted',
+    tone: 'violet',
+    keywordsPt: [
+      'tarja preta foto', 'censurar imagem', 'desfocar foto', 'borrar cpf',
+      'esconder dados', 'tarja em foto', 'censurar documento', 'ocultar informacao'
+    ],
+    keywordsEn: [
+      'redact image', 'black bar photo', 'blur image', 'hide sensitive data',
+      'censor document', 'photo redaction', 'blur face'
+    ],
+  },
+  {
+    id: 'diff-checker',
+    pathPt: 'privacidade/comparar-texto',
+    pathEn: 'privacy/diff-checker',
+    icon: 'diff',
+    category: 'privacy',
+    navKey: 'nav.diff_checker',
+    shortKey: 'nav.short.diff_checker',
+    titleKey: 'diff.title',
+    descKey: 'diff.subtitle',
+    suffix: 'diff',
+    tone: 'sky',
+    keywordsPt: [
+      'comparar texto', 'diff checker', 'diferenca entre textos', 'comparar arquivos',
+      'ver diferenca', 'comparador de codigo', 'comparar versoes'
+    ],
+    keywordsEn: [
+      'diff checker', 'compare text', 'text difference', 'file compare',
+      'code diff', 'side by side diff'
     ],
   },
 ];
