@@ -24,23 +24,6 @@
       }
     } @else {
       <div class="flex flex-col gap-3">
-        <!-- Source bar. Themed, not on the surround: it is chrome about the file,
-             not part of the thing being read. -->
-        <div class="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs">
-          <div class="flex min-w-0 items-center gap-2">
-            <app-icon name="audio" [size]="14" class="shrink-0 text-faint" />
-            <span class="truncate font-medium text-text">{{ file()?.name }}</span>
-            <span class="shrink-0 font-mono tabular text-faint">
-              {{ clock(duration()) }} · {{ sourceSize() }}
-            </span>
-          </div>
-
-          <button appButton variant="ghost" size="sm" class="shrink-0" (click)="reset()">
-            <app-icon name="close" [size]="14" />
-            {{ i18n.t()['common.clear'] }}
-          </button>
-        </div>
-
         <!--
           The reading surface, identical in kind to the PDF editor's: doc-stage
           rather than the dark image stage, rounded and bordered so it reads as a
@@ -139,7 +122,27 @@
           </p>
         </div>
 
+
         <p class="text-2xs text-faint">{{ i18n.t()['cut_audio.wave_hint'] }}</p>
+
+        @if (!stale() && result(); as res) {
+          <div class="flex items-center justify-between gap-3 rounded-xl border border-success-line bg-success-soft px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success-soft">
+                <app-icon name="check" [size]="16" class="text-success" />
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-success">{{ i18n.t()['cut_audio.ready'] }}</p>
+                <p class="text-xs text-muted">{{ res.filename }} · {{ timecode(res.duration) }}</p>
+              </div>
+            </div>
+            <button appButton variant="secondary" size="sm" (click)="download()">
+              <app-icon name="download" [size]="14" />
+              {{ i18n.t()['common.download'] }}
+            </button>
+          </div>
+        }
+
       </div>
     }
   </div>

@@ -4,6 +4,7 @@ import { ActiveToolService } from './core/services/active-tool.service';
 import { TranslationService } from './core/services/translation.service';
 import { SeoService } from './core/services/seo.service';
 import { CommandPaletteComponent } from './shared/ui/command-palette.component';
+import { CurrentAudioFileBarComponent } from './shared/ui/current-audio-file-bar.component';
 import { CurrentFileBarComponent } from './shared/ui/current-file-bar.component';
 import { MobileToolBarComponent } from './shared/ui/mobile-tool-bar.component';
 import { ModelDownloadBarComponent } from './shared/ui/model-download-bar.component';
@@ -32,6 +33,7 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
     MobileToolBarComponent,
     CommandPaletteComponent,
     CurrentFileBarComponent,
+    CurrentAudioFileBarComponent,
     UpdateOverlayComponent,
     ModelDownloadBarComponent,
     SplashScreenComponent,

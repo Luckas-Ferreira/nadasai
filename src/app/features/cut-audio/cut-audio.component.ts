@@ -24,6 +24,7 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes } from '../../core/image/image-file.util';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { AudioStateService } from '../../core/services/audio-state.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -97,6 +98,7 @@ export class CutAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('cut-audio');
   private readonly cutter = inject(AudioCutterService);
+  private readonly audioState = inject(AudioStateService);
 
   /**
    * Owned by the component, not injected. It holds a live AudioContext and
@@ -257,6 +259,10 @@ export class CutAudioComponent implements OnDestroy {
       this.activeHandle();
       this.draw();
     });
+
+    // Auto-load the persisted audio file when the user navigates to this tool.
+    const savedFile = this.audioState.currentFile();
+    if (savedFile) void this.onFile(savedFile);
   }
 
   ngOnDestroy(): void {
@@ -282,6 +288,7 @@ export class CutAudioComponent implements OnDestroy {
 
       this.file.set(file);
       this.buffer.set(buffer);
+      this.audioState.load(file);   // persist across tool navigation
       this.mode.set('keep');
       this.fadeIn.set(0);
       this.fadeOut.set(0);
@@ -314,6 +321,7 @@ export class CutAudioComponent implements OnDestroy {
     this.mode.set('keep');
     this.zoomLevel.set(1);
     this.viewStart.set(0);
+    this.audioState.clear();   // clear the global bar too
   }
 
   // -------------------------------------------------------------- selection
@@ -741,6 +749,28 @@ export class CutAudioComponent implements OnDestroy {
 
       this.result.set(res);
       this.ranSignature.set(this.signature());
+
+      // Persist the cut result so compress/convert tools pick it up — not the
+      // original. This is what makes "navigate away → come back" feel like a
+      // continuous workflow instead of a reset.
+      const resultFile = new File([res.blob], res.filename, { type: 'audio/wav' });
+      this.audioState.load(resultFile);
+
+      // Also update the local buffer + file to the cut version so the waveform
+      // immediately reflects what the user would actually work on next.
+      try {
+        const cutCtx = new AudioContext();
+        const cutBuffer = await cutCtx.decodeAudioData(await res.blob.arrayBuffer());
+        void cutCtx.close();
+        this.file.set(resultFile);
+        this.buffer.set(cutBuffer);
+        this.selStart.set(0);
+        this.selEnd.set(cutBuffer.duration);
+        this.zoomLevel.set(1);
+        this.viewStart.set(0);
+      } catch {
+        // Non-fatal: the result is still downloadable; we just keep the old waveform.
+      }
     } catch (err) {
       console.error('[CutAudio] cut failed:', err);
       this.errorKey.set(toMessageKey(err));
