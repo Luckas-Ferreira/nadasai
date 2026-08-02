@@ -13,6 +13,9 @@ import { FaqComponent } from '../../shared/ui/faq.component';
  * routes: a roadmap that looks shippable is a promise.
  */
 const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: TranslationKey }> = [
+  { icon: 'video', nameKey: 'hero.soon.video', descKey: 'hero.soon.video_desc' },
+  { icon: 'palette', nameKey: 'hero.soon.design', descKey: 'hero.soon.design_desc' },
+  { icon: 'zap', nameKey: 'hero.soon.productivity', descKey: 'hero.soon.productivity_desc' },
   { icon: 'doc', nameKey: 'hero.soon.doc', descKey: 'hero.soon.doc_desc' },
 ];
 

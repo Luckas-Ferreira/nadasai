@@ -249,6 +249,60 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'privacidade/criptografar-arquivo',
+        title: 'Criptografar Arquivo — Nada Sai',
+        loadComponent: () => import('./features/privacy/encrypt-file/encrypt-file.component').then((m) => m.EncryptFileComponent),
+        data: {
+          metaDescription: 'Criptografe e proteja qualquer arquivo local com senha e AES-256 bits 100% offline.',
+          metaKeywords: 'criptografar arquivo, senha em arquivo, aes 256, seguranca local'
+        }
+      },
+      {
+        path: 'privacidade/hash-de-arquivo',
+        title: 'Hash de Arquivo & Checksum — Nada Sai',
+        loadComponent: () => import('./features/privacy/file-hash/file-hash.component').then((m) => m.FileHashComponent),
+        data: {
+          metaDescription: 'Calcule hashes SHA-256, SHA-512 e MD5 para verificar a integridade de arquivos localmente.',
+          metaKeywords: 'hash de arquivo, sha256, md5, checksum, integridade de arquivo'
+        }
+      },
+      {
+        path: 'privacidade/gerador-de-senha',
+        title: 'Gerador de Senhas Seguras — Nada Sai',
+        loadComponent: () => import('./features/privacy/password-generator/password-generator.component').then((m) => m.PasswordGeneratorComponent),
+        data: {
+          metaDescription: 'Gere senhas fortes, inquebráveis e aleatórias 100% offline com calculador de entropia.',
+          metaKeywords: 'gerador de senha, senha segura, senha forte offline, gerador aleatorio'
+        }
+      },
+      {
+        path: 'privacidade/remover-exif',
+        title: 'Remover Metadados EXIF & GPS — Nada Sai',
+        loadComponent: () => import('./features/privacy/remove-exif/remove-exif.component').then((m) => m.RemoveExifComponent),
+        data: {
+          metaDescription: 'Remova localização GPS privada, modelo de câmera e metadados de fotos antes de compartilhar.',
+          metaKeywords: 'remover exif, limpar gps de foto, apagar metadados, privacidade de imagem'
+        }
+      },
+      {
+        path: 'privacidade/censurar-imagem',
+        title: 'Censurar Imagem (Tarja Preta / Blur) — Nada Sai',
+        loadComponent: () => import('./features/privacy/redact-image/redact-image.component').then((m) => m.RedactImageComponent),
+        data: {
+          metaDescription: 'Desenhe tarjas pretas de censura ou aplique desfoque em dados sensíveis como CPFs, cartões e rostos em fotos.',
+          metaKeywords: 'tarja preta foto, censurar imagem, desfocar cpf, esconder dados sensiveis'
+        }
+      },
+      {
+        path: 'privacidade/comparar-texto',
+        title: 'Comparador de Texto (Diff) — Nada Sai',
+        loadComponent: () => import('./features/privacy/diff-checker/diff-checker.component').then((m) => m.DiffCheckerComponent),
+        data: {
+          metaDescription: 'Compare dois textos ou arquivos lado a lado e veja alterações, adições e remoções 100% offline.',
+          metaKeywords: 'comparar texto, diff checker, comparar arquivos, diferenca entre textos'
+        }
+      },
+      {
         path: 'sobre',
         title: 'Sobre — Nada Sai',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
@@ -484,6 +538,60 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Add custom text watermarks to PDF files 100% offline in your browser.',
           metaKeywords: 'watermark pdf, text watermark, pdf stamp, confidential pdf'
+        }
+      },
+      {
+        path: 'privacy/encrypt-file',
+        title: 'Encrypt File — Nada Sai',
+        loadComponent: () => import('./features/privacy/encrypt-file/encrypt-file.component').then((m) => m.EncryptFileComponent),
+        data: {
+          metaDescription: 'Encrypt and password protect any local file with AES-256 bits 100% offline.',
+          metaKeywords: 'encrypt file, password protect file, aes 256, local file security'
+        }
+      },
+      {
+        path: 'privacy/file-hash',
+        title: 'File Hash & Checksum — Nada Sai',
+        loadComponent: () => import('./features/privacy/file-hash/file-hash.component').then((m) => m.FileHashComponent),
+        data: {
+          metaDescription: 'Calculate SHA-256, SHA-512, and MD5 hashes to verify file integrity locally.',
+          metaKeywords: 'file hash, sha256, md5, checksum, file integrity'
+        }
+      },
+      {
+        path: 'privacy/password-generator',
+        title: 'Secure Password Generator — Nada Sai',
+        loadComponent: () => import('./features/privacy/password-generator/password-generator.component').then((m) => m.PasswordGeneratorComponent),
+        data: {
+          metaDescription: 'Generate strong, unguessable, random passwords 100% offline with entropy calculator.',
+          metaKeywords: 'password generator, secure password, strong password, random password'
+        }
+      },
+      {
+        path: 'privacy/remove-exif',
+        title: 'Remove EXIF Metadata & GPS — Nada Sai',
+        loadComponent: () => import('./features/privacy/remove-exif/remove-exif.component').then((m) => m.RemoveExifComponent),
+        data: {
+          metaDescription: 'Strip private GPS location, camera info, and metadata from photos before sharing.',
+          metaKeywords: 'remove exif, strip photo gps, clean metadata, photo privacy'
+        }
+      },
+      {
+        path: 'privacy/redact-image',
+        title: 'Redact Image (Black Bar / Blur) — Nada Sai',
+        loadComponent: () => import('./features/privacy/redact-image/redact-image.component').then((m) => m.RedactImageComponent),
+        data: {
+          metaDescription: 'Draw black censorship boxes or blur sensitive information like CPFs, cards, and faces on photos.',
+          metaKeywords: 'redact image, black bar photo, blur image, hide sensitive info'
+        }
+      },
+      {
+        path: 'privacy/diff-checker',
+        title: 'Text Diff Checker — Nada Sai',
+        loadComponent: () => import('./features/privacy/diff-checker/diff-checker.component').then((m) => m.DiffCheckerComponent),
+        data: {
+          metaDescription: 'Compare two texts or files side by side and highlight additions, deletions, and changes 100% offline.',
+          metaKeywords: 'diff checker, compare text, file diff, text difference'
         }
       },
       {
