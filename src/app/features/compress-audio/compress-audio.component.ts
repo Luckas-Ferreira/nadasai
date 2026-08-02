@@ -21,6 +21,7 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { AudioStateService } from '../../core/services/audio-state.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -70,6 +71,7 @@ export class CompressAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('compress-audio');
   private readonly compressor = inject(AudioCompressorService);
+  private readonly audioState = inject(AudioStateService);
   private readonly engine = new AudioEngine();
 
   protected readonly acceptAttr = ACCEPT_AUDIO_ATTR;
@@ -175,6 +177,10 @@ export class CompressAudioComponent implements OnDestroy {
       this.zoomLevel(); this.playhead();
       this.draw();
     });
+
+    // Auto-load the persisted audio file when the user navigates to this tool.
+    const savedFile = this.audioState.currentFile();
+    if (savedFile) void this.onFile(savedFile);
   }
 
   ngOnDestroy(): void {
@@ -204,6 +210,7 @@ export class CompressAudioComponent implements OnDestroy {
       const fmt = file.name.split('.').pop()?.toLowerCase() ?? 'mp3';
       this.sourceFormat.set(fmt);
       this.currentFile.set(file);
+      this.audioState.load(file);   // persist across tool navigation
       this.audioBuffer.set(buffer);
       this.zoomLevel.set(1);
       this.viewStart.set(0);
@@ -225,6 +232,7 @@ export class CompressAudioComponent implements OnDestroy {
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
+    this.audioState.clear();   // clear the global bar too
   }
 
   // ---------------------------------------------------------------- zoom

@@ -24,22 +24,6 @@
       }
     } @else {
       <div class="flex flex-col gap-3">
-        <!-- Source bar — same as cut-audio -->
-        <div class="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs">
-          <div class="flex min-w-0 items-center gap-2">
-            <app-icon name="audio" [size]="14" class="shrink-0 text-faint" />
-            <span class="truncate font-medium text-text">{{ currentFile()?.name }}</span>
-            <span class="shrink-0 font-mono tabular text-faint">
-              {{ clock(duration()) }} · {{ sourceSize() }}
-            </span>
-          </div>
-
-          <button appButton variant="ghost" size="sm" class="shrink-0" (click)="reset()">
-            <app-icon name="close" [size]="14" />
-            {{ i18n.t()['common.clear'] }}
-          </button>
-        </div>
-
         <!--
           Waveform stage — identical recipe to cut-audio: doc-stage surround,
           horizontally-scrollable spacer, sticky canvas sheet, no zoom controls

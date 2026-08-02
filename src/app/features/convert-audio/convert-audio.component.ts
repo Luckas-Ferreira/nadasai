@@ -22,6 +22,7 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { AudioStateService } from '../../core/services/audio-state.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -79,6 +80,7 @@ interface WaveColors {
 export class ConvertAudioComponent implements OnDestroy {
   protected readonly tool = toolById('convert-audio');
   private readonly converter = inject(AudioConverterService);
+  private readonly audioState = inject(AudioStateService);
   protected readonly i18n = inject(TranslationService);
 
   /**
@@ -188,6 +190,10 @@ export class ConvertAudioComponent implements OnDestroy {
       this.playhead();
       this.draw();
     });
+
+    // Auto-load the persisted audio file when the user navigates to this tool.
+    const savedFile = this.audioState.currentFile();
+    if (savedFile) void this.onFile(savedFile);
   }
 
   ngOnDestroy(): void {
@@ -219,6 +225,7 @@ export class ConvertAudioComponent implements OnDestroy {
 
       this.currentFile.set(file);
       this.audioBuffer.set(buffer);
+      this.audioState.load(file);   // persist across tool navigation
       this.zoomLevel.set(1);
       this.viewStart.set(0);
 
@@ -241,6 +248,7 @@ export class ConvertAudioComponent implements OnDestroy {
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
+    this.audioState.clear();   // clear the global bar too
   }
 
   // ---------------------------------------------------------------- zoom
