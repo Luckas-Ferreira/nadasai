@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { formatBytes } from '../../core/image/image-file.util';
 import { AudioStateService } from '../../core/services/audio-state.service';
 import { TranslationService } from '../../core/services/translation.service';
+import { toolById } from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
 import { IconComponent } from './icon/icon.component';
 
@@ -29,14 +30,8 @@ function toneForExt(ext: string): string {
 
 /**
  * The persistent audio file band shown below the top bar for the whole
- * audio module.  It replaces the per-tool "source bar" that was embedded
- * inside each component's stage area — that one was nearly invisible and
- * offered no continuity across tool switches.
- *
- * Clearing navigates to '/' to force the active audio component to
- * re-initialise against the now-empty state — the same approach the image
- * bar's undo uses, for the same reason (tool components read the file once,
- * at construction, and do not react to late state changes).
+ * audio module. It displays current file metadata, applied tool history
+ * breadcrumbs (e.g. Cortar Áudio → Comprimir Áudio), and step-by-step Undo.
  */
 @Component({
   selector: 'app-current-audio-file-bar',
@@ -106,31 +101,49 @@ function toneForExt(ext: string): string {
           <span class="eq-bar" [style.background-color]="accentColor()"></span>
         </div>
 
-        <!-- File info -->
-        <div class="flex min-w-0 flex-1 items-center gap-2">
-          <!-- Name -->
-          <span class="truncate text-sm font-semibold text-text">
-            {{ session.file.name }}
-          </span>
+        <!-- File info + history steps -->
+        <div class="flex min-w-0 flex-1 flex-col justify-center">
+          <div class="flex min-w-0 items-center gap-2">
+            <!-- Name -->
+            <span class="truncate text-sm font-semibold text-text">
+              {{ session.file.name }}
+            </span>
 
-          <!-- Format badge -->
-          <span
-            class="shrink-0 rounded-sm px-1.5 py-px font-mono text-2xs font-semibold uppercase tracking-wider"
-            [style.background-color]="badgeBg()"
-            [style.color]="accentColor()"
-          >{{ ext() }}</span>
+            <!-- Format badge -->
+            <span
+              class="shrink-0 rounded-sm px-1.5 py-px font-mono text-2xs font-semibold uppercase tracking-wider"
+              [style.background-color]="badgeBg()"
+              [style.color]="accentColor()"
+            >{{ ext() }}</span>
 
-          <!-- File size -->
-          <span class="hidden shrink-0 font-mono text-xs text-faint tabular sm:inline">
-            {{ size() }}
-          </span>
+            <!-- File size -->
+            <span class="hidden shrink-0 font-mono text-xs text-faint tabular sm:inline">
+              {{ size() }}
+            </span>
+          </div>
+
+          <!-- Tool chain steps -->
+          @if (steps().length) {
+            <span class="truncate text-xs text-faint">
+              {{ steps().join('  →  ') }}
+            </span>
+          }
         </div>
 
-        <!-- Clear -->
-        <button appButton variant="ghost" size="sm" (click)="clear()">
-          <app-icon name="close" [size]="14" />
-          {{ i18n.t()['common.clear'] }}
-        </button>
+        <!-- Action buttons (Undo + Clear) -->
+        <div class="flex shrink-0 items-center gap-1.5 md:gap-2">
+          @if (undoLabel(); as label) {
+            <button appButton variant="ghost" size="sm" (click)="undo()">
+              <app-icon name="undo" [size]="14" />
+              {{ label }}
+            </button>
+          }
+
+          <button appButton variant="ghost" size="sm" (click)="clear()">
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        </div>
       </div>
     }
   `,
@@ -149,6 +162,15 @@ export class CurrentAudioFileBarComponent {
   protected readonly size = computed(() => {
     const file = this.audioState.currentFile();
     return file ? formatBytes(file.size) : '';
+  });
+
+  protected readonly steps = computed(() =>
+    this.audioState.history().map((id) => this.i18n.t()[toolById(id).navKey]),
+  );
+
+  protected readonly undoLabel = computed(() => {
+    const tool = this.audioState.undoableTool();
+    return tool ? `${this.i18n.t()['common.undo_tool']} ${this.i18n.t()[toolById(tool).navKey]}` : null;
   });
 
   private readonly tone = computed(() =>
@@ -170,10 +192,13 @@ export class CurrentAudioFileBarComponent {
       `linear-gradient(to right, var(--tone-${this.tone()}-bg) 0%, transparent 35%)`,
   );
 
-  /**
-   * Clears the audio state and returns home so the active audio component
-   * re-initialises against the empty state and shows its dropzone again.
-   */
+  /** Reverts the last tool step and returns home so the view hydrates the previous state. */
+  protected undo(): void {
+    this.audioState.undo();
+    void this.router.navigate(['/']);
+  }
+
+  /** Clears the audio state and returns home. */
   protected clear(): void {
     this.audioState.clear();
     void this.router.navigate(['/']);

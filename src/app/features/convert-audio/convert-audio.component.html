@@ -1,7 +1,7 @@
 <app-tool-page [toolId]="'convert-audio'" [forceLoaded]="!!audioBuffer()">
   <div banner [class.mb-5]="!!errorKey()">
     @if (errorKey(); as key) {
-      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="downloadConvertedAudio()" />
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="convert()" />
     }
   </div>
 
@@ -275,11 +275,20 @@
         </div>
       </app-panel>
 
+        @if (result(); as res) {
+          <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
+            <span class="text-sm font-medium text-success">{{ i18n.t()['cut_audio.ready'] }}</span>
+          </div>
+        }
+
       <app-action-bar
         [primaryLabel]="i18n.t()['convert_audio.btn']"
         [busy]="busy()"
-        [canDownload]="false"
-        (primary)="downloadConvertedAudio()"
+        [canDownload]="!!result()"
+        [canContinue]="!!result()"
+        (primary)="convert()"
+        (download)="download()"
+        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

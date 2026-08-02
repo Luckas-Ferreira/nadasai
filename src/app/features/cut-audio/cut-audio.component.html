@@ -136,10 +136,15 @@
                 <p class="text-xs text-muted">{{ res.filename }} · {{ timecode(res.duration) }}</p>
               </div>
             </div>
-            <button appButton variant="secondary" size="sm" (click)="download()">
-              <app-icon name="download" [size]="14" />
-              {{ i18n.t()['common.download'] }}
-            </button>
+            <div class="flex shrink-0 items-center gap-2">
+              <button appButton variant="secondary" size="sm" (click)="download()">
+                <app-icon name="download" [size]="14" />
+                {{ i18n.t()['common.download'] }}
+              </button>
+              <button appButton variant="secondary" size="sm" (click)="continueEdit()">
+                {{ i18n.t()['common.continue'] }}
+              </button>
+            </div>
           </div>
         }
 
@@ -327,8 +332,10 @@
         [primaryDisabled]="!canRun()"
         [busy]="busy()"
         [canDownload]="!!result()"
+        [canContinue]="!!result()"
         (primary)="run()"
         (download)="download()"
+        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }
