@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { AudioEngine, type Segment } from '../../core/audio/audio-engine';
 import {
   MAX_AUDIO_SECONDS,
@@ -99,6 +100,7 @@ export class CutAudioComponent implements OnDestroy {
   protected readonly tool = toolById('cut-audio');
   private readonly cutter = inject(AudioCutterService);
   private readonly audioState = inject(AudioStateService);
+  private readonly router = inject(Router);
 
   /**
    * Owned by the component, not injected. It holds a live AudioContext and
@@ -750,26 +752,24 @@ export class CutAudioComponent implements OnDestroy {
       this.result.set(res);
       this.ranSignature.set(this.signature());
 
-      // Persist the cut result so compress/convert tools pick it up — not the
-      // original. This is what makes "navigate away → come back" feel like a
-      // continuous workflow instead of a reset.
-      const resultFile = new File([res.blob], res.filename, { type: 'audio/wav' });
-      this.audioState.load(resultFile);
+      // Save output in session history (past[] and history[]) so undo and tool chaining work seamlessly.
+      this.audioState.apply('cut-audio', res.blob, this.tool.suffix, 'wav');
 
-      // Also update the local buffer + file to the cut version so the waveform
-      // immediately reflects what the user would actually work on next.
-      try {
-        const cutCtx = new AudioContext();
-        const cutBuffer = await cutCtx.decodeAudioData(await res.blob.arrayBuffer());
-        void cutCtx.close();
-        this.file.set(resultFile);
-        this.buffer.set(cutBuffer);
-        this.selStart.set(0);
-        this.selEnd.set(cutBuffer.duration);
-        this.zoomLevel.set(1);
-        this.viewStart.set(0);
-      } catch {
-        // Non-fatal: the result is still downloadable; we just keep the old waveform.
+      const resultFile = this.audioState.currentFile();
+      if (resultFile) {
+        try {
+          const cutCtx = new AudioContext();
+          const cutBuffer = await cutCtx.decodeAudioData(await res.blob.arrayBuffer());
+          void cutCtx.close();
+          this.file.set(resultFile);
+          this.buffer.set(cutBuffer);
+          this.selStart.set(0);
+          this.selEnd.set(cutBuffer.duration);
+          this.zoomLevel.set(1);
+          this.viewStart.set(0);
+        } catch {
+          // Non-fatal fallback
+        }
       }
     } catch (err) {
       console.error('[CutAudio] cut failed:', err);
@@ -783,6 +783,18 @@ export class CutAudioComponent implements OnDestroy {
   protected download(): void {
     const res = this.result();
     if (res) saveBlob(res.blob, res.filename);
+  }
+
+  protected continueEdit(): void {
+    const res = this.result();
+    if (!res) return;
+
+    try {
+      this.audioState.apply('cut-audio', res.blob, this.tool.suffix, 'wav');
+      void this.router.navigate(['/']);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
   }
 
   // ------------------------------------------------------------ formatting

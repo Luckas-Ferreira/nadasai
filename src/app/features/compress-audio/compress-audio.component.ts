@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import {
   ACCEPT_AUDIO_ATTR,
@@ -72,6 +73,7 @@ export class CompressAudioComponent implements OnDestroy {
   protected readonly tool = toolById('compress-audio');
   private readonly compressor = inject(AudioCompressorService);
   private readonly audioState = inject(AudioStateService);
+  private readonly router = inject(Router);
   private readonly engine = new AudioEngine();
 
   protected readonly acceptAttr = ACCEPT_AUDIO_ATTR;
@@ -366,6 +368,9 @@ export class CompressAudioComponent implements OnDestroy {
       this.outputExt.set(ext);
       const filename = suffixedName(file.name, this.tool.suffix, ext);
       this.result.set({ blob, filename });
+
+      // Save output in session history so undo and tool chaining work seamlessly.
+      this.audioState.apply('compress-audio', blob, this.tool.suffix, ext);
     } catch (err) {
       console.error('[CompressAudio] run error:', err);
       this.errorKey.set(toMessageKey(err));
@@ -378,6 +383,18 @@ export class CompressAudioComponent implements OnDestroy {
   protected download(): void {
     const r = this.result();
     if (r) saveBlob(r.blob, r.filename);
+  }
+
+  protected continueEdit(): void {
+    const r = this.result();
+    if (!r) return;
+
+    try {
+      this.audioState.apply('compress-audio', r.blob, this.tool.suffix, this.outputExt() || 'mp3');
+      void this.router.navigate(['/']);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
   }
 
   // ---------------------------------------------------------------- formatting

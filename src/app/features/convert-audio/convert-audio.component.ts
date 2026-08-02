@@ -9,6 +9,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import {
@@ -81,6 +82,7 @@ export class ConvertAudioComponent implements OnDestroy {
   protected readonly tool = toolById('convert-audio');
   private readonly converter = inject(AudioConverterService);
   private readonly audioState = inject(AudioStateService);
+  private readonly router = inject(Router);
   protected readonly i18n = inject(TranslationService);
 
   /**
@@ -110,6 +112,7 @@ export class ConvertAudioComponent implements OnDestroy {
   // Run / convert
   protected readonly busy = signal(false);
   protected readonly progress = signal<number | null>(null);
+  protected readonly result = signal<{ blob: Blob; filename: string } | null>(null);
   protected readonly errorKey = signal<TranslationKey | null>(null);
   /** Actual output extension after conversion — may differ from targetFormat on fallback */
   protected readonly outputExt = signal<string>('');
@@ -245,6 +248,7 @@ export class ConvertAudioComponent implements OnDestroy {
     this.stopPlayback();
     this.currentFile.set(null);
     this.audioBuffer.set(null);
+    this.result.set(null);
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
@@ -384,7 +388,7 @@ export class ConvertAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- run / convert
 
-  protected async downloadConvertedAudio(): Promise<void> {
+  protected async convert(): Promise<void> {
     const buffer = this.audioBuffer();
     const file = this.currentFile();
     if (!buffer || !file || this.busy()) return;
@@ -407,13 +411,34 @@ export class ConvertAudioComponent implements OnDestroy {
       );
 
       this.outputExt.set(ext);
-      saveBlob(blob, suffixedName(file.name, this.tool.suffix, ext));
+      const filename = suffixedName(file.name, this.tool.suffix, ext);
+      this.result.set({ blob, filename });
+
+      // Save output in session history so undo and tool chaining work seamlessly.
+      this.audioState.apply('convert-audio', blob, this.tool.suffix, ext);
     } catch (err) {
       console.error('[ConvertAudio] export error:', err);
       this.errorKey.set(toMessageKey(err));
     } finally {
       this.busy.set(false);
       this.progress.set(null);
+    }
+  }
+
+  protected download(): void {
+    const r = this.result();
+    if (r) saveBlob(r.blob, r.filename);
+  }
+
+  protected continueEdit(): void {
+    const r = this.result();
+    if (!r) return;
+
+    try {
+      this.audioState.apply('convert-audio', r.blob, this.tool.suffix, this.outputExt() || 'mp3');
+      void this.router.navigate(['/']);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
     }
   }
 

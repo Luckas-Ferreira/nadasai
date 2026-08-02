@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { ActiveToolService } from './core/services/active-tool.service';
-import { TranslationService } from './core/services/translation.service';
+import { AudioStateService } from './core/services/audio-state.service';
+import { ImageStateService } from './core/services/image-state.service';
 import { SeoService } from './core/services/seo.service';
+import { TranslationService } from './core/services/translation.service';
 import { CommandPaletteComponent } from './shared/ui/command-palette.component';
 import { CurrentAudioFileBarComponent } from './shared/ui/current-audio-file-bar.component';
 import { CurrentFileBarComponent } from './shared/ui/current-file-bar.component';
@@ -41,7 +43,37 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
   templateUrl: './app.component.html',
 })
 export class AppComponent {
+  private readonly router = inject(Router);
   protected readonly seo = inject(SeoService);
   protected readonly i18n = inject(TranslationService);
   protected readonly activeTool = inject(ActiveToolService);
+  protected readonly imageState = inject(ImageStateService);
+  protected readonly audioState = inject(AudioStateService);
+
+  /** Global Ctrl+Z / Cmd+Z shortcut to trigger undo on the active state session. */
+  @HostListener('window:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
+
+    // Do not trigger undo when typing in input fields or textareas
+    const target = event.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
+      return;
+    }
+
+    if (this.audioState.undoableTool()) {
+      event.preventDefault();
+      this.audioState.undo();
+      void this.router.navigate(['/']);
+    } else if (this.imageState.undoableTool()) {
+      event.preventDefault();
+      this.imageState.undo();
+      void this.router.navigate(['/']);
+    }
+  }
 }
