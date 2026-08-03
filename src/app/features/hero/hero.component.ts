@@ -5,7 +5,7 @@ import { TranslationService, type TranslationKey } from '../../core/services/tra
 import { MODULES, type ModuleId, type ToolDef, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import type { IconName } from '../../shared/ui/icon/icons';
-import { NetworkProofComponent } from '../../shared/ui/network-proof.component';
+import { NetworkBadgeComponent } from '../../shared/ui/network-badge.component';
 import { FaqComponent } from '../../shared/ui/faq.component';
 
 /**
@@ -34,7 +34,7 @@ const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: Tr
   selector: 'app-hero',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent, NetworkProofComponent, FaqComponent],
+  imports: [RouterLink, IconComponent, NetworkBadgeComponent, FaqComponent],
   templateUrl: './hero.component.html',
 })
 export class HeroComponent {

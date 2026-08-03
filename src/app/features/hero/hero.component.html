@@ -1,13 +1,21 @@
 <section class="mx-auto w-full max-w-[1240px]">
-  <!-- The claim, and the instrument that backs it, side by side.
+  <!-- A afirmação no centro, e logo abaixo o instrumento que a verifica.
 
-       Only the left column swaps mid-chain: `continueEdit()` routes here, so this
-       page has to answer "what next?" rather than pitch to someone who has already
-       read the pitch — and it puts the tool grid at the top of the fold, which is
-       what the rail used to do before it became module-scoped. The proof widget
-       stays in BOTH states on purpose: right after processing a file is exactly
-       when "did anything leave?" is worth answering. -->
-  <div class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
+       Era um grid de duas colunas com um cartão de 380px à direita: ele deixava
+       um vazio alto à esquerda, dominava a dobra inteira e — pior — punha o
+       medidor SÓ aqui, isto é, na única tela em que não há arquivo nenhum em
+       jogo. O medidor virou a pílula do app-network-badge e agora acompanha
+       toda rota pela barra do topo; aqui ele fica no tamanho grande, porque
+       nesta página ele não é chrome, é a frase que dá nome ao produto sendo
+       conferida ao vivo. Uma coluna centrada, então, e o grid de ferramentas
+       sobe para perto da dobra.
+
+       Só o cabeçalho troca no meio da cadeia: `continueEdit()` volta para cá, e
+       então a página precisa responder "e agora?" em vez de repetir o discurso
+       para quem já o leu. O medidor fica nos DOIS estados de propósito: logo
+       depois de processar um arquivo é exatamente quando "saiu alguma coisa?"
+       vale ser respondido. -->
+  <div class="mb-10 flex flex-col items-center text-center">
     @if (state.session()) {
       <header class="max-w-2xl">
         <h1 class="text-2xl">{{ i18n.t()['hero.loaded'] }}</h1>
@@ -30,9 +38,7 @@
       </header>
     }
 
-    <aside class="min-w-0">
-      <app-network-proof />
-    </aside>
+    <app-network-badge size="md" class="mt-6" />
   </div>
 
   <!-- One block per module, driven by MODULES: the tenth module needs no markup. -->
