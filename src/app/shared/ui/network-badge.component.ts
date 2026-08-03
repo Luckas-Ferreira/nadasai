@@ -94,11 +94,15 @@ import { NetworkProofComponent } from './network-proof.component';
            largura do botão, então um backdrop preso a ele não cobriria nada. -->
       <div class="fixed inset-0 z-40" (click)="open.set(false)"></div>
 
-      <!-- `text-left` explícito: na home o medidor fica dentro do herói, que é
-           `text-center`, e o alinhamento descia por herança para dentro do
-           painel — a mesma leitura saía centrada ali e alinhada à esquerda na
+      <!-- Alinhamento explícito à esquerda: na home o medidor fica dentro do
+           herói, que é centralizado, e o alinhamento descia por herança para
+           dentro do painel — a mesma leitura saía centrada ali e à esquerda na
            barra do topo, e o parágrafo de divulgação centrado fica pior de ler.
-           O painel não deve depender de onde foi pendurado. -->
+           O painel não deve depender de onde foi pendurado.
+
+           (Sem crases neste comentário: ele vive DENTRO da template string do
+           componente, e uma crase aqui encerra a string. Foi o que quebrou o
+           build duas vezes nesta mesma tela.) -->
       <div
         class="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(22rem,calc(100vw-2rem))]
                rounded-lg border border-line bg-surface p-4 text-left shadow-pop"
