@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  PLATFORM_ID,
   computed,
   inject,
   signal,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActiveToolService } from '../../core/services/active-tool.service';
 import {
@@ -199,8 +201,13 @@ export class TopBarComponent {
     const onKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && this.menuOpen()) this.menuOpen.set(false);
     };
-    window.addEventListener('keydown', onKeydown);
-    destroy.onDestroy(() => window.removeEventListener('keydown', onKeydown));
+    // Mesma razão da paleta: esta barra está em todas as rotas e `window` não
+    // existe no Node da geração estática. Um Escape também não fecha menu
+    // nenhum em tempo de build.
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      window.addEventListener('keydown', onKeydown);
+      destroy.onDestroy(() => window.removeEventListener('keydown', onKeydown));
+    }
   }
 
   protected count(id: ModuleId): number {

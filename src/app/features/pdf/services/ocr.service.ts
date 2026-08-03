@@ -45,12 +45,23 @@ export interface OcrResult {
  * base64, então não há fetch extra de .wasm. São variantes -lstm porque o
  * worker é criado com OEM 1 (LSTM_ONLY) abaixo — trocar o OEM exige copiar
  * também as variantes Legacy, ou o core dá 404.
+ *
+ * É uma FUNÇÃO, e não uma constante de módulo, porque `document.baseURI` só
+ * existe no navegador. Como constante, isto era avaliado no instante em que o
+ * módulo é importado — e na geração estática o Node importa este arquivo junto
+ * com o chunk do editor de PDF. O build morria com `ReferenceError: document is
+ * not defined` vindo de `ModuleJob.run`: antes de qualquer componente existir, e
+ * sem citar rota nenhuma. Adiar para a primeira chamada não muda nada em
+ * runtime, porque quem chama isto é sempre um worker de OCR, sempre no browser.
+ * Mesma forma de `pdfAssetUrls()` em core/pdf/pdfjs.ts, e pela mesma razão.
  */
-const TESSERACT_PATHS = {
-  workerPath: new URL('tesseract/worker.min.js', document.baseURI).toString(),
-  corePath: new URL('tesseract/', document.baseURI).toString(),
-  langPath: new URL('tessdata/', document.baseURI).toString(),
-};
+function tesseractPaths(): { workerPath: string; corePath: string; langPath: string } {
+  return {
+    workerPath: new URL('tesseract/worker.min.js', document.baseURI).toString(),
+    corePath: new URL('tesseract/', document.baseURI).toString(),
+    langPath: new URL('tessdata/', document.baseURI).toString(),
+  };
+}
 
 /**
  * O tesseract.js é CommonJS (`"type": "commonjs"`, sem campo `module`), e isso
@@ -429,7 +440,7 @@ export class OcrService {
     // OEM 1 = LSTM_ONLY. Pareado com as variantes -lstm do core e com o
     // tessdata `4.0.0_best_int` que o fetch-tessdata.mjs baixa.
     const worker = await createWorker(lang, 1, {
-      ...TESSERACT_PATHS,
+      ...tesseractPaths(),
       logger: (m: { status: string; progress: number }) => {
         console.log('[OCR Logger]', m.status, (m.progress * 100).toFixed(0) + '%');
         this.statusText.set(m.status);

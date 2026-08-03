@@ -3,12 +3,14 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  PLATFORM_ID,
   computed,
   effect,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { CommandPaletteService } from '../../core/services/command-palette.service';
 import { TranslationService } from '../../core/services/translation.service';
@@ -274,8 +276,14 @@ export class CommandPaletteComponent {
       }
       if (event.key === 'Escape' && this.palette.open()) this.palette.close();
     };
-    window.addEventListener('keydown', onKeydown);
-    destroy.onDestroy(() => window.removeEventListener('keydown', onKeydown));
+    // A paleta está no shell, ou seja, em TODAS as 72 rotas — e `window` não
+    // existe no Node. Sem esta guarda a geração estática morria em cada uma
+    // delas, e a única mensagem era "erro ao pré-renderizar a rota X".
+    // Um atalho de teclado também não tem o que fazer em tempo de build.
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      window.addEventListener('keydown', onKeydown);
+      destroy.onDestroy(() => window.removeEventListener('keydown', onKeydown));
+    }
 
     effect(() => {
       if (!this.palette.open()) return;
