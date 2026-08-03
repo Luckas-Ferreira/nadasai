@@ -18,8 +18,10 @@ test.describe('Comprimir PDF', () => {
     await primary(page, 'Comprimir PDF').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
 
-    // The badge only renders when the result is genuinely smaller.
-    await expect(page.getByText('Economia')).toBeVisible();
+    // The badge only renders when the result is genuinely smaller. Exact,
+    // because the FAQ below the tool talks about savings too — a substring
+    // match here reads the copy instead of the result.
+    await expect(page.getByText('Economia', { exact: true })).toBeVisible();
 
     await expectDownload(page, /^scan-min\.pdf$/);
   });
@@ -49,8 +51,10 @@ test.describe('Comprimir PDF', () => {
     await primary(page, 'Comprimir PDF').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
 
-    await expect(page.getByText(/já está bem otimizado/)).toBeVisible();
-    await expect(page.getByText('Economia')).toHaveCount(0);
+    // Anchored, for the same reason as the badge above: the FAQ quotes this
+    // notice back, so an unanchored match finds the copy as well as the notice.
+    await expect(page.getByText(/^Este PDF já está bem otimizado/)).toBeVisible();
+    await expect(page.getByText('Economia', { exact: true })).toHaveCount(0);
   });
 
   test('rejects a file that is not a PDF', async ({ page }) => {
