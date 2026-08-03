@@ -1,0 +1,146 @@
+<app-tool-page [toolId]="'diff-checker'" [forceLoaded]="!!(textOriginal() || textModified())">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
+
+  <!-- STAGE: the two inputs, then the diff -->
+  <div stage class="space-y-5">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      @for (side of sides; track side.id) {
+        <div class="flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+          <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
+            <h2 class="text-2xs font-medium uppercase tracking-wide text-faint">
+              {{ i18n.t()[side.labelKey] }}
+            </h2>
+          </div>
+
+          <!-- The dropzone is the loader: it owns the picker, the drag target,
+               the accept list and the size guard. The old markup used a raw
+               <input type="file"> inside a pointer-events-none button, so there
+               was no drag-and-drop and no validation at all — and `diff.drag`
+               and `diff.drag_hint` sat in both dictionaries, unreferenced. -->
+          <div class="border-b border-line p-3">
+            <app-dropzone
+              [compact]="true"
+              [accept]="TEXT_ACCEPT"
+              [titleKey]="'diff.drag'"
+              [hintKey]="'diff.drag_hint'"
+              [buttonKey]="'diff.load_file'"
+              (fileSelected)="loadFile($event, side.id)"
+            />
+          </div>
+
+          <textarea
+            [ngModel]="side.text()"
+            (ngModelChange)="side.set($event)"
+            [placeholder]="i18n.t()['diff.paste_hint']"
+            rows="12"
+            class="w-full flex-1 resize-none border-0 bg-raised p-4 font-mono text-xs text-text outline-none focus:outline-none"
+          ></textarea>
+
+          <div class="flex items-center justify-between border-t border-line px-4 py-1.5 font-mono text-2xs tabular text-faint">
+            <span>{{ side.lines() }} {{ i18n.t()['diff.lines'] }}</span>
+            <span>{{ side.chars() }} {{ i18n.t()['diff.chars'] }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (diff(); as result) {
+      @if (result.lines.length > 0) {
+        <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+          <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
+            <h2 class="text-2xs font-medium uppercase tracking-wide text-faint">
+              {{ i18n.t()['diff.result_title'] }}
+            </h2>
+            @if (hasDifferences()) {
+              <div class="flex items-center gap-3 font-mono text-xs tabular">
+                <span class="font-semibold text-success">+{{ result.stats.added }}</span>
+                <span class="font-semibold text-danger">−{{ result.stats.removed }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="max-h-[420px] overflow-auto">
+            @for (line of result.lines; track $index) {
+              <div
+                class="flex min-h-[22px] items-stretch font-mono text-xs leading-relaxed"
+                [class.bg-success-soft]="line.type === 'added'"
+                [class.bg-danger-soft]="line.type === 'removed'"
+              >
+                <!-- Real line numbers on both sides. A bare +/- gutter left you
+                     counting rows to find the line in your editor. -->
+                <div class="flex w-20 shrink-0 select-none items-center gap-1 border-r border-line px-2 text-2xs tabular text-faint">
+                  <span class="w-7 text-right">{{ line.leftNo ?? '' }}</span>
+                  <span class="w-7 text-right">{{ line.rightNo ?? '' }}</span>
+                  <span
+                    class="w-2 text-center font-semibold"
+                    [class.text-success]="line.type === 'added'"
+                    [class.text-danger]="line.type === 'removed'"
+                  >{{ line.type === 'added' ? '+' : line.type === 'removed' ? '−' : '' }}</span>
+                </div>
+
+                <!-- A blank line keeps its height from min-h on the row. The old
+                     template interpolated the STRING '&nbsp;' here, and
+                     interpolation escapes, so every empty line literally read
+                     "&nbsp;". -->
+                <span
+                  class="min-w-0 flex-1 whitespace-pre-wrap break-all px-4 py-0.5"
+                  [class.text-success]="line.type === 'added'"
+                  [class.text-danger]="line.type === 'removed'"
+                  [class.text-muted]="line.type === 'unchanged'"
+                >{{ line.text }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    @if (textOriginal() || textModified()) {
+      <app-panel [heading]="i18n.t()['diff.result_title']">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-muted">{{ i18n.t()['diff.original'] }}</span>
+            <span class="font-mono tabular text-text">{{ originalLines() }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-muted">{{ i18n.t()['diff.modified'] }}</span>
+            <span class="font-mono tabular text-text">{{ modifiedLines() }}</span>
+          </div>
+
+          @if (diff(); as result) {
+            @if (hasDifferences()) {
+              <div class="space-y-2 rounded-md border border-line bg-raised p-3 font-mono text-xs tabular">
+                <div class="flex justify-between text-success">
+                  <span>{{ i18n.t()['diff.added'] }}</span>
+                  <span class="font-semibold">+{{ result.stats.added }}</span>
+                </div>
+                <div class="flex justify-between text-danger">
+                  <span>{{ i18n.t()['diff.removed'] }}</span>
+                  <span class="font-semibold">−{{ result.stats.removed }}</span>
+                </div>
+              </div>
+            } @else if (result.lines.length > 0) {
+              <p class="text-xs font-medium text-success">{{ i18n.t()['diff.no_changes'] }}</p>
+            }
+          }
+        </div>
+      </app-panel>
+
+      <app-action-bar
+        [primaryLabel]="null"
+        [canDownload]="hasDifferences()"
+        (download)="downloadPatch()"
+        (reset)="clear()"
+      />
+    }
+  </div>
+
+</app-tool-page>

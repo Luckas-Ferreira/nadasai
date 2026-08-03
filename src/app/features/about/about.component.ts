@@ -61,7 +61,12 @@ import { TranslationService } from '../../core/services/translation.service';
             </li>
             <li class="flex items-start gap-2">
               <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
-              <span><strong class="text-text">Converter</strong> — transforme entre JPEG, PNG, WebP e AVIF.</span>
+              <!-- NÃO citar AVIF como saída: canvas.toBlob('image/avif') não é
+                   suportado e, pela especificação, cai silenciosamente para PNG
+                   em vez de falhar — o app já entregou bytes PNG dentro de um
+                   arquivo .avif por causa disso. AVIF continua aceito na
+                   ENTRADA. -->
+              <span><strong class="text-text">Converter</strong> — transforme entre JPEG, PNG e WebP (AVIF entra, mas não sai).</span>
             </li>
             <li class="flex items-start gap-2">
               <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
@@ -116,7 +121,7 @@ import { TranslationService } from '../../core/services/translation.service';
             </li>
             <li class="flex items-start gap-2">
               <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>
-              <span><strong class="text-text">Convert</strong> — Transform between JPEG, PNG, WebP, and AVIF.</span>
+              <span><strong class="text-text">Convert</strong> — Transform between JPEG, PNG and WebP (AVIF goes in, but not out).</span>
             </li>
             <li class="flex items-start gap-2">
               <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent"></span>

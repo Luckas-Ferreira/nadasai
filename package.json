@@ -11,7 +11,8 @@
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report",
     "postinstall": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs",
-    "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs"
+    "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs && node scripts/generate-sitemap.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs"
   },
   "private": true,
   "dependencies": {
@@ -29,6 +30,7 @@
     "cropperjs": "^1.6.1",
     "docx": "^9.7.1",
     "file-saver": "^2.0.5",
+    "fflate": "^0.8.3",
     "jspdf": "^4.2.1",
     "lamejs": "^1.2.1",
     "onnxruntime-web": "^1.27.0",
