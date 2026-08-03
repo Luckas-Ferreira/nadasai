@@ -43,9 +43,11 @@ export function dearmor(text: string): Uint8Array {
   const end = body.indexOf(ARMOR_END);
   if (end !== -1) body = body.slice(0, end);
 
-  // Whatever is left, keep only Base64 characters. This is what absorbs the
-  // rewrapping, the CRLFs and any prose that came along when the markers were
-  // missing.
+  // Whatever is left, keep only Base64 characters: that absorbs the rewrapping
+  // and the CRLFs. Surrounding prose is discarded by the marker slice above —
+  // once the markers are gone, "hello" is indistinguishable from payload and
+  // gets concatenated into it, which fails the atob below. Recovering from that
+  // would mean guessing where the block starts; failing is the honest outcome.
   const b64 = body.replace(/[^A-Za-z0-9+/=]/g, '');
   if (!b64) throw new AppError('crypto_bad_envelope');
 
