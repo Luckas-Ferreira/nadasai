@@ -30,7 +30,12 @@
              `mx-auto w-fit` num bloco, e não flex + justify-center: com flex, um
              conteúdo mais largo que o container tem o INÍCIO cortado e a rolagem
              não alcança ele. O p-1 é para o shadow-page não ser aparado. -->
-        <div class="max-h-[64vh] overflow-auto">
+        <div class="max-h-[64vh] overflow-auto"
+          (wheel)="onWheel($event)"
+          (touchstart)="onTouchStart($event)"
+          (touchmove)="onTouchMove($event)"
+          (touchend)="onTouchEnd()"
+          (touchcancel)="onTouchEnd()">
           <div class="mx-auto w-fit p-1">
             <div class="relative inline-block rounded-md bg-white shadow-page">
               @if (pageUrl(); as url) {
@@ -78,23 +83,30 @@
             </div>
           }
 
+          <!-- Os mesmos controles do editor de PDF: ±, e um campo em que se
+               digita a porcentagem — é ele que devolve a 100% sem precisar de
+               um quarto botão. O ctrl+roda e a pinça estão no palco acima. -->
           <div class="flex items-center gap-2">
             <button type="button" appButton variant="secondary" size="sm"
               [attr.aria-label]="i18n.t()['common.zoom_out']"
-              [disabled]="!canZoomOut()" (click)="zoomBy(-1)">
+              [disabled]="!canZoomOut()" (click)="zoomBy(-0.1)">
               <app-icon name="minus" [size]="14" />
             </button>
-            <!-- O número é o botão de voltar ao ajuste — o idioma de qualquer
-                 visualizador, e evita um quarto controle na linha. -->
-            <button type="button" appButton variant="ghost" size="sm"
-              class="min-w-[4.5rem] font-mono text-xs tabular"
-              [attr.aria-label]="i18n.t()['common.zoom_reset']"
-              (click)="zoomReset()">
-              {{ zoomPercent() }}%
-            </button>
+            <div class="flex h-8 items-center rounded-md border border-line bg-raised px-1.5">
+              <input
+                type="text"
+                inputmode="numeric"
+                class="w-9 border-none bg-transparent text-center font-mono text-xs tabular text-text outline-none"
+                [value]="zoomPercent()"
+                [attr.aria-label]="i18n.t()['common.zoom_level']"
+                (change)="setZoomFromInput($event)"
+                (keydown.enter)="setZoomFromInput($event)"
+              />
+              <span class="select-none text-2xs text-muted">%</span>
+            </div>
             <button type="button" appButton variant="secondary" size="sm"
               [attr.aria-label]="i18n.t()['common.zoom_in']"
-              [disabled]="!canZoomIn()" (click)="zoomBy(1)">
+              [disabled]="!canZoomIn()" (click)="zoomBy(0.1)">
               <app-icon name="plus" [size]="14" />
             </button>
           </div>
@@ -127,10 +139,19 @@
             <span class="font-mono tabular text-text">{{ regions().length }}</span>
           </div>
 
+          <!-- Mesmo par do censurar-imagem: desfazer tira a última tarja,
+               limpar tira todas. Só o desfazer permite corrigir um arrasto que
+               saiu torto sem perder as tarjas anteriores. -->
           @if (regions().length > 0) {
-            <button type="button" appButton variant="ghost" size="sm" block (click)="clearRegions()">
-              {{ i18n.t()['redact.clear'] }}
-            </button>
+            <div class="flex gap-2">
+              <button type="button" appButton variant="secondary" size="sm" class="flex-1" (click)="undo()">
+                <app-icon name="undo" [size]="14" />
+                {{ i18n.t()['redact.undo'] }}
+              </button>
+              <button type="button" appButton variant="ghost" size="sm" class="flex-1" (click)="clearRegions()">
+                {{ i18n.t()['redact.clear'] }}
+              </button>
+            </div>
           }
         </div>
       </app-panel>

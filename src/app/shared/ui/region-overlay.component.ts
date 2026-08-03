@@ -127,6 +127,17 @@ export class RegionOverlayComponent {
 
   private start: { x: number; y: number } | null = null;
 
+  /**
+   * Qual dedo/ponteiro está desenhando.
+   *
+   * Sem isto, uma pinça para ampliar vira uma tarja: o primeiro dedo abre um
+   * arrasto, o segundo entra como se fosse o mesmo gesto, e ao soltar sobra um
+   * retângulo que ninguém pediu — sobre um documento em que a tarja errada é o
+   * pior defeito possível. O segundo ponteiro cancela o rascunho em vez de
+   * contribuir para ele.
+   */
+  private activePointer: number | null = null;
+
   private toPercent(event: PointerEvent): { x: number; y: number } {
     const rect = this.layer().nativeElement.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
@@ -138,23 +149,32 @@ export class RegionOverlayComponent {
 
   protected onDown(event: PointerEvent): void {
     if (this.disabled() || event.button !== 0) return;
+
+    // Um segundo ponteiro é uma pinça, não um desenho.
+    if (this.start) {
+      this.cancelDraft();
+      return;
+    }
+
     (event.target as Element).setPointerCapture?.(event.pointerId);
+    this.activePointer = event.pointerId;
     this.start = this.toPercent(event);
     this.draft.set({ xPct: this.start.x, yPct: this.start.y, wPct: 0, hPct: 0 });
     event.preventDefault();
   }
 
   protected onMove(event: PointerEvent): void {
-    if (!this.start) return;
+    if (!this.start || event.pointerId !== this.activePointer) return;
     const now = this.toPercent(event);
     this.draft.set(normalizeDrag(this.start.x, this.start.y, now.x, now.y));
   }
 
   protected onUp(event: PointerEvent): void {
-    if (!this.start) return;
+    if (!this.start || event.pointerId !== this.activePointer) return;
     const now = this.toPercent(event);
     const rect = normalizeDrag(this.start.x, this.start.y, now.x, now.y);
     this.start = null;
+    this.activePointer = null;
     this.draft.set(null);
 
     // A click that wobbled is not a region. The threshold is in percent, so it
@@ -164,7 +184,12 @@ export class RegionOverlayComponent {
   }
 
   protected onCancel(_event: PointerEvent): void {
+    this.cancelDraft();
+  }
+
+  private cancelDraft(): void {
     this.start = null;
+    this.activePointer = null;
     this.draft.set(null);
   }
 
