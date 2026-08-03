@@ -40,7 +40,16 @@ test.describe('Offline', () => {
     await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     await context.setOffline(true);
 
+    // O medidor viaja com o usuário agora: a leitura fica na pílula da barra do
+    // topo e o detalhe abre dentro dela. Estar offline aparece já na pílula,
+    // sem precisar abrir nada — é o momento em que a promessa fica mais fácil
+    // de acreditar, e escondê-lo atrás de um clique desperdiçaria isso.
+    const badge = page.getByRole('button', { name: /Monitor de rede ao vivo/ }).first();
+    await expect(badge.locator('app-icon')).toBeVisible();
+
+    await badge.click();
     await expect(page.locator('app-network-proof')).toContainText('Você está sem internet');
+    await page.keyboard.press('Escape');
 
     // Navigating here is the exact thing that used to hang: a lazy chunk.
     await pickFromHome(page, 'Comprimir');

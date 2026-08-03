@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { formatBytes } from '../../core/image/image-file.util';
 import { NetworkProbeService } from '../../core/services/network-probe.service';
 import { TranslationService } from '../../core/services/translation.service';
+import { IconComponent } from './icon/icon.component';
 import { NetworkProofComponent } from './network-proof.component';
 
 /**
@@ -24,7 +25,7 @@ import { NetworkProofComponent } from './network-proof.component';
   selector: 'app-network-badge',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NetworkProofComponent],
+  imports: [IconComponent, NetworkProofComponent],
   host: { class: 'relative block', '(document:keydown.escape)': 'open.set(false)' },
   template: `
     <button
@@ -77,6 +78,15 @@ import { NetworkProofComponent } from './network-proof.component';
       >
         {{ i18n.t()['proof.sent_short'] }}
       </span>
+
+      <!-- Estar offline é o momento em que a promessa fica mais fácil de
+           acreditar, então ele aparece na pílula em vez de esperar alguém abrir
+           o popover: sem rede, e as ferramentas continuam funcionando. -->
+      @if (!probe.online()) {
+        <span class="shrink-0 text-success" [attr.title]="i18n.t()['proof.offline_ok']">
+          <app-icon name="wifiOff" [size]="size() === 'md' ? 15 : 13" />
+        </span>
+      }
     </button>
 
     @if (open()) {
