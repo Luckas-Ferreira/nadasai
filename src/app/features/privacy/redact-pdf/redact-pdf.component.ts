@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  type OnDestroy,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
 import { toMessageKey } from '../../../core/errors';
 import {
@@ -38,37 +45,28 @@ const FIT_SCALE = 1.4;
 const FIT_VH = 60;
 
 /**
- * Zoom em degraus, não contínuo.
- *
- * Cada degrau pode disparar uma re-rasterização da página, e um slider
- * transformaria um arrasto em dezenas delas. Com degraus o re-render é um por
- * clique, deliberado, e não precisa de debounce.
+ * Os limites e o passo são os do editor de PDF, de propósito: é o mesmo gesto
+ * na mesma família de ferramentas, e duas escalas diferentes para "ampliar um
+ * PDF" seriam duas coisas para aprender.
  */
-export const ZOOM_STEPS: readonly number[] = [0.5, 0.75, 1, 1.5, 2, 3, 4];
+export const MIN_ZOOM = 0.3;
+export const MAX_ZOOM = 3;
+export const ZOOM_STEP = 0.1;
 
-/** O degrau "ajustado à página" — o estado inicial e o do botão de reset. */
+/** O zoom inicial, e o que o campo devolve quando se digita 100. */
 export const FIT_ZOOM = 1;
 
 /**
- * Próximo degrau na direção pedida, saturando nas pontas.
+ * Pura e exportada porque é aqui que o zoom quebra em silêncio.
  *
- * Pura e exportada porque o clamp é a parte que quebra em silêncio: passar do
- * fim do array devolve `undefined`, o zoom vira NaN e a página some da tela.
+ * Um NaN (campo vazio, texto colado) ou um valor fora dos limites vira uma
+ * altura `calc(min(…) * NaN)`; o CSS descarta a declaração inteira e a página
+ * some da tela sem nada no console. Arredondar para 2 casas evita o
+ * 1.7999999999999998 que a soma de 0.1 produz e que o campo mostraria inteiro.
  */
-export function stepZoom(current: number, direction: 1 | -1): number {
-  const exact = ZOOM_STEPS.indexOf(current);
-  // Um zoom fora da tabela cai no degrau mais próximo em vez de ficar em -1,
-  // que com direction -1 daria índice -2 e devolveria undefined.
-  const from =
-    exact >= 0
-      ? exact
-      : ZOOM_STEPS.reduce(
-          (best, step, i) =>
-            Math.abs(step - current) < Math.abs(ZOOM_STEPS[best]! - current) ? i : best,
-          0,
-        );
-  const next = Math.min(ZOOM_STEPS.length - 1, Math.max(0, from + direction));
-  return ZOOM_STEPS[next]!;
+export function clampZoom(value: number): number {
+  if (!Number.isFinite(value)) return FIT_ZOOM;
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(value * 100) / 100));
 }
 
 @Component({
@@ -90,7 +88,7 @@ export function stepZoom(current: number, direction: 1 | -1): number {
   ],
   templateUrl: './redact-pdf.component.html',
 })
-export class RedactPdfComponent {
+export class RedactPdfComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   private readonly redactor = inject(PdfRedactorService);
   private readonly urls = inject(ObjectUrlScope);
@@ -138,8 +136,8 @@ export class RedactPdfComponent {
   protected readonly stale = computed(() => !this.result() || this.regions() !== this.ranRegions());
 
   protected readonly zoomPercent = computed(() => Math.round(this.zoom() * 100));
-  protected readonly canZoomIn = computed(() => this.zoom() < ZOOM_STEPS[ZOOM_STEPS.length - 1]!);
-  protected readonly canZoomOut = computed(() => this.zoom() > ZOOM_STEPS[0]!);
+  protected readonly canZoomIn = computed(() => this.zoom() < MAX_ZOOM);
+  protected readonly canZoomOut = computed(() => this.zoom() > MIN_ZOOM);
 
   /**
    * A altura da folha, em CSS, e a única coisa que o zoom mexe no layout.
@@ -244,31 +242,87 @@ export class RedactPdfComponent {
     await this.renderPage(page);
   }
 
-  protected async setZoom(next: number): Promise<void> {
-    if (next === this.zoom() || !this.file()) return;
-
-    // O CSS amplia o raster que já está na tela na hora. Sem isto o zoom só
-    // responderia depois do re-render, que custa uma rasterização inteira e
-    // faz o botão parecer morto.
+  /**
+   * O zoom em si é imediato — é só CSS sobre o raster que já está na tela. Sem
+   * isso o botão só responderia ao fim de uma rasterização inteira e pareceria
+   * morto; com isso a página cresce no clique e fica nítida logo depois.
+   */
+  protected setZoom(value: number): void {
+    if (!this.file()) return;
+    const next = clampZoom(value);
+    if (next === this.zoom()) return;
     this.zoom.set(next);
-
-    const size = this.pageSize();
-    if (!size) return;
-
-    // Só re-rasteriza para AMPLIAR. Reduzir é o navegador encolhendo um raster
-    // que já tem resolução de sobra, e refazer ali só perderia nitidez ao
-    // voltar. A margem evita um re-render inútil quando `pageRenderScale`
-    // devolve o mesmo valor por já estar no teto.
-    const wanted = this.scaleFor(size, next);
-    if (wanted > this.renderedScale() + 0.01) await this.renderPage(this.currentPage());
+    this.scheduleRerender();
   }
 
-  protected zoomBy(direction: 1 | -1): Promise<void> {
-    return this.setZoom(stepZoom(this.zoom(), direction));
+  protected zoomBy(delta: number): void {
+    this.setZoom(this.zoom() + delta);
   }
 
-  protected zoomReset(): Promise<void> {
-    return this.setZoom(FIT_ZOOM);
+  protected setZoomFromInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const parsed = Number.parseInt(input.value, 10);
+    // Um campo vazio ou com lixo volta a mostrar o zoom vigente em vez de
+    // aplicar NaN — e o valor é reescrito sempre, porque digitar 900 tem de
+    // aparecer como 300, não continuar 900 sobre uma página que não ampliou.
+    if (Number.isFinite(parsed)) this.setZoom(parsed / 100);
+    input.value = String(this.zoomPercent());
+  }
+
+  /** Ctrl/⌘ + roda, como no editor. Sem o modificador a roda rola a página. */
+  protected onWheel(event: WheelEvent): void {
+    if (!(event.ctrlKey || event.metaKey)) return;
+    if (event.cancelable) event.preventDefault();
+    this.zoomBy(event.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP);
+  }
+
+  private pinchStartDistance: number | null = null;
+  private pinchStartZoom = FIT_ZOOM;
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (event.touches.length !== 2) return;
+    this.pinchStartDistance = this.touchDistance(event);
+    this.pinchStartZoom = this.zoom();
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (this.pinchStartDistance === null || event.touches.length !== 2) return;
+    if (event.cancelable) event.preventDefault();
+    this.setZoom(this.pinchStartZoom * (this.touchDistance(event) / this.pinchStartDistance));
+  }
+
+  protected onTouchEnd(): void {
+    this.pinchStartDistance = null;
+  }
+
+  private touchDistance(event: TouchEvent): number {
+    const [a, b] = [event.touches[0]!, event.touches[1]!];
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  }
+
+  /**
+   * Espera o usuário parar de ampliar antes de refazer o raster.
+   *
+   * Sem o debounce, a roda e a pinça — que disparam dezenas de eventos por
+   * gesto — enfileirariam uma rasterização de página inteira em cada um. Os
+   * 400 ms são os mesmos do editor.
+   */
+  private rerenderTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleRerender(): void {
+    if (this.rerenderTimer !== null) clearTimeout(this.rerenderTimer);
+    this.rerenderTimer = setTimeout(() => {
+      this.rerenderTimer = null;
+      const size = this.pageSize();
+      if (!size) return;
+      // Só re-rasteriza para AMPLIAR. Reduzir é o navegador encolhendo um
+      // raster que já tem resolução de sobra, e refazer ali só perderia
+      // nitidez ao voltar. A margem evita um re-render inútil quando
+      // `pageRenderScale` devolve o mesmo valor por já estar no teto.
+      if (this.scaleFor(size, this.zoom()) > this.renderedScale() + 0.01) {
+        void this.renderPage(this.currentPage());
+      }
+    }, 400);
   }
 
   protected addRegion(region: Region): void {
@@ -279,6 +333,24 @@ export class RedactPdfComponent {
   protected removeRegion(id: string): void {
     this.regions.update((list) => list.filter((r) => r.id !== id));
     this.result.set(null);
+  }
+
+  /**
+   * Desfaz a última tarja desenhada, em qualquer página.
+   *
+   * E se ela não estava na página aberta, vai até lá. Um desfazer que remove
+   * algo fora da tela é indistinguível de um botão quebrado — o usuário clica,
+   * nada muda à vista, e a tarja que ele queria de volta continua sumida numa
+   * página que ele não está olhando.
+   */
+  protected async undo(): Promise<void> {
+    const last = this.regions()[this.regions().length - 1];
+    if (!last) return;
+
+    this.regions.update((list) => list.slice(0, -1));
+    this.result.set(null);
+
+    if (last.page !== this.currentPage()) await this.goTo(last.page);
   }
 
   protected clearRegions(): void {
@@ -318,7 +390,18 @@ export class RedactPdfComponent {
     if (r) saveBlob(r.blob, r.filename);
   }
 
+  /**
+   * O timer sobrevive à navegação se não for cancelado, e dispara uma
+   * rasterização de página num componente que o Angular já destruiu.
+   */
+  ngOnDestroy(): void {
+    if (this.rerenderTimer !== null) clearTimeout(this.rerenderTimer);
+  }
+
   protected reset(): void {
+    if (this.rerenderTimer !== null) clearTimeout(this.rerenderTimer);
+    this.rerenderTimer = null;
+    this.pinchStartDistance = null;
     this.urls.revoke(this.pageUrl());
     this.pageUrl.set(null);
     this.file.set(null);

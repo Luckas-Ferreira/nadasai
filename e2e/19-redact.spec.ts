@@ -91,9 +91,11 @@ test.describe('Censurar PDF', () => {
     if (!sheetBefore || !boxBefore) throw new Error('page is not laid out');
     const rasterBefore = await sheet.evaluate((el) => (el as HTMLImageElement).naturalWidth);
 
-    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('100%');
-    await page.getByRole('button', { name: 'Aumentar zoom' }).click();
-    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('150%');
+    const zoomField = page.getByRole('textbox', { name: 'Zoom (%)' });
+    await expect(zoomField).toHaveValue('100');
+    await zoomField.fill('150');
+    await zoomField.press('Enter');
+    await expect(zoomField).toHaveValue('150');
 
     const sheetAfter = await sheet.boundingBox();
     const boxAfter = await box.boundingBox();
@@ -118,11 +120,52 @@ test.describe('Censurar PDF', () => {
       .poll(() => sheet.evaluate((el) => (el as HTMLImageElement).naturalWidth), READY)
       .toBeGreaterThan(rasterBefore);
 
-    // O número é o botão de voltar ao ajuste.
-    await page.getByRole('button', { name: 'Ajustar a página' }).click();
-    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('100%');
+    // Digitar no campo é o caminho de volta — e um valor absurdo satura em vez
+    // de aplicar, senão a folha sai da tela e não há como trazê-la de volta.
+    await zoomField.fill('9000');
+    await zoomField.press('Enter');
+    await expect(zoomField).toHaveValue('300');
+
+    await zoomField.fill('100');
+    await zoomField.press('Enter');
     const sheetReset = await sheet.boundingBox();
     expect(sheetReset?.height).toBeCloseTo(sheetBefore.height, 0);
+
+    // Os botões param nas pontas em vez de seguirem contando.
+    await expect(page.getByRole('button', { name: 'Aumentar zoom' })).toBeEnabled();
+    await zoomField.fill('300');
+    await zoomField.press('Enter');
+    await expect(page.getByRole('button', { name: 'Aumentar zoom' })).toBeDisabled();
+  });
+
+  /**
+   * Sem desfazer, um arrasto que saiu torto só se corrige com "Limpar Tudo" —
+   * que joga fora todas as outras tarjas junto. O censurar-imagem já tinha o
+   * par; aqui faltava.
+   */
+  test('undo takes back the last box, and goes to the page it was on', async ({ page }) => {
+    await openApp(page, PDF_PATH);
+    await upload(page, DOC_A);
+    await expect(page.locator('app-region-overlay > div')).toBeVisible(READY);
+
+    await drawRegion(page, { x: 0.1, y: 0.1 }, { x: 0.4, y: 0.25 });
+    await drawRegion(page, { x: 0.5, y: 0.5 }, { x: 0.8, y: 0.65 });
+    const boxes = page.locator('app-region-overlay > div > div');
+    await expect(boxes).toHaveCount(2);
+
+    await page.getByRole('button', { name: 'Desfazer' }).click();
+    await expect(boxes).toHaveCount(1);
+
+    // A última tarja ficou na página 1. Desfazer a partir da página 2 tem de
+    // levar de volta até ela — um desfazer que apaga algo fora da tela é
+    // indistinguível de um botão quebrado.
+    await page.getByRole('button', { name: 'Próxima página' }).click();
+    await expect(boxes).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Desfazer' }).click();
+    await expect(page.locator('app-redact-pdf').getByText('1 / 2')).toBeVisible(READY);
+    await expect(boxes).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Desfazer' })).toBeHidden();
   });
 
   test('keeps each page\'s boxes to itself', async ({ page }) => {

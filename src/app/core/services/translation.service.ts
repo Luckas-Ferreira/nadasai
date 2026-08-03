@@ -175,7 +175,8 @@ const EN = {
   /** Same reason as the pager: the −/+ glyphs are icons, not text. */
   'common.zoom_in': 'Zoom in',
   'common.zoom_out': 'Zoom out',
-  'common.zoom_reset': 'Fit the page',
+  /** The % field between them: typing is the way back to 100. */
+  'common.zoom_level': 'Zoom (%)',
   'pdfpass.title': 'Password-protected PDF',
   'pdfpass.needs_password': 'this file needs a password to open.',
   'pdfpass.placeholder': 'Enter the PDF password',
@@ -915,7 +916,7 @@ const PT: Record<TranslationKey, string> = {
   'common.next_page': 'Próxima página',
   'common.zoom_in': 'Aumentar zoom',
   'common.zoom_out': 'Diminuir zoom',
-  'common.zoom_reset': 'Ajustar a página',
+  'common.zoom_level': 'Zoom (%)',
   'pdfpass.title': 'PDF protegido por senha',
   'pdfpass.needs_password': 'este arquivo precisa de senha para abrir.',
   'pdfpass.placeholder': 'Digite a senha do PDF',
