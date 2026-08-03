@@ -15,6 +15,7 @@ import {
 import { TranslationService } from '../../core/services/translation.service';
 import { MODULES, type ModuleId, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
+import { NetworkBadgeComponent } from './network-badge.component';
 
 /**
  * The shell's one identity surface: wordmark, where you are, and how to get out.
@@ -34,7 +35,7 @@ import { IconComponent } from './icon/icon.component';
   selector: 'app-top-bar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, IconComponent],
+  imports: [RouterLink, IconComponent, NetworkBadgeComponent],
   /**
    * O sticky mora AQUI, no host, e não no <header> lá dentro.
    *
@@ -168,6 +169,13 @@ import { IconComponent } from './icon/icon.component';
           >{{ hotkey }}</span
         >
       </button>
+
+      <!-- O medidor de rede vive aqui porque esta barra é a única superfície
+           presente em TODA rota — e sticky, então ele não sai da tela ao rolar.
+           Enquanto morava só na home, ele aparecia exatamente onde não há
+           arquivo nenhum em jogo e sumia quando a pessoa abria um documento de
+           verdade, que é quando "saiu alguma coisa daqui?" importa. -->
+      <app-network-badge class="ml-2 shrink-0" />
     </header>
   `,
 })

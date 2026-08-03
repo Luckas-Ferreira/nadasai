@@ -53,13 +53,31 @@ test.describe('Zero-upload, asserted from outside the app', () => {
     // The photo fixture is ~KB of pixels. Nothing carrying a payload went out.
     expect(uploads, 'a request carried a body — the image may have been uploaded').toEqual([]);
 
-    // And only now: the instrument the user is shown agrees with Playwright. It
-    // stays on the home mid-chain, which is the point — the counter is worth most
-    // right after a file has been through two tools.
-    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
+    // And only now: the instrument the user is shown agrees with Playwright.
+    //
+    // Asserted AQUI, ainda dentro da ferramenta e com o arquivo carregado, e não
+    // depois de voltar para a home. O medidor morava só na home, ou seja,
+    // aparecia na única tela sem arquivo nenhum em jogo e sumia justamente
+    // quando alguém abria um documento de verdade — que é quando "saiu alguma
+    // coisa daqui?" vale ser respondido. É essa a garantia que isto pina.
+    const badge = page.getByRole('button', { name: /Monitor de rede ao vivo/ });
+    await expect(badge).toBeVisible();
+    await expect(badge).toContainText('0 bytes');
+
+    // O detalhe (destinatários, o que a página de fato baixa) não sumiu: mudou
+    // para dentro do medidor.
+    await badge.click();
     const proof = page.locator('app-network-proof');
     await expect(proof).toContainText('0 bytes');
     await expect(proof).toContainText('nenhum');
+
+    // E segue na home, no meio da cadeia — o contador vale mais logo depois de
+    // um arquivo ter passado por duas ferramentas.
+    await page.keyboard.press('Escape');
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
+    await expect(page.getByRole('button', { name: /Monitor de rede ao vivo/ }).first()).toContainText(
+      '0 bytes',
+    );
   });
 
 });

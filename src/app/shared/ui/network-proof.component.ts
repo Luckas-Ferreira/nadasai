@@ -19,7 +19,11 @@ import { IconComponent } from './icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent],
   template: `
-    <div class="rounded-lg border border-line bg-surface p-4">
+    <!-- Sem moldura própria: quem enquadra é o popover do app-network-badge.
+         Este componente era um cartão de 380px na home, o que o punha só onde
+         não há arquivo em jogo; agora é o CONTEÚDO do medidor, e o medidor
+         acompanha o usuário em toda tela. -->
+    <div>
       <div class="flex items-center gap-2">
         <span class="relative flex h-2 w-2">
           @if (probe.clean()) {
@@ -35,11 +39,14 @@ import { IconComponent } from './icon/icon.component';
         <h2 class="text-2xs font-medium uppercase text-faint">{{ i18n.t()['proof.title'] }}</h2>
       </div>
 
-      <dl class="mt-3 grid gap-3 sm:grid-cols-2">
+      <!-- Empilhado, nunca em duas colunas: os breakpoints do Tailwind medem a
+           VIEWPORT, não o contêiner, então um sm:grid-cols-2 espremeria as duas
+           leituras dentro de um popover de 352px numa tela larga. -->
+      <dl class="mt-3 grid gap-3">
         <div>
           <dt class="text-sm text-muted">{{ i18n.t()['proof.sent'] }}</dt>
           <dd
-            class="text-2xl font-mono tabular"
+            class="text-lg font-mono tabular"
             [class.text-success]="probe.fileBytesSent() === 0"
             [class.text-danger]="probe.fileBytesSent() > 0"
           >
@@ -50,7 +57,7 @@ import { IconComponent } from './icon/icon.component';
         <div>
           <dt class="text-sm text-muted">{{ i18n.t()['proof.recipients'] }}</dt>
           <dd
-            class="text-2xl font-mono tabular"
+            class="text-lg font-mono tabular"
             [class.text-success]="probe.recipients().length === 0"
             [class.text-danger]="probe.recipients().length > 0"
           >

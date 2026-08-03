@@ -135,6 +135,9 @@ const EN = {
   'proof.recipients': 'Servers that received your file',
   'proof.zero_bytes': '0 bytes',
   'proof.none': 'none',
+  /** The badge is a reading plus one word; the word is what it is a reading OF. */
+  'proof.sent_short': 'sent',
+  'proof.open_details': 'Live network monitor — open the details',
   'proof.disclosure':
     'Measured live, in your browser: every send your file could physically take — fetch, XHR, beacon, WebSocket — is counted here. The page loads its own code, its own font and the AI model, and that is all it ever asks for. Open DevTools on the Network tab and check for yourself.',
   'proof.try_offline': 'Do not believe it? Turn off your Wi-Fi and keep using the app.',
@@ -879,6 +882,8 @@ const PT: Record<TranslationKey, string> = {
   'proof.recipients': 'Servidores que receberam seu arquivo',
   'proof.zero_bytes': '0 bytes',
   'proof.none': 'nenhum',
+  'proof.sent_short': 'enviados',
+  'proof.open_details': 'Monitor de rede ao vivo — abrir os detalhes',
   'proof.disclosure':
     'Medido ao vivo, no seu navegador: toda saída que o seu arquivo poderia fisicamente tomar — fetch, XHR, beacon, WebSocket — é contada aqui. A página carrega o próprio código, a própria fonte e o modelo de IA, e é só isso que ela pede. Abra as ferramentas do navegador na aba Rede e confira você mesmo.',
   'proof.try_offline': 'Não acredita? Desligue o Wi-Fi e continue usando.',
