@@ -92,6 +92,48 @@ test.describe('Shell: home, nav, i18n', () => {
     }
   });
 
+  /**
+   * Toda página de ferramenta termina com a mesma seção de FAQ, e o Angular não
+   * mexe no scroll por conta própria: `scrollPositionRestoration` nasce
+   * 'disabled', então o navegador mantinha o offset da tela anterior. Descer
+   * até o FAQ de um tool e clicar no próximo abria o tool novo já no meio do
+   * FAQ, com o dropzone acima da dobra — parecia que tinha aberto errado.
+   */
+  test('a new tool opens at the top, not where the last one was scrolled to', async ({ page }) => {
+    await openApp(page, '/pt/audio/cortar');
+    const rail = page.getByRole('navigation', { name: 'Ferramentas' }).first();
+
+    // Até o fim da página, que é onde mora o FAQ.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+    await rail.getByRole('link', { name: 'Juntar áudio', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Juntar áudio' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  /**
+   * O `sticky top-0` estava no <header> dentro do componente, mas o host é item
+   * de um flex column — blockificado, com a altura exata do cabeçalho. O sticky
+   * ficava preso a um contêiner do próprio tamanho, sem folga para deslizar, e
+   * a barra ia embora ao descer. O rail se pendura nela (`top-14`), então isto
+   * não é só estética.
+   */
+  test('the top bar stays put while the page scrolls under it', async ({ page }) => {
+    await openApp(page, '/pt/audio/cortar');
+    const bar = page.locator('app-top-bar');
+    await expect(bar).toBeVisible();
+
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+
+    const box = await bar.boundingBox();
+    expect(box).not.toBeNull();
+    // Continua colada no topo da viewport, não empurrada para cima com a página.
+    expect(Math.abs(box!.y)).toBeLessThan(2);
+    await expect(bar.getByRole('link', { name: 'Nada Sai' })).toBeInViewport();
+  });
+
   test('the module switcher crosses between modules', async ({ page }) => {
     await openApp(page, '/pt/pdf/dividir');
 
