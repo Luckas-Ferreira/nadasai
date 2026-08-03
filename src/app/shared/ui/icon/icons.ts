@@ -42,6 +42,7 @@ export const ICONS = {
   chevronDown: 'M6 9l6 6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
   plus: 'M12 5v14m-7-7h14',
+  minus: 'M5 12h14',
   alignLeft: 'M4 6h16M4 10h10M4 14h16M4 18h10',
   alignCenter: 'M4 6h16M7 10h10M4 14h16M7 18h10',
   alignRight: 'M4 6h16M10 10h10M4 14h16M10 18h10',

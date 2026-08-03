@@ -25,44 +25,80 @@
     } @else {
       <!-- A document you read: grey surround, white sheet, shadow-page. -->
       <div class="rounded-xl border border-doc-stage-line bg-doc-stage p-5">
-        <div class="mx-auto w-fit">
-          <div class="relative inline-block rounded-md bg-white shadow-page">
-            @if (pageUrl(); as url) {
-              <img [src]="url" [alt]="'page ' + currentPage()" class="block max-h-[60vh] w-auto rounded-md select-none" draggable="false" />
-            } @else {
-              <div class="flex h-[50vh] w-[380px] items-center justify-center">
-                <span class="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent"></span>
-              </div>
-            }
-            <app-region-overlay
-              [regions]="regions()"
-              [page]="currentPage()"
-              [mode]="mode()"
-              (regionAdded)="addRegion($event)"
-              (regionRemoved)="removeRegion($event)"
-            />
+        <!-- Ampliada, a folha passa do palco — quem rola é o surround, e a folha
+             continua sendo desenhada no tamanho que o zoom pede.
+             `mx-auto w-fit` num bloco, e não flex + justify-center: com flex, um
+             conteúdo mais largo que o container tem o INÍCIO cortado e a rolagem
+             não alcança ele. O p-1 é para o shadow-page não ser aparado. -->
+        <div class="max-h-[64vh] overflow-auto">
+          <div class="mx-auto w-fit p-1">
+            <div class="relative inline-block rounded-md bg-white shadow-page">
+              @if (pageUrl(); as url) {
+                <img [src]="url" [alt]="'page ' + currentPage()"
+                  class="block w-auto rounded-md select-none"
+                  [style.height]="sheetHeight()"
+                  draggable="false" />
+              } @else {
+                <div class="flex h-[50vh] w-[380px] items-center justify-center">
+                  <span class="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent"></span>
+                </div>
+              }
+              <app-region-overlay
+                [regions]="regions()"
+                [page]="currentPage()"
+                [mode]="mode()"
+                (regionAdded)="addRegion($event)"
+                (regionRemoved)="removeRegion($event)"
+              />
+            </div>
           </div>
         </div>
 
-        @if (pageCount() > 1) {
-          <div class="mt-4 flex items-center justify-center gap-3">
-            <!-- The icon is aria-hidden, so without this the button has no
-                 accessible name at all. -->
+        <!-- Paginação e zoom são navegação: juntos, e abaixo da folha. O zoom
+             aparece mesmo num PDF de uma página só — é ele que torna possível
+             mirar a tarja em texto miúdo, que é o trabalho desta ferramenta. -->
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          @if (pageCount() > 1) {
+            <div class="flex items-center gap-3">
+              <!-- The icon is aria-hidden, so without this the button has no
+                   accessible name at all. -->
+              <button type="button" appButton variant="secondary" size="sm"
+                [attr.aria-label]="i18n.t()['common.prev_page']"
+                [disabled]="currentPage() === 1" (click)="goTo(currentPage() - 1)">
+                <app-icon name="chevronLeft" [size]="14" />
+              </button>
+              <span class="font-mono text-xs tabular text-muted">
+                {{ currentPage() }} / {{ pageCount() }}
+              </span>
+              <button type="button" appButton variant="secondary" size="sm"
+                [attr.aria-label]="i18n.t()['common.next_page']"
+                [disabled]="currentPage() === pageCount()" (click)="goTo(currentPage() + 1)">
+                <app-icon name="chevronRight" [size]="14" />
+              </button>
+            </div>
+          }
+
+          <div class="flex items-center gap-2">
             <button type="button" appButton variant="secondary" size="sm"
-              [attr.aria-label]="i18n.t()['common.prev_page']"
-              [disabled]="currentPage() === 1" (click)="goTo(currentPage() - 1)">
-              <app-icon name="chevronLeft" [size]="14" />
+              [attr.aria-label]="i18n.t()['common.zoom_out']"
+              [disabled]="!canZoomOut()" (click)="zoomBy(-1)">
+              <app-icon name="minus" [size]="14" />
             </button>
-            <span class="font-mono text-xs tabular text-muted">
-              {{ currentPage() }} / {{ pageCount() }}
-            </span>
+            <!-- O número é o botão de voltar ao ajuste — o idioma de qualquer
+                 visualizador, e evita um quarto controle na linha. -->
+            <button type="button" appButton variant="ghost" size="sm"
+              class="min-w-[4.5rem] font-mono text-xs tabular"
+              [attr.aria-label]="i18n.t()['common.zoom_reset']"
+              (click)="zoomReset()">
+              {{ zoomPercent() }}%
+            </button>
             <button type="button" appButton variant="secondary" size="sm"
-              [attr.aria-label]="i18n.t()['common.next_page']"
-              [disabled]="currentPage() === pageCount()" (click)="goTo(currentPage() + 1)">
-              <app-icon name="chevronRight" [size]="14" />
+              [attr.aria-label]="i18n.t()['common.zoom_in']"
+              [disabled]="!canZoomIn()" (click)="zoomBy(1)">
+              <app-icon name="plus" [size]="14" />
             </button>
           </div>
-        }
+        </div>
       </div>
     }
   </div>
