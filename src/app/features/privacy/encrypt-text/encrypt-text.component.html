@@ -1,0 +1,83 @@
+<app-tool-page [toolId]="'encrypt-text'" [forceLoaded]="true">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE: plain on one side, armored on the other -->
+  <div stage class="space-y-4">
+    <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+      <div class="border-b border-line px-4 py-2.5">
+        <h2 class="text-2xs font-medium uppercase tracking-wide text-faint">
+          {{ mode() === 'encrypt' ? i18n.t()['enctext.plain_label'] : i18n.t()['enctext.armored_label'] }}
+        </h2>
+      </div>
+      <textarea
+        [ngModel]="input()"
+        (ngModelChange)="input.set($event)"
+        [placeholder]="mode() === 'encrypt' ? i18n.t()['enctext.plain_placeholder'] : i18n.t()['enctext.armored_placeholder']"
+        rows="9"
+        class="w-full resize-none border-0 bg-raised p-4 font-mono text-xs text-text outline-none"
+      ></textarea>
+    </div>
+
+    @if (output(); as text) {
+      <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+        <div class="flex items-center justify-between border-b border-line px-4 py-2.5">
+          <h2 class="text-2xs font-medium uppercase tracking-wide text-faint">
+            {{ mode() === 'encrypt' ? i18n.t()['enctext.armored_label'] : i18n.t()['enctext.plain_label'] }}
+          </h2>
+          <button
+            type="button"
+            class="flex items-center gap-1 text-xs text-muted transition hover:text-accent"
+            (click)="copy(text)"
+          >
+            <app-icon [name]="copied() ? 'check' : 'copy'" [size]="12" />
+            {{ copied() ? i18n.t()['passgen.copied'] : i18n.t()['hash.copy'] }}
+          </button>
+        </div>
+        <pre class="max-h-[280px] select-all overflow-auto whitespace-pre-wrap break-all bg-raised p-4 font-mono text-xs text-text">{{ text }}</pre>
+      </div>
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    <app-panel>
+      <div class="space-y-4">
+        <app-segmented [options]="modeOptions()" [value]="mode()" (valueChange)="setMode($event)" />
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-muted">{{ i18n.t()['encrypt.pass_label'] }}</label>
+          <input
+            type="password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            [placeholder]="i18n.t()['encrypt.pass_placeholder']"
+            (keydown.enter)="run()"
+            class="w-full rounded-md border border-line bg-surface px-3.5 py-2.5 text-sm text-text outline-none transition focus:border-accent"
+          />
+        </div>
+
+        @if (mode() === 'encrypt') {
+          <p class="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-xs text-warning">
+            {{ i18n.t()['encrypt.no_recovery'] }}
+          </p>
+        }
+      </div>
+    </app-panel>
+
+    <app-action-bar
+      [primaryLabel]="stale() ? (mode() === 'encrypt' ? i18n.t()['enctext.btn_encrypt'] : i18n.t()['enctext.btn_decrypt']) : null"
+      [primaryDisabled]="!canRun()"
+      [busy]="busy()"
+      [canDownload]="!!output()"
+      (primary)="run()"
+      (download)="download()"
+      (reset)="reset()"
+    />
+  </div>
+
+</app-tool-page>

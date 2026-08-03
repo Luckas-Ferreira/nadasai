@@ -29,7 +29,10 @@ export type ToolId =
   | 'password-generator'
   | 'remove-exif'
   | 'redact-image'
-  | 'diff-checker';
+  | 'diff-checker'
+  | 'redact-pdf'
+  | 'clean-pdf-metadata'
+  | 'encrypt-text';
 
 export type ToolTone =
   | 'violet'
@@ -701,6 +704,74 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'diff checker', 'compare text', 'text difference', 'file compare',
       'code diff', 'side by side diff'
+    ],
+  },
+  {
+    id: 'redact-pdf',
+    pathPt: 'privacidade/censurar-pdf',
+    pathEn: 'privacy/redact-pdf',
+    icon: 'square',
+    category: 'privacy',
+    navKey: 'nav.redact_pdf',
+    shortKey: 'nav.short.redact_pdf',
+    titleKey: 'redactpdf.title',
+    descKey: 'redactpdf.subtitle',
+    suffix: 'redacted',
+    tone: 'orange',
+    keywordsPt: [
+      'tarjar pdf', 'censurar pdf', 'tarja preta pdf', 'ocultar dados pdf',
+      'esconder texto pdf', 'apagar informacao pdf', 'anonimizar pdf',
+      'remover dados sensiveis pdf', 'censura pdf', 'tarja em documento'
+    ],
+    keywordsEn: [
+      'redact pdf', 'black out pdf', 'hide text in pdf', 'censor pdf',
+      'remove sensitive data pdf', 'anonymize pdf', 'pdf redaction',
+      'permanently remove pdf text'
+    ],
+  },
+  {
+    id: 'clean-pdf-metadata',
+    pathPt: 'privacidade/limpar-metadados-pdf',
+    pathEn: 'privacy/clean-pdf-metadata',
+    icon: 'sparkles',
+    category: 'privacy',
+    navKey: 'nav.clean_pdf_metadata',
+    shortKey: 'nav.short.clean_pdf_metadata',
+    titleKey: 'cleanpdf.title',
+    descKey: 'cleanpdf.subtitle',
+    suffix: 'clean',
+    tone: 'fuchsia',
+    keywordsPt: [
+      'remover metadados pdf', 'limpar propriedades do pdf', 'apagar autor do pdf',
+      'metadados de pdf', 'remover xmp', 'limpar dados do pdf', 'anonimizar documento',
+      'tirar autor do pdf', 'propriedades do documento'
+    ],
+    keywordsEn: [
+      'remove pdf metadata', 'clean pdf properties', 'strip pdf author',
+      'pdf document properties', 'remove xmp', 'anonymize pdf metadata',
+      'clear pdf info'
+    ],
+  },
+  {
+    id: 'encrypt-text',
+    pathPt: 'privacidade/criptografar-texto',
+    pathEn: 'privacy/encrypt-text',
+    icon: 'text',
+    category: 'privacy',
+    navKey: 'nav.encrypt_text',
+    shortKey: 'nav.short.encrypt_text',
+    titleKey: 'enctext.title',
+    descKey: 'enctext.subtitle',
+    suffix: 'encrypted',
+    tone: 'indigo',
+    keywordsPt: [
+      'criptografar texto', 'criptografar mensagem', 'descriptografar texto',
+      'mensagem secreta', 'texto cifrado', 'senha em texto', 'aes 256 texto',
+      'enviar mensagem segura', 'esconder mensagem'
+    ],
+    keywordsEn: [
+      'encrypt text', 'encrypt message', 'decrypt text', 'secret message',
+      'aes 256 text', 'password protect text', 'secure message', 'cipher text'
     ],
   },
 ];

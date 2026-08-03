@@ -1,0 +1,133 @@
+<app-tool-page [toolId]="'file-hash'" [forceLoaded]="!!(file() || textInput())">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE -->
+  <div stage>
+    @if (mode() === 'file' && !file()) {
+      <app-dropzone
+        [accept]="'*/*'"
+        [titleKey]="'hash.drag'"
+        [hintKey]="'hash.drag_hint'"
+        (fileSelected)="onFileSelected($event)"
+      />
+    } @else if (mode() === 'text') {
+      <app-panel>
+        <textarea
+          [ngModel]="textInput()"
+          (ngModelChange)="onTextChanged($event)"
+          [placeholder]="i18n.t()['hash.text_placeholder']"
+          rows="8"
+          class="w-full resize-none rounded-md border border-line bg-surface p-3 font-mono text-xs text-text outline-none transition focus:border-accent"
+        ></textarea>
+      </app-panel>
+    } @else {
+      @if (file(); as f) {
+      <div class="flex min-h-[200px] flex-col items-center justify-center gap-4 rounded-xl border border-line bg-raised p-8">
+        <span class="flex h-14 w-14 items-center justify-center rounded-2xl border border-line bg-surface text-accent shadow-panel">
+          <app-icon name="doc" [size]="28" />
+        </span>
+        <div class="text-center">
+          <p class="max-w-xs truncate text-base font-semibold text-text">{{ f.name }}</p>
+          <p class="mt-1 font-mono text-xs tabular text-faint">{{ formatBytes(f.size) }}</p>
+        </div>
+
+        @if (busy()) {
+          <div class="w-full max-w-xs space-y-1.5">
+            <div class="h-1.5 w-full overflow-hidden rounded-full border border-line bg-surface">
+              <div class="h-full bg-accent transition-all duration-150" [style.width.%]="progress() ?? 0"></div>
+            </div>
+            <p class="text-center font-mono text-2xs tabular text-faint">{{ progress() ?? 0 }}%</p>
+          </div>
+        } @else {
+          <button type="button" appButton variant="ghost" size="sm" (click)="clearFile()">
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        }
+      </div>
+      }
+    }
+
+    @if (hashItems().length > 0) {
+      <div class="mt-5 space-y-3">
+        @for (item of hashItems(); track item.algo) {
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs text-muted">
+              <span class="font-semibold">{{ item.label }}</span>
+              <button
+                type="button"
+                (click)="copy(item.algo, item.value)"
+                class="flex items-center gap-1 text-xs transition hover:text-accent"
+              >
+                <app-icon [name]="copiedAlgo() === item.algo ? 'check' : 'copy'" [size]="12" />
+                {{ copiedAlgo() === item.algo ? i18n.t()['passgen.copied'] : i18n.t()['hash.copy'] }}
+              </button>
+            </div>
+            <div
+              class="select-all break-all rounded-md border border-line bg-raised p-2.5 font-mono text-xs"
+              [class.text-accent]="item.isMain"
+              [class.text-text]="!item.isMain"
+            >{{ item.value }}</div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    <app-panel>
+      <div class="space-y-4">
+        <app-segmented [options]="modeOptions()" [value]="mode()" (valueChange)="setMode($event)" />
+
+        <!-- SHA-512 is opt-in because it is the one algorithm with no streaming
+             implementation: it has to read the whole file, so it costs memory
+             the other two do not. -->
+        <label class="flex cursor-pointer items-center gap-2.5 rounded-md border border-line bg-raised p-3 text-xs">
+          <input
+            type="checkbox"
+            [ngModel]="wantSha512()"
+            (ngModelChange)="setWantSha512($event)"
+            class="h-4 w-4 rounded accent-accent"
+          />
+          <span class="text-text">{{ i18n.t()['hash.include_sha512'] }}</span>
+        </label>
+
+        @if (hashItems().length > 0) {
+          <div class="space-y-1.5 border-t border-line pt-4">
+            <label class="text-xs font-semibold text-muted">{{ i18n.t()['hash.expected_label'] }}</label>
+            <input
+              type="text"
+              [ngModel]="expectedHash()"
+              (ngModelChange)="expectedHash.set($event)"
+              [placeholder]="i18n.t()['hash.expected_placeholder']"
+              class="w-full rounded-md border border-line bg-surface px-3.5 py-2 font-mono text-xs text-text outline-none transition focus:border-accent"
+            />
+            @if (matched(); as algo) {
+              <!-- Naming the algorithm that matched: a bare "Match" leaves you
+                   guessing which of the three the pasted digest was. -->
+              <p class="text-xs font-semibold text-success">
+                {{ i18n.t()['hash.match'] }} ({{ algoLabel(algo) }})
+              </p>
+            } @else if (expectedHash().trim()) {
+              <p class="text-xs font-semibold text-danger">{{ i18n.t()['hash.mismatch'] }}</p>
+            }
+          </div>
+        }
+      </div>
+    </app-panel>
+
+    <app-action-bar
+      [primaryLabel]="stale() ? i18n.t()['hash.calculate'] : null"
+      [primaryDisabled]="!canRun()"
+      [busy]="busy()"
+      (primary)="run()"
+      (reset)="reset()"
+    />
+  </div>
+
+</app-tool-page>

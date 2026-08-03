@@ -804,7 +804,7 @@ export class PdfComponent implements OnDestroy {
       if (key === 'pdf_encrypted') {
         this.pdfProtected.set(true);
         if (password) {
-          this.passwordError.set('Senha incorreta. Tente novamente.');
+          this.passwordError.set(this.i18n.t()['pdf.wrong_password']);
         }
         this.status.set('idle');
       } else {

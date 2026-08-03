@@ -1,86 +1,29 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs';
-import { toolFromUrl } from '../tools/tools';
+import { type ToolDef, toolFromUrl } from '../tools/tools';
+import { alternatesFor, cleanPathOf } from '../seo/route-map';
+import { buildGraph } from '../seo/jsonld';
+import type { FaqEntry } from '../seo/tool-content';
+import { TranslationService } from './translation.service';
 
 const DOMAIN = 'https://nadasai.com';
 
-const ROUTE_MAPPINGS: Record<string, { pt: string; en: string }> = {
-  '': { pt: '/pt', en: '/en' },
-  'imagem/remover-fundo': { pt: '/pt/imagem/remover-fundo', en: '/en/image/remove-bg' },
-  'image/remove-bg': { pt: '/pt/imagem/remover-fundo', en: '/en/image/remove-bg' },
+interface PageContext {
+  readonly url: string;
+  /** Router URL, used to match a registered FAQ against the current page. */
+  readonly routerUrl: string;
+  readonly lang: 'pt' | 'en';
+  readonly title: string;
+  readonly description: string;
+  readonly tool: ToolDef | null;
+  readonly isHome: boolean;
+  readonly features: readonly string[];
+}
 
-  'imagem/melhorar-qualidade': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
-  'image/upscale': { pt: '/pt/imagem/melhorar-qualidade', en: '/en/image/upscale' },
 
-  'imagem/extrair-texto': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
-  'image/extract-text': { pt: '/pt/imagem/extrair-texto', en: '/en/image/extract-text' },
-
-  'audio/cortar': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
-  'audio/cut': { pt: '/pt/audio/cortar', en: '/en/audio/cut' },
-  'audio/juntar': { pt: '/pt/audio/juntar', en: '/en/audio/merge' },
-  'audio/merge': { pt: '/pt/audio/juntar', en: '/en/audio/merge' },
-  'audio/converter': { pt: '/pt/audio/converter', en: '/en/audio/convert' },
-  'audio/convert': { pt: '/pt/audio/converter', en: '/en/audio/convert' },
-
-  'imagem/cortar': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
-  'image/crop': { pt: '/pt/imagem/cortar', en: '/en/image/crop' },
-
-  'imagem/comprimir': { pt: '/pt/imagem/comprimir', en: '/en/image/compress' },
-  'image/compress': { pt: '/pt/imagem/comprimir', en: '/en/image/compress' },
-
-  'imagem/converter': { pt: '/pt/imagem/converter', en: '/en/image/convert' },
-  'image/convert': { pt: '/pt/imagem/converter', en: '/en/image/convert' },
-
-  'imagem/redimensionar': { pt: '/pt/imagem/redimensionar', en: '/en/image/resize' },
-  'image/resize': { pt: '/pt/imagem/redimensionar', en: '/en/image/resize' },
-
-  'imagem/para-pdf': { pt: '/pt/imagem/para-pdf', en: '/en/image/to-pdf' },
-  'image/to-pdf': { pt: '/pt/imagem/para-pdf', en: '/en/image/to-pdf' },
-
-  'pdf/editar': { pt: '/pt/pdf/editar', en: '/en/pdf/edit' },
-  'pdf/edit': { pt: '/pt/pdf/editar', en: '/en/pdf/edit' },
-
-  'pdf/juntar': { pt: '/pt/pdf/juntar', en: '/en/pdf/merge' },
-  'pdf/merge': { pt: '/pt/pdf/juntar', en: '/en/pdf/merge' },
-
-  'pdf/comprimir': { pt: '/pt/pdf/comprimir', en: '/en/pdf/compress' },
-  'pdf/compress': { pt: '/pt/pdf/comprimir', en: '/en/pdf/compress' },
-
-  'pdf/dividir': { pt: '/pt/pdf/dividir', en: '/en/pdf/split' },
-  'pdf/split': { pt: '/pt/pdf/dividir', en: '/en/pdf/split' },
-
-  'pdf/para-imagem': { pt: '/pt/pdf/para-imagem', en: '/en/pdf/to-image' },
-  'pdf/to-image': { pt: '/pt/pdf/para-imagem', en: '/en/pdf/to-image' },
-
-  'pdf/para-word': { pt: '/pt/pdf/para-word', en: '/en/pdf/to-word' },
-  'pdf/to-word': { pt: '/pt/pdf/para-word', en: '/en/pdf/to-word' },
-
-  'pdf/organizar': { pt: '/pt/pdf/organizar', en: '/en/pdf/organize' },
-  'pdf/organize': { pt: '/pt/pdf/organizar', en: '/en/pdf/organize' },
-
-  'pdf/proteger': { pt: '/pt/pdf/proteger', en: '/en/pdf/protect' },
-  'pdf/protect': { pt: '/pt/pdf/proteger', en: '/en/pdf/protect' },
-
-  'pdf/assinar': { pt: '/pt/pdf/assinar', en: '/en/pdf/sign' },
-  'pdf/sign': { pt: '/pt/pdf/assinar', en: '/en/pdf/sign' },
-
-  'pdf/marca-dagua': { pt: '/pt/pdf/marca-dagua', en: '/en/pdf/watermark' },
-  'pdf/watermark': { pt: '/pt/pdf/marca-dagua', en: '/en/pdf/watermark' },
-
-  'sobre': { pt: '/pt/sobre', en: '/en/about' },
-  'about': { pt: '/pt/sobre', en: '/en/about' },
-
-  'privacidade': { pt: '/pt/privacidade', en: '/en/privacy' },
-  'privacy': { pt: '/pt/privacidade', en: '/en/privacy' },
-
-  'termos': { pt: '/pt/termos', en: '/en/terms' },
-  'terms': { pt: '/pt/termos', en: '/en/terms' },
-
-  'faq': { pt: '/pt/faq', en: '/en/faq' },
-};
 
 @Injectable({
   providedIn: 'root'
@@ -91,6 +34,10 @@ export class SeoService {
   private meta = inject(Meta);
   private title = inject(Title);
   private doc = inject(DOCUMENT) as Document;
+  private i18n = inject(TranslationService);
+
+  private readonly page = signal<PageContext | null>(null);
+  private readonly visibleFaq = signal<{ url: string; entries: readonly FaqEntry[] } | null>(null);
 
   constructor() {
     this.router.events.pipe(
@@ -143,12 +90,18 @@ export class SeoService {
       const currentFullUrl = `${DOMAIN}${url}`;
       this.setLinkTag('canonical', currentFullUrl);
 
-      // Hreflang links
-      const cleanPath = url.replace(/^\/(pt|en)\/?/, '');
-      const mapping = ROUTE_MAPPINGS[cleanPath] || { pt: `/pt/${cleanPath}`, en: `/en/${cleanPath}` };
-      this.setHreflangTag('pt', `${DOMAIN}${mapping.pt}`);
-      this.setHreflangTag('en', `${DOMAIN}${mapping.en}`);
-      this.setHreflangTag('x-default', `${DOMAIN}${mapping.pt}`);
+      // Hreflang links, from the derived map. When a path has no known twin we
+      // emit NOTHING and remove any stale tags, rather than inventing a URL:
+      // the old fallback reused the current path under the other prefix, which
+      // produced 14 alternates pointing at pages that do not exist.
+      const mapping = alternatesFor(cleanPathOf(url));
+      if (mapping) {
+        this.setHreflangTag('pt', `${DOMAIN}${mapping.pt}`);
+        this.setHreflangTag('en', `${DOMAIN}${mapping.en}`);
+        this.setHreflangTag('x-default', `${DOMAIN}${mapping.pt}`);
+      } else {
+        this.removeHreflangTags();
+      }
 
       // Open Graph Tags
       this.meta.updateTag({ property: 'og:site_name', content: 'Nada Sai' });
@@ -165,8 +118,21 @@ export class SeoService {
       this.meta.updateTag({ name: 'twitter:description', content: metaDesc });
       this.meta.updateTag({ name: 'twitter:image', content: `${DOMAIN}/logo.webp` });
 
-      // JSON-LD Structured Data
-      this.updateJsonLdSchema(pageTitle, metaDesc, currentFullUrl, lang);
+      // JSON-LD. Angular destroys the previous route's components and creates
+      // the new ones DURING activation, i.e. before NavigationEnd — so by the
+      // time we get here the incoming FaqComponent has already registered and
+      // the outgoing one has already cleared. One write, no stale node.
+      this.page.set({
+        url: currentFullUrl,
+        routerUrl: url,
+        lang,
+        title: pageTitle,
+        description: metaDesc,
+        tool,
+        isHome: url === '/pt' || url === '/en',
+        features: data['seoFeatures'] ?? [],
+      });
+      this.writeJsonLd();
     });
   }
 
@@ -191,7 +157,44 @@ export class SeoService {
     link.setAttribute('href', href);
   }
 
-  private updateJsonLdSchema(title: string, description: string, url: string, lang: string): void {
+  /**
+   * Removing rather than leaving them: these tags persist across navigations in
+   * an SPA, so a page with no known twin would otherwise inherit the previous
+   * page's alternates and claim to be its translation.
+   */
+  private removeHreflangTags(): void {
+    this.doc.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
+  }
+
+  /**
+   * Called by FaqComponent with the Q&A it just rendered.
+   *
+   * The flow is inverted on purpose. SeoService is root-provided, so importing
+   * `tool-content.ts` from here would drag ~40 KB of copy into the INITIAL
+   * bundle; letting the component push it keeps that file in a lazy chunk. It
+   * also makes divergence impossible: the thing that renders is the thing that
+   * registers, so the FAQPage node cannot describe questions the page does not
+   * show.
+   *
+   * `forUrl` is belt and braces — a missed ngOnDestroy still cannot leak one
+   * page's FAQ into another page's markup.
+   */
+  setVisibleFaq(entries: readonly FaqEntry[], forUrl: string): void {
+    this.visibleFaq.set({ url: forUrl, entries });
+    this.writeJsonLd();
+  }
+
+  clearVisibleFaq(): void {
+    this.visibleFaq.set(null);
+  }
+
+  private writeJsonLd(): void {
+    const page = this.page();
+    if (!page) return;
+
+    const registered = this.visibleFaq();
+    const faq = registered && registered.url === page.routerUrl ? registered.entries : [];
+
     let script: HTMLScriptElement | null = this.doc.querySelector('script[type="application/ld+json"]#seo-jsonld');
     if (!script) {
       script = this.doc.createElement('script');
@@ -200,141 +203,18 @@ export class SeoService {
       this.doc.head.appendChild(script);
     }
 
-    const schema = {
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'WebSite',
-          '@id': `${DOMAIN}/#website`,
-          'url': DOMAIN,
-          'name': 'Nada Sai',
-          'description': lang === 'en' ? 'Offline browser-based image & PDF tools' : 'Ferramentas de imagem e PDF 100% offline no navegador',
-          'inLanguage': lang === 'en' ? 'en-US' : 'pt-BR'
-        },
-        {
-          '@type': 'SoftwareApplication',
-          '@id': `${DOMAIN}/#application`,
-          'name': 'Nada Sai',
-          'operatingSystem': 'Any (Browser-based)',
-          'applicationCategory': 'MultimediaApplication',
-          'offers': {
-            '@type': 'Offer',
-            'price': '0',
-            'priceCurrency': 'USD'
-          },
-          'description': description,
-          'featureList': [
-            'Remove Background',
-            'Crop Images',
-            'Compress Images & PDFs',
-            'Convert Formats',
-            'PDF Editor',
-            'Merge PDFs',
-            'Split PDFs',
-            'Sign PDFs',
-            'Watermark PDFs',
-            'Protect PDFs'
-          ]
-        },
-        {
-          '@type': 'WebPage',
-          '@id': `${url}#webpage`,
-          'url': url,
-          'name': title,
-          'description': description,
-          'isPartOf': { '@id': `${DOMAIN}/#website` },
-          'inLanguage': lang === 'en' ? 'en-US' : 'pt-BR'
-        },
-        {
-          '@type': 'FAQPage',
-          '@id': `${url}#faq`,
-          'mainEntity': lang === 'en' ? [
-            {
-              '@type': 'Question',
-              'name': 'How does Nada Sai edit PDFs and remove backgrounds without server uploads?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Nada Sai leverages modern browser APIs, WebAssembly, Web Workers, and local WebGPU/TensorFlow models. All processing for your images and PDF documents executes directly inside your device memory and CPU — zero bytes of your content are ever sent over the internet.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'Is it safe to process confidential business documents or personal photos?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Yes, 100% secure. Because no file data is ever transmitted across the network to external servers, your sensitive files never leave your device. You can even disconnect your Wi-Fi and continue editing offline.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'Are all image and PDF tools free to use?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Yes! All PDF editing tools (merge, split, compress, sign, watermark, edit text) and image tools (background removal, crop, convert, resize) are completely free with no daily caps or mandatory accounts.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'How do I merge or compress PDFs without losing quality?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Our native vector PDF engine merges pages while retaining exact original fonts, vector curves, and raster layers, optimizing file size without blurring text.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'Can I use Nada Sai offline without an internet connection?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Yes! Once loaded in your browser, the application assets and local AI models are cached locally. You can turn off your internet connection and keep using all tools.'
-              }
-            }
-          ] : [
-            {
-              '@type': 'Question',
-              'name': 'Como o Nada Sai edita PDFs e remove fundo sem enviar arquivos para servidores?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'O Nada Sai utiliza recursos modernos do navegador, como WebAssembly, Web Workers e modelos locais de IA (WebGPU/TensorFlow). Todo o processamento dos seus documentos e imagens roda diretamente na memória e no processador do seu próprio dispositivo — nenhum byte é enviado para a internet.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'É seguro editar documentos confidenciais ou fotos pessoais no Nada Sai?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Sim, 100% seguro. Como nenhum dado de arquivo é transmitido para servidores externos, seus arquivos sigilosos nunca saem do seu computador. Você pode inclusive usar as ferramentas com o Wi-Fi desligado.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'As ferramentas do Nada Sai são totalmente gratuitas?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Sim! Todas as ferramentas de edição de PDF (juntar, dividir, comprimir, assinar, marca d\'água, editar texto) e ferramentas de imagem (remover fundo, cortar, converter) são gratuitas, sem limite diário e sem cadastro.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'Como juntar ou comprimir PDFs mantendo a qualidade original?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Nosso motor vetorial nativo combina as páginas preservando fontes originais, curvas e imagens, otimizando o tamanho do arquivo sem embaçar os textos.'
-              }
-            },
-            {
-              '@type': 'Question',
-              'name': 'Posso usar o Nada Sai offline sem conexão com a internet?',
-              'acceptedAnswer': {
-                '@type': 'Answer',
-                'text': 'Sim! Após carregar a página pela primeira vez, a aplicação e os modelos locais de IA ficam salvos no seu navegador. Você pode desligar a internet e continuar utilizando todas as ferramentas normalmente.'
-              }
-            }
-          ]
-        }
-      ]
-    };
-
-    script.textContent = JSON.stringify(schema);
+    script.textContent = JSON.stringify(
+      buildGraph({
+        url: page.url,
+        lang: page.lang,
+        title: page.title,
+        description: page.description,
+        tool: page.tool,
+        isHome: page.isHome,
+        dict: this.i18n.t(),
+        faq,
+        features: page.features,
+      }),
+    );
   }
 }

@@ -11,11 +11,13 @@
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="theme-color" content="#ffffff">
 
-  <!-- Canonical & Language Alternates -->
-  <link rel="canonical" href="https://nadasai.com/pt">
-  <link rel="alternate" hreflang="pt" href="https://nadasai.com/pt">
-  <link rel="alternate" hreflang="en" href="https://nadasai.com/en">
-  <link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt">
+  <!-- Canonical & hreflang are deliberately NOT here.
+       This file is served verbatim for every URL (SPA fallback), so a canonical
+       hardcoded to /pt told every crawler that all 72 tool pages were duplicates
+       of the home page — and Bing and the LLM crawlers never run the JS that
+       would have corrected it. SeoService sets both per route after hydration,
+       and the prerendered HTML carries the right ones per file. No canonical is
+       far better than a wrong one. -->
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:site_name" content="Nada Sai">

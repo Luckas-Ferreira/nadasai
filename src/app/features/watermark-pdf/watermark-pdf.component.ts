@@ -119,7 +119,7 @@ export class WatermarkPdfComponent {
       if (msgKey === 'error.pdf_encrypted') {
         this.pdfProtected.set(true);
         if (password) {
-          this.passwordError.set('Senha incorreta. Tente novamente.');
+          this.passwordError.set(this.i18n.t()['pdf.wrong_password']);
         }
       } else {
         this.errorKey.set(msgKey);

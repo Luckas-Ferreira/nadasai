@@ -19,6 +19,23 @@ export type ErrorCode =
   | 'audio_empty_selection'
   | 'audio_needs_two'
   | 'audio_rate_mismatch'
+  // A wrong password and a corrupted file are cryptographically INDISTINGUISHABLE:
+  // AES-GCM's authentication tag is a single yes/no, and SubtleCrypto.decrypt throws
+  // the same bare OperationError for a wrong key and for a flipped ciphertext bit.
+  // Do not invent a distinction that does not exist. What IS distinguishable happens
+  // before the decrypt call, and that is the whole point of the split below:
+  // a header that does not parse is `bad_envelope`, a header that parses and then
+  // fails the tag is `decrypt_failed` (worded to name both possible causes).
+  | 'crypto_unsupported'
+  | 'crypto_too_large'
+  | 'crypto_bad_envelope'
+  | 'crypto_decrypt_failed'
+  | 'exif_unsupported'
+  | 'exif_malformed'
+  | 'hash_too_large'
+  | 'text_too_large'
+  | 'pdf_no_pages'
+  | 'pdf_no_regions'
   | 'generic';
 
 /**
@@ -53,6 +70,16 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   audio_empty_selection: 'error.audio_empty_selection',
   audio_needs_two: 'error.audio_needs_two',
   audio_rate_mismatch: 'error.audio_rate_mismatch',
+  crypto_unsupported: 'error.crypto_unsupported',
+  crypto_too_large: 'error.crypto_too_large',
+  crypto_bad_envelope: 'error.crypto_bad_envelope',
+  crypto_decrypt_failed: 'error.crypto_decrypt_failed',
+  exif_unsupported: 'error.exif_unsupported',
+  exif_malformed: 'error.exif_malformed',
+  hash_too_large: 'error.hash_too_large',
+  text_too_large: 'error.text_too_large',
+  pdf_no_pages: 'error.pdf_no_pages',
+  pdf_no_regions: 'error.pdf_no_regions',
   generic: 'error.generic',
 };
 

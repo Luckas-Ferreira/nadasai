@@ -1,0 +1,124 @@
+<app-tool-page [toolId]="'redact-pdf'" [forceLoaded]="!!file() || !!pendingFile()">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE -->
+  <div stage>
+    @if (pendingFile(); as pending) {
+      <app-pdf-password-prompt
+        [fileName]="pending.name"
+        [errorMsg]="passwordError()"
+        (unlock)="unlock($event)"
+        (cancel)="reset()"
+      />
+    } @else if (!file()) {
+      <app-dropzone
+        [accept]="'application/pdf'"
+        [titleKey]="'redactpdf.drag'"
+        [hintKey]="'redactpdf.drag_hint'"
+        (fileSelected)="onFileSelected($event)"
+      />
+    } @else {
+      <!-- A document you read: grey surround, white sheet, shadow-page. -->
+      <div class="rounded-xl border border-doc-stage-line bg-doc-stage p-5">
+        <div class="mx-auto w-fit">
+          <div class="relative inline-block rounded-md bg-white shadow-page">
+            @if (pageUrl(); as url) {
+              <img [src]="url" [alt]="'page ' + currentPage()" class="block max-h-[60vh] w-auto rounded-md select-none" draggable="false" />
+            } @else {
+              <div class="flex h-[50vh] w-[380px] items-center justify-center">
+                <span class="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent"></span>
+              </div>
+            }
+            <app-region-overlay
+              [regions]="regions()"
+              [page]="currentPage()"
+              [mode]="mode()"
+              (regionAdded)="addRegion($event)"
+              (regionRemoved)="removeRegion($event)"
+            />
+          </div>
+        </div>
+
+        @if (pageCount() > 1) {
+          <div class="mt-4 flex items-center justify-center gap-3">
+            <button type="button" appButton variant="secondary" size="sm"
+              [disabled]="currentPage() === 1" (click)="goTo(currentPage() - 1)">
+              <app-icon name="chevronLeft" [size]="14" />
+            </button>
+            <span class="font-mono text-xs tabular text-muted">
+              {{ currentPage() }} / {{ pageCount() }}
+            </span>
+            <button type="button" appButton variant="secondary" size="sm"
+              [disabled]="currentPage() === pageCount()" (click)="goTo(currentPage() + 1)">
+              <app-icon name="chevronRight" [size]="14" />
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['redact.panel_title']">
+        <div class="space-y-4">
+          <app-segmented [options]="modeOptions()" [value]="mode()" (valueChange)="mode.set($event)" />
+
+          @if (mode() === 'black') {
+            <p class="rounded-md border border-success-line bg-success-soft px-3 py-2 text-xs text-success">
+              {{ i18n.t()['redact.black_is_final'] }}
+            </p>
+          } @else {
+            <p class="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-xs text-warning">
+              {{ i18n.t()['redact.pixelate_warning'] }}
+            </p>
+          }
+
+          <p class="text-xs text-muted">{{ i18n.t()['redactpdf.hint'] }}</p>
+
+          <div class="flex items-center justify-between border-t border-line pt-3 text-xs">
+            <span class="text-muted">{{ i18n.t()['redact.boxes_count'] }}</span>
+            <span class="font-mono tabular text-text">{{ regions().length }}</span>
+          </div>
+
+          @if (regions().length > 0) {
+            <button type="button" appButton variant="ghost" size="sm" block (click)="clearRegions()">
+              {{ i18n.t()['redact.clear'] }}
+            </button>
+          }
+        </div>
+      </app-panel>
+
+      <!-- The cost, stated where the decision is made rather than in a comment. -->
+      <p class="rounded-md border border-line bg-raised px-3 py-2.5 text-xs text-muted">
+        {{ i18n.t()['redactpdf.raster_note'] }}
+      </p>
+
+      @if (busy() && progress(); as p) {
+        <div class="space-y-1.5">
+          <div class="h-1.5 w-full overflow-hidden rounded-full border border-line bg-surface">
+            <div class="h-full bg-accent transition-all duration-150" [style.width.%]="p.percent"></div>
+          </div>
+          <p class="text-center font-mono text-2xs tabular text-faint">{{ p.done }} / {{ p.total }}</p>
+        </div>
+      }
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['redactpdf.btn_redact'] : null"
+        [primaryDisabled]="regions().length === 0"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+
+</app-tool-page>

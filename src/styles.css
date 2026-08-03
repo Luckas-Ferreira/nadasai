@@ -117,6 +117,9 @@
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-success-line: var(--success-line);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-line: var(--warning-line);
 
   --font-sans: "Nunito", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
@@ -219,6 +222,16 @@
   --success: #15803d;       /* green-700 */
   --success-soft: #f0fdf4;
   --success-line: #15803d33;
+
+  /* The middle band. Three components reached for `amber-500` before this existed
+     (the two password-strength meters and the PDF password prompt) and got NOTHING:
+     `--color-*: initial` above deletes Tailwind's amber ramp, so `bg-amber-500`
+     generates no CSS and the bar rendered transparent at exactly the level it was
+     meant to warn about. amber-700, not amber-500, for the same reason the tone
+     foregrounds are dark: this carries text at AAA on white. */
+  --warning: #b45309;       /* amber-700 */
+  --warning-soft: #fffbeb;
+  --warning-line: #b4530933;
 
   /* Per-tool tones on light: high-contrast foregrounds for WCAG AAA compliance */
   --tone-violet-fg: #6d28d9;  --tone-violet-bg: #ede9fe;

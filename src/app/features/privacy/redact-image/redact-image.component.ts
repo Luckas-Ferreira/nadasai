@@ -1,294 +1,124 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TranslationService } from '../../../core/services/translation.service';
-import { toolById } from '../../../core/tools/tools';
+import type { TranslationKey } from '../../../core/services/translation.service';
+import { toMessageKey } from '../../../core/errors';
+import type { RedactMode, Region } from '../../../core/geometry/region';
+import { ObjectUrlScope } from '../../../core/image/object-url';
+import { saveBlob } from '../../../core/image/download';
+import { ImageRedactorService, type RedactImageOutcome } from './services/image-redactor.service';
 import { ToolPageComponent } from '../../../shared/ui/tool-page.component';
 import { DropzoneComponent } from '../../../shared/ui/dropzone.component';
 import { PanelComponent } from '../../../shared/ui/panel.component';
-import { ButtonDirective } from '../../../shared/ui/button.directive';
+import { AlertComponent } from '../../../shared/ui/alert.component';
+import { ActionBarComponent } from '../../../shared/ui/action-bar.component';
+import { RegionOverlayComponent } from '../../../shared/ui/region-overlay.component';
 import { SegmentedComponent, type SegmentOption } from '../../../shared/ui/segmented.component';
+import { ButtonDirective } from '../../../shared/ui/button.directive';
 import { IconComponent } from '../../../shared/ui/icon/icon.component';
-import { saveBlob } from '../../../core/image/download';
-
-interface RedactBox {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  mode: 'black' | 'blur';
-}
 
 @Component({
   selector: 'app-redact-image',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ObjectUrlScope],
   imports: [
-    FormsModule,
     ToolPageComponent,
     DropzoneComponent,
     PanelComponent,
-    ButtonDirective,
+    AlertComponent,
+    ActionBarComponent,
+    RegionOverlayComponent,
     SegmentedComponent,
+    ButtonDirective,
     IconComponent,
   ],
-  template: `
-    <app-tool-page [toolId]="'redact-image'" [forceLoaded]="!!selectedFile()">
-
-      <!-- STAGE: dropzone or canvas -->
-      <div stage>
-        @if (!selectedFile()) {
-          <app-dropzone
-            [accept]="'image/jpeg,image/png,image/webp'"
-            [titleKey]="'redact.drag'"
-            [hintKey]="'redact.drag_hint'"
-            (fileSelected)="onFileSelected($event)"
-          />
-        } @else {
-          <!-- Canvas area -->
-          <div class="overflow-hidden rounded-xl border border-line bg-raised">
-            <!-- Hint bar -->
-            <div class="flex items-center gap-2 border-b border-line bg-surface px-4 py-2.5 text-xs text-muted">
-              <app-icon name="brush" [size]="14" class="text-faint" />
-              <span>{{ i18n.t()['redact.hint'] }}</span>
-            </div>
-
-            <div class="flex justify-center overflow-auto p-4">
-              <canvas
-                #canvas
-                (mousedown)="startDrag($event)"
-                (mousemove)="onDrag($event)"
-                (mouseup)="endDrag()"
-                (touchstart)="startDragTouch($event)"
-                (touchmove)="onDragTouch($event)"
-                (touchend)="endDrag()"
-                class="max-w-full cursor-crosshair rounded-md border border-line shadow-panel"
-              ></canvas>
-            </div>
-          </div>
-        }
-      </div>
-
-      <!-- PANEL: controls -->
-      <div panel class="flex flex-col gap-4">
-        @if (selectedFile()) {
-          <app-panel [heading]="i18n.t()['redact.mode_black']">
-            <div class="space-y-4">
-              <!-- Mode selector -->
-              <app-segmented [options]="modeOptions" [(value)]="mode" />
-
-              <!-- Boxes counter -->
-              <div class="flex items-center justify-between rounded-md border border-line bg-raised px-3 py-2 text-sm">
-                <span class="text-muted">{{ i18n.t()['redact.boxes_count'] }}</span>
-                <span class="font-mono font-bold text-accent">{{ boxes().length }}</span>
-              </div>
-
-              <!-- Undo / Clear -->
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  appButton
-                  variant="secondary"
-                  size="md"
-                  class="flex-1"
-                  (click)="undoBox()"
-                  [disabled]="boxes().length === 0"
-                >
-                  <app-icon name="undo" [size]="14" />
-                  {{ i18n.t()['redact.undo'] }}
-                </button>
-                <button
-                  type="button"
-                  appButton
-                  variant="ghost"
-                  size="md"
-                  class="flex-1"
-                  (click)="clearAll()"
-                  [disabled]="boxes().length === 0"
-                >
-                  {{ i18n.t()['redact.clear'] }}
-                </button>
-              </div>
-
-              <!-- Export -->
-              <button
-                type="button"
-                appButton
-                variant="primary"
-                size="lg"
-                block
-                (click)="exportImage()"
-              >
-                <app-icon name="download" [size]="16" />
-                <span>{{ i18n.t()['redact.btn_export'] }}</span>
-              </button>
-            </div>
-          </app-panel>
-
-          <div class="mt-1 flex justify-center border-t border-line pt-2">
-            <button appButton variant="ghost" size="sm" (click)="reset()">
-              {{ i18n.t()['common.reset'] }}
-            </button>
-          </div>
-        }
-      </div>
-
-    </app-tool-page>
-  `,
+  templateUrl: './redact-image.component.html',
 })
 export class RedactImageComponent {
-  @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
-
   protected readonly i18n = inject(TranslationService);
-  protected readonly tool = toolById('redact-image');
+  private readonly redactor = inject(ImageRedactorService);
+  private readonly urls = inject(ObjectUrlScope);
 
-  protected readonly selectedFile = signal<File | null>(null);
-  protected readonly mode = signal<'black' | 'blur'>('black');
-  protected readonly modeOptions: readonly SegmentOption<'black' | 'blur'>[] = [
-    { value: 'black', label: 'Tarja Preta' },
-    { value: 'blur', label: 'Blur' },
-  ];
+  protected readonly file = signal<File | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly regions = signal<readonly Region[]>([]);
+  /** Black is the default because it is the only mode that is a guarantee. */
+  protected readonly mode = signal<RedactMode>('black');
 
-  protected readonly boxes = signal<RedactBox[]>([]);
+  protected readonly busy = signal(false);
+  protected readonly errorKey = signal<TranslationKey | null>(null);
+  protected readonly result = signal<RedactImageOutcome | null>(null);
 
-  private imgElement: HTMLImageElement | null = null;
-  private isDragging = false;
-  private startX = 0;
-  private startY = 0;
-  private currentX = 0;
-  private currentY = 0;
+  private readonly ranRegions = signal<readonly Region[] | null>(null);
 
-  protected async onFileSelected(f: File): Promise<void> {
-    this.selectedFile.set(f);
-    this.boxes.set([]);
-    const img = new Image();
-    img.src = URL.createObjectURL(f);
-    await new Promise((resolve) => (img.onload = resolve));
-    this.imgElement = img;
-    setTimeout(() => this.redrawCanvas(), 50);
+  protected readonly modeOptions = computed<readonly SegmentOption<RedactMode>[]>(() => [
+    { value: 'black', label: this.i18n.t()['redact.mode_black'] },
+    { value: 'pixelate', label: this.i18n.t()['redact.mode_blur'] },
+  ]);
+
+  /** Moving or adding a box has to bring the export button back. */
+  protected readonly stale = computed(() => !this.result() || this.regions() !== this.ranRegions());
+
+  protected onFileSelected(file: File): void {
+    this.file.set(file);
+    // Was a raw createObjectURL that leaked one URL per file for the tab's
+    // lifetime — reset() did not even revoke it.
+    this.previewUrl.set(this.urls.replace(this.previewUrl(), file));
+    this.regions.set([]);
+    this.result.set(null);
+    this.errorKey.set(null);
   }
 
-  protected startDrag(e: MouseEvent): void {
-    if (!this.canvasRef) return;
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    const scaleX = this.canvasRef.nativeElement.width / rect.width;
-    const scaleY = this.canvasRef.nativeElement.height / rect.height;
-    this.isDragging = true;
-    this.startX = (e.clientX - rect.left) * scaleX;
-    this.startY = (e.clientY - rect.top) * scaleY;
-    this.currentX = this.startX;
-    this.currentY = this.startY;
+  protected addRegion(region: Region): void {
+    this.regions.update((list) => [...list, region]);
+    this.result.set(null);
   }
 
-  protected startDragTouch(e: TouchEvent): void {
-    e.preventDefault();
-    if (!this.canvasRef || !e.touches[0]) return;
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    const scaleX = this.canvasRef.nativeElement.width / rect.width;
-    const scaleY = this.canvasRef.nativeElement.height / rect.height;
-    this.isDragging = true;
-    this.startX = (e.touches[0].clientX - rect.left) * scaleX;
-    this.startY = (e.touches[0].clientY - rect.top) * scaleY;
-    this.currentX = this.startX;
-    this.currentY = this.startY;
+  protected removeRegion(id: string): void {
+    this.regions.update((list) => list.filter((r) => r.id !== id));
+    this.result.set(null);
   }
 
-  protected onDrag(e: MouseEvent): void {
-    if (!this.isDragging || !this.canvasRef) return;
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    const scaleX = this.canvasRef.nativeElement.width / rect.width;
-    const scaleY = this.canvasRef.nativeElement.height / rect.height;
-    this.currentX = (e.clientX - rect.left) * scaleX;
-    this.currentY = (e.clientY - rect.top) * scaleY;
-    this.redrawCanvas();
+  protected undo(): void {
+    this.regions.update((list) => list.slice(0, -1));
+    this.result.set(null);
   }
 
-  protected onDragTouch(e: TouchEvent): void {
-    e.preventDefault();
-    if (!this.isDragging || !this.canvasRef || !e.touches[0]) return;
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    const scaleX = this.canvasRef.nativeElement.width / rect.width;
-    const scaleY = this.canvasRef.nativeElement.height / rect.height;
-    this.currentX = (e.touches[0].clientX - rect.left) * scaleX;
-    this.currentY = (e.touches[0].clientY - rect.top) * scaleY;
-    this.redrawCanvas();
+  protected clearRegions(): void {
+    this.regions.set([]);
+    this.result.set(null);
   }
 
-  protected endDrag(): void {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-    const x = Math.min(this.startX, this.currentX);
-    const y = Math.min(this.startY, this.currentY);
-    const w = Math.abs(this.currentX - this.startX);
-    const h = Math.abs(this.currentY - this.startY);
-    if (w > 5 && h > 5) {
-      this.boxes.update((b) => [...b, { x, y, w, h, mode: this.mode() }]);
-    }
-    this.redrawCanvas();
-  }
+  protected async run(): Promise<void> {
+    const file = this.file();
+    const regions = this.regions();
+    if (!file || regions.length === 0 || this.busy()) return;
 
-  private redrawCanvas(): void {
-    if (!this.canvasRef || !this.imgElement) return;
-    const canvas = this.canvasRef.nativeElement;
-    canvas.width = this.imgElement.naturalWidth;
-    canvas.height = this.imgElement.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.drawImage(this.imgElement, 0, 0);
-
-    for (const b of this.boxes()) {
-      if (b.mode === 'black') {
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(b.x, b.y, b.w, b.h);
-      } else {
-        const sampleSize = 12;
-        const subW = Math.max(1, Math.floor(b.w / sampleSize));
-        const subH = Math.max(1, Math.floor(b.h / sampleSize));
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = subW;
-        offCanvas.height = subH;
-        const offCtx = offCanvas.getContext('2d');
-        if (offCtx) {
-          offCtx.drawImage(canvas, b.x, b.y, b.w, b.h, 0, 0, subW, subH);
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(offCanvas, 0, 0, subW, subH, b.x, b.y, b.w, b.h);
-        }
-      }
-    }
-
-    if (this.isDragging) {
-      const x = Math.min(this.startX, this.currentX);
-      const y = Math.min(this.startY, this.currentY);
-      const w = Math.abs(this.currentX - this.startX);
-      const h = Math.abs(this.currentY - this.startY);
-      ctx.strokeStyle = 'rgba(99,102,241,0.9)';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([6, 3]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.setLineDash([]);
+    this.busy.set(true);
+    this.errorKey.set(null);
+    try {
+      this.result.set(await this.redactor.redact({ file, regions }));
+      this.ranRegions.set(regions);
+    } catch (err) {
+      // There was no try/catch here at all before.
+      this.errorKey.set(toMessageKey(err));
+    } finally {
+      this.busy.set(false);
     }
   }
 
-  protected undoBox(): void {
-    this.boxes.update((b) => b.slice(0, -1));
-    this.redrawCanvas();
-  }
-
-  protected clearAll(): void {
-    this.boxes.set([]);
-    this.redrawCanvas();
-  }
-
-  protected async exportImage(): Promise<void> {
-    if (!this.canvasRef || !this.selectedFile()) return;
-    const canvas = this.canvasRef.nativeElement;
-    const f = this.selectedFile()!;
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, f.type || 'image/png'));
-    if (blob) saveBlob(blob, f.name.replace(/(\.[^.]+)$/, '-redacted$1'));
+  protected download(): void {
+    const r = this.result();
+    if (r) saveBlob(r.blob, r.filename);
   }
 
   protected reset(): void {
-    this.selectedFile.set(null);
-    this.boxes.set([]);
-    this.imgElement = null;
+    this.urls.revoke(this.previewUrl());
+    this.previewUrl.set(null);
+    this.file.set(null);
+    this.regions.set([]);
+    this.result.set(null);
+    this.ranRegions.set(null);
+    this.errorKey.set(null);
   }
 }

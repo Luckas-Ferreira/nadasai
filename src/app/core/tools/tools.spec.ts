@@ -27,6 +27,25 @@ describe('tools registry', () => {
     expect(total).toBe(TOOLS.length);
   });
 
+  /**
+   * `core/seo/route-map.ts` derives the hreflang map by registering each tool
+   * under both spellings. A duplicated path would silently overwrite another
+   * tool's entry there, so uniqueness is the invariant that derivation rests on.
+   */
+  it('has unique paths in both languages', () => {
+    const pt = TOOLS.map((t) => t.pathPt);
+    const en = TOOLS.map((t) => t.pathEn);
+    expect(new Set(pt).size).toBe(pt.length);
+    expect(new Set(en).size).toBe(en.length);
+    // And no PT path may collide with an EN one, for the same reason.
+    expect(new Set([...pt, ...en]).size).toBe(pt.length + en.length);
+  });
+
+  it('has unique tool ids', () => {
+    const ids = TOOLS.map((t) => t.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('resolves a tool from either language, and nothing from the home', () => {
     expect(toolFromUrl('/pt/imagem/cortar')?.id).toBe('crop');
     expect(toolFromUrl('/en/image/crop')?.id).toBe('crop');

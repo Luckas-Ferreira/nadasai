@@ -1,0 +1,98 @@
+<app-tool-page [toolId]="'clean-pdf-metadata'" [forceLoaded]="!!file()">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE -->
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'application/pdf'"
+        [titleKey]="'cleanpdf.drag'"
+        [hintKey]="'cleanpdf.drag_hint'"
+        (fileSelected)="onFileSelected($event)"
+      />
+    } @else {
+      <!-- A document you read, so the grey surround with a white sheet — not
+           the dark image stage. -->
+      <div class="rounded-xl border border-line bg-doc-stage p-5">
+        <div class="mx-auto max-w-xl space-y-4 rounded-md bg-white p-6 shadow-page">
+          <div class="flex items-center gap-3 border-b border-line pb-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-raised text-accent">
+              <app-icon name="doc" [size]="22" />
+            </span>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-text">{{ file()?.name }}</p>
+              <p class="font-mono text-xs tabular text-faint">
+                {{ formatBytes(file()?.size ?? 0) }}
+                @if (report(); as r) { · {{ r.pageCount }} {{ i18n.t()['cleanpdf.pages'] }} }
+              </p>
+            </div>
+          </div>
+
+          @if (report(); as r) {
+            @if (findings().length > 0) {
+              <dl class="space-y-2">
+                @for (item of findings(); track item.label) {
+                  <div class="flex items-start justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0">
+                    <dt class="shrink-0 text-xs text-muted">{{ item.label }}</dt>
+                    <dd class="min-w-0 break-words text-right font-mono text-xs text-text">{{ item.value }}</dd>
+                  </div>
+                }
+              </dl>
+
+              @if (r.xmpSample; as sample) {
+                <details class="rounded-md border border-line bg-raised p-3">
+                  <summary class="cursor-pointer text-xs font-medium text-text">
+                    {{ i18n.t()['cleanpdf.show_xmp'] }}
+                  </summary>
+                  <pre class="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-all font-mono text-2xs text-muted">{{ sample }}</pre>
+                </details>
+              }
+            } @else {
+              <p class="text-xs text-muted">{{ i18n.t()['cleanpdf.nothing_found'] }}</p>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['cleanpdf.what_to_remove']">
+        <div class="space-y-2 text-xs">
+          @for (opt of options; track opt.key) {
+            <label class="flex cursor-pointer items-center gap-2.5 rounded-md border border-line bg-raised p-3">
+              <input type="checkbox" [ngModel]="opt.value()" (ngModelChange)="opt.set($event)"
+                class="h-4 w-4 rounded accent-accent" />
+              <span class="text-text">{{ i18n.t()[opt.key] }}</span>
+            </label>
+          }
+
+          <p class="pt-1 text-faint">{{ i18n.t()['cleanpdf.limits_note'] }}</p>
+        </div>
+      </app-panel>
+
+      @if (result(); as r) {
+        <div class="rounded-md border border-success-line bg-success-soft px-3 py-2.5 text-xs text-success">
+          {{ i18n.t()['cleanpdf.done'] }}
+        </div>
+      }
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['cleanpdf.btn_clean'] : null"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+
+</app-tool-page>
