@@ -3,10 +3,12 @@ import { join } from 'node:path';
 
 export const PHOTO = join(__dirname, 'fixtures', 'assets', 'photo.png');
 export const PHOTO_TALL = join(__dirname, 'fixtures', 'assets', 'photo-tall.png');
+export const PHOTO_META = join(__dirname, 'fixtures', 'assets', 'photo-meta.png');
 export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 
 export const DOC_A = join(__dirname, 'fixtures', 'assets', 'doc-a.pdf');
 export const DOC_B = join(__dirname, 'fixtures', 'assets', 'doc-b.pdf');
+export const DOC_META = join(__dirname, 'fixtures', 'assets', 'doc-meta.pdf');
 export const SCAN = join(__dirname, 'fixtures', 'assets', 'scan.pdf');
 export const CLIP = join(__dirname, 'fixtures', 'assets', 'clip.wav');
 export const CLIP_B = join(__dirname, 'fixtures', 'assets', 'clip-b.wav');
@@ -54,3 +56,38 @@ export async function expectDownload(page: Page, namePattern: RegExp): Promise<s
 }
 
 export const primary = (page: Page, label: string) => page.getByRole('button', { name: label, exact: true });
+
+/**
+ * Drag a redaction box across `app-region-overlay`, in fractions of the overlay
+ * itself — the component maps pointer coordinates to percentages of its own box,
+ * so the spec must not care how large the page or the photo rendered.
+ *
+ * Two intermediate moves rather than one: the overlay only builds a draft on
+ * pointermove, and a down-then-up with no move in between is the degenerate
+ * "click that wobbled" case it deliberately discards.
+ */
+export async function drawRegion(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+): Promise<void> {
+  // Raw mouse events skip Playwright's actionability checks, so nothing here
+  // waits for the splash screen to finish fading — and while it is up it sits on
+  // top of the page and swallows every pointerdown. A locator click would have
+  // retried past it; this cannot, so it waits explicitly.
+  await page.locator('.splash-overlay').waitFor({ state: 'detached', timeout: 15_000 }).catch(() => {});
+
+  const overlay = page.locator('app-region-overlay > div');
+  const box = await overlay.boundingBox();
+  if (!box) throw new Error('region overlay is not laid out');
+
+  const at = (f: { x: number; y: number }) => ({ x: box.x + box.width * f.x, y: box.y + box.height * f.y });
+  const start = at(from);
+  const end = at(to);
+
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move((start.x + end.x) / 2, (start.y + end.y) / 2);
+  await page.mouse.move(end.x, end.y);
+  await page.mouse.up();
+}

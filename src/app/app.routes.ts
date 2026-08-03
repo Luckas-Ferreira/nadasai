@@ -46,35 +46,32 @@ export const routes: Routes = [
         title: 'Nada Sai — seus arquivos não saem do seu computador',
         loadComponent: () => import('./features/hero/hero.component').then((m) => m.HeroComponent),
         data: {
-          metaDescription: 'Ferramentas gratuitas para editar imagens e PDFs 100% offline no seu navegador. Privacidade total, sem envio de dados para servidores.',
+          metaDescription: 'Ferramentas gratuitas de imagem, PDF, áudio e privacidade que rodam 100% offline no seu navegador. Sem cadastro, sem marca d\'água e sem enviar arquivo nenhum.',
           metaKeywords: 'editar imagem, editar pdf, remover fundo, offline, privacidade, ferramentas de imagem'
         }
       },
       {
         path: 'imagem/remover-fundo',
-        title: 'Remover fundo — Nada Sai',
+        title: 'Remover Fundo de Imagem Online Grátis — Nada Sai',
         loadComponent: () => import('./features/remove-bg/remove-bg.component').then((m) => m.RemoveBgComponent),
         data: {
-          metaDescription: 'Remova o fundo de imagens automaticamente, grátis e offline. Suas fotos não são enviadas para nenhum servidor.',
-          metaKeywords: 'remover fundo, tirar fundo, apagar fundo de imagem, imagem sem fundo png'
+          metaDescription: 'Remova o fundo de fotos automaticamente com IA e baixe em PNG transparente. Sem cadastro, sem marca d\'água e sem limite diário — roda 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/melhorar-qualidade',
-        title: 'Melhorar Qualidade da Imagem — Nada Sai',
+        title: 'Melhorar Qualidade de Foto Online (2x e 4x) — Nada Sai',
         loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
         data: {
-          metaDescription: 'Aumente a resolução e melhore a nitidez de fotos em 2x e 4x com inteligência artificial 100% offline.',
-          metaKeywords: 'melhorar qualidade da foto, aumentar resolucao, upscale imagem, desembaçar foto'
+          metaDescription: 'Aumente a resolução e a nitidez de fotos em 2x ou 4x com IA, sem borrar o rosto nem inventar detalhe. Grátis, sem cadastro e 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/extrair-texto',
-        title: 'Extrair Texto de Imagem (OCR) — Nada Sai',
+        title: 'Extrair Texto de Imagem (OCR) Online — Nada Sai',
         loadComponent: () => import('./features/extract-text/extract-text.component').then((m) => m.ExtractTextComponent),
         data: {
-          metaDescription: 'Extraia e copie texto de fotos, recibos e documentos digitalizados 100% offline no seu navegador.',
-          metaKeywords: 'extrair texto de imagem, ocr online offline, copiar texto de foto, converter imagem em texto, leitor de recibos'
+          metaDescription: 'Copie o texto de fotos, prints, recibos e documentos digitalizados com OCR em português e inglês. Nenhuma imagem é enviada: 100% offline no seu navegador.'
         }
       },
       {
@@ -82,8 +79,7 @@ export const routes: Routes = [
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Corte músicas, áudios do WhatsApp e podcasts 100% offline no navegador: forma de onda, alças arrastáveis, tempos precisos e fade in/out.',
-          metaKeywords: 'cortar audio, aparar mp3, cortar musica online, editor de audio offline, toque de celular, recortar som, remover trecho de audio'
+          metaDescription: 'Corte músicas, áudios do WhatsApp e podcasts com forma de onda, alças arrastáveis, tempos precisos e fade in/out. Até 30 minutos, 100% offline no seu navegador.'
         }
       },
       {
@@ -91,231 +87,240 @@ export const routes: Routes = [
         title: 'Juntar Áudios e MP3 — Nada Sai',
         loadComponent: () => import('./features/merge-audio/merge-audio.component').then((m) => m.MergeAudioComponent),
         data: {
-          metaDescription: 'Junte vários áudios em um só arquivo 100% offline no navegador: arraste para reordenar, com crossfade, silêncio entre faixas e fade in/out.',
-          metaKeywords: 'juntar audio, unir audios, mesclar mp3, combinar musicas, emendar audio, crossfade, juntar audios do whatsapp'
+          metaDescription: 'Junte vários áudios em um só arquivo 100% offline no navegador: arraste para reordenar, com crossfade, silêncio entre faixas e fade in/out.'
         }
       },
       {
         path: 'audio/converter',
-        title: 'Converter Áudio e MP3 — Nada Sai',
+        title: 'Converter Áudio Online (MP3, WAV, OGG) — Nada Sai',
         loadComponent: () => import('./features/convert-audio/convert-audio.component').then((m) => m.ConvertAudioComponent),
         data: {
-          metaDescription: 'Converta arquivos de áudio (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline no seu navegador. Rápido, gratuito e seguro.',
-          metaKeywords: 'converter audio, mp3 para wav, wav para mp3, ogg para mp3, m4a para mp3, conversor de audio offline'
+          metaDescription: 'Converta entre MP3, WAV, OGG, M4A, AAC e FLAC sem instalar nada e sem fila de espera. Arquivos de até 100 MB, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'audio/comprimir',
-        title: 'Comprimir Áudio e MP3 — Nada Sai',
+        title: 'Comprimir Áudio e MP3 Online — Nada Sai',
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
-          metaDescription: 'Comprima arquivos de áudio MP3, WAV, OGG e M4A 100% offline no navegador. Reduza o tamanho sem instalar nada.',
-          metaKeywords: 'comprimir audio, reduzir tamanho mp3, comprimir mp3 online, compactar audio, mp3 menor, bitrate menor'
+          metaDescription: 'Reduza o tamanho de MP3, WAV, OGG e M4A escolhendo o bitrate, com o tamanho final estimado antes de baixar. Até 100 MB, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/cortar',
-        title: 'Cortar — Nada Sai',
+        title: 'Cortar Imagem Online (Proporção Livre) — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
         data: {
-          metaDescription: 'Corte imagens no formato que você precisar, diretamente no seu navegador. Rápido e 100% privado.',
-          metaKeywords: 'cortar imagem, recortar foto, ajustar tamanho de imagem, cropper online'
+          metaDescription: 'Corte fotos na proporção que precisar — livre, quadrado, 16:9 ou tamanho exato em pixels — com prévia em tempo real. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/comprimir',
-        title: 'Comprimir — Nada Sai',
+        title: 'Comprimir Imagem Online sem Perder Qualidade — Nada Sai',
         loadComponent: () => import('./features/compress/compress.component').then((m) => m.CompressComponent),
         data: {
-          metaDescription: 'Diminua o tamanho do arquivo das suas imagens sem perder muita qualidade. Otimize suas fotos 100% offline.',
-          metaKeywords: 'comprimir imagem, reduzir tamanho da foto, diminuir kb da imagem'
+          metaDescription: 'Reduza o tamanho de JPEG, PNG e WebP escolhendo a qualidade e vendo a economia em KB antes de baixar. Sem cadastro e sem limite, 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/converter',
-        title: 'Converter — Nada Sai',
+        title: 'Converter Imagem Online (PNG, JPG, WebP) — Nada Sai',
         loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
         data: {
-          metaDescription: 'Converta suas imagens para diferentes formatos (PNG, JPG, WebP) rapidamente e com total privacidade.',
-          metaKeywords: 'converter imagem, png para jpg, jpg para webp, conversor de imagens offline'
+          metaDescription: 'Converta entre PNG, JPEG, WebP, GIF e ICO em um clique, com controle de qualidade. AVIF entra como entrada. Grátis, sem cadastro e 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/redimensionar',
-        title: 'Redimensionar — Nada Sai',
+        title: 'Redimensionar Imagem Online (Pixels ou %) — Nada Sai',
         loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
         data: {
-          metaDescription: 'Mude a resolução (largura e altura) das suas imagens. Ferramenta grátis que roda no seu computador.',
-          metaKeywords: 'redimensionar imagem, mudar tamanho da foto, alterar resolução da imagem'
+          metaDescription: 'Mude a largura e a altura de uma foto por pixels ou porcentagem, mantendo a proporção se quiser. Sem cadastro, sem marca d\'água e 100% offline no seu navegador.'
         }
       },
       {
         path: 'imagem/para-pdf',
-        title: 'Imagens para PDF — Nada Sai',
+        title: 'Converter Imagem em PDF Online (Várias Fotos) — Nada Sai',
         loadComponent: () => import('./features/img-to-pdf/img-to-pdf.component').then((m) => m.ImgToPdfComponent),
         data: {
-          metaDescription: 'Junte várias imagens em um único PDF, na ordem que você quiser. Grátis, offline e sem enviar nada para servidores.',
-          metaKeywords: 'imagem para pdf, jpg para pdf, png para pdf, juntar imagens em pdf, converter fotos em pdf'
+          metaDescription: 'Junte várias fotos em um único PDF, arrastando para reordenar as páginas antes de gerar. JPEG, PNG, WebP e GIF, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/editar',
-        title: 'Editor de PDF — Nada Sai',
+        title: 'Editar PDF Online (Texto e OCR) — Nada Sai',
         loadComponent: () => import('./features/pdf/pdf.component').then((m) => m.PdfComponent),
         data: {
-          metaDescription: 'Edite seus arquivos PDF (juntar, reordenar, apagar páginas) 100% offline e com garantia de privacidade.',
-          metaKeywords: 'editar pdf, juntar pdf, manipular páginas de pdf, editor de pdf offline'
+          metaDescription: 'Edite o texto de um PDF direto no navegador, com OCR para documentos digitalizados. Nenhum arquivo é enviado para servidor: 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/juntar',
-        title: 'Juntar PDF — Nada Sai',
+        title: 'Juntar PDF Online (Vários Arquivos) — Nada Sai',
         loadComponent: () => import('./features/merge-pdf/merge-pdf.component').then((m) => m.MergePdfComponent),
         data: {
-          metaDescription: 'Junte vários PDFs em um só e organize as páginas na ordem que quiser. Grátis, offline e sem enviar nada para servidores.',
-          metaKeywords: 'juntar pdf, unir pdf, mesclar pdf, combinar pdf, organizar páginas de pdf'
+          metaDescription: 'Una vários PDFs em um só, arrastando para definir a ordem, sem perder fontes nem qualidade. Até 100 MB por arquivo, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/comprimir',
-        title: 'Comprimir PDF — Nada Sai',
+        title: 'Comprimir PDF Online sem Perder Qualidade — Nada Sai',
         loadComponent: () => import('./features/compress-pdf/compress-pdf.component').then((m) => m.CompressPdfComponent),
         data: {
-          metaDescription: 'Reduza o tamanho de arquivos PDF direto no navegador. Seu documento não sai do seu computador.',
-          metaKeywords: 'comprimir pdf, reduzir tamanho de pdf, diminuir pdf, compactar pdf'
+          metaDescription: 'Reduza o tamanho de um PDF em três níveis, vendo quanto economizou antes de baixar. O texto continua pesquisável. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/dividir',
-        title: 'Dividir PDF — Nada Sai',
+        title: 'Dividir PDF Online (Separar Páginas) — Nada Sai',
         loadComponent: () => import('./features/split-pdf/split-pdf.component').then((m) => m.SplitPdfComponent),
         data: {
-          metaDescription: 'Divida e extraia páginas de arquivos PDF 100% offline no seu navegador. Escolha intervalos ou selecione páginas.',
-          metaKeywords: 'dividir pdf, separar pdf, extrair paginas pdf, cortar pdf'
+          metaDescription: 'Separe um PDF por intervalos, a cada N páginas ou escolhendo página a página, baixando em ZIP ou num arquivo só. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/para-imagem',
-        title: 'PDF para Imagem — Nada Sai',
+        title: 'Converter PDF em Imagem Online (JPG e PNG) — Nada Sai',
         loadComponent: () => import('./features/pdf-to-img/pdf-to-img.component').then((m) => m.PdfToImgComponent),
         data: {
-          metaDescription: 'Converta páginas de PDF em imagens JPG, PNG ou WEBP 100% offline no seu navegador. Alta resolução e sem enviar nada.',
-          metaKeywords: 'pdf para imagem, converter pdf em jpg, pdf para png, transformar pdf em foto'
+          metaDescription: 'Transforme cada página de um PDF em JPG ou PNG na resolução que escolher, baixando tudo em ZIP. Até 100 MB, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/para-word',
-        title: 'PDF para Word — Nada Sai',
+        title: 'Converter PDF para Word (DOCX) Online — Nada Sai',
         loadComponent: () => import('./features/pdf-to-word/pdf-to-word.component').then((m) => m.PdfToWordComponent),
         data: {
-          metaDescription: 'Converta PDF em Word (.docx) editável 100% offline no seu navegador. Reconhece PDF digitalizado com OCR e nada é enviado para servidor.',
-          metaKeywords: 'pdf para word, converter pdf em word, pdf para docx, pdf editavel, pdf digitalizado para word'
+          metaDescription: 'Converta um PDF em .docx editável preservando parágrafos, negrito e itálico, com OCR para páginas digitalizadas. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/organizar',
-        title: 'Organizar PDF — Nada Sai',
+        title: 'Organizar PDF Online (Girar e Apagar Páginas) — Nada Sai',
         loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
         data: {
-          metaDescription: 'Reordene, gire e remova páginas de arquivos PDF 100% offline no seu navegador. Rápido, gratuito e seguro.',
-          metaKeywords: 'organizar pdf, girar pdf, reordenar paginas pdf, excluir paginas pdf, mover paginas pdf'
+          metaDescription: 'Reordene, gire e apague páginas de um PDF arrastando as miniaturas, e baixe o documento remontado. Até 100 MB, grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/proteger',
-        title: 'Proteger PDF — Nada Sai',
+        title: 'Proteger PDF com Senha Online — Nada Sai',
         loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
         data: {
-          metaDescription: 'Criptografe e adicione senha de proteção a arquivos PDF 100% offline no seu navegador. Segurança total sem uploads.',
-          metaKeywords: 'proteger pdf, colocar senha em pdf, criptografar pdf, bloquear pdf'
+          metaDescription: 'Coloque senha em um PDF com criptografia, para que só quem tiver a chave consiga abrir. A senha nunca sai do seu computador: 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/assinar',
-        title: 'Assinar PDF — Nada Sai',
+        title: 'Assinar PDF Online (Desenhar Assinatura) — Nada Sai',
         loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
         data: {
-          metaDescription: 'Desenhe sua assinatura, carregue rubrica ou digite seu nome em arquivos PDF 100% offline no seu navegador.',
-          metaKeywords: 'assinar pdf, assinatura digital pdf, rubrica pdf, carimbar pdf'
+          metaDescription: 'Desenhe ou digite sua assinatura e posicione onde quiser na página, em qualquer PDF. Nada é enviado para servidor: 100% offline no seu navegador.'
         }
       },
       {
         path: 'pdf/marca-dagua',
-        title: 'Marca d\'Água no PDF — Nada Sai',
+        title: 'Colocar Marca d’Água em PDF Online — Nada Sai',
         loadComponent: () => import('./features/watermark-pdf/watermark-pdf.component').then((m) => m.WatermarkPdfComponent),
         data: {
-          metaDescription: 'Adicione marcas d\'água de texto personalizadas em arquivos PDF 100% offline no seu navegador.',
-          metaKeywords: 'marca d agua pdf, colocar texto em pdf, confidencial pdf, marcas d agua'
+          metaDescription: 'Adicione uma marca d\'água de texto em todas as páginas, com controle de tamanho, ângulo, cor e transparência. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/criptografar-arquivo',
-        title: 'Criptografar Arquivo — Nada Sai',
+        title: 'Criptografar Arquivo com Senha (AES-256) — Nada Sai',
         loadComponent: () => import('./features/privacy/encrypt-file/encrypt-file.component').then((m) => m.EncryptFileComponent),
         data: {
-          metaDescription: 'Criptografe e proteja qualquer arquivo local com senha e AES-256 bits 100% offline.',
-          metaKeywords: 'criptografar arquivo, senha em arquivo, aes 256, seguranca local'
+          metaDescription: 'Proteja qualquer arquivo com senha usando AES-256 e PBKDF2, e abra depois na mesma ferramenta. A senha nunca sai daqui: 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/hash-de-arquivo',
-        title: 'Hash de Arquivo & Checksum — Nada Sai',
+        title: 'Hash e Checksum de Arquivo Online (SHA-256) — Nada Sai',
         loadComponent: () => import('./features/privacy/file-hash/file-hash.component').then((m) => m.FileHashComponent),
         data: {
-          metaDescription: 'Calcule hashes SHA-256, SHA-512 e MD5 para verificar a integridade de arquivos localmente.',
-          metaKeywords: 'hash de arquivo, sha256, md5, checksum, integridade de arquivo'
+          metaDescription: 'Calcule SHA-256, SHA-512 e MD5 e confira se um download chegou íntegro, colando o checksum publicado. Qualquer tamanho, 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/gerador-de-senha',
-        title: 'Gerador de Senhas Seguras — Nada Sai',
+        title: 'Gerador de Senha Forte Online — Nada Sai',
         loadComponent: () => import('./features/privacy/password-generator/password-generator.component').then((m) => m.PasswordGeneratorComponent),
         data: {
-          metaDescription: 'Gere senhas fortes, inquebráveis e aleatórias 100% offline com calculador de entropia.',
-          metaKeywords: 'gerador de senha, senha segura, senha forte offline, gerador aleatorio'
+          metaDescription: 'Gere senhas aleatórias de até 128 caracteres com o gerador criptográfico do navegador e veja a entropia real em bits. 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/remover-exif',
-        title: 'Remover Metadados EXIF & GPS — Nada Sai',
+        title: 'Remover EXIF e GPS de Foto Online — Nada Sai',
         loadComponent: () => import('./features/privacy/remove-exif/remove-exif.component').then((m) => m.RemoveExifComponent),
         data: {
-          metaDescription: 'Remova localização GPS privada, modelo de câmera e metadados de fotos antes de compartilhar.',
-          metaKeywords: 'remover exif, limpar gps de foto, apagar metadados, privacidade de imagem'
+          metaDescription: 'Veja e apague a localização GPS, o modelo da câmera e a data das suas fotos antes de compartilhar — sem reencodar a imagem. 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/censurar-imagem',
-        title: 'Censurar Imagem (Tarja Preta / Blur) — Nada Sai',
+        title: 'Censurar Imagem Online (Tarja Preta) — Nada Sai',
         loadComponent: () => import('./features/privacy/redact-image/redact-image.component').then((m) => m.RedactImageComponent),
         data: {
-          metaDescription: 'Desenhe tarjas pretas de censura ou aplique desfoque em dados sensíveis como CPFs, cartões e rostos em fotos.',
-          metaKeywords: 'tarja preta foto, censurar imagem, desfocar cpf, esconder dados sensiveis'
+          metaDescription: 'Cubra CPF, cartões, endereços e rostos com tarja preta queimada nos pixels: o que estava embaixo deixa de existir. Grátis e 100% offline no seu navegador.'
         }
       },
       {
         path: 'privacidade/comparar-texto',
-        title: 'Comparador de Texto (Diff) — Nada Sai',
+        title: 'Comparar Textos e Arquivos Online (Diff) — Nada Sai',
         loadComponent: () => import('./features/privacy/diff-checker/diff-checker.component').then((m) => m.DiffCheckerComponent),
         data: {
-          metaDescription: 'Compare dois textos ou arquivos lado a lado e veja alterações, adições e remoções 100% offline.',
-          metaKeywords: 'comparar texto, diff checker, comparar arquivos, diferenca entre textos'
+          metaDescription: 'Compare dois textos lado a lado e veja adições, remoções e alterações com número de linha. Serve para contrato e código: 100% offline no seu navegador.'
+        }
+      },
+      {
+        path: 'privacidade/censurar-pdf',
+        title: 'Censurar PDF (Tarja Preta Real) Online — Nada Sai',
+        loadComponent: () => import('./features/privacy/redact-pdf/redact-pdf.component').then((m) => m.RedactPdfComponent),
+        data: {
+          metaDescription: 'Tarjar PDF de verdade: o texto por baixo da tarja é destruído, não apenas coberto, então não sai em copiar e colar. 100% offline no seu navegador.',
+        }
+      },
+      {
+        path: 'privacidade/limpar-metadados-pdf',
+        title: 'Remover Metadados de PDF Online — Nada Sai',
+        loadComponent: () => import('./features/privacy/clean-pdf-metadata/clean-pdf-metadata.component').then((m) => m.CleanPdfMetadataComponent),
+        data: {
+          metaDescription: 'Veja e apague autor, software, datas e XMP de um PDF antes de enviar. Mostra o que foi encontrado antes de limpar, 100% offline no seu navegador.',
+        }
+      },
+      {
+        path: 'privacidade/criptografar-texto',
+        title: 'Criptografar Texto e Mensagens (AES-256) — Nada Sai',
+        loadComponent: () => import('./features/privacy/encrypt-text/encrypt-text.component').then((m) => m.EncryptTextComponent),
+        data: {
+          metaDescription: 'Criptografe um texto com senha e AES-256 e receba um bloco pronto para colar em e-mail ou chat. Nada é enviado: 100% offline no seu navegador.',
         }
       },
       {
         path: 'sobre',
-        title: 'Sobre — Nada Sai',
+        title: 'Sobre o Nada Sai — Como Funciona',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
+        data: {
+          metaDescription: 'Como o Nada Sai processa imagens, PDFs, áudio e dados sensíveis inteiramente no seu navegador, com WebAssembly e IA local. Nenhum arquivo sai do computador.',
+        }
       },
       {
         path: 'privacidade',
         title: 'Política de Privacidade — Nada Sai',
-        loadComponent: () => import('./features/privacy/privacy.component').then((m) => m.PrivacyComponent),
+        loadComponent: () => import('./features/privacy-policy/privacy.component').then((m) => m.PrivacyComponent),
+        data: {
+          metaDescription: 'A política de privacidade do Nada Sai é curta porque não há o que coletar: nenhum arquivo é enviado, nada é armazenado e o processamento é todo local.',
+        }
       },
       {
         path: 'termos',
         title: 'Termos de Uso — Nada Sai',
         loadComponent: () => import('./features/terms/terms.component').then((m) => m.TermsComponent),
+        data: {
+          metaDescription: 'Termos de uso do Nada Sai: ferramentas gratuitas de imagem, PDF, áudio e privacidade que rodam no seu navegador, sem cadastro e sem envio de arquivos.',
+        }
       },
       {
         path: 'faq',
@@ -344,29 +349,26 @@ export const routes: Routes = [
       },
       {
         path: 'image/remove-bg',
-        title: 'Remove background — Nada Sai',
+        title: 'Remove Image Background Online Free — Nada Sai',
         loadComponent: () => import('./features/remove-bg/remove-bg.component').then((m) => m.RemoveBgComponent),
         data: {
-          metaDescription: 'Remove image backgrounds automatically, free and offline. Your photos are not sent to any server.',
-          metaKeywords: 'remove background, erase background, transparent background maker, png background'
+          metaDescription: 'Erase the background from photos automatically with AI and download a transparent PNG. No signup, no watermark, no daily cap — 100% offline in your browser.'
         }
       },
       {
         path: 'image/upscale',
-        title: 'Enhance Image Quality — Nada Sai',
+        title: 'Upscale and Enhance Photos Online (2x, 4x) — Nada Sai',
         loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
         data: {
-          metaDescription: 'Increase image resolution and enhance sharpness in 2x and 4x with 100% offline AI.',
-          metaKeywords: 'upscale image, enhance photo quality, increase resolution, unblur photo'
+          metaDescription: 'Increase resolution and sharpness by 2x or 4x with AI, without smearing faces or inventing detail. Free, no signup and 100% offline in your browser.'
         }
       },
       {
         path: 'image/extract-text',
-        title: 'Extract Text from Image (OCR) — Nada Sai',
+        title: 'Extract Text from Image (OCR) Online — Nada Sai',
         loadComponent: () => import('./features/extract-text/extract-text.component').then((m) => m.ExtractTextComponent),
         data: {
-          metaDescription: 'Recognize and copy text from photos, receipts, and scanned documents 100% offline in your browser.',
-          metaKeywords: 'extract text from image, offline ocr, copy text from photo, image to text, read receipt photo'
+          metaDescription: 'Copy text out of photos, screenshots, receipts and scanned documents with OCR. No image is ever uploaded, because it runs 100% offline in your browser.'
         }
       },
       {
@@ -374,8 +376,7 @@ export const routes: Routes = [
         title: 'Cut Audio & MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
         data: {
-          metaDescription: 'Cut songs, voice notes and podcasts 100% offline in your browser: waveform, draggable handles, exact timecodes and fade in/out.',
-          metaKeywords: 'cut audio, trim mp3, mp3 cutter, trim audio online, audio editor, ringtone maker, remove part of audio'
+          metaDescription: 'Cut songs, voice notes and podcasts with a real waveform, draggable handles, exact timecodes and fade in/out. Up to 30 minutes, 100% offline in your browser.'
         }
       },
       {
@@ -383,231 +384,240 @@ export const routes: Routes = [
         title: 'Merge Audio & MP3 — Nada Sai',
         loadComponent: () => import('./features/merge-audio/merge-audio.component').then((m) => m.MergeAudioComponent),
         data: {
-          metaDescription: 'Join several audio files into one 100% offline in your browser: drag to reorder, with crossfade, gaps between tracks and fade in/out.',
-          metaKeywords: 'merge audio, join mp3, audio joiner, combine audio files, concatenate audio, crossfade tracks, stitch audio'
+          metaDescription: 'Join several audio files into one 100% offline in your browser: drag to reorder, with crossfade, gaps between tracks and fade in/out.'
         }
       },
       {
         path: 'audio/convert',
-        title: 'Convert Audio & MP3 — Nada Sai',
+        title: 'Convert Audio Online (MP3, WAV, OGG) — Nada Sai',
         loadComponent: () => import('./features/convert-audio/convert-audio.component').then((m) => m.ConvertAudioComponent),
         data: {
-          metaDescription: 'Convert audio files (MP3, WAV, OGG, M4A, AAC, FLAC) 100% offline in your browser. Fast, free, and private.',
-          metaKeywords: 'convert audio, mp3 to wav, wav to mp3, ogg to mp3, m4a to mp3, offline audio converter'
+          metaDescription: 'Convert between MP3, WAV, OGG, M4A, AAC and FLAC with nothing to install and no queue to wait in. Files up to 100 MB, 100% offline in your browser.'
         }
       },
       {
         path: 'audio/compress',
-        title: 'Compress Audio & MP3 — Nada Sai',
+        title: 'Compress Audio and MP3 Online — Nada Sai',
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
-          metaDescription: 'Compress MP3, WAV, OGG, M4A audio files 100% offline in your browser. Reduce size without installing anything.',
-          metaKeywords: 'compress audio, shrink mp3, reduce audio file size, audio compressor, lower bitrate, compress mp3 online'
+          metaDescription: 'Shrink MP3, WAV, OGG and M4A by choosing the bitrate, with the final size estimated before you download. Up to 100 MB, 100% offline in your browser.'
         }
       },
       {
         path: 'image/crop',
-        title: 'Crop — Nada Sai',
+        title: 'Crop Image Online (Any Aspect Ratio) — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
         data: {
-          metaDescription: 'Crop images to the size you need, right in your browser. Fast and 100% private.',
-          metaKeywords: 'crop image, image cropper, resize picture online'
+          metaDescription: 'Crop photos to any ratio — free, square, 16:9 or an exact pixel size — with a live preview as you drag. Free, no signup and 100% offline in your browser.'
         }
       },
       {
         path: 'image/compress',
-        title: 'Compress — Nada Sai',
+        title: 'Compress Image Online Without Losing Quality — Nada Sai',
         loadComponent: () => import('./features/compress/compress.component').then((m) => m.CompressComponent),
         data: {
-          metaDescription: 'Reduce the file size of your images without losing much quality. Optimize your photos 100% offline.',
-          metaKeywords: 'compress image, reduce photo size, decrease kb of image'
+          metaDescription: 'Shrink JPEG, PNG and WebP by choosing the quality and seeing the KB saved before you download. No signup, no cap, and 100% offline in your browser.'
         }
       },
       {
         path: 'image/convert',
-        title: 'Convert — Nada Sai',
+        title: 'Convert Image Online (PNG, JPG, WebP) — Nada Sai',
         loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
         data: {
-          metaDescription: 'Convert your images to different formats (PNG, JPG, WebP) quickly and with total privacy.',
-          metaKeywords: 'convert image, png to jpg, jpg to webp, offline image converter'
+          metaDescription: 'Convert between PNG, JPEG, WebP, GIF and ICO in one click with quality control. AVIF is accepted as input. Free and 100% offline in your browser.'
         }
       },
       {
         path: 'image/resize',
-        title: 'Resize — Nada Sai',
+        title: 'Resize Image Online (Pixels or Percent) — Nada Sai',
         loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
         data: {
-          metaDescription: 'Change the resolution (width and height) of your images. Free tool that runs on your computer.',
-          metaKeywords: 'resize image, change photo size, change image resolution'
+          metaDescription: 'Change a photo\'s width and height by pixels or percentage, locking the aspect ratio if you want. No signup, no watermark, 100% offline in your browser.'
         }
       },
       {
         path: 'image/to-pdf',
-        title: 'Images to PDF — Nada Sai',
+        title: 'Convert Images to PDF Online (Multiple) — Nada Sai',
         loadComponent: () => import('./features/img-to-pdf/img-to-pdf.component').then((m) => m.ImgToPdfComponent),
         data: {
-          metaDescription: 'Merge several images into a single PDF, in the order you choose. Free, offline, and nothing is uploaded.',
-          metaKeywords: 'image to pdf, jpg to pdf, png to pdf, merge images into pdf, photos to pdf'
+          metaDescription: 'Combine several photos into a single PDF, dragging to reorder the pages before you build it. JPEG, PNG, WebP and GIF, 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/edit',
-        title: 'PDF Editor — Nada Sai',
+        title: 'Edit PDF Online (Text and OCR) — Nada Sai',
         loadComponent: () => import('./features/pdf/pdf.component').then((m) => m.PdfComponent),
         data: {
-          metaDescription: 'Edit your PDF files (merge, reorder, delete pages) 100% offline with guaranteed privacy.',
-          metaKeywords: 'edit pdf, merge pdf, manipulate pdf pages, offline pdf editor'
+          metaDescription: 'Edit the text of a PDF directly in the browser, with OCR for scanned documents. No file is ever sent to a server, because it runs 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/merge',
-        title: 'Merge PDF — Nada Sai',
+        title: 'Merge PDF Files Online — Nada Sai',
         loadComponent: () => import('./features/merge-pdf/merge-pdf.component').then((m) => m.MergePdfComponent),
         data: {
-          metaDescription: 'Combine several PDFs into one and arrange the pages in any order. Free, offline, and nothing is uploaded.',
-          metaKeywords: 'merge pdf, combine pdf, join pdf files, reorder pdf pages'
+          metaDescription: 'Combine several PDFs into one, dragging to set the order, without losing fonts or quality. Up to 100 MB per file, free and 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/compress',
-        title: 'Compress PDF — Nada Sai',
+        title: 'Compress PDF Online Without Losing Quality — Nada Sai',
         loadComponent: () => import('./features/compress-pdf/compress-pdf.component').then((m) => m.CompressPdfComponent),
         data: {
-          metaDescription: 'Reduce PDF file size right in your browser. Your document never leaves your computer.',
-          metaKeywords: 'compress pdf, reduce pdf size, shrink pdf, make pdf smaller'
+          metaDescription: 'Reduce a PDF\'s size across three levels and see how much you saved before downloading. The text stays searchable. Free and 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/split',
-        title: 'Split PDF — Nada Sai',
+        title: 'Split PDF Online (Separate Pages) — Nada Sai',
         loadComponent: () => import('./features/split-pdf/split-pdf.component').then((m) => m.SplitPdfComponent),
         data: {
-          metaDescription: 'Split and extract pages from PDF files 100% offline in your browser. Select ranges or specific pages.',
-          metaKeywords: 'split pdf, extract pdf pages, separate pdf, cut pdf'
+          metaDescription: 'Split a PDF by ranges, every N pages, or by picking pages one at a time, downloading a ZIP or a single file. Free and 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/to-image',
-        title: 'PDF to Image — Nada Sai',
+        title: 'Convert PDF to Image Online (JPG, PNG) — Nada Sai',
         loadComponent: () => import('./features/pdf-to-img/pdf-to-img.component').then((m) => m.PdfToImgComponent),
         data: {
-          metaDescription: 'Convert PDF pages into JPG, PNG or WEBP images 100% offline in your browser. High resolution and zero uploads.',
-          metaKeywords: 'pdf to image, convert pdf to jpg, pdf to png, pdf to photo'
+          metaDescription: 'Turn every page of a PDF into a JPG or PNG at the resolution you choose, downloading them all as a ZIP. Up to 100 MB, 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/to-word',
-        title: 'PDF to Word — Nada Sai',
+        title: 'Convert PDF to Word (DOCX) Online — Nada Sai',
         loadComponent: () => import('./features/pdf-to-word/pdf-to-word.component').then((m) => m.PdfToWordComponent),
         data: {
-          metaDescription: 'Convert PDF to an editable Word (.docx) file 100% offline in your browser. Reads scanned PDFs with OCR and nothing is ever uploaded.',
-          metaKeywords: 'pdf to word, convert pdf to word, pdf to docx, editable pdf, scanned pdf to word'
+          metaDescription: 'Convert a PDF into an editable .docx keeping paragraphs, bold and italics, with OCR for scanned pages. Free and 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/organize',
-        title: 'Organize PDF — Nada Sai',
+        title: 'Organize PDF Online (Rotate, Delete Pages) — Nada Sai',
         loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
         data: {
-          metaDescription: 'Reorder, rotate, and delete pages from PDF files 100% offline in your browser. Fast, free and secure.',
-          metaKeywords: 'organize pdf, rotate pdf, reorder pdf pages, delete pdf pages'
+          metaDescription: 'Reorder, rotate and delete pages by dragging thumbnails, then download the rebuilt document. Up to 100 MB, free and 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/protect',
-        title: 'Protect PDF — Nada Sai',
+        title: 'Password Protect a PDF Online — Nada Sai',
         loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
         data: {
-          metaDescription: 'Encrypt and set a password on PDF files 100% offline in your browser. Total security with zero uploads.',
-          metaKeywords: 'protect pdf, encrypt pdf, set pdf password, lock pdf'
+          metaDescription: 'Lock a PDF with an encrypted password so only someone with the key can open it. The password never leaves your computer: 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/sign',
-        title: 'Sign PDF — Nada Sai',
+        title: 'Sign PDF Online (Draw Your Signature) — Nada Sai',
         loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
         data: {
-          metaDescription: 'Draw your signature, upload a stamp, or type your name on PDF files 100% offline in your browser.',
-          metaKeywords: 'sign pdf, digital signature, pdf signature, stamp pdf'
+          metaDescription: 'Draw or type your signature and place it anywhere on the page, in any PDF. Nothing is sent to a server, because it runs 100% offline in your browser.'
         }
       },
       {
         path: 'pdf/watermark',
-        title: 'Watermark PDF — Nada Sai',
+        title: 'Add a Watermark to a PDF Online — Nada Sai',
         loadComponent: () => import('./features/watermark-pdf/watermark-pdf.component').then((m) => m.WatermarkPdfComponent),
         data: {
-          metaDescription: 'Add custom text watermarks to PDF files 100% offline in your browser.',
-          metaKeywords: 'watermark pdf, text watermark, pdf stamp, confidential pdf'
+          metaDescription: 'Stamp a text watermark across every page, with control over size, angle, colour and transparency. Free, no signup and 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/encrypt-file',
-        title: 'Encrypt File — Nada Sai',
+        title: 'Encrypt a File With a Password (AES-256) — Nada Sai',
         loadComponent: () => import('./features/privacy/encrypt-file/encrypt-file.component').then((m) => m.EncryptFileComponent),
         data: {
-          metaDescription: 'Encrypt and password protect any local file with AES-256 bits 100% offline.',
-          metaKeywords: 'encrypt file, password protect file, aes 256, local file security'
+          metaDescription: 'Lock any file behind a password using AES-256 and PBKDF2, and open it again in the same tool. The password never leaves here: 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/file-hash',
-        title: 'File Hash & Checksum — Nada Sai',
+        title: 'File Hash and Checksum Online (SHA-256) — Nada Sai',
         loadComponent: () => import('./features/privacy/file-hash/file-hash.component').then((m) => m.FileHashComponent),
         data: {
-          metaDescription: 'Calculate SHA-256, SHA-512, and MD5 hashes to verify file integrity locally.',
-          metaKeywords: 'file hash, sha256, md5, checksum, file integrity'
+          metaDescription: 'Compute SHA-256, SHA-512 and MD5 and check a download arrived intact by pasting the published checksum. Any file size, 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/password-generator',
-        title: 'Secure Password Generator — Nada Sai',
+        title: 'Strong Random Password Generator — Nada Sai',
         loadComponent: () => import('./features/privacy/password-generator/password-generator.component').then((m) => m.PasswordGeneratorComponent),
         data: {
-          metaDescription: 'Generate strong, unguessable, random passwords 100% offline with entropy calculator.',
-          metaKeywords: 'password generator, secure password, strong password, random password'
+          metaDescription: 'Generate random passwords up to 128 characters with the browser\'s cryptographic generator, and see the real entropy in bits. 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/remove-exif',
-        title: 'Remove EXIF Metadata & GPS — Nada Sai',
+        title: 'Remove EXIF and GPS Data from Photos — Nada Sai',
         loadComponent: () => import('./features/privacy/remove-exif/remove-exif.component').then((m) => m.RemoveExifComponent),
         data: {
-          metaDescription: 'Strip private GPS location, camera info, and metadata from photos before sharing.',
-          metaKeywords: 'remove exif, strip photo gps, clean metadata, photo privacy'
+          metaDescription: 'See and erase the GPS location, camera model and timestamp in your photos before sharing them — without re-encoding the image. 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/redact-image',
-        title: 'Redact Image (Black Bar / Blur) — Nada Sai',
+        title: 'Redact an Image Online (Black Bar) — Nada Sai',
         loadComponent: () => import('./features/privacy/redact-image/redact-image.component').then((m) => m.RedactImageComponent),
         data: {
-          metaDescription: 'Draw black censorship boxes or blur sensitive information like CPFs, cards, and faces on photos.',
-          metaKeywords: 'redact image, black bar photo, blur image, hide sensitive info'
+          metaDescription: 'Cover ID numbers, card numbers, addresses and faces with a black bar burned into the pixels, so what was under it is gone. 100% offline in your browser.'
         }
       },
       {
         path: 'privacy/diff-checker',
-        title: 'Text Diff Checker — Nada Sai',
+        title: 'Compare Two Texts or Files Online (Diff) — Nada Sai',
         loadComponent: () => import('./features/privacy/diff-checker/diff-checker.component').then((m) => m.DiffCheckerComponent),
         data: {
-          metaDescription: 'Compare two texts or files side by side and highlight additions, deletions, and changes 100% offline.',
-          metaKeywords: 'diff checker, compare text, file diff, text difference'
+          metaDescription: 'Compare two texts side by side and see additions, removals and changes with line numbers. Safe for contracts and code: 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'privacy/redact-pdf',
+        title: 'Redact PDF Online (Text Destroyed, Not Covered) — Nada Sai',
+        loadComponent: () => import('./features/privacy/redact-pdf/redact-pdf.component').then((m) => m.RedactPdfComponent),
+        data: {
+          metaDescription: 'Real PDF redaction: the text under each black bar is destroyed, not just covered, so it cannot be copied back out. 100% offline in your browser.',
+        }
+      },
+      {
+        path: 'privacy/clean-pdf-metadata',
+        title: 'Remove PDF Metadata Online — Nada Sai',
+        loadComponent: () => import('./features/privacy/clean-pdf-metadata/clean-pdf-metadata.component').then((m) => m.CleanPdfMetadataComponent),
+        data: {
+          metaDescription: 'See and erase the author, software, dates and XMP block in a PDF before you send it. Shows what it found before cleaning, 100% offline in your browser.',
+        }
+      },
+      {
+        path: 'privacy/encrypt-text',
+        title: 'Encrypt Text and Messages (AES-256) — Nada Sai',
+        loadComponent: () => import('./features/privacy/encrypt-text/encrypt-text.component').then((m) => m.EncryptTextComponent),
+        data: {
+          metaDescription: 'Encrypt a message with a password and AES-256 and get a block you can paste into email or chat. Nothing is uploaded: 100% offline in your browser.',
         }
       },
       {
         path: 'about',
-        title: 'About — Nada Sai',
+        title: 'About Nada Sai — How It Works',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
+        data: {
+          metaDescription: 'How Nada Sai processes images, PDFs, audio and sensitive data entirely inside your browser, using WebAssembly and local AI. No file ever leaves your computer.',
+        }
       },
       {
         path: 'privacy',
         title: 'Privacy Policy — Nada Sai',
-        loadComponent: () => import('./features/privacy/privacy.component').then((m) => m.PrivacyComponent),
+        loadComponent: () => import('./features/privacy-policy/privacy.component').then((m) => m.PrivacyComponent),
+        data: {
+          metaDescription: 'The Nada Sai privacy policy is short because there is nothing to collect: no file is uploaded, nothing is stored, and all processing happens locally.',
+        }
       },
       {
         path: 'terms',
         title: 'Terms of Use — Nada Sai',
         loadComponent: () => import('./features/terms/terms.component').then((m) => m.TermsComponent),
+        data: {
+          metaDescription: 'Terms of use for Nada Sai: free image, PDF, audio and privacy tools that run in your browser, with no signup and no files sent anywhere.',
+        }
       },
       {
         path: 'faq',

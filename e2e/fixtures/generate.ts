@@ -12,11 +12,21 @@ const DIR = join(__dirname, 'assets');
 export const PHOTO = join(DIR, 'photo.png');
 /** Portrait, and a different name — the images-to-PDF spec needs two distinguishable pages. */
 export const PHOTO_TALL = join(DIR, 'photo-tall.png');
+/**
+ * The same picture carrying tEXt and tIME chunks.
+ *
+ * remove-exif has nothing to show for a clean file, and "no metadata found" is
+ * the one outcome that would pass whether the parser works or not. The named
+ * chunks are what the findings list is asserted against.
+ */
+export const PHOTO_META = join(DIR, 'photo-meta.png');
 export const NOT_AN_IMAGE = join(DIR, 'notes.txt');
 
 /** Two text PDFs, two pages each — the merge spec needs distinguishable sources. */
 export const DOC_A = join(DIR, 'doc-a.pdf');
 export const DOC_B = join(DIR, 'doc-b.pdf');
+/** Same reason as PHOTO_META: clean-pdf-metadata needs a document that has some. */
+export const DOC_META = join(DIR, 'doc-meta.pdf');
 /** One page of full-bleed photographic raster: the case compression actually helps. */
 export const SCAN = join(DIR, 'scan.pdf');
 /** Four seconds of real stereo PCM for the audio cutter. */
@@ -54,7 +64,7 @@ function chunk(type: string, data: Buffer): Buffer {
  * BIGGER file and the savings badge never renders — the fixture, not the app,
  * would be failing the test. Photographic noise is what the tool is tuned for.
  */
-function makePng(width: number, height: number): Buffer {
+function makePng(width: number, height: number, metadata = false): Buffer {
   const raw = Buffer.alloc((width * 4 + 1) * height);
   let p = 0;
 
@@ -93,9 +103,25 @@ function makePng(width: number, height: number): Buffer {
   ihdr[8] = 8; // bit depth
   ihdr[9] = 6; // colour type: RGBA
 
+  // tEXt is `keyword \0 text`, latin1, with no terminator — the parser splits on
+  // the first NUL and shows the keyword as the field label.
+  const text = (keyword: string, value: string) =>
+    chunk('tEXt', Buffer.from(`${keyword}\0${value}`, 'latin1'));
+
+  const tIME = Buffer.alloc(7);
+  tIME.writeUInt16BE(2019, 0);
+  tIME.set([3, 14, 9, 26, 53], 2); // month, day, hour, minute, second
+
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr),
+    ...(metadata
+      ? [
+          text('Author', 'Fulano de Tal'),
+          text('Software', 'Camera Fixture 1.0'),
+          chunk('tIME', tIME),
+        ]
+      : []),
     chunk('IDAT', deflateSync(raw, { level: 6 })),
     chunk('IEND', Buffer.alloc(0)),
   ]);
@@ -118,7 +144,13 @@ interface PdfPageSpec {
   image?: { width: number; height: number; rgb: Buffer };
 }
 
-function makePdf(pages: PdfPageSpec[]): Buffer {
+interface PdfMetaSpec {
+  readonly title: string;
+  readonly author: string;
+  readonly producer: string;
+}
+
+function makePdf(pages: PdfPageSpec[], meta?: PdfMetaSpec): Buffer {
   const objects: (string | Buffer)[] = [];
   let nextId = 4; // 1 catalog, 2 page tree, 3 font
 
@@ -156,7 +188,36 @@ function makePdf(pages: PdfPageSpec[]): Buffer {
     entries.push({ pageId });
   }
 
-  objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  // The Info dictionary and the XMP packet are separate objects reached from
+  // separate places — the trailer and the catalog — which is exactly why
+  // clean-pdf-metadata has to delete both. A fixture carrying only one of them
+  // would let a half-done clean pass.
+  let infoId = 0;
+  let xmpId = 0;
+
+  if (meta) {
+    infoId = nextId++;
+    xmpId = nextId++;
+
+    objects[infoId] =
+      `<< /Title (${meta.title}) /Author (${meta.author}) /Producer (${meta.producer}) ` +
+      `/Creator (${meta.producer}) /CreationDate (D:20190314092653Z) /ModDate (D:20190314092653Z) >>`;
+
+    const xmp =
+      `<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>\n` +
+      `<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF ` +
+      `xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">` +
+      `<rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/">` +
+      `<dc:creator><rdf:Seq><rdf:li>${meta.author}</rdf:li></rdf:Seq></dc:creator>` +
+      `</rdf:Description></rdf:RDF></x:xmpmeta>\n<?xpacket end="w"?>`;
+
+    objects[xmpId] =
+      `<< /Type /Metadata /Subtype /XML /Length ${xmp.length} >>\nstream\n${xmp}\nendstream`;
+  }
+
+  objects[1] = meta
+    ? `<< /Type /Catalog /Pages 2 0 R /Metadata ${xmpId} 0 R >>`
+    : '<< /Type /Catalog /Pages 2 0 R >>';
   objects[2] =
     `<< /Type /Pages /Kids [${entries.map((e) => `${e.pageId} 0 R`).join(' ')}] /Count ${pages.length} >>`;
   objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
@@ -180,7 +241,8 @@ function makePdf(pages: PdfPageSpec[]): Buffer {
 
   let xref = `xref\n0 ${nextId}\n0000000000 65535 f \n`;
   for (let id = 1; id < nextId; id++) xref += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
-  xref += `trailer\n<< /Size ${nextId} /Root 1 0 R >>\nstartxref\n${offset}\n%%EOF\n`;
+  const trailer = meta ? `<< /Size ${nextId} /Root 1 0 R /Info ${infoId} 0 R >>` : `<< /Size ${nextId} /Root 1 0 R >>`;
+  xref += `trailer\n${trailer}\nstartxref\n${offset}\n%%EOF\n`;
 
   chunks.push(Buffer.from(xref, 'latin1'));
   return Buffer.concat(chunks);
@@ -268,6 +330,7 @@ export default function globalSetup(): void {
   mkdirSync(DIR, { recursive: true });
   writeFileSync(PHOTO, makePng(800, 600));
   writeFileSync(PHOTO_TALL, makePng(400, 700));
+  writeFileSync(PHOTO_META, makePng(600, 450, true));
   writeFileSync(NOT_AN_IMAGE, 'definitely not a PNG\n');
   writeFileSync(CLIP, makeWav(4));
   writeFileSync(CLIP_B, makeWav(3, 44100, 1));
@@ -286,6 +349,14 @@ export default function globalSetup(): void {
       { width: 420, height: 595, text: 'Documento B - pagina 1' },
       { width: 420, height: 595, text: 'Documento B - pagina 2' },
     ]),
+  );
+
+  writeFileSync(
+    DOC_META,
+    makePdf(
+      [{ width: 420, height: 595, text: 'Documento com metadados' }],
+      { title: 'Contrato Confidencial', author: 'Fulano de Tal', producer: 'Fixture Writer 1.0' },
+    ),
   );
 
   // A small page carrying a much larger raster, which is the real shape of a

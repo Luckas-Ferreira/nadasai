@@ -1,0 +1,91 @@
+<app-tool-page [toolId]="'redact-image'" [forceLoaded]="!!file()">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE: the image, with the region overlay on top of it -->
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'image/png,image/jpeg,image/webp'"
+        [titleKey]="'redact.drag'"
+        [hintKey]="'redact.drag_hint'"
+        (fileSelected)="onFileSelected($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-line bg-stage">
+        <div class="flex items-center justify-center p-4">
+          <!-- The overlay is absolutely positioned against this wrapper, which
+               is sized by the image itself, so percent coordinates map onto the
+               displayed picture at any zoom. -->
+          <div class="relative inline-block max-w-full">
+            @if (previewUrl(); as url) {
+              <img [src]="url" [alt]="file()?.name ?? ''" class="block max-h-[60vh] w-auto select-none" draggable="false" />
+            }
+            <app-region-overlay
+              [regions]="regions()"
+              [mode]="mode()"
+              (regionAdded)="addRegion($event)"
+              (regionRemoved)="removeRegion($event)"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-line bg-surface px-4 py-3">
+          <p class="truncate text-xs text-muted">{{ i18n.t()['redact.hint'] }}</p>
+          <span class="shrink-0 font-mono text-xs tabular text-faint">
+            {{ regions().length }} {{ i18n.t()['redact.boxes_count'] }}
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- PANEL -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['redact.panel_title']">
+        <div class="space-y-4">
+          <app-segmented [options]="modeOptions()" [value]="mode()" (valueChange)="mode.set($event)" />
+
+          @if (mode() === 'black') {
+            <p class="rounded-md border border-success-line bg-success-soft px-3 py-2 text-xs text-success">
+              {{ i18n.t()['redact.black_is_final'] }}
+            </p>
+          } @else {
+            <!-- Saying this plainly matters more than the feature does. -->
+            <p class="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-xs text-warning">
+              {{ i18n.t()['redact.pixelate_warning'] }}
+            </p>
+          }
+
+          @if (regions().length > 0) {
+            <div class="flex gap-2">
+              <button type="button" appButton variant="secondary" size="sm" class="flex-1" (click)="undo()">
+                <app-icon name="undo" [size]="14" />
+                {{ i18n.t()['redact.undo'] }}
+              </button>
+              <button type="button" appButton variant="ghost" size="sm" class="flex-1" (click)="clearRegions()">
+                {{ i18n.t()['redact.clear'] }}
+              </button>
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['redact.btn_export'] : null"
+        [primaryDisabled]="regions().length === 0"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+
+</app-tool-page>
