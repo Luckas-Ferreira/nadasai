@@ -193,12 +193,25 @@ describe('TOOL_CONTENT', () => {
     for (const id of toolsWithContent()) expect(known.has(id)).withContext(id).toBe(true);
   });
 
-  it('covers the whole privacy module', () => {
-    // Coverage elsewhere is still partial and those tools fall back to the
-    // generic set; this pins the module the content was written for.
-    const privacy = TOOLS.filter((t) => t.category === 'privacy').map((t) => t.id);
+  it('covers every tool', () => {
+    // Coverage used to be partial, and the gap was invisible: a tool with no
+    // entry silently served the generic FAQ, which is the same five answers on
+    // every page. Now the omission is a red test.
     const covered = new Set(toolsWithContent());
-    const missing = privacy.filter((id) => !covered.has(id));
+    const missing = TOOLS.filter((t) => !covered.has(t.id)).map((t) => t.id);
     expect(missing).toEqual([]);
+  });
+
+  it('gives each tool four specific questions, not a padded list', () => {
+    for (const id of toolsWithContent()) {
+      for (const lang of ['pt', 'en'] as const) {
+        const faq = TOOL_CONTENT[id]![lang].faq;
+        expect(faq.length).withContext(`${id}/${lang}`).toBeGreaterThanOrEqual(3);
+        // An answer short enough to be generic is not worth a FAQPage node.
+        for (const entry of faq) {
+          expect(entry.a.length).withContext(`${id}/${lang}: "${entry.q}"`).toBeGreaterThan(80);
+        }
+      }
+    }
   });
 });
