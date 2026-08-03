@@ -47,7 +47,10 @@ test.describe('Cortar áudio', () => {
     await expect(page.locator('canvas')).toBeVisible(READY);
 
     await primary(page, 'Cortar áudio').click();
-    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
+    // Scoped to the action bar: the persistent audio file bar carries a Baixar
+    // of its own, so the bare role query matches two buttons once a result
+    // exists and fails on strict mode rather than on the behaviour.
+    await expect(page.locator('app-action-bar').getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
 
     // Same selection: pressing it again could only produce identical bytes.
     await expect(primary(page, 'Cortar áudio')).toBeHidden();

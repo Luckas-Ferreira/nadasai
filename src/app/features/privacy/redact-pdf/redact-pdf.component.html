@@ -46,7 +46,10 @@
 
         @if (pageCount() > 1) {
           <div class="mt-4 flex items-center justify-center gap-3">
+            <!-- The icon is aria-hidden, so without this the button has no
+                 accessible name at all. -->
             <button type="button" appButton variant="secondary" size="sm"
+              [attr.aria-label]="i18n.t()['common.prev_page']"
               [disabled]="currentPage() === 1" (click)="goTo(currentPage() - 1)">
               <app-icon name="chevronLeft" [size]="14" />
             </button>
@@ -54,6 +57,7 @@
               {{ currentPage() }} / {{ pageCount() }}
             </span>
             <button type="button" appButton variant="secondary" size="sm"
+              [attr.aria-label]="i18n.t()['common.next_page']"
               [disabled]="currentPage() === pageCount()" (click)="goTo(currentPage() + 1)">
               <app-icon name="chevronRight" [size]="14" />
             </button>
