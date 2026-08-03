@@ -47,10 +47,27 @@ createServer((req, res) => {
   const candidate = join(ROOT, normalize(path));
   const inRoot = candidate.startsWith(ROOT);
 
-  const file =
-    inRoot && existsSync(candidate) && statSync(candidate).isFile()
+  const isFile = (p) => existsSync(p) && statSync(p).isFile();
+
+  /**
+   * Índice de diretório ANTES do fallback, que é o que um host estático faz.
+   *
+   * Sem este passo o servidor devolvia o shell para toda rota profunda, porque
+   * `pt/pdf/juntar` não é um arquivo — e isso escondia por completo o
+   * prerender: as 73 páginas geradas existiam em disco e nenhuma delas era
+   * servida. O simulador precisa resolver como Cloudflare Pages, nginx
+   * (`try_files`) e Netlify resolvem, ou a suíte mede um site que não existe.
+   *
+   * O fallback continua no fim, e continua sendo necessário: é ele que atende
+   * as URLs legadas que `app.routes.ts` redireciona no cliente.
+   */
+  const file = !inRoot
+    ? join(ROOT, 'index.html')
+    : isFile(candidate)
       ? candidate
-      : join(ROOT, 'index.html'); // SPA fallback: deep links are client-routed.
+      : isFile(join(candidate, 'index.html'))
+        ? join(candidate, 'index.html')
+        : join(ROOT, 'index.html'); // SPA fallback: deep links are client-routed.
 
   res.writeHead(200, {
     'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream',
