@@ -169,7 +169,13 @@ test.describe('Shell: home, nav, i18n', () => {
   test('Escape closes the palette and Ctrl+K opens it', async ({ page }) => {
     await openApp(page, '/pt/imagem/cortar');
 
-    await page.locator('main').click({ position: { x: 5, y: 5 } });
+    // Um clique em terreno neutro, só para tirar o foco de qualquer controle
+    // antes do atalho. Y=100 e não 5: `main` é mais alto que a viewport, então
+    // o Playwright rola até o topo dele antes de clicar, e o topo agora fica
+    // atrás da barra fixa — no canto superior esquerdo quem recebe o clique é o
+    // cabeçalho. X=5 mantém o ponto na margem do <main>, longe do dropzone,
+    // cujo clique abriria o seletor de arquivos.
+    await page.locator('main').click({ position: { x: 5, y: 100 } });
     await page.keyboard.press('Control+k');
     await expect(page.getByRole('dialog')).toBeVisible();
 
