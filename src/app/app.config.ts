@@ -1,5 +1,5 @@
 import { ApplicationConfig, inject, isDevMode, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
@@ -10,7 +10,19 @@ import { NetworkProbeService } from './core/services/network-probe.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    /**
+     * Sem isto o Angular não toca no scroll — o padrão de
+     * `scrollPositionRestoration` é 'disabled', e o navegador simplesmente
+     * mantém o offset da tela anterior. Numa SPA em que toda página de
+     * ferramenta termina com a mesma seção de FAQ, o efeito era chegar num
+     * tool novo já no meio do FAQ, com o dropzone acima da dobra: parecia que
+     * a ferramenta tinha aberto na tela errada.
+     *
+     * 'enabled' e não 'top' porque os dois casos são diferentes: navegação
+     * nova vai para o topo, e voltar pelo botão do navegador devolve o ponto
+     * onde a pessoa estava lendo.
+     */
+    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
 
     // Wraps fetch/XHR/sendBeacon/WebSocket to count file egress. Must run before
     // any application code can issue a request, or the instrument has a blind spot.

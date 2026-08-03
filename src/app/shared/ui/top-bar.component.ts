@@ -35,9 +35,24 @@ import { IconComponent } from './icon/icon.component';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, IconComponent],
+  /**
+   * O sticky mora AQUI, no host, e não no <header> lá dentro.
+   *
+   * `app-top-bar` é filho de um flex column, e todo item de flex é blockificado
+   * — então o host vira um bloco de exatamente 56px, a altura do próprio
+   * cabeçalho. Um `sticky` dentro dele fica preso a um contêiner do seu próprio
+   * tamanho: não sobra folga nenhuma para deslizar, e ao descer a página a
+   * barra ia embora junto, como se não fosse sticky. A regra existia e não
+   * fazia efeito.
+   *
+   * É a mesma armadilha que `app-region-overlay` já documenta por outro
+   * motivo: a caixa do elemento host não é a que se imagina lendo só o
+   * template. O `top-14` do rail depende desta barra ficar mesmo no topo.
+   */
+  host: { class: 'sticky top-0 z-40 shrink-0' },
   template: `
     <header
-      class="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface px-4 md:px-6"
+      class="flex h-14 items-center gap-2 border-b border-line bg-surface px-4 md:px-6"
     >
       <a
         [routerLink]="'/' + i18n.currentLang()"
