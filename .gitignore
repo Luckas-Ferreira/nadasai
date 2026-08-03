@@ -7,9 +7,20 @@
 /bazel-out
 
 # Node
-/node_modules
+#
+# Sem a barra inicial, de propósito: `/node_modules` só valia para a raiz, e
+# qualquer node_modules aninhado ficava de fora. Um worktree em .claude/ com
+# dependências instaladas dentro apareceu com 26.262 arquivos prontos para
+# commit — e node_modules é a coisa que nunca deve entrar num repositório,
+# ainda mais aqui, onde public/model/ sozinho já traz 42 MB reinstaláveis.
+node_modules/
 npm-debug.log
 yarn-error.log
+
+# Ferramental local do Claude Code: configurações da máquina e worktrees
+# temporários, que trazem node_modules e dist próprios. Nada aqui descreve o
+# produto, e nada aqui deve viajar para outra máquina.
+.claude/
 
 # IDEs and editors
 .idea/
