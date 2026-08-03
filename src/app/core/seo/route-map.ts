@@ -1,4 +1,5 @@
 import { TOOLS } from '../tools/tools';
+import { STATIC_PAGES } from './static-pages';
 
 /**
  * The PT/EN URL pair for every route, DERIVED from TOOLS rather than listed.
@@ -23,15 +24,6 @@ export interface LangPair {
   readonly pt: string;
   readonly en: string;
 }
-
-/** Everything that is not a tool. `privacidade` here is the POLICY page. */
-const STATIC_PAGES: readonly { readonly pt: string; readonly en: string }[] = [
-  { pt: '', en: '' },
-  { pt: 'sobre', en: 'about' },
-  { pt: 'privacidade', en: 'privacy' },
-  { pt: 'termos', en: 'terms' },
-  { pt: 'faq', en: 'faq' },
-];
 
 function build(): ReadonlyMap<string, LangPair> {
   const map = new Map<string, LangPair>();

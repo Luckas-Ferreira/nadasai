@@ -1,13 +1,12 @@
 import { TOOLS } from '../tools/tools';
 
 /**
- * `public/sitemap.xml` is hand-maintained — there is no generator — so it is
- * the one place a new tool can go missing without anything failing. The Karma
- * target serves `public/` as assets, so the file can just be fetched.
+ * `public/sitemap.xml` is now GENERATED, by scripts/generate-sitemap.mjs on
+ * prebuild, from this same TOOLS array. This spec is what still runs in a watch
+ * loop, where no build has happened: it catches the case where a tool was added
+ * and the generator was never run, so the committed file is stale.
  *
- * This is the cheap half of the fix. The durable half is a build-time generator
- * driven by the same TOOLS array; until that exists, this at least turns the
- * omission into a red test instead of a URL Google never hears about.
+ * The Karma target serves `public/` as assets, so the file can just be fetched.
  */
 describe('sitemap.xml', () => {
   let xml: string;
