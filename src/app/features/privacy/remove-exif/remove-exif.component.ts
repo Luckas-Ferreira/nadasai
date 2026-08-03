@@ -140,8 +140,6 @@ export class RemoveExifComponent {
   });
 
   protected async onFileSelected(file: File): Promise<void> {
-    this.file.set(file);
-    this.previewUrl.set(this.urls.replace(this.previewUrl(), file));
     this.result.set(null);
     this.report.set(null);
     this.errorKey.set(null);
@@ -149,8 +147,18 @@ export class RemoveExifComponent {
     try {
       const { report } = await this.stripper.inspect(file);
       this.report.set(report);
+      this.file.set(file);
+      this.previewUrl.set(this.urls.replace(this.previewUrl(), file));
     } catch (err) {
+      // The file is dropped rather than kept, the same as the PDF tools do with
+      // something that is not a PDF. Holding on to it left the panel offering a
+      // strip button whose only possible outcome was the alert already on
+      // screen — and TIFF, the format this refuses most often, arrives here
+      // precisely because it cannot be stripped losslessly.
       this.errorKey.set(toMessageKey(err));
+      this.file.set(null);
+      this.urls.revoke(this.previewUrl());
+      this.previewUrl.set(null);
     }
   }
 

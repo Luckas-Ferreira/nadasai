@@ -8,6 +8,7 @@ import {
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import {
   type RedactMode,
@@ -51,6 +52,7 @@ import { TranslationService } from '../../core/services/translation.service';
   imports: [IconComponent],
   template: `
     <div
+      #layer
       class="absolute inset-0 touch-none"
       [class.cursor-crosshair]="!disabled()"
       (pointerdown)="onDown($event)"
@@ -99,7 +101,18 @@ import { TranslationService } from '../../core/services/translation.service';
 })
 export class RegionOverlayComponent {
   protected readonly i18n = inject(TranslationService);
-  private readonly host = inject(ElementRef<HTMLElement>);
+
+  /**
+   * The LAYER, not the host.
+   *
+   * The host is a bare custom element — `display: inline` with nothing but an
+   * absolutely positioned child, so its own box is 0×0. Measuring it made
+   * toPercent() hit its zero-size guard on every event and return {0,0}, so
+   * every drag normalised to a 0×0 rect, every rect was degenerate, and no
+   * region was ever emitted: drawing was silently dead in both redact tools.
+   * The layer is the element that actually covers the surface.
+   */
+  private readonly layer = viewChild.required<ElementRef<HTMLElement>>('layer');
 
   readonly regions = input.required<readonly Region[]>();
   readonly page = input(1);
@@ -115,7 +128,7 @@ export class RegionOverlayComponent {
   private start: { x: number; y: number } | null = null;
 
   private toPercent(event: PointerEvent): { x: number; y: number } {
-    const rect = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
+    const rect = this.layer().nativeElement.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
     return {
       x: ((event.clientX - rect.left) / rect.width) * 100,

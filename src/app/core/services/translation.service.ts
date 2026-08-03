@@ -169,6 +169,9 @@ const EN = {
   'common.undo_tool': 'Undo',
   'common.clear': 'Clear',
   'common.cancel': 'Cancel',
+  /** Icon-only pager buttons: the icon is aria-hidden, so this is their whole name. */
+  'common.prev_page': 'Previous page',
+  'common.next_page': 'Next page',
   'pdfpass.title': 'Password-protected PDF',
   'pdfpass.needs_password': 'this file needs a password to open.',
   'pdfpass.placeholder': 'Enter the PDF password',
@@ -904,6 +907,8 @@ const PT: Record<TranslationKey, string> = {
   'common.undo_tool': 'Desfazer',
   'common.clear': 'Limpar',
   'common.cancel': 'Cancelar',
+  'common.prev_page': 'Página anterior',
+  'common.next_page': 'Próxima página',
   'pdfpass.title': 'PDF protegido por senha',
   'pdfpass.needs_password': 'este arquivo precisa de senha para abrir.',
   'pdfpass.placeholder': 'Digite a senha do PDF',
