@@ -1,0 +1,135 @@
+<app-tool-page [toolId]="'remove-exif'" [forceLoaded]="!!file()">
+
+  <div banner>
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <!-- STAGE -->
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="ACCEPT"
+        [titleKey]="'exif.drag'"
+        [hintKey]="'exif.drag_hint'"
+        (fileSelected)="onFileSelected($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-line">
+        @if (previewUrl(); as url) {
+          <!-- The checkerboard belongs to the image stage, which is the dark
+               surface it was tuned for. The old markup asked for `bg-checker`,
+               a class that exists nowhere. -->
+          <app-preview-surface [src]="url" [alt]="file()?.name ?? ''" [checkerboard]="true" />
+        }
+
+        <div class="flex items-center justify-between gap-3 border-t border-line bg-surface px-4 py-3">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-text">{{ file()?.name }}</p>
+            <p class="font-mono text-xs tabular text-faint">{{ formatBytes(file()?.size ?? 0) }}</p>
+          </div>
+          <button type="button" appButton variant="ghost" size="sm" (click)="reset()">
+            <app-icon name="close" [size]="14" />
+            {{ i18n.t()['common.clear'] }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- PANEL: the findings, then the switches, then the action -->
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      @if (report(); as r) {
+        @if (findings().length > 0) {
+          <app-panel [heading]="i18n.t()['exif.detected_title']">
+            <div class="space-y-3">
+              <p class="text-xs text-muted">{{ i18n.t()['exif.exif_found'] }}</p>
+
+              <dl class="space-y-2">
+                @for (item of findings(); track item.label) {
+                  <div class="flex items-start justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0">
+                    <dt class="shrink-0 text-xs text-muted">{{ item.label }}</dt>
+                    <dd class="min-w-0 break-words text-right font-mono text-xs text-text">
+                      {{ item.value }}
+                      @if (item.copy) {
+                        <button
+                          type="button"
+                          class="ml-1.5 align-middle text-accent transition hover:text-accent-hover"
+                          [attr.aria-label]="i18n.t()['exif.copy_coords']"
+                          (click)="copy(item.copy)"
+                        >
+                          <app-icon [name]="copied() ? 'check' : 'copy'" [size]="12" />
+                        </button>
+                      }
+                    </dd>
+                  </div>
+                }
+              </dl>
+
+              @if (r.exif?.gps) {
+                <p class="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-xs text-warning">
+                  {{ i18n.t()['exif.gps_warning'] }}
+                </p>
+              }
+
+              @if (r.exif && r.exif.thumbnailBytes > 0) {
+                <!-- The finding nobody expects, and the most persuasive one. -->
+                <p class="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-xs text-warning">
+                  {{ i18n.t()['exif.thumbnail_warning'] }}
+                </p>
+              }
+            </div>
+          </app-panel>
+        } @else {
+          <app-panel [heading]="i18n.t()['exif.detected_title']">
+            <p class="text-xs text-muted">{{ i18n.t()['exif.no_exif_found'] }}</p>
+          </app-panel>
+        }
+      }
+
+      <app-panel [heading]="i18n.t()['exif.options_title']">
+        <div class="space-y-2 text-xs">
+          <label class="flex cursor-pointer items-start gap-2.5 rounded-md border border-line bg-raised p-3">
+            <input type="checkbox" [ngModel]="keepOrientation()" (ngModelChange)="keepOrientation.set($event)"
+              class="mt-0.5 h-4 w-4 rounded accent-accent" />
+            <span>
+              <span class="block text-text">{{ i18n.t()['exif.keep_orientation'] }}</span>
+              <span class="mt-0.5 block text-faint">{{ i18n.t()['exif.keep_orientation_hint'] }}</span>
+            </span>
+          </label>
+
+          <label class="flex cursor-pointer items-start gap-2.5 rounded-md border border-line bg-raised p-3">
+            <input type="checkbox" [ngModel]="keepIcc()" (ngModelChange)="keepIcc.set($event)"
+              class="mt-0.5 h-4 w-4 rounded accent-accent" />
+            <span>
+              <span class="block text-text">{{ i18n.t()['exif.keep_icc'] }}</span>
+              <span class="mt-0.5 block text-faint">{{ i18n.t()['exif.keep_icc_hint'] }}</span>
+            </span>
+          </label>
+
+          <p class="pt-1 text-faint">{{ i18n.t()['exif.lossless_note'] }}</p>
+        </div>
+      </app-panel>
+
+      @if (result(); as r) {
+        <!-- Proof rather than a claim: this is read back off the output. -->
+        <div class="space-y-1 rounded-md border border-success-line bg-success-soft px-3 py-2.5 text-xs text-success">
+          <p class="font-semibold">{{ i18n.t()['exif.clean_proof'] }}</p>
+          <p class="font-mono tabular">−{{ formatBytes(r.removedBytes) }}</p>
+        </div>
+      }
+
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['exif.btn_clean'] : null"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+
+</app-tool-page>

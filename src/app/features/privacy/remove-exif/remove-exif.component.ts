@@ -1,154 +1,202 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { TranslationService } from '../../../core/services/translation.service';
-import { toolById } from '../../../core/tools/tools';
-import { ToolPageComponent } from '../../../shared/ui/tool-page.component';
-import { DropzoneComponent } from '../../../shared/ui/dropzone.component';
-import { PanelComponent } from '../../../shared/ui/panel.component';
-import { ButtonDirective } from '../../../shared/ui/button.directive';
-import { IconComponent } from '../../../shared/ui/icon/icon.component';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
+import { toMessageKey } from '../../../core/errors';
+import { type MetadataReport, formatGps } from '../../../core/exif/exif-parser';
+import { STRIPPABLE_ACCEPT } from '../../../core/exif/strip';
+import { ObjectUrlScope } from '../../../core/image/object-url';
 import { saveBlob } from '../../../core/image/download';
 import { formatBytes } from '../../../core/image/image-file.util';
+import { MetadataStripperService, type StripOutcome } from './services/metadata-stripper.service';
+import { ToolPageComponent } from '../../../shared/ui/tool-page.component';
+import { DropzoneComponent } from '../../../shared/ui/dropzone.component';
+import { PreviewSurfaceComponent } from '../../../shared/ui/preview-surface.component';
+import { PanelComponent } from '../../../shared/ui/panel.component';
+import { AlertComponent } from '../../../shared/ui/alert.component';
+import { ActionBarComponent } from '../../../shared/ui/action-bar.component';
+import { ButtonDirective } from '../../../shared/ui/button.directive';
+import { IconComponent } from '../../../shared/ui/icon/icon.component';
+
+interface Finding {
+  readonly label: string;
+  readonly value: string;
+  /** Present when the value is worth putting on the clipboard. */
+  readonly copy?: string;
+}
 
 @Component({
   selector: 'app-remove-exif',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ToolPageComponent, DropzoneComponent, PanelComponent, ButtonDirective, IconComponent],
-  template: `
-    <app-tool-page [toolId]="'remove-exif'" [forceLoaded]="!!selectedFile()">
-
-      <!-- STAGE: dropzone or image preview -->
-      <div stage>
-        @if (!selectedFile()) {
-          <app-dropzone
-            [accept]="'image/jpeg,image/png,image/webp,image/tiff'"
-            [titleKey]="'exif.drag'"
-            [hintKey]="'exif.drag_hint'"
-            (fileSelected)="onFileSelected($event)"
-          />
-        } @else {
-          <!-- Image preview surface -->
-          <div class="overflow-hidden rounded-xl border border-line bg-raised">
-            @if (previewUrl()) {
-              <div class="flex items-center justify-center bg-checker p-4">
-                <img
-                  [src]="previewUrl()"
-                  [alt]="selectedFile()?.name"
-                  class="max-h-[50vh] w-auto rounded-md object-contain shadow-panel"
-                />
-              </div>
-            }
-
-            <!-- File info bar -->
-            <div class="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
-              <div class="min-w-0">
-                <p class="truncate text-sm font-medium text-text">{{ selectedFile()?.name }}</p>
-                <p class="font-mono text-xs text-faint">{{ formatBytes(selectedFile()?.size || 0) }}</p>
-              </div>
-              <button type="button" appButton variant="ghost" size="sm" (click)="clear()">
-                <app-icon name="close" [size]="14" />
-                {{ i18n.t()['common.clear'] }}
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-
-      <!-- PANEL: metadata alert + action -->
-      <div panel class="flex flex-col gap-4">
-        @if (selectedFile()) {
-          <app-panel>
-            <div class="space-y-4">
-              <!-- Metadata warning -->
-              <div class="rounded-lg border border-danger-line bg-danger-soft p-4 space-y-1.5">
-                <div class="flex items-center gap-2 text-sm font-semibold text-danger">
-                  <app-icon name="eyeOff" [size]="16" />
-                  <span>{{ i18n.t()['exif.detected_title'] }}</span>
-                </div>
-                <p class="text-xs text-danger/80 leading-relaxed">
-                  {{ i18n.t()['exif.detected_desc'] }}
-                </p>
-              </div>
-
-              <!-- Action button -->
-              <button
-                type="button"
-                appButton
-                variant="primary"
-                size="lg"
-                block
-                [busy]="busy()"
-                (click)="cleanAndDownload()"
-              >
-                <app-icon name="sparkles" [size]="16" />
-                <span>{{ i18n.t()['exif.btn_clean'] }}</span>
-              </button>
-            </div>
-          </app-panel>
-
-          <div class="mt-1 flex justify-center border-t border-line pt-2">
-            <button appButton variant="ghost" size="sm" (click)="clear()">
-              {{ i18n.t()['common.reset'] }}
-            </button>
-          </div>
-        }
-      </div>
-
-    </app-tool-page>
-  `,
+  providers: [ObjectUrlScope],
+  imports: [
+    FormsModule,
+    ToolPageComponent,
+    DropzoneComponent,
+    PreviewSurfaceComponent,
+    PanelComponent,
+    AlertComponent,
+    ActionBarComponent,
+    ButtonDirective,
+    IconComponent,
+  ],
+  templateUrl: './remove-exif.component.html',
 })
 export class RemoveExifComponent {
   protected readonly i18n = inject(TranslationService);
-  protected readonly tool = toolById('remove-exif');
+  private readonly stripper = inject(MetadataStripperService);
+  private readonly urls = inject(ObjectUrlScope);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly formatBytes = formatBytes;
 
-  protected readonly selectedFile = signal<File | null>(null);
-  protected readonly previewUrl = signal<string | null>(null);
-  protected readonly busy = signal(false);
+  /** TIFF is gone from here: it was advertised and never worked. */
+  protected readonly ACCEPT = STRIPPABLE_ACCEPT;
 
-  protected onFileSelected(f: File): void {
-    this.selectedFile.set(f);
-    this.previewUrl.set(URL.createObjectURL(f));
+  protected readonly file = signal<File | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly report = signal<MetadataReport | null>(null);
+  protected readonly result = signal<StripOutcome | null>(null);
+
+  protected readonly keepOrientation = signal(true);
+  protected readonly keepIcc = signal(true);
+
+  protected readonly busy = signal(false);
+  protected readonly errorKey = signal<TranslationKey | null>(null);
+  protected readonly copied = signal(false);
+
+  private readonly ranFile = signal<File | null>(null);
+  private readonly ranOrientation = signal(true);
+  private readonly ranIcc = signal(true);
+  private copyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.copyTimer !== null) clearTimeout(this.copyTimer);
+    });
   }
 
-  protected async cleanAndDownload(): Promise<void> {
-    const f = this.selectedFile();
-    if (!f) return;
+  protected readonly stale = computed(() =>
+    !this.result() ||
+    this.file() !== this.ranFile() ||
+    this.keepOrientation() !== this.ranOrientation() ||
+    this.keepIcc() !== this.ranIcc(),
+  );
+
+  /**
+   * The findings list IS the tool. Showing somebody the coordinates of their
+   * own house is what turns "we removed the metadata" from a claim into a
+   * demonstration — the same instinct as the network probe on the home page.
+   */
+  protected readonly findings = computed<Finding[]>(() => {
+    const r = this.report();
+    if (!r) return [];
+
+    const t = this.i18n.t();
+    const out: Finding[] = [];
+    const exif = r.exif;
+
+    if (exif?.gps) {
+      const coords = formatGps(exif.gps);
+      out.push({ label: t['exif.f_gps'], value: coords, copy: coords });
+      if (exif.gps.altitudeM !== undefined) {
+        out.push({ label: t['exif.f_altitude'], value: `${Math.round(exif.gps.altitudeM)} m` });
+      }
+    }
+
+    const push = (label: string, value: string | number | undefined): void => {
+      if (value !== undefined && value !== '') out.push({ label, value: String(value) });
+    };
+
+    push(t['exif.f_camera'], [exif?.make, exif?.model].filter(Boolean).join(' ') || undefined);
+    push(t['exif.f_lens'], exif?.lensModel);
+    push(t['exif.f_serial'], exif?.bodySerial ?? exif?.lensSerial);
+    push(t['exif.f_owner'], exif?.ownerName ?? exif?.artist);
+    push(t['exif.f_software'], exif?.software);
+    push(t['exif.f_taken'], exif?.dateTimeOriginal ?? exif?.dateTime);
+    push(t['exif.f_description'], exif?.imageDescription ?? exif?.userComment);
+    push(t['exif.f_copyright'], exif?.copyright);
+
+    if (exif?.iso || exif?.fNumber || exif?.focalLengthMm) {
+      const bits = [
+        exif.focalLengthMm ? `${Math.round(exif.focalLengthMm)}mm` : null,
+        exif.fNumber ? `f/${exif.fNumber}` : null,
+        exif.iso ? `ISO ${exif.iso}` : null,
+      ].filter(Boolean);
+      push(t['exif.f_settings'], bits.join(' · '));
+    }
+
+    if (exif?.thumbnailBytes) push(t['exif.f_thumbnail'], formatBytes(exif.thumbnailBytes));
+    if (exif?.hasMakerNote) {
+      // Not decoded — vendor MakerNotes are proprietary and undocumented — but
+      // its presence is the privacy-relevant fact, and it is stripped anyway.
+      push(t['exif.f_makernote'], formatBytes(exif.makerNoteBytes));
+    }
+    if (r.xmpPackets > 0) push(t['exif.f_xmp'], formatBytes(r.xmpBytes));
+    if (r.iptcBytes > 0) push(t['exif.f_iptc'], formatBytes(r.iptcBytes));
+    for (const chunk of r.textChunks) out.push({ label: chunk.keyword, value: chunk.value });
+    for (const comment of r.comments) push(t['exif.f_comment'], comment);
+
+    return out;
+  });
+
+  protected async onFileSelected(file: File): Promise<void> {
+    this.file.set(file);
+    this.previewUrl.set(this.urls.replace(this.previewUrl(), file));
+    this.result.set(null);
+    this.report.set(null);
+    this.errorKey.set(null);
+
+    try {
+      const { report } = await this.stripper.inspect(file);
+      this.report.set(report);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  protected async run(): Promise<void> {
+    const file = this.file();
+    if (!file || this.busy()) return;
 
     this.busy.set(true);
+    this.errorKey.set(null);
     try {
-      const img = new Image();
-      img.src = URL.createObjectURL(f);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
+      const outcome = await this.stripper.strip(file, {
+        keepIcc: this.keepIcc(),
+        keepOrientation: this.keepOrientation(),
       });
-
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas 2D unsupported');
-
-      ctx.drawImage(img, 0, 0);
-
-      const mime = f.type === 'image/png' ? 'image/png' : 'image/jpeg';
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, 0.95));
-
-      if (blob) {
-        saveBlob(blob, f.name.replace(/(\.[^.]+)$/, '-noexif$1'));
-      }
+      this.result.set(outcome);
+      this.ranFile.set(file);
+      this.ranOrientation.set(this.keepOrientation());
+      this.ranIcc.set(this.keepIcc());
     } catch (err) {
-      console.error(err);
+      // The old catch was a bare console.error, so a failure looked to the user
+      // like the spinner simply stopping.
+      this.errorKey.set(toMessageKey(err));
     } finally {
       this.busy.set(false);
     }
   }
 
-  protected clear(): void {
-    const url = this.previewUrl();
-    if (url) URL.revokeObjectURL(url);
-    this.selectedFile.set(null);
+  protected download(): void {
+    const r = this.result();
+    if (r) saveBlob(r.blob, r.filename);
+  }
+
+  protected copy(value: string): void {
+    void navigator.clipboard.writeText(value);
+    this.copied.set(true);
+    if (this.copyTimer !== null) clearTimeout(this.copyTimer);
+    this.copyTimer = setTimeout(() => this.copied.set(false), 2000);
+  }
+
+  protected reset(): void {
+    this.urls.revoke(this.previewUrl());
     this.previewUrl.set(null);
+    this.file.set(null);
+    this.report.set(null);
+    this.result.set(null);
+    this.ranFile.set(null);
+    this.errorKey.set(null);
   }
 }

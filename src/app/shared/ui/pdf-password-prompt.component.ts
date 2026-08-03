@@ -1,23 +1,31 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslationService } from '../../core/services/translation.service';
 import { ButtonDirective } from './button.directive';
 import { IconComponent } from './icon/icon.component';
 
+/**
+ * Shared by every PDF tool that can meet an encrypted file. It used to hold
+ * hardcoded Portuguese, so half the site rendered it in the wrong language —
+ * and `bg-amber-500/10 text-amber-500`, which generates no CSS at all here
+ * (`--color-*: initial` deletes Tailwind's amber ramp), leaving the lock icon
+ * to inherit whatever colour its parent had.
+ */
 @Component({
   selector: 'app-pdf-password-prompt',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, IconComponent, ButtonDirective],
   template: `
-    <div class="flex flex-col items-center justify-center p-6 bg-surface rounded-xl border border-line shadow-panel max-w-md mx-auto text-center gap-4">
-      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+    <div class="mx-auto flex max-w-md flex-col items-center justify-center gap-4 rounded-xl border border-line bg-surface p-6 text-center shadow-panel">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-warning-soft text-warning">
         <app-icon name="lock" [size]="24" />
       </div>
 
       <div>
-        <h3 class="text-lg font-bold text-text">PDF Protegido por Senha</h3>
+        <h3 class="text-lg font-semibold text-text">{{ i18n.t()['pdfpass.title'] }}</h3>
         <p class="mt-1 text-xs text-muted">
-          O arquivo <span class="font-medium text-text">{{ fileName() }}</span> precisa de senha para ser aberto.
+          <span class="font-medium text-text">{{ fileName() }}</span> — {{ i18n.t()['pdfpass.needs_password'] }}
         </p>
       </div>
 
@@ -33,7 +41,7 @@ import { IconComponent } from './icon/icon.component';
             [type]="showPassword() ? 'text' : 'password'"
             [value]="password()"
             (input)="password.set($any($event.target).value)"
-            placeholder="Digite a senha do PDF"
+            [placeholder]="i18n.t()['pdfpass.placeholder']"
             class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
             autofocus
           />
@@ -56,7 +64,7 @@ import { IconComponent } from './icon/icon.component';
             class="flex-1"
             (click)="cancel.emit()"
           >
-            Cancelar
+            {{ i18n.t()['common.cancel'] }}
           </button>
 
           <button
@@ -67,7 +75,7 @@ import { IconComponent } from './icon/icon.component';
             class="flex-1"
             [disabled]="!password().trim()"
           >
-            Desbloquear PDF
+            {{ i18n.t()['pdfpass.unlock'] }}
           </button>
         </div>
       </form>
@@ -75,6 +83,8 @@ import { IconComponent } from './icon/icon.component';
   `,
 })
 export class PdfPasswordPromptComponent {
+  protected readonly i18n = inject(TranslationService);
+
   readonly fileName = input.required<string>();
   readonly errorMsg = input<string | null>(null);
 

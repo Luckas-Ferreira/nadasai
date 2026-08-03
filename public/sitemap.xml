@@ -593,4 +593,59 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
+
+  <!-- Censurar PDF / Redact PDF -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/censurar-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/censurar-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/redact-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/censurar-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/redact-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/censurar-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/redact-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/censurar-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Limpar Metadados PDF / Clean PDF Metadata -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/limpar-metadados-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/clean-pdf-metadata</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Criptografar Texto / Encrypt Text -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/criptografar-texto</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-texto" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/encrypt-text</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-texto" />
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
 </urlset>

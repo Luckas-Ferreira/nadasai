@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, booleanAttribute, computed, inject } from '@angular/core';
 import { input } from '@angular/core';
+import { FaqComponent } from './faq.component';
 import { ImageStateService } from '../../core/services/image-state.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToolId, toolById } from '../../core/tools/tools';
@@ -24,7 +25,7 @@ import { IconComponent } from './icon/icon.component';
   selector: 'app-tool-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent],
+  imports: [IconComponent, FaqComponent],
   template: `
     <section class="mx-auto w-full max-w-[1240px]">
       <header class="mb-5 flex items-start gap-3">
@@ -57,6 +58,19 @@ import { IconComponent } from './icon/icon.component';
           <ng-content select="[stage]" />
         </div>
       </div>
+
+      <!-- Below the fold on every tool, in BOTH shapes. A SIBLING of the layout
+           wrapper, never a child: inside the loaded grid it would become a third
+           cell and land in a column, and inside the empty shape it would be
+           squeezed into the 680px dropzone column. Outside, it spans the full
+           width either way.
+
+           Placed here rather than in 31 templates — the component already knows
+           its toolId, so every tool gains the section (and its FAQ markup) from
+           this one line. -->
+      @if (showFaq()) {
+        <app-faq [toolId]="toolId()" />
+      }
     </section>
   `,
 })
@@ -66,6 +80,8 @@ export class ToolPageComponent {
 
   readonly toolId = input.required<ToolId>();
   readonly forceLoaded = input<boolean | undefined>(undefined);
+  /** The PDF editor is a full workspace; it can opt out with one attribute. */
+  readonly showFaq = input(true, { transform: booleanAttribute });
 
   protected readonly tool = computed(() => toolById(this.toolId()));
 
