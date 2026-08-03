@@ -268,8 +268,16 @@ export class CutAudioComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    cancelAnimationFrame(this.frame);
-    cancelAnimationFrame(this.edgeFrame);
+    // Só cancela o que chegou a ser agendado.
+    //
+    // Não é higiene: a geração estática destrói o app depois de renderizar cada
+    // rota, e `cancelAnimationFrame` não existe no Node. Chamado sem guarda ele
+    // lançava DEPOIS do HTML já estar pronto — então o sintoma não era uma
+    // página faltando, era o worker do prerender morrendo e derrubando em
+    // cascata todas as rotas que ainda estavam na fila dele, incluindo páginas
+    // estáticas como /pt/sobre, que não têm nada a ver com áudio.
+    if (this.frame) cancelAnimationFrame(this.frame);
+    if (this.edgeFrame) cancelAnimationFrame(this.edgeFrame);
     this.engine.close();
     this.observer?.disconnect();
   }

@@ -200,7 +200,11 @@ export class ConvertAudioComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    cancelAnimationFrame(this.frame);
+    // Só cancela o que chegou a ser agendado: a geração estática destrói o app
+    // depois de cada rota, e cancelAnimationFrame não existe no Node — sem a
+    // guarda, isto matava o worker do prerender e derrubava em cascata as rotas
+    // que ainda estavam na fila dele. Ver cut-audio.component.ts.
+    if (this.frame) cancelAnimationFrame(this.frame);
     this.engine.close();
     this.observer?.disconnect();
   }

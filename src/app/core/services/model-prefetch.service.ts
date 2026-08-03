@@ -58,6 +58,12 @@ export class ModelPrefetchService {
    * still does not ship it.
    */
   start(): void {
+    // A geração estática roda este mesmo app no Node, uma vez por rota, e lá
+    // não existe `navigator` — `shouldSkip()` o lê na primeira linha e
+    // derrubaria o build inteiro. Baixar 42 MB de pesos também não faria
+    // sentido nenhum num processo que só quer o HTML e é descartado em seguida.
+    if (typeof window === 'undefined') return;
+
     if (this.started) return;
     this.started = true;
 

@@ -2,11 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  PLATFORM_ID,
   computed,
   effect,
   inject,
   viewChild,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ActiveToolService } from '../../core/services/active-tool.service';
 import { TranslationService } from '../../core/services/translation.service';
@@ -81,12 +83,19 @@ export class MobileToolBarComponent {
     return id ? toolsOfModule(id) : [];
   });
 
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   constructor() {
     effect(() => {
       // Tracked so this reruns per navigation; the element itself is read after a
       // task, because aria-current is stamped by RouterLinkActive during the same
       // change detection pass that this effect is queued in.
       this.activeTool.tool();
+
+      // Rolar não significa nada em tempo de build, e o DOM do platform-server
+      // não implementa scrollIntoView — chamá-lo derruba a rota inteira.
+      if (!this.isBrowser) return;
+
       setTimeout(() => {
         const current = this.strip()?.nativeElement.querySelector('[aria-current="page"]');
         current?.scrollIntoView({ block: 'nearest', inline: 'center' });

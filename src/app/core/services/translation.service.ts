@@ -1,4 +1,5 @@
-import { Injectable, computed, effect, signal, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, effect, signal, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 
@@ -1526,11 +1527,32 @@ export class TranslationService {
 
   private router = inject(Router, { optional: true });
 
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /**
+   * Injetado, não o global.
+   *
+   * O platform-server fornece um DOM por injeção e NÃO define `document` como
+   * variável global — um `document.` solto aqui lança dentro do efeito. Como
+   * erro de efeito não derruba a rota, o sintoma era pior que uma falha: as 103
+   * rotas eram geradas, o build terminava em erro sem dizer qual rota, e o
+   * `lang` do <html> silenciosamente não era escrito em nenhuma delas.
+   */
+  private readonly doc = inject(DOCUMENT);
+
   constructor() {
     effect(() => {
       const lang = this.currentLang();
-      localStorage.setItem(STORAGE_KEY, lang);
-      document.documentElement.lang = lang;
+
+      // `localStorage` não existe no Node, e este serviço é injetado por quase
+      // todo componente do app — então, sem esta guarda, a geração estática
+      // falhava em TODAS as 72 rotas, inclusive `/pt` e `/en/about`, com uma
+      // mensagem que só dizia "erro ao pré-renderizar a rota X".
+      if (this.isBrowser) localStorage.setItem(STORAGE_KEY, lang);
+
+      // Este continua valendo em tempo de build, e é de propósito: é o que faz
+      // cada arquivo nascer com o idioma certo para o crawler.
+      this.doc.documentElement.lang = lang;
     });
 
     if (this.router) {
