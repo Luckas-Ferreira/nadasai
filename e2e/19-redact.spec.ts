@@ -66,6 +66,65 @@ test.describe('Censurar PDF', () => {
     await expectDownload(page, /^doc-a-redacted\.pdf$/);
   });
 
+  /**
+   * O zoom não existia, e sem ele não dá para mirar a tarja em texto miúdo — a
+   * página vinha presa a `max-h-[60vh]` e a um raster de escala fixa.
+   *
+   * O que se assere não é o botão: é que a folha CRESCE na mesma proporção do
+   * degrau, e que uma tarja desenhada antes acompanha, em vez de escorregar
+   * para outro trecho do documento. As regiões são percentuais, então essa é
+   * exatamente a garantia que uma conversão de coordenadas mal feita quebraria
+   * — e o estrago aqui é censurar o lugar errado.
+   */
+  test('zooms the page in, and the boxes go with it', async ({ page }) => {
+    await openApp(page, PDF_PATH);
+    await upload(page, DOC_A);
+    await expect(page.locator('app-region-overlay > div')).toBeVisible(READY);
+
+    await drawRegion(page, { x: 0.2, y: 0.2 }, { x: 0.6, y: 0.4 });
+    const box = page.locator('app-region-overlay > div > div');
+    await expect(box).toHaveCount(1);
+
+    const sheet = page.locator('app-redact-pdf img');
+    const sheetBefore = await sheet.boundingBox();
+    const boxBefore = await box.boundingBox();
+    if (!sheetBefore || !boxBefore) throw new Error('page is not laid out');
+    const rasterBefore = await sheet.evaluate((el) => (el as HTMLImageElement).naturalWidth);
+
+    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('100%');
+    await page.getByRole('button', { name: 'Aumentar zoom' }).click();
+    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('150%');
+
+    const sheetAfter = await sheet.boundingBox();
+    const boxAfter = await box.boundingBox();
+    if (!sheetAfter || !boxAfter) throw new Error('page is not laid out after zoom');
+
+    // A folha cresceu meio degrau, que é o que 100% → 150% quer dizer.
+    const grew = sheetAfter.height / sheetBefore.height;
+    expect(grew).toBeGreaterThan(1.45);
+    expect(grew).toBeLessThan(1.55);
+
+    // E a tarja cresceu junto, no mesmo fator: ela continua sobre o mesmo
+    // trecho do documento. Uma tarja em pixels teria ficado do tamanho de antes.
+    expect(boxAfter.height / boxBefore.height).toBeCloseTo(grew, 1);
+    expect(boxAfter.width / boxBefore.width).toBeCloseTo(grew, 1);
+
+    // A metade que separa ampliar de esticar: a página é RE-RASTERIZADA numa
+    // escala maior. Sem isto o zoom entrega o mesmo raster esticado, o texto
+    // fica mole justamente quando se aproxima para mirar, e a ferramenta não
+    // serve para o que se ampliou nela. É assíncrono — o CSS cresce na hora e a
+    // imagem nova chega depois.
+    await expect
+      .poll(() => sheet.evaluate((el) => (el as HTMLImageElement).naturalWidth), READY)
+      .toBeGreaterThan(rasterBefore);
+
+    // O número é o botão de voltar ao ajuste.
+    await page.getByRole('button', { name: 'Ajustar a página' }).click();
+    await expect(page.getByRole('button', { name: 'Ajustar a página' })).toHaveText('100%');
+    const sheetReset = await sheet.boundingBox();
+    expect(sheetReset?.height).toBeCloseTo(sheetBefore.height, 0);
+  });
+
   test('keeps each page\'s boxes to itself', async ({ page }) => {
     await openApp(page, PDF_PATH);
     await upload(page, DOC_A);
