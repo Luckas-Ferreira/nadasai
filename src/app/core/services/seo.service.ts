@@ -109,14 +109,14 @@ export class SeoService {
       this.meta.updateTag({ property: 'og:description', content: metaDesc });
       this.meta.updateTag({ property: 'og:type', content: 'website' });
       this.meta.updateTag({ property: 'og:url', content: currentFullUrl });
-      this.meta.updateTag({ property: 'og:image', content: `${DOMAIN}/logo.webp` });
+      this.meta.updateTag({ property: 'og:image', content: `${DOMAIN}/logo_nadasai.svg` });
       this.meta.updateTag({ property: 'og:locale', content: locale });
 
       // Twitter Tags
       this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
       this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
       this.meta.updateTag({ name: 'twitter:description', content: metaDesc });
-      this.meta.updateTag({ name: 'twitter:image', content: `${DOMAIN}/logo.webp` });
+      this.meta.updateTag({ name: 'twitter:image', content: `${DOMAIN}/logo_nadasai.svg` });
 
       // JSON-LD. Angular destroys the previous route's components and creates
       // the new ones DURING activation, i.e. before NavigationEnd — so by the

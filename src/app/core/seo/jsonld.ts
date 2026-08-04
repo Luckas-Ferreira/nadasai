@@ -59,7 +59,7 @@ function organization(): object {
     url: DOMAIN,
     logo: {
       '@type': 'ImageObject',
-      url: `${DOMAIN}/logo.webp`,
+      url: `${DOMAIN}/logo_nadasai.svg`,
       width: 1200,
       height: 630,
     },
