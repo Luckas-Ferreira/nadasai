@@ -15,9 +15,14 @@
 //      legadas que `app.routes.ts` redireciona no cliente.
 //
 // Copiar o shell de volta para `index.html` devolve exatamente o comportamento
-// que existia antes do prerender nesses dois casos, sem tocar em nenhuma das 73
+// que existia antes do prerender nesses dois casos, sem tocar em nenhuma das 72
 // páginas geradas — arquivo estático tem precedência, então cada rota real
 // continua servindo o HTML próprio dela, com título e canonical próprios.
+//
+// Roda DEPOIS de `flatten-prerender.mjs`, e a ordem importa nos dois sentidos:
+// aquele script precisa da raiz ainda sem `index.html` para não achatar o
+// fallback, e este precisa que o achatamento já tenha acontecido para que o
+// fallback seja o último recurso, e não o que atende as rotas reais.
 
 import { copyFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -35,6 +36,42 @@ const FEATURED = new Set([
 ]);
 
 /**
+ * The date of the last commit that touched the site, as YYYY-MM-DD.
+ *
+ * `<lastmod>` was the one field this file did not emit, and it is the only one
+ * of the three the Google actually reads — `changefreq` and `priority` have been
+ * publicly ignored since 2023. Without it the sitemap carried no signal that it
+ * had changed at all, so a re-submit in Search Console re-showed the previous
+ * processing instead of re-fetching: after the privacy module shipped, GSC kept
+ * reporting the 66 URLs of the build before it.
+ *
+ * Derived from git rather than from `new Date()` on purpose. The generator runs
+ * on every prebuild and its determinism is the reason it never shows up as noise
+ * in a diff (see the header above); a wall-clock date would rewrite all 72
+ * entries on every build and, worse, would claim a change that did not happen.
+ * Google discards lastmod it finds inconsistent, which is the same as omitting
+ * it — but with the extra churn.
+ *
+ * Returns null when git is unavailable, and the field is then left out entirely.
+ * An absent lastmod is documented behaviour; an invented one is a lie the
+ * crawler learns to distrust across the whole file.
+ */
+function lastCommitDate() {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', 'src', 'public'], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+
+    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
+  } catch {
+    // Sem git (tarball, clone raso sem histórico) — seguir sem o campo.
+    return null;
+  }
+}
+
+/**
  * Loads a TypeScript module from Node without a loader hook.
  *
  * `transpileModule` compiles one file with no type information, so it cannot
@@ -53,7 +90,7 @@ async function loadTsModule(relativePath) {
   return import(`data:text/javascript;base64,${Buffer.from(withoutImports, 'utf8').toString('base64')}`);
 }
 
-function urlEntry({ loc, pt, en, changefreq, priority }) {
+function urlEntry({ loc, pt, en, lastmod, changefreq, priority }) {
   return [
     '  <url>',
     `    <loc>${loc}</loc>`,
@@ -63,21 +100,30 @@ function urlEntry({ loc, pt, en, changefreq, priority }) {
     // self-referential x-default per language would be two claims about the
     // same cluster.
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${pt}" />`,
+    ...(lastmod ? [`    <lastmod>${lastmod}</lastmod>`] : []),
     `    <changefreq>${changefreq}</changefreq>`,
     `    <priority>${priority.toFixed(1)}</priority>`,
     '  </url>',
   ].join('\n');
 }
 
-/** Both halves of a PT/EN pair, which is what makes the hreflang reciprocal. */
-function pair({ ptPath, enPath, changefreq, priority, comment }) {
+/**
+ * Both halves of a PT/EN pair, which is what makes the hreflang reciprocal.
+ *
+ * Every URL is the extension-less, slash-less form, and that is not cosmetic:
+ * it is the form Cloudflare Pages serves 200 for once the build is flattened
+ * (`scripts/flatten-prerender.mjs`), the form the canonical and the hreflang
+ * declare, and the form every routerLink emits. A sitemap listing a URL that
+ * 308s is a sitemap of redirects, which is what this was.
+ */
+function pair({ ptPath, enPath, lastmod, changefreq, priority, comment }) {
   const pt = ptPath ? `${ORIGIN}/pt/${ptPath}` : `${ORIGIN}/pt`;
   const en = enPath ? `${ORIGIN}/en/${enPath}` : `${ORIGIN}/en`;
 
   return [
     comment ? `\n  <!-- ${comment} -->` : '',
-    urlEntry({ loc: pt, pt, en, changefreq, priority }),
-    urlEntry({ loc: en, pt, en, changefreq, priority }),
+    urlEntry({ loc: pt, pt, en, lastmod, changefreq, priority }),
+    urlEntry({ loc: en, pt, en, lastmod, changefreq, priority }),
   ]
     .filter(Boolean)
     .join('\n');
@@ -87,11 +133,14 @@ async function main() {
   const { TOOLS } = await loadTsModule('src/app/core/tools/tools.ts');
   const { STATIC_PAGES } = await loadTsModule('src/app/core/seo/static-pages.ts');
 
+  const lastmod = lastCommitDate();
+
   const blocks = [
     ...STATIC_PAGES.map((page) =>
       pair({
         ptPath: page.pt,
         enPath: page.en,
+        lastmod,
         changefreq: page.pt === '' ? 'weekly' : 'monthly',
         priority: page.priority,
         comment: page.pt === '' ? 'Home' : page.en,
@@ -101,6 +150,7 @@ async function main() {
       pair({
         ptPath: tool.pathPt,
         enPath: tool.pathEn,
+        lastmod,
         changefreq: 'monthly',
         priority: FEATURED.has(tool.id) ? 0.9 : 0.8,
         comment: tool.id,

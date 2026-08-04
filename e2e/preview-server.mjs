@@ -24,6 +24,8 @@ const TYPES = {
   '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
   '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.webp': 'image/webp',
   '.png': 'image/png',
@@ -50,13 +52,28 @@ createServer((req, res) => {
   const isFile = (p) => existsSync(p) && statSync(p).isFile();
 
   /**
-   * Índice de diretório ANTES do fallback, que é o que um host estático faz.
+   * Barra final -> forma sem barra, como as regras de `public/_redirects`.
    *
-   * Sem este passo o servidor devolvia o shell para toda rota profunda, porque
-   * `pt/pdf/juntar` não é um arquivo — e isso escondia por completo o
+   * Precisa vir antes de qualquer resolução: as URLs com barra são as que o
+   * Google resolveu enquanto o build ainda era `rota/index.html`, e o que a
+   * suíte tem de provar é que elas chegam na canônica por um 308, e não no
+   * shell vazio do fallback.
+   */
+  if (path.length > 1 && path.endsWith('/')) {
+    const withoutSlash = path.replace(/\/+$/, '');
+    res.writeHead(308, { Location: withoutSlash });
+    res.end();
+    return;
+  }
+
+  /**
+   * `rota.html` ANTES de `rota/index.html`, que é a ordem do Cloudflare Pages.
+   *
+   * Sem o primeiro passo o servidor devolvia o shell para toda rota profunda,
+   * porque `pt/pdf/juntar` não é um arquivo — e isso escondia por completo o
    * prerender: as 73 páginas geradas existiam em disco e nenhuma delas era
-   * servida. O simulador precisa resolver como Cloudflare Pages, nginx
-   * (`try_files`) e Netlify resolvem, ou a suíte mede um site que não existe.
+   * servida. O índice de diretório continua no meio porque `ng build` sozinho
+   * (sem o postbuild que achata) ainda produz esse formato.
    *
    * O fallback continua no fim, e continua sendo necessário: é ele que atende
    * as URLs legadas que `app.routes.ts` redireciona no cliente.
@@ -65,9 +82,11 @@ createServer((req, res) => {
     ? join(ROOT, 'index.html')
     : isFile(candidate)
       ? candidate
-      : isFile(join(candidate, 'index.html'))
-        ? join(candidate, 'index.html')
-        : join(ROOT, 'index.html'); // SPA fallback: deep links are client-routed.
+      : isFile(`${candidate}.html`)
+        ? `${candidate}.html`
+        : isFile(join(candidate, 'index.html'))
+          ? join(candidate, 'index.html')
+          : join(ROOT, 'index.html'); // SPA fallback: deep links are client-routed.
 
   res.writeHead(200, {
     'Content-Type': TYPES[extname(file)] ?? 'application/octet-stream',
