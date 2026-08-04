@@ -31,7 +31,7 @@ import { NetworkProofComponent } from './network-proof.component';
     <button
       type="button"
       class="flex shrink-0 items-center gap-2 rounded-md border transition-colors"
-      [class]="size() === 'md' ? 'h-10 px-3.5' : 'h-9 px-2.5'"
+      [class]="size() === 'md' ? 'h-10 px-3.5' : 'h-10 px-2.5 min-w-[40px]'"
       [class.border-line]="probe.clean()"
       [class.bg-raised]="probe.clean()"
       [class.hover:border-line-strong]="probe.clean()"
