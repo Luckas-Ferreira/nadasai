@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 
 /**
@@ -80,5 +81,50 @@ test.describe('O HTML que o crawler recebe', () => {
     const response = await request.get('/');
     expect(response.status()).toBe(200);
     expect(await response.text()).toContain('<app-root');
+  });
+
+  /**
+   * O sitemap não pode ser uma lista de redirects.
+   *
+   * Enquanto o prerender gravava `pt/imagem/cortar/index.html`, o host só servia
+   * a forma COM barra e as 72 URLs do sitemap respondiam 308 — e a página de
+   * destino declarava como canônica justamente a URL que redirecionava. Para o
+   * crawler isso é "Página com redirecionamento", e os hreflang apontavam todos
+   * para redirects, que é o que invalida a anotação do cluster inteiro.
+   *
+   * `maxRedirects: 0` é o ponto do teste: seguir o redirect é exatamente o que
+   * escondia o defeito, porque o conteúdo no fim dele sempre esteve correto.
+   */
+  test('toda URL do sitemap responde 200 sem redirect', async ({ request }) => {
+    const xml = readFileSync('public/sitemap.xml', 'utf8');
+    const paths = [...xml.matchAll(/<loc>https:\/\/nadasai\.com([^<]*)<\/loc>/g)].map((m) => m[1]);
+
+    expect(paths.length, 'sitemap vazio ou com outra origem').toBeGreaterThan(0);
+
+    const redirecting: string[] = [];
+    for (const path of paths) {
+      const response = await request.get(path || '/', { maxRedirects: 0 });
+      if (response.status() !== 200) redirecting.push(`${path} -> ${response.status()}`);
+    }
+
+    expect(redirecting, `URLs do sitemap que não respondem 200`).toEqual([]);
+  });
+
+  /**
+   * A forma COM barra é a que o Google resolveu e indexou durante o período em
+   * que tudo redirecionava. Depois do achatamento ela não casa com arquivo
+   * nenhum, então sem as regras de `public/_redirects` cairia no fallback de
+   * SPA: 200 servindo o shell vazio, sem canonical e sem H1 — pior do que o
+   * redirect que havia antes.
+   */
+  test('a forma com barra redireciona para a canônica', async ({ request }) => {
+    for (const route of ROUTES) {
+      const response = await request.get(`${route.path}/`, { maxRedirects: 0 });
+
+      expect(response.status(), `${route.path}/ não redirecionou`).toBe(308);
+      expect(response.headers()['location'], `${route.path}/ foi para o lugar errado`).toBe(
+        route.path,
+      );
+    }
   });
 });

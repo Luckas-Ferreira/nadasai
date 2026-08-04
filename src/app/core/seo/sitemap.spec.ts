@@ -39,4 +39,28 @@ describe('sitemap.xml', () => {
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
     expect(new Set(locs).size).toBe(locs.length);
   });
+
+  it('gives every URL a <lastmod>', () => {
+    // The field the crawler actually reads — `changefreq` and `priority` have
+    // been publicly ignored since 2023. With none of the three carrying a change
+    // signal, a re-submit in Search Console re-showed the previous processing
+    // instead of re-fetching: after the privacy module shipped, GSC kept
+    // reporting the 66 URLs of the build before it.
+    const urls = [...xml.matchAll(/<url>([\s\S]*?)<\/url>/g)].map((m) => m[1]);
+    expect(urls.length).toBeGreaterThan(0);
+
+    for (const url of urls) {
+      const loc = url.match(/<loc>([^<]+)<\/loc>/)?.[1];
+      expect(url).withContext(`${loc} has no <lastmod>`).toMatch(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
+    }
+  });
+
+  it('lists no URL with a trailing slash', () => {
+    // The canonical form is slash-less: it is what the flattened build serves
+    // 200 for, what SeoService writes as canonical, and what every routerLink
+    // emits. A `<loc>` with a slash is a `<loc>` that 308s — every URL in this
+    // file did, which is what made Google treat all 72 as redirects.
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    expect(locs.filter((loc) => loc.endsWith('/'))).toEqual([]);
+  });
 });

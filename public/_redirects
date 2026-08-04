@@ -1,0 +1,20 @@
+# Barra final -> forma canônica sem barra.
+#
+# A forma canônica do site é a sem barra (`/pt/imagem/cortar`): é a que o
+# sitemap lista, a que o SeoService escreve no canonical e no hreflang, a que
+# todo routerLink emite, e — depois do `scripts/flatten-prerender.mjs` — a que
+# o Cloudflare Pages serve com 200 a partir de `pt/imagem/cortar.html`.
+#
+# Estas regras existem para o passado. Enquanto a saída era `rota/index.html`,
+# TODA URL do sitemap respondia 308 para a versão com barra, então foi a versão
+# COM barra que o Google acabou resolvendo e indexando. Sem estas linhas, essas
+# URLs cairiam no fallback de SPA depois do achatamento — 200 servindo o shell
+# vazio, sem canonical e sem H1, que é pior do que o redirect que havia antes.
+#
+# Com elas, o caminho é um 308 limpo para a URL canônica, que responde 200 com o
+# HTML prerenderizado. `_redirects` é consultado quando nenhum asset casa, que é
+# exatamente a situação criada pelo achatamento.
+/pt/  /pt  308
+/en/  /en  308
+/pt/*/  /pt/:splat  308
+/en/*/  /en/:splat  308
