@@ -1411,6 +1411,51 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+
+  'video-to-audio': {
+    pt: {
+      features: ['MP4, MOV, WebM, MKV', 'MP3 ou WAV sem perda', 'Até 500 MB e 30 minutos', 'O vídeo não é enviado'],
+      faq: [
+        {
+          q: 'Como extrair o áudio de um vídeo sem enviar o arquivo?',
+          a: 'Solte o vídeo, escolha MP3 ou WAV e baixe. A trilha é lida pelo próprio decodificador do navegador, na sua máquina — um vídeo de 400 MB não sobe para lugar nenhum, o que também explica por que aqui não há fila nem limite diário.',
+        },
+        {
+          q: 'Extrair o áudio piora a qualidade?',
+          a: 'A trilha sai do vídeo exatamente como estava. Escolhendo WAV, é isso que você baixa, sem nenhuma perda nova. Escolhendo MP3 há uma recodificação: como o áudio dentro de um MP4 quase sempre já é AAC comprimido, é uma segunda geração de perda — a 192 kbps ou mais ela é inaudível na prática, e o WAV está ali para quem não quiser nenhuma.',
+        },
+        {
+          q: 'Por que às vezes ele avisa que vai levar o tempo do vídeo?',
+          a: 'Porque nem todo navegador entrega a trilha de um container de vídeo diretamente. Quando o caminho rápido é recusado, a ferramenta cai para o modo compatível: toca o vídeo em silêncio e captura o som amostra por amostra. O resultado é o mesmo PCM exato, mas leva a duração do arquivo. Chrome e Edge quase sempre usam o caminho rápido, que é quase instantâneo.',
+        },
+        {
+          q: 'Por que o limite é 30 minutos?',
+          a: 'É memória, não política. O áudio decodificado vira float de 32 bits: meia hora de estéreo a 48 kHz ocupa cerca de 690 MB de RAM, e a codificação aloca a saída por cima disso. A duração é medida antes de o arquivo ser lido inteiro, então um vídeo longo demais é recusado na hora, sem travar a aba.',
+        },
+      ],
+    },
+    en: {
+      features: ['MP4, MOV, WebM, MKV', 'MP3 or lossless WAV', 'Up to 500 MB and 30 minutes', 'The video is never uploaded'],
+      faq: [
+        {
+          q: 'How do I extract audio from a video without uploading the file?',
+          a: 'Drop the video, pick MP3 or WAV and download. The track is read by your browser own decoder, on your machine — a 400 MB video goes nowhere, which is also why there is no queue and no daily limit here.',
+        },
+        {
+          q: 'Does extracting the audio hurt quality?',
+          a: 'The track comes out of the video exactly as it was. Pick WAV and that is what you download, with no new loss at all. Pick MP3 and there is a re-encode: since the audio inside an MP4 is almost always compressed AAC already, that is a second generation of loss — inaudible in practice at 192 kbps and above, and WAV is there for anyone who wants none.',
+        },
+        {
+          q: 'Why does it sometimes warn that it will take as long as the video?',
+          a: 'Because not every browser hands over the track of a video container directly. When the fast path is refused, the tool falls back to compatibility mode: it plays the video silently and captures the sound sample by sample. The result is the same exact PCM, but it takes the length of the file. Chrome and Edge almost always take the fast path, which is near instant.',
+        },
+        {
+          q: 'Why is the limit 30 minutes?',
+          a: 'It is memory, not policy. Decoded audio becomes 32-bit float: half an hour of stereo at 48 kHz is around 690 MB of RAM, and encoding allocates the output on top of that. The duration is measured before the file is read in full, so a video that is too long is refused immediately instead of freezing the tab.',
+        },
+      ],
+    },
+  },
 };
 
 /**

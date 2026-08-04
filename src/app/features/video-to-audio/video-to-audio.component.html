@@ -1,0 +1,250 @@
+<app-tool-page [toolId]="'video-to-audio'" [forceLoaded]="!!audioBuffer()">
+  <div banner [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
+
+  <div stage>
+    @if (!audioBuffer()) {
+      @if (extracting()) {
+        <!--
+          A extração é a parte cara e é onde a pessoa decide se confia na
+          ferramenta, então ela mostra em que fase está e — no modo compatível —
+          quanto falta e como sair. Um spinner mudo por vinte minutos seria
+          indistinguível de um travamento.
+        -->
+        <div
+          class="flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-xl border border-line bg-surface px-6 text-center"
+        >
+          <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+
+          <p class="text-sm font-medium text-muted">
+            @switch (stage()) {
+              @case ('reading') {
+                {{ i18n.t()['video_audio.extracting_reading'] }}
+              }
+              @case ('decoding') {
+                {{ i18n.t()['video_audio.extracting_decoding'] }}
+              }
+              @default {
+                {{ i18n.t()['video_audio.extracting_capturing'] }}
+              }
+            }
+          </p>
+
+          @if (extractPercent(); as percent) {
+            <div class="w-64">
+              <div class="h-1 overflow-hidden rounded-full bg-raised">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="percent"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs tabular text-muted" aria-live="polite">
+                {{ percent }}% · {{ remaining() }}
+              </p>
+            </div>
+          }
+
+          @if (stage() === 'capturing') {
+            <p class="max-w-md text-xs leading-relaxed text-faint">
+              {{ i18n.t()['video_audio.realtime_note'] }}
+            </p>
+            <button appButton variant="secondary" size="sm" (click)="cancelExtraction()">
+              {{ i18n.t()['video_audio.cancel'] }}
+            </button>
+          }
+        </div>
+      } @else {
+        <app-dropzone
+          [accept]="acceptAttr"
+          [titleKey]="'video_audio.drag'"
+          [hintKey]="'video_audio.drag_hint'"
+          (fileSelected)="onFile($event)"
+        />
+      }
+    } @else {
+      <div class="relative flex flex-col gap-3">
+        <!-- O vídeo fica no palco escuro: é uma imagem que se olha, e as barras
+             de letterbox só desaparecem contra preto. -->
+        <div class="flex items-center justify-center rounded-xl bg-stage p-4 sm:p-5">
+          <video
+            class="max-h-[420px] w-auto max-w-full rounded-md"
+            [src]="videoUrl()"
+            controls
+            playsinline
+            preload="metadata"
+          ></video>
+        </div>
+
+        <!-- A trilha extraída, na superfície de documento que o módulo de áudio
+             usa: folha branca sobre cinza, porque isto é algo que se percorre,
+             não uma foto cujo brilho se julga. -->
+        <div class="rounded-xl border border-doc-stage-line bg-doc-stage p-4 sm:p-5">
+          <div class="overflow-hidden rounded-md bg-white shadow-page">
+            @if (waveUrl(); as url) {
+              <img
+                class="block h-24 w-full object-fill"
+                [src]="url"
+                [alt]="i18n.t()['video_audio.track']"
+              />
+            } @else {
+              <div class="h-24 w-full"></div>
+            }
+          </div>
+
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <p class="text-xs text-muted">
+              {{ i18n.t()['video_audio.track'] }}
+              <span class="font-mono tabular text-faint">· {{ trackLabel() }}</span>
+            </p>
+            <p class="font-mono text-xs tabular text-muted">{{ clock(duration()) }}</p>
+          </div>
+        </div>
+
+        @if (realtime()) {
+          <p class="text-2xs leading-relaxed text-faint">
+            {{ i18n.t()['video_audio.realtime_badge'] }}
+          </p>
+        }
+
+        @if (busy()) {
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-doc-stage/85 backdrop-blur-[3px]"
+          >
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm font-medium text-text">{{ i18n.t()['video_audio.encoding'] }}</p>
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/70">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress()"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs tabular text-muted" aria-live="polite">
+                {{ progress() }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (audioBuffer()) {
+      <app-panel [heading]="i18n.t()['video_audio.source']">
+        <dl class="flex flex-col gap-1.5 text-xs">
+          <div class="flex items-baseline justify-between gap-3">
+            <dt class="text-muted">{{ i18n.t()['video_audio.file'] }}</dt>
+            <dd class="min-w-0 truncate font-medium text-text">{{ currentFile()?.name }}</dd>
+          </div>
+          <div class="flex items-baseline justify-between gap-3">
+            <dt class="text-muted">{{ i18n.t()['video_audio.size'] }}</dt>
+            <dd class="font-mono tabular text-text">{{ sourceSize() }}</dd>
+          </div>
+          @if (resolution(); as res) {
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-muted">{{ i18n.t()['video_audio.resolution'] }}</dt>
+              <dd class="font-mono tabular text-text">{{ res }}</dd>
+            </div>
+          }
+        </dl>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['video_audio.panel_output']">
+        <div class="flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-text">
+              {{ i18n.t()['video_audio.format'] }}
+            </label>
+            <app-segmented
+              [options]="formatOptions"
+              [(value)]="format"
+              [ariaLabel]="i18n.t()['video_audio.format']"
+              [columns]="2"
+            />
+            @if (format() === 'wav') {
+              <p class="text-xs leading-relaxed text-faint">
+                {{ i18n.t()['video_audio.lossless_note'] }}
+              </p>
+            }
+          </div>
+
+          @if (format() === 'mp3') {
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-semibold text-text">
+                {{ i18n.t()['video_audio.bitrate'] }}
+              </label>
+              <app-segmented
+                [options]="bitrateOptions"
+                [(value)]="bitrate"
+                [ariaLabel]="i18n.t()['video_audio.bitrate']"
+                [columns]="4"
+              />
+              <p class="text-xs leading-relaxed text-faint">
+                {{ i18n.t()['video_audio.bitrate_hint'] }}
+              </p>
+            </div>
+          }
+
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-text">
+              {{ i18n.t()['video_audio.channels'] }}
+            </label>
+            <app-segmented
+              [options]="channelOptions()"
+              [(value)]="channels"
+              [ariaLabel]="i18n.t()['video_audio.channels']"
+              [columns]="2"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label class="text-xs font-semibold text-text">
+              {{ i18n.t()['video_audio.sample_rate'] }}
+            </label>
+            <app-segmented
+              [options]="rateOptions"
+              [(value)]="sampleRate"
+              [ariaLabel]="i18n.t()['video_audio.sample_rate']"
+              [columns]="3"
+            />
+          </div>
+
+          <div class="flex items-baseline justify-between gap-3 border-t border-line pt-3">
+            <span class="text-xs text-muted">
+              {{ result() ? i18n.t()['video_audio.final_size'] : i18n.t()['video_audio.estimated'] }}
+            </span>
+            <span class="font-mono text-sm tabular text-text">
+              {{ result() ? resultSize() : estimatedSize() }}
+            </span>
+          </div>
+        </div>
+      </app-panel>
+
+      @if (result()) {
+        <div class="flex items-center gap-2 rounded-md bg-success-soft px-3 py-2">
+          <app-icon name="check" [size]="14" class="text-success" />
+          <span class="text-sm font-medium text-success">{{ i18n.t()['video_audio.ready'] }}</span>
+        </div>
+
+        @if (!chained()) {
+          <p class="text-2xs leading-relaxed text-faint">{{ i18n.t()['video_audio.no_chain'] }}</p>
+        }
+      }
+
+      <app-action-bar
+        [primaryLabel]="primaryLabel()"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        [canContinue]="chained()"
+        (primary)="run()"
+        (download)="download()"
+        (continueEdit)="continueEdit()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
