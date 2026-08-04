@@ -1,6 +1,32 @@
-# Espelha os headers do `ng serve` (angular.json > serve > headers).
-# Sem COOP/COEP não há SharedArrayBuffer, e a inferência da remoção de fundo
-# cai para single-threaded (~6x mais lenta) sem erro nenhum — falha silenciosa.
+# Headers de Segurança & Multithreading (SharedArrayBuffer)
 /*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
+
+# Scripts JS e CSS com hash do Angular (Cache Imutável de 1 ano)
+# Como cada build gera um hash novo no nome dos arquivos, o browser nunca usa código antigo.
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fontes estáticas WOFF2 (Cache longo de 1 ano)
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# Documentos HTML, Manifest PWA e XMLs (Revalidação imediata a cada deploy)
+# Garante que atualizações semanais do app fiquem disponíveis no mesmo segundo em que você publica.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+/sitemap.xml
+  Cache-Control: public, max-age=3600, must-revalidate
+/robots.txt
+  Cache-Control: public, max-age=86400, must-revalidate
+
+# Modelos pesados de IA (ONNX) e dados de OCR (Tesseract)
+/model/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/tessdata/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
