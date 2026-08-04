@@ -61,7 +61,7 @@ import { NetworkBadgeComponent } from './network-badge.component';
         [routerLink]="'/' + i18n.currentLang()"
         class="flex shrink-0 items-center gap-2.5 rounded-md py-1 pr-1 text-text"
       >
-        <img src="logo.webp" alt="" class="h-7 w-7 shrink-0 object-contain" />
+        <img src="logo_nadasai.svg" alt="" class="h-7 w-7 shrink-0 object-contain" />
         <span class="text-xl font-semibold tracking-[-0.015em]">Nada Sai</span>
       </a>
 
