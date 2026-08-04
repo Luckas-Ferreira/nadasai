@@ -14,6 +14,7 @@ import {
   CommandPaletteService,
   PALETTE_HOTKEY_LABEL,
 } from '../../core/services/command-palette.service';
+import { SplashScreenService } from '../../core/services/splash-screen.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { MODULES, type ModuleId, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -59,7 +60,8 @@ import { NetworkBadgeComponent } from './network-badge.component';
     >
       <a
         [routerLink]="'/' + i18n.currentLang()"
-        class="flex h-10 shrink-0 items-center gap-2 sm:gap-2.5 rounded-md py-1 pr-1 text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        (click)="splash.show()"
+        class="flex h-10 shrink-0 items-center gap-2 sm:gap-2.5 rounded-md py-1 pr-1 text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
       >
         <img src="logo_nadasai.svg" alt="" class="h-7 w-7 shrink-0 object-contain" />
         <span class="text-lg sm:text-xl font-semibold tracking-[-0.015em] hidden min-[340px]:inline">Nada Sai</span>
@@ -184,6 +186,7 @@ import { NetworkBadgeComponent } from './network-badge.component';
 export class TopBarComponent {
   protected readonly i18n = inject(TranslationService);
   protected readonly palette = inject(CommandPaletteService);
+  protected readonly splash = inject(SplashScreenService);
   private readonly active = inject(ActiveToolService);
 
   protected readonly modules = MODULES;
