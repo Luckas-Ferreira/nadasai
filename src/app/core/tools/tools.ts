@@ -9,6 +9,7 @@ export type ToolId =
   | 'merge-audio'
   | 'convert-audio'
   | 'compress-audio'
+  | 'video-to-audio'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -245,6 +246,31 @@ export const TOOLS: readonly ToolDef[] = [
       'compress audio', 'reduce audio file size', 'shrink mp3', 'audio compressor',
       'lower bitrate', 'compress mp3', 'compress wav', 'reduce mp3 size', 'audio file reducer',
       'make audio smaller', 'compress ogg', 'reduce audio bitrate'
+    ],
+  },
+  {
+    id: 'video-to-audio',
+    pathPt: 'audio/extrair-de-video',
+    pathEn: 'audio/extract-from-video',
+    icon: 'video',
+    category: 'audio',
+    navKey: 'nav.video_to_audio',
+    shortKey: 'nav.short.video_to_audio',
+    titleKey: 'video_audio.title',
+    descKey: 'video_audio.subtitle',
+    suffix: 'audio',
+    tone: 'indigo',
+    keywordsPt: [
+      'extrair audio de video', 'video para mp3', 'mp4 para mp3', 'tirar audio de video',
+      'converter video em audio', 'separar audio do video', 'mov para mp3', 'webm para mp3',
+      'mkv para mp3', 'extrair musica de video', 'audio de videoaula', 'video para wav',
+      'salvar audio de video', 'transformar video em audio', 'extrair som de video'
+    ],
+    keywordsEn: [
+      'extract audio from video', 'video to mp3', 'mp4 to mp3', 'video to audio',
+      'rip audio from video', 'mov to mp3', 'webm to mp3', 'mkv to mp3', 'video to wav',
+      'get audio from video', 'strip audio from video', 'convert video to mp3',
+      'save audio from video', 'video audio extractor'
     ],
   },
   {

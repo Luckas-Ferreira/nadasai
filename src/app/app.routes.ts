@@ -107,6 +107,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'audio/extrair-de-video',
+        title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
+        loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
+        data: {
+          metaDescription: 'Tire a trilha de áudio de um MP4, MOV, WebM ou MKV e baixe em MP3 ou WAV sem perda. O vídeo não sai do seu computador: até 500 MB e 30 minutos, 100% offline no navegador.'
+        }
+      },
+      {
         path: 'imagem/cortar',
         title: 'Cortar Imagem Online (Proporção Livre) — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
@@ -401,6 +409,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
           metaDescription: 'Shrink MP3, WAV, OGG and M4A by choosing the bitrate, with the final size estimated before you download. Up to 100 MB, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'audio/extract-from-video',
+        title: 'Extract Audio from Video (MP4 to MP3) — Nada Sai',
+        loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
+        data: {
+          metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and download it as MP3 or lossless WAV. The video never leaves your computer: up to 500 MB and 30 minutes, 100% offline in your browser.'
         }
       },
       {

@@ -19,6 +19,15 @@ export type ErrorCode =
   | 'audio_empty_selection'
   | 'audio_needs_two'
   | 'audio_rate_mismatch'
+  | 'video_unsupported'
+  | 'video_too_large'
+  | 'video_too_long'
+  | 'video_decode_failed'
+  | 'video_no_audio'
+  // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
+  // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
+  // código existe para que o `catch` distinga isso do resto e não mostre nada.
+  | 'cancelled'
   // A wrong password and a corrupted file are cryptographically INDISTINGUISHABLE:
   // AES-GCM's authentication tag is a single yes/no, and SubtleCrypto.decrypt throws
   // the same bare OperationError for a wrong key and for a flipped ciphertext bit.
@@ -70,6 +79,12 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   audio_empty_selection: 'error.audio_empty_selection',
   audio_needs_two: 'error.audio_needs_two',
   audio_rate_mismatch: 'error.audio_rate_mismatch',
+  video_unsupported: 'error.video_unsupported',
+  video_too_large: 'error.video_too_large',
+  video_too_long: 'error.video_too_long',
+  video_decode_failed: 'error.video_decode_failed',
+  video_no_audio: 'error.video_no_audio',
+  cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',
   crypto_bad_envelope: 'error.crypto_bad_envelope',
