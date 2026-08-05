@@ -1,29 +1,17 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  OnInit,
+  HostListener,
   ViewEncapsulation,
-  signal,
+  inject,
 } from '@angular/core';
+import { SplashScreenService } from '../../core/services/splash-screen.service';
 
 /**
- * Controla se o splash já foi exibido nesta carga de página.
- * Variável de módulo: zera em todo reload (F5), mas sobrevive à
- * navegação Angular (sem reload), evitando re-exibição entre rotas.
- */
-let splashShown = false;
-
-/**
- * Splash screen com animação em 6 fases:
+ * Splash screen interativo acionado ao clicar na logo no cabeçalho.
  *
- *   0ms         → SVG surge com fade+scale leve
- *   0–450ms     → painel esquerdo escala de dentro para fora
- *   120–570ms   → painel direito escala de dentro para fora
- *   250–585ms   → triângulo do canto dobra no lugar
- *   480–1180ms  → círculo se desenha via stroke-dashoffset
- *   720–1475ms  → cada seta aparece individualmente (pop com overshoot, stagger 140ms)
- *   1380–1930ms → todas as setas giram 360° juntas (finalização)
- *   2050–2500ms → overlay some em fade-out
+ * Não é exibido no carregamento inicial da página (FCP / LCP intactos com 100%
+ * de performance no PageSpeed), mas roda a animação SVG completa com o clique.
  */
 @Component({
   selector: 'app-splash-screen',
@@ -39,8 +27,10 @@ let splashShown = false;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #e9edf3;
-      animation: splash-fade-out 0.45s ease-in 2.05s forwards;
+      background: rgba(233, 237, 243, 0.96);
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      animation: splash-fade-out 0.4s ease-in 1.6s forwards;
     }
 
     /* ── SVG wrapper ──────────────────────────────────────────────────────── */
@@ -58,7 +48,7 @@ let splashShown = false;
       transform-box: fill-box;
       transform-origin: center;
       opacity: 0;
-      animation: panel-scale-in 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) 0ms forwards;
+      animation: panel-scale-in 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) 0ms forwards;
     }
 
     /* ── Painel direito ──────────────────────────────────────────────────── */
@@ -66,7 +56,7 @@ let splashShown = false;
       transform-box: fill-box;
       transform-origin: center;
       opacity: 0;
-      animation: panel-scale-in 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) 120ms forwards;
+      animation: panel-scale-in 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) 100ms forwards;
     }
 
     /* ── Triângulo do canto ──────────────────────────────────────────────── */
@@ -74,33 +64,33 @@ let splashShown = false;
       transform-box: fill-box;
       transform-origin: top right;
       opacity: 0;
-      animation: corner-fold-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 250ms forwards;
+      animation: corner-fold-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 200ms forwards;
     }
 
     /* ── Círculo: desenha-se via stroke-dashoffset ───────────────────────── */
     .logo-circle-path {
       stroke-dasharray: 547;
       stroke-dashoffset: 547;
-      animation: draw-circle 0.7s cubic-bezier(0.37, 0, 0.63, 1) 480ms forwards;
+      animation: draw-circle 0.6s cubic-bezier(0.37, 0, 0.63, 1) 400ms forwards;
     }
 
     /* ── Grupo das setas: aplica o giro final sobre as setas já visíveis ─── */
     .logo-arrows-group {
       transform-origin: 165px 188px;
-      animation: group-spin 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1380ms both;
+      animation: group-spin 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) 1100ms both;
     }
 
-    /* ── Setas individuais: stagger de 140ms ─────────────────────────────── */
+    /* ── Setas individuais: stagger ─────────────────────────────────────── */
     .logo-arrow {
       transform-box: fill-box;
       transform-origin: center;
       opacity: 0;
     }
 
-    .logo-arrow-1 { animation: arrow-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)  720ms both; }
-    .logo-arrow-2 { animation: arrow-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)  860ms both; }
-    .logo-arrow-3 { animation: arrow-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 1000ms both; }
-    .logo-arrow-4 { animation: arrow-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 1140ms both; }
+    .logo-arrow-1 { animation: arrow-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)  600ms both; }
+    .logo-arrow-2 { animation: arrow-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)  720ms both; }
+    .logo-arrow-3 { animation: arrow-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)  840ms both; }
+    .logo-arrow-4 { animation: arrow-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)  960ms both; }
 
     /* ── Keyframes ───────────────────────────────────────────────────────── */
     @keyframes splash-fade-out {
@@ -149,7 +139,7 @@ let splashShown = false;
       letter-spacing: -0.015em;
       color: #0f172a;
       opacity: 0;
-      animation: brand-appear 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) 1350ms forwards;
+      animation: brand-appear 0.4s cubic-bezier(0.34, 1.3, 0.64, 1) 1050ms forwards;
     }
 
     @keyframes brand-appear {
@@ -158,11 +148,12 @@ let splashShown = false;
     }
   `,
   template: `
-    @if (visible()) {
+    @if (splash.active()) {
       <div
         class="splash-overlay"
         aria-hidden="true"
         style="flex-direction: column;"
+        (click)="dismiss()"
         (animationend)="onOverlayAnimEnd($event)"
       >
         <svg
@@ -172,22 +163,22 @@ let splashShown = false;
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
         >
-          <!-- Fase 1A: painel esquerdo (escala do centro para fora) -->
+          <!-- Fase 1A: painel esquerdo -->
           <g class="logo-left">
             <path d="M46 41C46 30.5066 54.5066 22 65 22H168V319H65C54.5066 319 46 310.493 46 300V41Z" fill="#056981"/>
           </g>
 
-          <!-- Fase 1B: painel direito (escala com 120ms de atraso) -->
+          <!-- Fase 1B: painel direito -->
           <g class="logo-right">
             <path d="M233.5 95H290.5V298.5C290.5 305.5 286.5 311.667 283 314C279.5 316.333 273 319 267.5 319H168V22H217V77.5C218.5 87 223 92.5 233.5 95Z" fill="#086279"/>
           </g>
 
-          <!-- Fase 1C: triângulo do canto dobra no lugar (250ms) -->
+          <!-- Fase 1C: triângulo do canto -->
           <g class="logo-corner">
             <path d="M233.5 95H290.5L217 22V77.5C218.5 87.5 223.5 93.5 233.5 95Z" fill="#30959A"/>
           </g>
 
-          <!-- Fase 2: círculo se desenha via stroke-dashoffset (480ms) -->
+          <!-- Fase 2: círculo -->
           <circle
             class="logo-circle-path"
             cx="165" cy="188" r="87"
@@ -196,7 +187,7 @@ let splashShown = false;
             fill="none"
           />
 
-          <!-- Fase 3: setas aparecem em stagger + giro final do grupo -->
+          <!-- Fase 3: setas + giro -->
           <g class="logo-arrows-group">
             <g class="logo-arrow logo-arrow-1">
               <path d="M175 250C209.265 239.361 220.737 227.287 228 195L216 206L206 195C199.435 213.53 192.646 220.333 175 226V215.5C166.401 224.909 161.377 229.753 152 237.5L175 260V250Z" fill="white" stroke="white"/>
@@ -218,19 +209,17 @@ let splashShown = false;
     }
   `,
 })
-export class SplashScreenComponent implements OnInit {
-  protected readonly visible = signal(true);
+export class SplashScreenComponent {
+  protected readonly splash = inject(SplashScreenService);
 
-  ngOnInit(): void {
-    if (splashShown) {
-      this.visible.set(false);
-    }
+  @HostListener('document:keydown.escape')
+  protected dismiss(): void {
+    this.splash.hide();
   }
 
   protected onOverlayAnimEnd(event: AnimationEvent): void {
     if ((event.target as Element).classList.contains('splash-overlay')) {
-      splashShown = true;
-      this.visible.set(false);
+      this.splash.hide();
     }
   }
 }

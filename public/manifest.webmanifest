@@ -10,9 +10,9 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "logo.webp",
-      "sizes": "256x256",
-      "type": "image/webp",
+      "src": "logo_nadasai.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]

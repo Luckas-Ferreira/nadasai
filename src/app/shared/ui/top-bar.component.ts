@@ -14,6 +14,7 @@ import {
   CommandPaletteService,
   PALETTE_HOTKEY_LABEL,
 } from '../../core/services/command-palette.service';
+import { SplashScreenService } from '../../core/services/splash-screen.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { MODULES, type ModuleId, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -55,14 +56,15 @@ import { NetworkBadgeComponent } from './network-badge.component';
   host: { class: 'sticky top-0 z-40 shrink-0' },
   template: `
     <header
-      class="flex h-14 items-center gap-2 border-b border-line bg-surface px-4 md:px-6"
+      class="flex h-14 items-center gap-1.5 sm:gap-2 border-b border-line bg-surface px-3 sm:px-4 md:px-6"
     >
       <a
         [routerLink]="'/' + i18n.currentLang()"
-        class="flex shrink-0 items-center gap-2.5 rounded-md py-1 pr-1 text-text"
+        (click)="splash.show()"
+        class="flex h-10 shrink-0 items-center gap-2 sm:gap-2.5 rounded-md py-1 pr-1 text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
       >
-        <img src="logo.webp" alt="" class="h-7 w-7 shrink-0 object-contain" />
-        <span class="text-xl font-semibold tracking-[-0.015em]">Nada Sai</span>
+        <img src="logo_nadasai.svg" alt="" class="h-7 w-7 shrink-0 object-contain" />
+        <span class="text-lg sm:text-xl font-semibold tracking-[-0.015em] hidden min-[340px]:inline">Nada Sai</span>
       </a>
 
       <!-- Breadcrumb into the module switcher. The separator is decorative: the
@@ -74,14 +76,14 @@ import { NetworkBadgeComponent } from './network-badge.component';
       <!-- Present at every width, phones included: with the rail gone below md,
            this and the palette are the only ways out of a module without going
            home first. It costs ~90px, which fits beside a 130px wordmark. -->
-      <div class="relative min-w-0">
+      <div class="relative min-w-0 max-w-full shrink">
         <button
           type="button"
           [attr.aria-label]="i18n.t()['nav.module_switch']"
           [attr.aria-expanded]="menuOpen()"
           aria-haspopup="menu"
           (click)="menuOpen.set(!menuOpen())"
-          class="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-text transition-colors hover:bg-raised"
+          class="flex h-10 max-w-full min-w-0 items-center gap-1.5 sm:gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-text transition-colors hover:bg-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           @if (current(); as mod) {
             <span
@@ -90,10 +92,10 @@ import { NetworkBadgeComponent } from './network-badge.component';
             >
               <app-icon [name]="mod.icon" [size]="16" />
             </span>
-            <span class="truncate">{{ i18n.t()[mod.nameKey] }}</span>
+            <span class="truncate min-w-0">{{ i18n.t()[mod.nameKey] }}</span>
           } @else {
             <span class="shrink-0 text-faint"><app-icon name="modules" [size]="16" /></span>
-            <span class="truncate">{{ i18n.t()['nav.modules'] }}</span>
+            <span class="truncate min-w-0">{{ i18n.t()['nav.modules'] }}</span>
           }
           <app-icon name="chevronDown" [size]="14" class="shrink-0 text-faint" />
         </button>
@@ -154,7 +156,7 @@ import { NetworkBadgeComponent } from './network-badge.component';
         }
       </div>
 
-      <span class="flex-1"></span>
+      <span class="flex-1 min-w-[4px]"></span>
 
       <!-- Shaped like a field on desktop because that is what it behaves like;
            an icon on phones, where 200px of chrome for a label is not affordable. -->
@@ -162,7 +164,7 @@ import { NetworkBadgeComponent } from './network-badge.component';
         type="button"
         [attr.aria-label]="i18n.t()['nav.search_open']"
         (click)="palette.show()"
-        class="flex h-9 shrink-0 items-center gap-2 rounded-md border border-line bg-raised px-2.5 text-sm text-faint transition-colors hover:border-line-strong hover:text-muted md:w-[240px]"
+        class="flex h-10 min-w-[40px] shrink-0 items-center justify-center gap-2 rounded-md border border-line bg-raised px-2.5 text-sm text-faint transition-colors hover:border-line-strong hover:text-muted md:w-[240px] md:justify-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <app-icon name="search" [size]="16" class="shrink-0" />
         <span class="hidden flex-1 text-left md:block">{{ i18n.t()['nav.search'] }}</span>
@@ -177,13 +179,14 @@ import { NetworkBadgeComponent } from './network-badge.component';
            Enquanto morava só na home, ele aparecia exatamente onde não há
            arquivo nenhum em jogo e sumia quando a pessoa abria um documento de
            verdade, que é quando "saiu alguma coisa daqui?" importa. -->
-      <app-network-badge class="ml-2 shrink-0" />
+      <app-network-badge class="ml-1 sm:ml-2 shrink-0" />
     </header>
   `,
 })
 export class TopBarComponent {
   protected readonly i18n = inject(TranslationService);
   protected readonly palette = inject(CommandPaletteService);
+  protected readonly splash = inject(SplashScreenService);
   private readonly active = inject(ActiveToolService);
 
   protected readonly modules = MODULES;
