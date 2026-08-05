@@ -29,6 +29,54 @@ async function serviceWorkerReady(page: Page): Promise<void> {
 }
 
 test.describe('Offline', () => {
+  /**
+   * O manifesto precisa ter o próprio índice em cache — e isso já não foi
+   * verdade uma vez.
+   *
+   * O `ngsw.json` é montado no meio do `ng build`, antes do postbuild que achata
+   * o prerender e devolve o `index.html` da raiz. Nesse instante o glob
+   * `/index.html` não casava com nada, o manifesto apontava para
+   * `/index.csr.html` — que assetGroup nenhum lista — e saía com 340 recursos e
+   * ZERO HTML. O worker instalava sem erro, prefetchava tudo, e mesmo assim toda
+   * navegação offline caía na rede: o ngsw serve uma navegação entregando o
+   * índice do manifesto, e o índice não estava em cache.
+   *
+   * Os testes abaixo pegam isso, mas só depois de um build inteiro e de dois
+   * minutos de inferência. Esta asserção é a mesma falha em duas linhas, e lê o
+   * artefato publicado — não a configuração que deveria tê-lo produzido.
+   */
+  test('o manifesto do service worker tem o índice em cache', async ({ request }) => {
+    const manifest = await (await request.get('/ngsw.json')).json();
+
+    expect(manifest.index, 'o manifesto deve apontar para o shell da raiz').toBe('/index.html');
+    expect(
+      Object.keys(manifest.hashTable),
+      `${manifest.index} fora do hashTable: o app não abre offline`,
+    ).toContain(manifest.index);
+  });
+
+  /**
+   * Recarregar sem rede — a falha que as duas provas abaixo NÃO pegam.
+   *
+   * Elas cortam a rede e seguem navegando pelo router, que é troca de chunk: os
+   * chunks estão no hashTable e sempre estiveram, então passavam mesmo com o
+   * manifesto sem HTML nenhum. Uma navegação de verdade — recarregar, ou abrir o
+   * site já sem rede — é outro caminho: o ngsw a atende servindo o índice do
+   * manifesto, e era exatamente esse arquivo que faltava.
+   */
+  test('recarregar sem rede continua abrindo a ferramenta', async ({ page, context }) => {
+    await openApp(page, '/pt/imagem/cortar');
+    await serviceWorkerReady(page);
+
+    await context.setOffline(true);
+    await page.reload();
+
+    await expect(page.getByRole('link', { name: 'Nada Sai' }).first()).toBeVisible();
+    // O shell sozinho passaria na linha acima. O input pertence ao componente da
+    // ferramenta, que só existe se a rota resolveu e o chunk dela carregou.
+    await expect(page.locator('input[type=file]').first()).toBeAttached();
+  });
+
   test('with the network cut, a tool still processes and downloads', async ({ page, context }) => {
     // The file enters through a tool (the home has no uploader), then the chain
     // continues from the home grid — which is also a lazy route, so the offline
