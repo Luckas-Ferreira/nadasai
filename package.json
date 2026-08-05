@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/generate-ngsw.mjs",
+    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/preload-entry-chunks.mjs && node scripts/generate-ngsw.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "playwright test",
