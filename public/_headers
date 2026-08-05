@@ -1,39 +1,41 @@
-# Espelha os headers do `ng serve` (angular.json > serve > headers).
-# Sem COOP/COEP não há SharedArrayBuffer, e a inferência da remoção de fundo
-# cai para single-threaded (~6x mais lenta) sem erro nenhum — falha silenciosa.
+# Headers de Segurança & Multithreading (SharedArrayBuffer)
+#
+# Sem COOP/COEP não há SharedArrayBuffer, e a inferência da remoção de fundo cai
+# para single-threaded (~6x mais lenta) sem erro nenhum — falha silenciosa.
 /*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
 
 # ---------------------------------------------------------------------------
-# Cache
+# Cache: eterno é só o que tem hash no nome. O resto revalida.
 #
-# Eterno é só o que tem hash no nome. O resto revalida.
+# O padrão do Cloudflare Pages é `max-age=0, must-revalidate` para TUDO —
+# inclusive para `chunk-4CHL5S77.js`, cujo nome já É o hash do conteúdo e
+# portanto nunca muda de significado. Uma revalidação por chunk, em toda visita,
+# sem ganhar nada. É o que torna tentador resolver com uma regra ampla no painel
+# do Cloudflare, e regra ampla é o que quebra a atualização do PWA.
 #
-# Isto existe porque o padrão do Cloudflare Pages é `max-age=0,
-# must-revalidate` para TUDO — inclusive para `chunk-4CHL5S77.js`, cujo nome já
-# É o hash do conteúdo e portanto nunca muda de significado. Ou seja: o site
-# fazia uma revalidação por chunk, em toda visita, sem ganhar nada com isso. É o
-# que torna tentador resolver no painel com uma regra ampla, e uma regra ampla
-# é exatamente o que quebra a atualização do PWA.
+# O casamento é por PREFIXO, e não por extensão, de propósito. Duas razões, e as
+# duas já morderam este site:
 #
-# Declarado aqui, versionado, uma Cache Rule de "Respect origin TTL" passa a
-# fazer a coisa certa sozinha. Fica um limite honesto: uma regra que
-# SOBRESCREVE o Browser TTL ganha destas linhas de qualquer jeito — por isso
-# sobrescrever TTL de navegador não pode valer para `/ngsw.json` nem para HTML.
+#   * `/*.js` alcança `ngsw-worker.js` junto com os chunks, e um service worker
+#     `immutable` por um ano é a versão mais cara possível deste erro;
+#   * `/*.html` não alcança rota nenhuma. Depois do `flatten-prerender.mjs` as
+#     74 páginas são servidas SEM extensão (`/pt/imagem/cortar`), então uma
+#     regra por extensão pega só o `/index.html` e deixa o site inteiro de fora.
+#
+# Prefixo também dispensa depender de qual regra "vence" quando duas casam — a
+# precedência do `_headers` é documentada de forma ambígua, e aqui nenhuma das
+# faixas se sobrepõe.
 
-# O sinal de atualização do app.
+# O sinal de atualização e os workers.
 #
-# `AppUpdateService` chama `checkForUpdate()`, e o ngsw responde buscando este
-# arquivo. Uma cópia velha aqui significa que o deploy novo não existe para quem
-# já visitou o site: fica preso na versão anterior até limpar cache na mão. É o
-# pior modo de falha de um PWA, porque some em janela anônima e some para quem
-# testa pela primeira vez — só atinge quem já é usuário.
+# `AppUpdateService` chama `checkForUpdate()`, e o ngsw responde buscando o
+# `ngsw.json`. Uma cópia velha significa que o deploy novo não existe para quem
+# já visitou o site. `no-cache` é revalidar, não "não guardar": o 304 continua
+# barato e a troca de versão continua imediata.
 /ngsw.json
   Cache-Control: no-cache
-
-# O worker e seu par de segurança. `no-cache` é revalidar, não "não guardar": o
-# 304 continua barato, e a troca de versão continua imediata.
 /ngsw-worker.js
   Cache-Control: no-cache
 /safety-worker.js
@@ -41,23 +43,34 @@
 /worker-basic.min.js
   Cache-Control: no-cache
 
-# O shell da raiz e as 74 páginas do prerender. Cada HTML referencia chunks com
-# hash no nome, então um HTML velho aponta para arquivos que o deploy novo não
-# tem — tela branca, e nenhum erro que diga isso. As rotas são servidas sem
-# extensão (`/pt/imagem/cortar`), então o casamento é pelo prefixo de idioma.
+# Documentos: o shell da raiz e as 74 páginas do prerender, servidas sem
+# extensão. Cada HTML referencia chunks com hash no nome, então HTML velho
+# aponta para arquivo que o deploy novo não tem — tela branca, sem erro que diga
+# isso. Revalidar a cada deploy é o que faz a publicação valer no mesmo segundo.
 /
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
 /pt
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
 /en
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
 /pt/*
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
 /en/*
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
 
-# Estes SIM: `outputHashing: all` põe o hash do conteúdo no nome, então um byte
-# diferente é um arquivo diferente, e `immutable` é literalmente verdade.
+# Manifest do PWA e arquivos que os crawlers releem.
+/manifest.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+/sitemap.xml
+  Cache-Control: public, max-age=3600, must-revalidate
+/robots.txt
+  Cache-Control: public, max-age=86400, must-revalidate
+
+# `outputHashing: all` põe o hash do conteúdo no nome, então um byte diferente é
+# um arquivo diferente e `immutable` é literalmente verdade. As fontes WOFF2
+# entram aqui: o Angular as emite em `media/` com hash.
 /chunk-*
   Cache-Control: public, max-age=31536000, immutable
 /main-*
@@ -69,18 +82,18 @@
 /media/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Assets de runtime com nome ESTÁVEL: os pesos do modelo, o onnxruntime, o
-# pdf.js e o tesseract. O nome não carrega hash, então `immutable` seria mentira
-# — mas uma semana é seguro mesmo assim, porque quem tem service worker nunca
-# depende deste cache: ao ver hash divergente no manifesto, o ngsw refaz o
-# download com `?ngsw-cache-bust=`, que fura cache de navegador e de borda.
+# Assets de runtime com nome ESTÁVEL: pesos do modelo, onnxruntime, pdf.js e
+# tesseract. Sem hash no nome, então `immutable` seria mentira — mas uma semana
+# é seguro, porque quem tem service worker nunca depende deste cache: ao ver
+# hash divergente no manifesto, o ngsw refaz o download com `?ngsw-cache-bust=`,
+# que fura cache de navegador e de borda.
 /model/*
-  Cache-Control: public, max-age=604800
-/ort/*
-  Cache-Control: public, max-age=604800
-/pdfjs/*
-  Cache-Control: public, max-age=604800
-/tesseract/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 /tessdata/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/ort/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/pdfjs/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/tesseract/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
