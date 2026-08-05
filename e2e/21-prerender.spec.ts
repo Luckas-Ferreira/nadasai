@@ -72,6 +72,33 @@ test.describe('O HTML que o crawler recebe', () => {
   });
 
   /**
+   * Nenhuma referência de asset pode ser relativa.
+   *
+   * O Angular emite `href="chunk-XI2OKYKC.js"` contando com o `<base href="/">`.
+   * O parser respeita esse base; o preload scanner — o parser especulativo que o
+   * Chrome roda à frente — não. Em produção isso pedia 16 vezes
+   * `/pt/imagem/chunk-*.js`, caía no fallback de SPA, recebia 25 KB de HTML com
+   * status 200 por requisição e morria no MIME: 389 KB por visita, e a tag cujo
+   * propósito é adiantar o download não adiantava nada.
+   *
+   * A asserção é sobre os BYTES, e não sobre o comportamento, de propósito. O
+   * scanner só especula quando o parser fica para trás, o que depende de como o
+   * HTML chega pela rede — em produção reproduz sempre, no servidor local nunca.
+   * Um teste do comportamento passaria aqui e continuaria quebrado lá.
+   */
+  test('nenhum asset é referenciado por caminho relativo', async ({ request }) => {
+    const offenders: string[] = [];
+
+    for (const route of [...ROUTES, { path: '/' }]) {
+      const html = await (await request.get(route.path)).text();
+      const relatives = html.match(/\b(?:href|src)="(?:chunk-|main-|polyfills-|styles-)[^"]*/g) ?? [];
+      relatives.forEach((r) => offenders.push(`${route.path}: ${r}`));
+    }
+
+    expect(offenders, 'assets relativos dependem do <base>, que o preload scanner ignora').toEqual([]);
+  });
+
+  /**
    * A raiz é um redirect no router, então o prerender não escreve arquivo para
    * ela e o Angular passa a chamar o shell de `index.csr.html`. Sem o postbuild
    * que o copia de volta, `nadasai.com/` responde 404 — e o fallback de SPA do
