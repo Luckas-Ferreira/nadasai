@@ -66,6 +66,11 @@ public/tessdata/
 # Terminal Paste Image folder
 .cp-images/
 
+# Token da API do Cloudflare, quando alguém precisa inspecionar as Cache Rules
+# da zona pela linha de comando. Credencial não entra em repositório, e esta em
+# particular pode editar o cache do site em produção.
+cf-token.txt
+
 # PDFs largados na raiz para depurar o editor. São documentos reais de quem está
 # depurando — históricos, editais, contratos — e costumam trazer CPF, RG e
 # endereço. Os probes em e2e/debug-*.spec.ts leem daqui e pulam se não acharem.
