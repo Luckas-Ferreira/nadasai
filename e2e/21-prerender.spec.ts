@@ -104,10 +104,20 @@ test.describe('O HTML que o crawler recebe', () => {
    * que o copia de volta, `nadasai.com/` responde 404 — e o fallback de SPA do
    * Cloudflare Pages, que atende as URLs legadas, some junto.
    */
-  test('a raiz continua servindo o shell, e não 404', async ({ request }) => {
+  test('a raiz serve a home PRERENDERIZADA, e não 404 nem shell vazio', async ({ request }) => {
     const response = await request.get('/');
     expect(response.status()).toBe(200);
-    expect(await response.text()).toContain('<app-root');
+
+    const html = await response.text();
+    expect(html).toContain('<app-root');
+
+    // O shell vazio também tem <app-root>, e era exatamente ele que estava aqui:
+    // a raiz media FCP 5132 ms contra 1041 ms em /pt, mesmo conteúdo e mesmos
+    // bytes, só porque não havia o que pintar antes do boot + redirect + chunk.
+    expect(html, 'a raiz voltou a ser o shell vazio').toMatch(/<h1[\s>]/);
+    expect(html, 'a raiz precisa consolidar em /pt').toContain(
+      '<link rel="canonical" href="https://nadasai.com/pt"',
+    );
   });
 
   /**
