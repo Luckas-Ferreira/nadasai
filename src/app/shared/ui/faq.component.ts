@@ -35,7 +35,22 @@ import { IconComponent } from './icon/icon.component';
             <app-icon name="check" [size]="14" />
             <span>{{ i18n.t()['faq.badge'] }}</span>
           </div>
-          <h2 class="text-xl font-semibold tracking-tight text-text">{{ heading() }}</h2>
+          <!--
+            Como PÁGINA o título é h1; como seção, h2.
+
+            Este componente nasceu seção — ele fecha toda página de ferramenta,
+            que já tem o próprio h1, e ali h2 é o nível certo. Só que as rotas
+            /pt/faq e /en/faq montam o MESMO componente como página inteira, e
+            nessas duas o h2 era o único cabeçalho do documento: uma página
+            sobre perguntas, sem h1, que é justamente a que deveria aparecer
+            para busca em forma de pergunta. Auditoria das 74 páginas geradas
+            acusou exatamente essas duas.
+          -->
+          @if (isPage) {
+            <h1 class="text-2xl font-semibold tracking-tight text-text">{{ heading() }}</h1>
+          } @else {
+            <h2 class="text-xl font-semibold tracking-tight text-text">{{ heading() }}</h2>
+          }
           @if (!toolId()) {
             <p class="mt-2.5 text-sm font-medium leading-relaxed text-muted">{{ i18n.t()['faq.subtitle'] }}</p>
           }
@@ -70,6 +85,21 @@ export class FaqComponent {
 
   /** Absent → the generic sitewide set from the dictionary. */
   readonly toolId = input<ToolId | undefined>(undefined);
+
+  /**
+   * Verdadeiro quando este componente É a rota, e não uma seção dentro de outra.
+   *
+   * Lido uma vez na construção, e não como signal, porque é isso que o mantém
+   * estável entre o prerender e a hidratação: um componente de rota só é
+   * instanciado depois que a navegação resolveu, então `router.url` já vale o
+   * mesmo dos dois lados. Reavaliar depois só abriria espaço para o servidor
+   * ter escrito h1 e o cliente decidir h2 — que é exatamente o mismatch que
+   * faria o Angular descartar e re-renderizar esta subárvore.
+   *
+   * O `toolId` sozinho não serve como sinal: ele também é ausente na home, onde
+   * o FAQ aparece como seção sob um h1 que já existe.
+   */
+  protected readonly isPage = /\/faq$/.test(inject(Router).url.split(/[?#]/)[0]);
 
   protected readonly entries = computed<readonly FaqEntry[]>(() => {
     const dict = this.i18n.t();

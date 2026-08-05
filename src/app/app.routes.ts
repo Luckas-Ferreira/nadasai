@@ -55,7 +55,7 @@ export const routes: Routes = [
         title: 'Remover Fundo de Imagem Online Grátis — Nada Sai',
         loadComponent: () => import('./features/remove-bg/remove-bg.component').then((m) => m.RemoveBgComponent),
         data: {
-          metaDescription: 'Remova o fundo de fotos automaticamente com IA e baixe em PNG transparente. Sem cadastro, sem marca d\'água e sem limite diário — roda 100% offline no seu navegador.'
+          metaDescription: 'Remova o fundo de fotos com IA e baixe em PNG transparente. Sem cadastro, sem marca d\'água e sem limite — 100% offline no seu navegador.'
         }
       },
       {
@@ -111,7 +111,7 @@ export const routes: Routes = [
         title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
         data: {
-          metaDescription: 'Tire a trilha de áudio de um MP4, MOV, WebM ou MKV e baixe em MP3 ou WAV sem perda. O vídeo não sai do seu computador: até 500 MB e 30 minutos, 100% offline no navegador.'
+          metaDescription: 'Tire a trilha de áudio de um MP4, MOV, WebM ou MKV e baixe em MP3 ou WAV sem perda. O vídeo não sai do seu computador — 100% offline no navegador.'
         }
       },
       {
@@ -135,7 +135,7 @@ export const routes: Routes = [
         title: 'Converter Imagem Online (PNG, JPG, WebP) — Nada Sai',
         loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
         data: {
-          metaDescription: 'Converta entre PNG, JPEG, WebP, GIF e ICO em um clique, com controle de qualidade. AVIF entra como entrada. Grátis, sem cadastro e 100% offline no seu navegador.'
+          metaDescription: 'Converta entre PNG, JPEG, WebP, GIF e ICO em um clique, com controle de qualidade. AVIF entra como entrada. Grátis e 100% offline no navegador.'
         }
       },
       {
@@ -416,7 +416,7 @@ export const routes: Routes = [
         title: 'Extract Audio from Video (MP4 to MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
         data: {
-          metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and download it as MP3 or lossless WAV. The video never leaves your computer: up to 500 MB and 30 minutes, 100% offline in your browser.'
+          metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and save it as MP3 or lossless WAV. The video never leaves your computer — 100% offline.'
         }
       },
       {
