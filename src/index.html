@@ -25,9 +25,16 @@
   <meta property="og:title" content="Nada Sai — Ferramentas Gratuitas de Imagem, PDF e Áudio 100% Offline">
   <meta property="og:description" content="Remova fundo de fotos, edite PDFs, corte, converta, junte e comprima áudios MP3/WAV direto no seu navegador com privacidade total. Seus arquivos nunca saem do seu computador.">
   <meta property="og:url" content="https://nadasai.com/pt">
-  <meta property="og:image" content="https://nadasai.com/logo_nadasai.svg">
+  <!-- PNG, e não o logo SVG que estava aqui: crawler social nenhum rasteriza
+       SVG, então todo link compartilhado aparecia sem imagem. Gerado por
+       scripts/generate-og-cards.mjs. O SeoService troca por um card específico
+       da ferramenta depois da hidratação; as 74 páginas prerenderizadas já
+       nascem com o certo. Este é o do fallback de SPA. -->
+  <meta property="og:image" content="https://nadasai.com/og/default-pt.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Nada Sai — seus arquivos não saem do seu computador">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:locale:alternate" content="en_US">
 
@@ -35,61 +42,68 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Nada Sai — Ferramentas Gratuitas de Imagem, PDF e Áudio 100% Offline">
   <meta name="twitter:description" content="Edite imagens, PDFs e áudios no seu navegador sem enviar nada para servidores. Privacidade total e ferramentas 100% locais.">
-  <meta name="twitter:image" content="https://nadasai.com/logo_nadasai.svg">
+  <meta name="twitter:image" content="https://nadasai.com/og/default-pt.png">
+  <meta name="twitter:image:alt" content="Nada Sai — seus arquivos não saem do seu computador">
 
   <!-- Favicon & Manifest -->
   <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.webmanifest">
 
-  <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
+  <!-- Preload da fonte. `scripts/preload-fonts.mjs` reescreve estes href com o
+       nome com hash no build e replica as tags nas 74 páginas geradas; o que
+       está aqui serve o `ng serve` e documenta a intenção.
+
+       Sem preload, a fonte só é descoberta depois que o CSS é baixado e
+       parseado — um round trip inteiro depois do que precisava. Junto com o
+       fallback de métricas casadas em styles.css, é o par que derruba o CLS de
+       0,2126 medido em /pt/privacidade.
+
+       `crossorigin` é obrigatório mesmo sendo same-origin: preload de fonte é
+       sempre feito em modo CORS, e sem o atributo o navegador baixa DUAS vezes
+       (uma para o preload, outra para o uso) e avisa no console. -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="media/nunito-latin-400-normal.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="media/nunito-latin-500-normal.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="media/nunito-latin-600-normal.woff2">
+
+  <!-- JSON-LD MÍNIMO, de propósito.
+
+       Aqui havia um grafo com `featureList` de 22 ferramentas — sem o módulo de
+       privacidade inteiro e sem video-to-audio, de 32 que existem. Ele era
+       sobrescrito pelo SeoService logo depois do bootstrap, e as 74 páginas
+       prerenderizadas já saem com o grafo certo (derivado de TOOLS, portanto
+       incapaz de ficar velho). Mas este arquivo é servido literalmente no
+       fallback de SPA, e crawler que não executa JS — Bing, os de LLM — lia a
+       lista defasada e mais nada.
+
+       O que sobra é só o que é verdade em qualquer URL e não pode envelhecer:
+       identidade do site. Tudo que é por página vem do prerender ou do
+       SeoService. Uma lista a menos para alguém esquecer de atualizar. -->
   <script type="application/ld+json" id="seo-jsonld">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "Organization",
+          "@id": "https://nadasai.com/#organization",
+          "name": "Nada Sai",
+          "url": "https://nadasai.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://nadasai.com/og/logo-512.png",
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
           "@type": "WebSite",
           "@id": "https://nadasai.com/#website",
           "url": "https://nadasai.com",
           "name": "Nada Sai",
-          "description": "Ferramentas gratuitas de imagem, PDF e áudio 100% offline no seu navegador",
+          "publisher": { "@id": "https://nadasai.com/#organization" },
           "inLanguage": "pt-BR"
-        },
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://nadasai.com/#application",
-          "name": "Nada Sai",
-          "operatingSystem": "Any (Browser-based)",
-          "applicationCategory": "MultimediaApplication",
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          },
-          "description": "Edite imagens, PDFs e arquivos de áudio (MP3, WAV, OGG, M4A) no seu navegador sem enviar nada para servidores. Processamento 100% offline com privacidade total.",
-          "featureList": [
-            "Cortar Áudio e MP3",
-            "Juntar Áudios e MP3",
-            "Converter Áudio (MP3, WAV, OGG, M4A, FLAC)",
-            "Comprimir Áudio (Ajuste de Bitrate)",
-            "Remover Fundo de Foto (IA Local)",
-            "Melhorar Qualidade de Imagem (IA Upscale)",
-            "Extrair Texto de Imagem (OCR)",
-            "Cortar Imagens",
-            "Comprimir Imagens",
-            "Converter Imagens",
-            "Redimensionar Imagens",
-            "Imagens para PDF",
-            "Editor de PDF",
-            "Juntar PDFs",
-            "Comprimir PDF",
-            "Dividir PDF",
-            "PDF para Imagem",
-            "PDF para Word",
-            "Organizar PDF",
-            "Proteger PDF",
-            "Assinar PDF",
-            "Marca d'Água em PDF"
-          ]
         }
       ]
     }

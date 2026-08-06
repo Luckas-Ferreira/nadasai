@@ -48,8 +48,29 @@ export class SeoService {
         return route;
       }),
       filter(route => route.outlet === 'primary'),
-      mergeMap(route => route.data)
-    ).subscribe(data => {
+      /**
+       * O `title` da rota vem do SNAPSHOT, e não de `data`.
+       *
+       * Em `app.routes.ts` o título é propriedade de primeiro nível da Route
+       * (`title: 'Cortar Imagem Online — Nada Sai'`), enquanto a descrição mora
+       * em `data`. O Angular NÃO copia `Route.title` para `route.data`, então
+       * `data['title']` era sempre `undefined` e todo `pageTitle` caía no
+       * genérico.
+       *
+       * O defeito era invisível pelo lugar mais óbvio: o `<title>` da aba saía
+       * certo, porque quem o escreve é o `TitleStrategy` embutido do Angular,
+       * que lê a propriedade certa e roda depois deste bloco. O que saía errado
+       * era tudo o que só existe aqui — `og:title` e `twitter:title` — nas 72
+       * páginas de ferramenta, todas anunciando "Nada Sai — seus arquivos não
+       * saem do seu computador" em vez do nome da ferramenta. A `description`
+       * escapou por vir de `data`, que é o motivo de a divergência ter passado:
+       * metade das tags estava certa.
+       *
+       * `data['title']` fica como segundo fallback: não custa nada e cobre
+       * qualquer rota que um dia declare o título por lá.
+       */
+      mergeMap(route => route.data.pipe(map(data => ({ data, routeTitle: route.snapshot.title }))))
+    ).subscribe(({ data, routeTitle }) => {
       const url = this.router.url.split('?')[0].replace(/\/$/, '') || '/pt';
       const isEnglish = url.startsWith('/en');
       const lang = isEnglish ? 'en' : 'pt';
@@ -61,7 +82,7 @@ export class SeoService {
       }
 
       // Title
-      const pageTitle = data['title'] || (isEnglish ? 'Nada Sai — Your files never leave your computer' : 'Nada Sai — seus arquivos não saem do seu computador');
+      const pageTitle = routeTitle || data['title'] || (isEnglish ? 'Nada Sai — Your files never leave your computer' : 'Nada Sai — seus arquivos não saem do seu computador');
       this.title.setTitle(pageTitle);
 
       // Meta Description
@@ -103,20 +124,43 @@ export class SeoService {
         this.removeHreflangTags();
       }
 
+      /**
+       * O card social. PNG 1200x630, um por ferramenta por língua.
+       *
+       * Isto apontava para `logo_nadasai.svg` e o efeito era total: crawler
+       * social nenhum renderiza SVG — nem Facebook, nem X, nem LinkedIn, nem
+       * WhatsApp, nem Slack, nem Discord. Todos aceitam a tag e nenhum desenha,
+       * então TODA URL do site compartilhada em qualquer lugar aparecia sem
+       * imagem, e o `twitter:card: summary_large_image` (que exige imagem
+       * grande) degradava para nada. As dimensões declaradas ainda por cima
+       * eram falsas: diziam 1200x630 para um arquivo de 339x339.
+       *
+       * Os arquivos são gerados por `scripts/generate-og-cards.mjs` e
+       * commitados. Uma ferramenta sem card cai no padrão da língua em vez de
+       * ficar sem imagem — o caminho é derivado do id, então o modo de falha de
+       * um tool novo é herdar o card genérico, nunca voltar ao vazio.
+       */
+      const ogImage = `${DOMAIN}/og/${tool ? tool.id : 'default'}-${lang}.png`;
+
       // Open Graph Tags
       this.meta.updateTag({ property: 'og:site_name', content: 'Nada Sai' });
       this.meta.updateTag({ property: 'og:title', content: pageTitle });
       this.meta.updateTag({ property: 'og:description', content: metaDesc });
       this.meta.updateTag({ property: 'og:type', content: 'website' });
       this.meta.updateTag({ property: 'og:url', content: currentFullUrl });
-      this.meta.updateTag({ property: 'og:image', content: `${DOMAIN}/logo_nadasai.svg` });
+      this.meta.updateTag({ property: 'og:image', content: ogImage });
+      this.meta.updateTag({ property: 'og:image:type', content: 'image/png' });
+      this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+      this.meta.updateTag({ property: 'og:image:height', content: '630' });
+      this.meta.updateTag({ property: 'og:image:alt', content: pageTitle });
       this.meta.updateTag({ property: 'og:locale', content: locale });
 
       // Twitter Tags
       this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
       this.meta.updateTag({ name: 'twitter:title', content: pageTitle });
       this.meta.updateTag({ name: 'twitter:description', content: metaDesc });
-      this.meta.updateTag({ name: 'twitter:image', content: `${DOMAIN}/logo_nadasai.svg` });
+      this.meta.updateTag({ name: 'twitter:image', content: ogImage });
+      this.meta.updateTag({ name: 'twitter:image:alt', content: pageTitle });
 
       // JSON-LD. Angular destroys the previous route's components and creates
       // the new ones DURING activation, i.e. before NavigationEnd — so by the

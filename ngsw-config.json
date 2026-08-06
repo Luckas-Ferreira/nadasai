@@ -14,7 +14,13 @@
       "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/media/**", "/*.webp", "/*.jpg", "/*.png", "/*.svg"]
+        "files": [
+          "/media/*.woff2",
+          "/*.webp",
+          "/*.jpg",
+          "/*.png",
+          "/*.svg"
+        ]
       }
     },
     {

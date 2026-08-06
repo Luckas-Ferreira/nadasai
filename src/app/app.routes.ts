@@ -67,6 +67,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/vetorizar',
+        title: 'Vetorizar Imagem Online (PNG e JPG para SVG) — Nada Sai',
+        loadComponent: () => import('./features/vectorize/vectorize.component').then((m) => m.VectorizeComponent),
+        data: {
+          metaDescription: 'Converta PNG ou JPG em SVG de verdade: curvas Bézier, cantos preservados e sem costura entre as cores. Grátis, sem cadastro e 100% offline no seu navegador.'
+        }
+      },
+      {
         path: 'imagem/extrair-texto',
         title: 'Extrair Texto de Imagem (OCR) Online — Nada Sai',
         loadComponent: () => import('./features/extract-text/extract-text.component').then((m) => m.ExtractTextComponent),
@@ -369,6 +377,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
         data: {
           metaDescription: 'Increase resolution and sharpness by 2x or 4x with AI, without smearing faces or inventing detail. Free, no signup and 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'image/vectorize',
+        title: 'Vectorize Image Online (PNG and JPG to SVG) — Nada Sai',
+        loadComponent: () => import('./features/vectorize/vectorize.component').then((m) => m.VectorizeComponent),
+        data: {
+          metaDescription: 'Turn PNG or JPG into a real SVG: Bézier curves, corners preserved and no seams between colours. Free, no signup and 100% offline in your browser.'
         }
       },
       {

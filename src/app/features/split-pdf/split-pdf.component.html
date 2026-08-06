@@ -105,7 +105,7 @@
 
                 <!-- Thumbnail Canvas Preview -->
                 <div class="relative w-full aspect-[1/1.4] overflow-hidden rounded bg-raised flex items-center justify-center">
-                  <img [src]="thumb.url" [alt]="'Página ' + thumb.index" class="w-full h-full object-contain" />
+                  <img [src]="thumb.url" [alt]="i18n.t()['common.page_n'] + ' ' + thumb.index" class="w-full h-full object-contain" />
                 </div>
 
                 <!-- Page Number Badge -->

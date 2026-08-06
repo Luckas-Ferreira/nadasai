@@ -1,63 +1,63 @@
 # Nada Sai
 
-> Nada Sai is a free, 100% client-side, browser-based web application for editing images, PDF documents and audio files, and for privacy and security tasks such as encryption, hashing and redaction. All processing runs locally in the user's browser using WebAssembly, WebAudio, WebCrypto and Web Workers — zero files or user data are ever uploaded to any server.
+> Nada Sai is a free, 100% client-side, browser-based web application for editing images, PDF documents and audio files, and for privacy and security tasks such as encryption, hashing and redaction. All processing runs locally in the user’s browser using WebAssembly, WebAudio, WebCrypto and Web Workers — zero files or user data are ever uploaded to any server.
 
 ## Overview
 
-Nada Sai provides private, offline-first image manipulation (background removal, cropping, compression, conversion, resizing), PDF editing (merging, splitting, page reordering, signing, watermarking, password protection, OCR text extraction), audio processing (cutting, joining, format conversion, bitrate compression), and privacy and security tools (AES-256 file and text encryption, checksums, EXIF/GPS removal, image and PDF redaction, PDF metadata cleaning, password generation, text comparison). Thirty-one tools across four modules.
+Nada Sai provides 33 tools across 4 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
-- [Remover Fundo / Remove Background](https://nadasai.com/pt/imagem/remover-fundo): Automatically remove background from photos locally using AI.
-- [Melhorar Qualidade / Enhance Quality](https://nadasai.com/pt/imagem/melhorar-qualidade): Upscale image resolution (2x, 4x) and sharpen details 100% offline using AI.
-- [Extrair Texto / Extract Text (OCR)](https://nadasai.com/pt/imagem/extrair-texto): Recognize and copy text from photos, receipts, and scanned documents 100% offline.
-- [Cortar Imagem / Crop Image](https://nadasai.com/pt/imagem/cortar): Crop and resize images with custom aspect ratios.
-- [Comprimir Imagem / Compress Image](https://nadasai.com/pt/imagem/comprimir): Reduce image file sizes without quality loss.
-- [Converter Imagem / Convert Image](https://nadasai.com/pt/imagem/converter): Convert images between PNG, JPG, and WebP formats.
-- [Redimensionar Imagem / Resize Image](https://nadasai.com/pt/imagem/redimensionar): Change image width and height dimensions.
-- [Imagens para PDF / Images to PDF](https://nadasai.com/pt/imagem/para-pdf): Convert multiple images into a single PDF document.
+- [Remover fundo / Remove background](https://nadasai.com/pt/imagem/remover-fundo): Drop the photo and it starts on its own — there is no extra button, because picking this tool with a file already open is the request.
+- [Melhorar qualidade / Enhance quality](https://nadasai.com/pt/imagem/melhorar-qualidade): Increase resolution and sharpen details 100% offline using AI.
+- [Vetorizar (SVG) / Vectorize (SVG)](https://nadasai.com/pt/imagem/vetorizar): It replaces a grid of pixels with mathematically described shapes — curves, not dots.
+- [Extrair texto (OCR) / Extract text (OCR)](https://nadasai.com/pt/imagem/extrair-texto): Drop the photo or screenshot and the tool runs OCR on it.
+- [Cortar / Crop](https://nadasai.com/pt/imagem/cortar): Drop the image, drag the area you want and download.
+- [Comprimir / Compress](https://nadasai.com/pt/imagem/comprimir): Shrink the file with as little visible loss as possible.
+- [Redimensionar / Resize](https://nadasai.com/pt/imagem/redimensionar): Type the width or the height in pixels — the other dimension follows on its own to keep the proportions.
+- [Converter / Convert](https://nadasai.com/pt/imagem/converter): In come JPEG, PNG, WebP, AVIF, GIF and BMP; out go WebP, JPEG, PNG, PDF and ICO.
+- [Imagens para PDF / Images to PDF](https://nadasai.com/pt/imagem/para-pdf): Drop them all at once, drag the thumbnails into the order you want and download.
 
 ## PDF Tools
 
-- [Editor de PDF / PDF Editor](https://nadasai.com/pt/pdf/editar): Edit text, headers, and content directly inside PDF files.
-- [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Combine multiple PDF documents into a single file.
-- [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Extract or separate pages from a PDF.
-- [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Shrink PDF file size 100% offline.
-- [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Convert PDF pages into high-resolution PNG, JPG, or WebP images.
-- [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Convert PDF documents into editable Word (.docx) files.
-- [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): Reorder, rotate, or delete PDF pages.
-- [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Add password encryption to PDF files.
-- [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw or add digital signatures and stamps to PDFs.
-- [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Add custom text watermarks to PDF pages.
+- [Editar / Edit](https://nadasai.com/pt/pdf/editar): Edit, read and make scanned PDFs searchable — all locally.
+- [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Drop all the files, put them in the order you want and download the single document.
+- [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Make a PDF smaller without it leaving your computer.
+- [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Choose between picking individual pages, defining ranges (1-3, 8, 12-20), or slicing into fixed-size chunks.
+- [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Drop the file, pick the format and resolution, and select the pages.
+- [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Turn a PDF into an editable Word document, on your computer.
+- [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): The pages appear as thumbnails: drag to change the order, or use each page’s arrows.
+- [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Drop the file, choose a password and download.
+- [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw your signature or upload an image of it, place it on the page and adjust the size.
+- [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Type the text — CONFIDENTIAL, DRAFT, the recipient’s name — and set size, colour, opacity and angle.
 
 ## Audio Tools
 
-- [Cortar Áudio / Cut Audio](https://nadasai.com/pt/audio/cortar): Trim songs, voice notes, or podcasts 100% offline with visual waveform display.
-- [Juntar Áudios / Merge Audio](https://nadasai.com/pt/audio/juntar): Join several audio files into one 100% offline, with crossfade or gaps between tracks.
-- [Converter Áudio / Convert Audio](https://nadasai.com/pt/audio/converter): Convert audio files between MP3, WAV, OGG, M4A, AAC, and FLAC formats 100% offline.
-- [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Shrink audio file sizes by adjusting bitrate (32 to 320 kbps) 100% offline.
+- [Cortar áudio (Aparar MP3) / Cut audio (Trim MP3)](https://nadasai.com/pt/audio/cortar): Drop the file, drag a selection across the waveform and choose whether to keep that slice or remove it.
+- [Juntar áudio / Merge audio](https://nadasai.com/pt/audio/juntar): Drop the tracks, drag the thumbnails into the order you want — each one shows its own waveform — and download.
+- [Converter áudio / Convert audio](https://nadasai.com/pt/audio/converter): Drop the file, pick the output format and adjust channels and bitrate if you need to.
+- [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Pick the bitrate and, where it makes sense, convert to mono.
+- [Vídeo para áudio / Video to audio](https://nadasai.com/pt/audio/extrair-de-video): Drop the video, pick MP3 or WAV and download.
 
 ## Privacy & Security Tools
 
-- [Criptografar Arquivo / Encrypt File](https://nadasai.com/pt/privacidade/criptografar-arquivo): Password-encrypt any local file with AES-256-GCM and PBKDF2, entirely in the browser.
-- [Criptografar Texto / Encrypt Text](https://nadasai.com/pt/privacidade/criptografar-texto): Encrypt a message into a pasteable armored block using the same AES-256 envelope.
-- [Hash de Arquivo / File Hash](https://nadasai.com/pt/privacidade/hash-de-arquivo): SHA-256, SHA-512 and MD5 checksums, streamed in chunks so files of any size can be verified locally.
-- [Gerador de Senha / Password Generator](https://nadasai.com/pt/privacidade/gerador-de-senha): CSPRNG password generation with a real entropy readout, no network involved.
-- [Remover EXIF / Remove EXIF](https://nadasai.com/pt/privacidade/remover-exif): Show and then losslessly strip GPS coordinates, camera model, serial numbers and embedded thumbnails from JPEG, PNG and WebP — without re-encoding the image.
-- [Censurar Imagem / Redact Image](https://nadasai.com/pt/privacidade/censurar-imagem): Burn black bars into the pixels of a photo so the covered content is destroyed, not hidden.
-- [Censurar PDF / Redact PDF](https://nadasai.com/pt/privacidade/censurar-pdf): Real PDF redaction — pages are rebuilt as rasters so the text under each bar cannot be copied back out.
-- [Limpar Metadados PDF / Clean PDF Metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): Inspect and remove PDF author, producer, dates, XMP and per-page application data.
-- [Comparar Texto / Diff Checker](https://nadasai.com/pt/privacidade/comparar-texto): Side-by-side line diff of two texts or files, computed locally with a Myers diff.
+- [Criptografar arquivo (AES-256) / Encrypt file (AES-256)](https://nadasai.com/pt/privacidade/criptografar-arquivo): Drop the file, pick "Encrypt", type a password and download the .enc file.
+- [Hash de arquivo & Checksum / File hash & Checksum](https://nadasai.com/pt/privacidade/hash-de-arquivo): To check that a download arrived intact and is exactly the file the author published.
+- [Gerador de senhas / Password generator](https://nadasai.com/pt/privacidade/gerador-de-senha): They come from crypto.getRandomValues, the browser's own cryptographic generator, with rejection sampling so no character is favoured over another.
+- [Remover EXIF / GPS / Remove EXIF / GPS](https://nadasai.com/pt/privacidade/remover-exif): Strip private GPS location, camera info, author, and timestamp from your photos.
+- [Censurar imagem / Tarja preta / Redact image / Black bar](https://nadasai.com/pt/privacidade/censurar-imagem): Draw black bars over sensitive details — ID numbers, card numbers, addresses and faces.
+- [Comparar textos (Diff) / Text diff checker](https://nadasai.com/pt/privacidade/comparar-texto): Compare two texts or files side by side and highlight additions, deletions, and changes.
+- [Censurar PDF / Tarja preta / Redact PDF / Black bar](https://nadasai.com/pt/privacidade/censurar-pdf): Because a rectangle is just another object drawn on top.
+- [Limpar metadados do PDF / Clean PDF metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): Usually the author, the software that produced it, creation and modification dates, and an XMP block.
+- [Criptografar texto (AES-256) / Encrypt text (AES-256)](https://nadasai.com/pt/privacidade/criptografar-texto): Write the text, set a password and copy the block it produces.
 
 ## Privacy Architecture
 
-Every URL above exists in both Portuguese (/pt/) and English (/en/) — see sitemap.xml for the pairs.
-
-The no-upload claim is instrumented rather than asserted: NetworkProbeService wraps fetch, XMLHttpRequest, sendBeacon and WebSocket at runtime and counts file egress specifically (any body carrying a File, Blob, ArrayBuffer, typed array, or FormData containing a File). The count is displayed on the home page, so a user can verify the claim in their own browser rather than taking it on trust.
+The no-upload claim is instrumented rather than asserted: NetworkProbeService wraps fetch, XMLHttpRequest, sendBeacon and WebSocket at runtime and counts file egress specifically (any body carrying a File, Blob, ArrayBuffer, typed array, or FormData containing a File). The count is shown on every page, so a visitor can verify the claim in their own browser rather than taking it on trust.
 
 ## Information & Legal
 
-- [Sobre / About](https://nadasai.com/pt/sobre): Learn about Nada Sai's zero-server privacy architecture.
-- [Privacidade / Privacy Policy](https://nadasai.com/pt/privacidade): Read the 100% local processing privacy policy.
+- [Sobre / About](https://nadasai.com/pt/sobre): Nada Sai's zero-server architecture and who builds it.
+- [Privacidade / Privacy Policy](https://nadasai.com/pt/privacidade): The 100% local processing privacy policy.
 - [Termos de Uso / Terms of Service](https://nadasai.com/pt/termos): Terms of service for using Nada Sai tools.
-- [FAQ / Perguntas Frequentes](https://nadasai.com/pt/faq): Frequently asked questions about offline browser privacy, audio tools, and PDF editing.
+- [FAQ / Perguntas Frequentes](https://nadasai.com/pt/faq): Answers about offline processing, formats and limits.

@@ -2,11 +2,64 @@
 
 /* Nunito, self-hosted. A webfont CDN would be a network request on every load,
    which contradicts the footer's "your images never leave your device" and
-   breaks the app offline. Only the weights the tokens can express are pulled. */
-@import "@fontsource/nunito/400.css";
-@import "@fontsource/nunito/500.css";
-@import "@fontsource/nunito/600.css";
-@import "@fontsource/nunito/700.css";
+   breaks the app offline. Only the weights the tokens can express are pulled.
+
+   Os SUBSETS são explícitos, e isso não é microtuning. `@fontsource/nunito/400.css`
+   importa todos eles — cyrillic, cyrillic-ext, greek, greek-ext, vietnamese,
+   latin, latin-ext — e o Angular emite um arquivo por subset por peso em
+   `media/`. Medido no build: 40 arquivos, 517 kB, dos quais 126 kB são de
+   alfabeto que este site (pt-BR + en-US) pode escrever. O navegador sozinho não
+   baixa o cirílico, porque o `unicode-range` o poupa — mas o `ngsw-config.json`
+   põe `media/` em `prefetch`, e o service worker não lê unicode-range: ele
+   baixava os 517 kB inteiros na instalação. Importar só latin+latin-ext resolve
+   nos dois lugares de uma vez.
+
+   Os PESOS são 400/500/600 e mais nenhum. `--font-weight-*: initial` apaga a
+   escala do Tailwind e só três valores são redefinidos, então `font-bold` não
+   gera CSS nenhum — o 700 não tinha como ser pedido por classe. Ele ainda era
+   baixado, porque `<strong>` vale 700 por padrão do navegador, e chegava tarde:
+   era ele o resíduo de CLS de 0,1188 em /pt/privacidade depois do preload dos
+   outros pesos. A regra `strong, b` abaixo traz o negrito para 600, que é o teto
+   que o design system declara, e aí o 700 deixa de existir de verdade. */
+@import "@fontsource/nunito/latin-400.css";
+@import "@fontsource/nunito/latin-500.css";
+@import "@fontsource/nunito/latin-600.css";
+@import "@fontsource/nunito/latin-ext-400.css";
+@import "@fontsource/nunito/latin-ext-500.css";
+@import "@fontsource/nunito/latin-ext-600.css";
+
+/* O fallback com MÉTRICAS CASADAS — é ele que zera o CLS da troca de fonte.
+ *
+ * Com `font-display: swap` (que continua sendo o certo: `optional` faria metade
+ * dos visitantes nunca ver a Nunito na primeira visita), a fonte do sistema
+ * pinta primeiro e a Nunito chega ~1,2 s depois. Se as duas ocupam espaço
+ * diferente, TODO texto da página refluí nesse instante. Medido antes desta
+ * regra, em mobile a 1.6 Mbps: `/pt/privacidade` acusava CLS 0,2126 — reprovação
+ * — com os deslocamentos todos entre 1218 ms e 1479 ms e blocos mudando de
+ * altura em passos de ~24 px, que é uma linha a mais ou a menos. O português
+ * deslocava mais que o inglês pelo motivo óbvio: texto mais longo tem mais
+ * chance de mudar a contagem de linhas quando a métrica muda.
+ *
+ * Os números abaixo são MEDIDOS, não estimados: renderizando o pangrama real do
+ * site a 100px num canvas, a Nunito dá 10653 px de avanço contra 10601 px da
+ * Arial — 0,49% de diferença. Daí `size-adjust: 100.49%`. Os `*-override` são
+ * relativos ao em JÁ ajustado, então são a métrica da Nunito (ascent 1.010,
+ * descent 0.350) dividida pelo size-adjust.
+ *
+ * `local()` e nada mais: nenhum arquivo é baixado por esta regra. A Liberation
+ * Sans está na lista porque é metricamente compatível com a Arial e é o que o
+ * Linux instala no lugar dela — uma calibração cobre Windows, macOS e Linux.
+ * Onde nenhuma das três existe (Android, que resolve para Roboto), a regra
+ * simplesmente não se aplica e a pilha cai no próximo nome: o resíduo volta a
+ * ser o comportamento antigo, nunca pior que ele. */
+@font-face {
+  font-family: "Nunito Fallback";
+  src: local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 100.49%;
+  ascent-override: 100.50%;
+  descent-override: 34.83%;
+  line-gap-override: 0%;
+}
 
 /* =============================================================================
    ImgWork design tokens. Tailwind v4 — there is no tailwind.config.js.
@@ -121,7 +174,10 @@
   --color-warning-soft: var(--warning-soft);
   --color-warning-line: var(--warning-line);
 
-  --font-sans: "Nunito", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* "Nunito Fallback" vem LOGO depois da Nunito, e antes de qualquer nome real:
+     é a única posição em que ele é usado durante o swap, que é o único momento
+     em que ele existe para fazer diferença. */
+  --font-sans: "Nunito", "Nunito Fallback", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
 
   --text-2xs: 0.6875rem;
@@ -265,6 +321,21 @@
 
   h1, h2, h3, h4 {
     color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  /* O negrito do CONTEÚDO, e não só o dos headings.
+   *
+   * `<strong>` e `<b>` valem 700 por padrão do navegador — um peso que este
+   * design system não define (a escala para em 600) e que nenhuma classe podia
+   * pedir. O resultado era um arquivo de fonte baixado só para servir o
+   * `<strong>` das páginas de texto (/sobre, /privacidade), chegando depois de
+   * todo o resto e refluindo o parágrafo inteiro: era ele o CLS de 0,1188 que
+   * sobrou em /pt/privacidade depois de preloadar 400 e 600.
+   *
+   * Trazer para 600 é o que o teto declarado já dizia, e faz a página inteira
+   * caber em três pesos — que são exatamente os três pré-carregados. */
+  strong, b {
     font-weight: var(--font-weight-semibold);
   }
 

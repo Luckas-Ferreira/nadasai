@@ -5,15 +5,17 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/preload-entry-chunks.mjs && node scripts/generate-ngsw.mjs",
+    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/preload-entry-chunks.mjs && node scripts/preload-fonts.mjs && node scripts/generate-ngsw.mjs",
+    "og": "node scripts/generate-og-cards.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report",
     "postinstall": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs",
-    "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs && node scripts/generate-sitemap.mjs",
-    "sitemap": "node scripts/generate-sitemap.mjs"
+    "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs && node scripts/generate-sitemap.mjs && node scripts/generate-llms.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs",
+    "llms": "node scripts/generate-llms.mjs"
   },
   "private": true,
   "dependencies": {

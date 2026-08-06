@@ -84,7 +84,7 @@
             </div>
           } @else if (previewUrl()) {
             <div class="relative max-h-[52vh] overflow-hidden rounded-md bg-white shadow-page">
-              <img [src]="previewUrl()" [alt]="'Página ' + selectedPageIndex()" class="max-h-[52vh] w-auto object-contain block" />
+              <img [src]="previewUrl()" [alt]="i18n.t()['common.page_n'] + ' ' + selectedPageIndex()" class="max-h-[52vh] w-auto object-contain block" />
 
               <!-- Overlay Bounding Boxes for all signatures on this page.
                    The unselected outline is `border-line-strong`, not

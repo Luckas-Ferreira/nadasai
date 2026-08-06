@@ -39,7 +39,7 @@
           <div class="mx-auto w-fit p-1">
             <div class="relative inline-block rounded-md bg-white shadow-page">
               @if (pageUrl(); as url) {
-                <img [src]="url" [alt]="'page ' + currentPage()"
+                <img [src]="url" [alt]="i18n.t()['common.page_n'] + ' ' + currentPage()"
                   class="block w-auto rounded-md select-none"
                   [style.height]="sheetHeight()"
                   draggable="false" />
