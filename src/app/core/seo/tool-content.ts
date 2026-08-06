@@ -491,6 +491,51 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
     },
   },
 
+  vectorize: {
+    pt: {
+      features: ['PNG e JPG para SVG', 'Curvas Bézier reais', 'Sem costura entre cores', 'Degradês detectados'],
+      faq: [
+        {
+          q: 'O que é vetorizar uma imagem?',
+          a: 'É trocar uma grade de pixels por formas descritas matematicamente — curvas, e não pontos. Um SVG vetorizado pode ser ampliado para um outdoor sem serrilhar, porque não existe "resolução": as curvas são recalculadas em cada tamanho. É o formato que gráfica, corte a laser e bordado pedem.',
+        },
+        {
+          q: 'Por que não aparece aquela linha fina entre as cores?',
+          a: 'Porque as formas vizinhas não têm bordas parecidas — elas têm a MESMA borda. A ferramenta extrai o grafo de fronteiras da imagem e ajusta cada fronteira uma vez só; as duas regiões dos lados apontam para a mesma curva. A maioria dos vetorizadores traça cada forma isolada, e as duas versões da mesma fronteira nunca coincidem exatamente — a fresta que sobra é aquela linha.',
+        },
+        {
+          q: 'Qual modo escolher?',
+          a: 'A ferramenta mede a imagem e sugere. Traço para assinatura e digitalização em preto e branco; Logo para marca e ícone de poucas cores; Ilustração para desenho com sombreado, que é onde os degradês entram; Pixel art para sprite, onde suavizar destruiria o desenho. O modo define o regime, e o slider de detalhe anda dentro dele.',
+        },
+        {
+          q: 'Dá para vetorizar uma foto?',
+          a: 'Dá, e o resultado costuma decepcionar — não por defeito da ferramenta, mas porque foto não é arte vetorial. Uma foto tem textura contínua e milhões de transições, então qualquer vetorização honesta produz milhares de formas e um arquivo maior que o JPG original. Vetorizar vale para logo, ícone, desenho e traço: coisas que foram desenhadas com formas.',
+        },
+      ],
+    },
+    en: {
+      features: ['PNG and JPG to SVG', 'Real Bézier curves', 'No seams between colours', 'Gradient detection'],
+      faq: [
+        {
+          q: 'What does vectorizing an image mean?',
+          a: 'It replaces a grid of pixels with mathematically described shapes — curves, not dots. A vectorized SVG can be blown up to billboard size without jagged edges, because there is no "resolution": the curves are recomputed at every size. It is the format printers, laser cutters and embroidery machines ask for.',
+        },
+        {
+          q: 'Why is there no hairline gap between the colours?',
+          a: 'Because neighbouring shapes do not have similar edges — they have the SAME edge. The tool extracts the boundary graph of the image and fits each boundary exactly once; the two regions on either side point at the same curve. Most vectorizers trace each shape in isolation, and two independent fits of the same boundary never coincide exactly — the sliver left over is that line.',
+        },
+        {
+          q: 'Which mode should I pick?',
+          a: 'The tool measures the image and suggests one. Line art for signatures and black-and-white scans; Logo for brands and few-colour icons; Illustration for shaded drawings, which is where gradients come in; Pixel art for sprites, where smoothing would destroy the artwork. The mode sets the regime, and the detail slider moves within it.',
+        },
+        {
+          q: 'Can I vectorize a photo?',
+          a: 'You can, and the result usually disappoints — not because the tool fails, but because a photo is not vector art. A photo has continuous texture and millions of transitions, so any honest vectorization produces thousands of shapes and a file larger than the original JPG. Vectorizing pays off for logos, icons, drawings and line art: things that were drawn with shapes in the first place.',
+        },
+      ],
+    },
+  },
+
   upscale: {
     pt: {
       features: ['2x e 4x', 'Reconstrução de bordas', 'Controle de nitidez', 'Sem envio para servidor'],

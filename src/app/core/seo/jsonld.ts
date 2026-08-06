@@ -57,11 +57,18 @@ function organization(): object {
     '@id': `${DOMAIN}/#organization`,
     name: 'Nada Sai',
     url: DOMAIN,
+    /**
+     * Quadrado e raster, que é o que a documentação do Google pede para
+     * `Organization.logo` — e o que estava aqui era o SVG de 339x339 declarado
+     * como 1200x630, ou seja, a proporção de um card social no campo que espera
+     * uma marca. As duas coisas erradas ao mesmo tempo: formato que o crawler
+     * não rasteriza e dimensão que não confere com o arquivo.
+     */
     logo: {
       '@type': 'ImageObject',
-      url: `${DOMAIN}/logo_nadasai.svg`,
-      width: 1200,
-      height: 630,
+      url: `${DOMAIN}/og/logo-512.png`,
+      width: 512,
+      height: 512,
     },
   };
 }

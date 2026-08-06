@@ -142,6 +142,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- vectorize -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/vetorizar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/vetorizar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/vectorize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/vetorizar" />
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/vectorize</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/vetorizar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/vectorize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/vetorizar" />
+    <lastmod>2026-08-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- extract-text -->
   <url>
     <loc>https://nadasai.com/pt/imagem/extrair-texto</loc>

@@ -1,0 +1,148 @@
+<!-- `forceLoaded` porque esta ferramenta NÃO está na cadeia do ImageStateService
+     (ver o cabeçalho da componente): o `loaded` padrão observa a cadeia, que
+     aqui está sempre vazia, e o painel nunca apareceria. -->
+<app-tool-page [toolId]="'vectorize'" [forceLoaded]="!!sourceUrl()">
+  @if (errorKey(); as key) {
+    <div banner class="mb-5">
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    </div>
+  }
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else if (resultUrl()) {
+      <!-- O SVG entra no comparador como imagem: é a única forma de julgar
+           vetorização, que se avalia por diferença contra o original e não por
+           beleza isolada. -->
+      <app-compare-slider [before]="sourceUrl()!" [after]="resultUrl()!" />
+    } @else {
+      <app-preview-surface [src]="sourceUrl()" [busy]="busy()" [alt]="i18n.t()['common.original']" />
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['vector.mode']">
+        <app-segmented
+          [options]="modeOptions()"
+          [value]="mode()"
+          (valueChange)="mode.set($event)"
+          [columns]="2"
+          [ariaLabel]="i18n.t()['vector.mode']"
+        />
+
+        <p class="mt-3 text-xs text-muted">{{ i18n.t()[modeDescKey()] }}</p>
+
+        <!-- A sugestão aparece só quando DIVERGE do escolhido. Trocar sozinho
+             depois que a pessoa escolheu seria roubar o controle; não dizer nada
+             desperdiça a medição que já foi feita. -->
+        @if (modeHintKey(); as hint) {
+          <p class="mt-2.5 rounded-sm border border-accent-line bg-accent-soft px-2.5 py-1.5 text-xs text-accent">
+            {{ i18n.t()[hint] }}
+          </p>
+        }
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['vector.detail']">
+        <div class="flex items-baseline justify-between">
+          <span class="text-sm text-muted">{{ i18n.t()['vector.detail'] }}</span>
+          <span class="font-mono text-md font-medium text-text tabular">{{ detail() }}</span>
+        </div>
+
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          [ngModel]="detail()"
+          (ngModelChange)="detail.set($event)"
+          class="mt-3 w-full"
+          [attr.aria-label]="i18n.t()['vector.detail']"
+        />
+
+        <div class="mt-1.5 flex justify-between text-xs text-faint">
+          <span>{{ i18n.t()['vector.detail.smooth'] }}</span>
+          <span>{{ i18n.t()['vector.detail.sharp'] }}</span>
+        </div>
+      </app-panel>
+
+      @if (stats(); as s) {
+        <app-panel>
+          <dl class="flex flex-col gap-2.5 text-sm">
+            <div class="flex items-baseline justify-between">
+              <dt class="text-muted">{{ i18n.t()['vector.original_size'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ originalSize() }}</dd>
+            </div>
+
+            <div class="flex items-baseline justify-between">
+              <dt class="text-muted">{{ i18n.t()['vector.svg_size'] }}</dt>
+              <dd class="flex items-baseline gap-2">
+                <span class="font-mono text-text tabular">{{ svgSize() }}</span>
+                @if (savings(); as saved) {
+                  <span
+                    class="rounded-sm border border-success-line bg-success-soft px-1.5 py-0.5
+                           font-mono text-2xs font-medium text-success tabular"
+                    >−{{ saved }}</span
+                  >
+                }
+              </dd>
+            </div>
+
+            <!-- Formas e NÓS, não só "pronto". É o número que diz se o resultado
+                 é editável ou uma sopa de milhares de pontos — a diferença entre
+                 um vetor útil e um PNG disfarçado de SVG. -->
+            <div class="flex items-baseline justify-between border-t border-line pt-2.5">
+              <dt class="text-muted">{{ i18n.t()['vector.shapes'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ s.shapes }}</dd>
+            </div>
+
+            <div class="flex items-baseline justify-between">
+              <dt class="text-muted">{{ i18n.t()['vector.nodes'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ s.nodes }}</dd>
+            </div>
+
+            <div class="flex items-baseline justify-between">
+              <dt class="text-muted">{{ i18n.t()['vector.colors'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ s.colors }}</dd>
+            </div>
+
+            @if (s.gradients > 0) {
+              <div class="flex items-baseline justify-between">
+                <dt class="text-muted">{{ i18n.t()['vector.gradients'] }}</dt>
+                <dd class="font-mono text-text tabular">{{ s.gradients }}</dd>
+              </div>
+            }
+          </dl>
+        </app-panel>
+      }
+
+      @if (busy() && progress() > 0) {
+        <app-panel>
+          <div class="flex items-baseline justify-between text-sm">
+            <span class="text-muted">{{ i18n.t()['vector.working'] }}</span>
+            <span class="font-mono text-text tabular">{{ (progress() * 100).toFixed(0) }}%</span>
+          </div>
+          <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-raised">
+            <div class="h-full rounded-full bg-accent-fill transition-all" [style.width.%]="progress() * 100"></div>
+          </div>
+        </app-panel>
+      }
+
+      <p class="text-xs text-faint">{{ i18n.t()['vector.note'] }}</p>
+
+      <!-- `canContinue` é false e não há handler de continuar: a saída é SVG, e o
+           ImageStateService recusa o que não é image/* — corretamente, porque o
+           próximo tool reencodaria por canvas e rasterizaria de volta o vetor. -->
+      <app-action-bar
+        [primaryLabel]="stale() ? i18n.t()['vector.btn'] : null"
+        [busy]="busy()"
+        [canDownload]="!!resultUrl()"
+        [canContinue]="false"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

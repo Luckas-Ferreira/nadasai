@@ -1,5 +1,22 @@
 <app-splash-screen />
 
+<!-- Pular para o conteúdo (WCAG 2.4.1, nível A).
+     Numa página de ferramenta, quem navega por teclado ou leitor de tela
+     atravessava a barra do topo (logo, switcher, busca, medidor) MAIS até dez
+     links do rail antes de chegar no dropzone — em toda navegação. O rail ser
+     escopado por módulo limita o tamanho do problema, não o resolve.
+
+     Visível só no foco: `sr-only` até receber foco, e aí vira um botão real no
+     canto. `z-50` porque a barra do topo é sticky com `z-40` e o link precisa
+     ficar por cima dela para ser visto quando aparece. -->
+<a
+  href="#main"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md
+         focus:border focus:border-line focus:bg-surface focus:px-4 focus:py-2.5
+         focus:text-sm focus:font-semibold focus:text-accent focus:shadow-panel"
+  >{{ i18n.t()['nav.skip_to_content'] }}</a
+>
+
 <div class="flex min-h-dvh flex-col bg-base">
   <!-- One identity surface for every viewport. The rail no longer carries the
        logo, so it gets its whole height for tools. -->
@@ -23,7 +40,10 @@
       <app-current-audio-file-bar />
 
       <!-- Extra bottom padding on mobile so the last controls clear the tool bar. -->
-      <main class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+      <!-- `tabindex="-1"` para o salto do skip link mover mesmo o foco: sem ele
+           o navegador rola até a âncora e deixa o foco onde estava, então o
+           próximo Tab volta para a navegação que a pessoa acabou de pular. -->
+      <main id="main" tabindex="-1" class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
         <router-outlet />
       </main>
 
@@ -33,7 +53,10 @@
         >
           <p>{{ i18n.t()['app.footer.secure'] }}</p>
 
-          <nav class="flex gap-4">
+          <!-- Nomeado porque a página tem três <nav> (rail, barra mobile, este)
+               e os outros dois já se identificam. Sem rótulo, o leitor de tela
+               anuncia "navegação" três vezes e nenhuma delas diz qual é. -->
+          <nav class="flex gap-4" [attr.aria-label]="i18n.t()['nav.footer']">
             <a
               [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/about' : '/sobre')"
               class="hover:text-muted"

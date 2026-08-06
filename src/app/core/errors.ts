@@ -45,6 +45,12 @@ export type ErrorCode =
   | 'text_too_large'
   | 'pdf_no_pages'
   | 'pdf_no_regions'
+  // O vetorizador roda num Worker, e um erro lá chega como string por
+  // postMessage — não como o objeto lançado. Não há como distinguir a causa do
+  // lado de cá, e inventar uma distinção seria o mesmo erro que o bloco de
+  // cripto acima documenta. Uma chave só, e o `console.error` do worker fica
+  // para quem estiver depurando.
+  | 'vector_failed'
   | 'generic';
 
 /**
@@ -95,6 +101,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   text_too_large: 'error.text_too_large',
   pdf_no_pages: 'error.pdf_no_pages',
   pdf_no_regions: 'error.pdf_no_regions',
+  vector_failed: 'error.vector_failed',
   generic: 'error.generic',
 };
 

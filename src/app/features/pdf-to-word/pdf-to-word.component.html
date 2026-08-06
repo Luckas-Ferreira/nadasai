@@ -51,7 +51,7 @@
           @for (thumb of thumbs(); track thumb.index) {
             <div class="flex flex-col items-center gap-1.5">
               <div class="w-full overflow-hidden rounded-md bg-white shadow-page">
-                <img [src]="thumb.url" [alt]="'Página ' + thumb.index" class="block w-full" />
+                <img [src]="thumb.url" [alt]="i18n.t()['common.page_n'] + ' ' + thumb.index" class="block w-full" />
               </div>
               <span class="font-mono tabular text-[11px] text-doc-stage-muted">{{ thumb.index }}</span>
             </div>

@@ -4,6 +4,7 @@ import type { TranslationKey } from '../services/translation.service';
 export type ToolId =
   | 'remove-bg'
   | 'upscale'
+  | 'vectorize'
   | 'extract-text'
   | 'cut-audio'
   | 'merge-audio'
@@ -128,6 +129,31 @@ export const TOOLS: readonly ToolDef[] = [
       'upscale image', 'enhance photo quality', 'increase resolution', 'unblur image',
       'hd photo', 'super resolution', 'ai upscale', 'image sharpener', 'enhance image',
       '4k upscaler', 'photo enhancer', 'deblur', 'enlarge photo'
+    ],
+  },
+  {
+    id: 'vectorize',
+    pathPt: 'imagem/vetorizar',
+    pathEn: 'image/vectorize',
+    icon: 'palette',
+    category: 'image',
+    navKey: 'nav.vectorize',
+    shortKey: 'nav.short.vectorize',
+    titleKey: 'vector.title',
+    descKey: 'vector.subtitle',
+    suffix: 'vetor',
+    tone: 'sky',
+    keywordsPt: [
+      'vetorizar imagem', 'png para svg', 'jpg para svg', 'imagem para vetor',
+      'converter para svg', 'vetorizar logo', 'transformar em vetor', 'traçar imagem',
+      'logo vetorizado', 'svg online', 'vetorizacao automatica', 'imagem vetorial',
+      'converter png em svg', 'vetorizar desenho', 'redesenhar logo'
+    ],
+    keywordsEn: [
+      'vectorize image', 'png to svg', 'jpg to svg', 'image to vector',
+      'convert to svg', 'vectorize logo', 'raster to vector', 'image tracer',
+      'auto trace', 'svg converter', 'bitmap to vector', 'logo vectorizer',
+      'trace bitmap', 'vector art converter'
     ],
   },
   {
