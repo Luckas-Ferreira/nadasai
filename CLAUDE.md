@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-The product is **Nada Sai** (`nadasai.com`; the npm package and `dist/` folder are still called `imgwork`) — a client-side file toolbox built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no file ever leaves the user's machine — that claim is the product, not a footer detail, so keep any new feature client-side. `NetworkProbeService` instruments it at runtime (see *Offline, PWA and the proof*).
+The product is **Nada Sai** (`nadasai.com`; the repo, the npm package and the `dist/` folder are all `nadasai` — the local working directory is still named `imgwork`, which is the last trace of the old name and matters to nothing) — a client-side file toolbox built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no file ever leaves the user's machine — that claim is the product, not a footer detail, so keep any new feature client-side. `NetworkProbeService` instruments it at runtime (see *Offline, PWA and the proof*).
 
 Thirty-two tools in four modules, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf' | 'audio' | 'privacy'`):
 
@@ -21,7 +21,7 @@ Three libraries divide the PDF work and the split matters: **pdf.js** reads and 
 
 ```bash
 npm start                 # ng serve → http://localhost:4200
-npm run build             # production build → dist/imgwork
+npm run build             # production build → dist/nadasai
 npm test                  # Karma + Jasmine in Chrome (watch mode)
 npm test -- --watch=false --browsers=ChromeHeadless   # single CI-style run
 ng test --include='**/converters.spec.ts'             # run one spec file

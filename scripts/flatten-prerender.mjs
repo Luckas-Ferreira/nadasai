@@ -34,7 +34,7 @@
 import { readdirSync, renameSync, rmdirSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const ROOT = join('dist', 'imgwork', 'browser');
+const ROOT = join('dist', 'nadasai', 'browser');
 
 if (!existsSync(ROOT)) {
   // Nada a fazer: `ng build` não chegou a produzir saída.

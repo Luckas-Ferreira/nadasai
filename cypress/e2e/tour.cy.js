@@ -9,7 +9,7 @@ function shot(name) {
   cy.screenshot(name, { capture: 'viewport', overwrite: true });
 }
 
-describe('ImgWork — UI tour', () => {
+describe('Nada Sai — UI tour', () => {
   it('home, empty', () => {
     cy.visit('/');
     cy.get('h1').should('be.visible');

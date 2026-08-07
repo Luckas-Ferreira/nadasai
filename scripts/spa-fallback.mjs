@@ -62,7 +62,7 @@
 import { copyFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const dir = join('dist', 'imgwork', 'browser');
+const dir = join('dist', 'nadasai', 'browser');
 const home = join(dir, 'pt.html');
 const shell = join(dir, 'index.csr.html');
 const fallback = join(dir, 'index.html');

@@ -25,7 +25,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ROOT = join('dist', 'imgwork', 'browser');
+const ROOT = join('dist', 'nadasai', 'browser');
 const MEDIA = join(ROOT, 'media');
 // Os TRÊS pesos que o design system define — `--font-weight-*: initial` apaga a
 // escala do Tailwind e só normal/medium/semibold voltam, então não existe quarto
