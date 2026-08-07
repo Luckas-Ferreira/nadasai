@@ -69,6 +69,20 @@ test('vetoriza um logo com transparência e guarda o antes/depois', async ({ pag
 
   await page.screenshot({ path: 'test-results/vetorizar-tela.png', fullPage: false });
 
+  // O inspetor: três passos de zoom (100% -> 800%) e o divisor no meio do "N".
+  // É a imagem que prova a tese — mesmo tamanho na tela, raster borrado de um
+  // lado e curva nítida do outro.
+  const frame = page.locator('app-compare-slider > div');
+  const box = (await frame.boundingBox())!;
+
+  // Duplo clique amplia MANTENDO o ponto sob o cursor: três deles sobre a borda
+  // do círculo levam a 800% com a borda ainda na tela, dos dois lados do divisor.
+  const fx = box.x + (box.width - 400) / 2 + 168;
+  const fy = box.y + (box.height - 300) / 2 + 52;
+  for (let i = 0; i < 3; i++) await page.mouse.dblclick(fx, fy);
+  await expect(page.getByRole('button', { name: 'Ajustar à moldura' })).toContainText('800%');
+  await frame.screenshot({ path: 'test-results/vetorizar-zoom.png' });
+
   // O SVG sozinho, em cima de um xadrez, para julgar borda e transparência.
   await page.setContent(
     `<body style="margin:0;background:conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/24px 24px">

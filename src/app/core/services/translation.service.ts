@@ -196,6 +196,11 @@ const EN = {
   'common.dismiss': 'Dismiss',
   'common.original': 'Original',
   'common.result': 'Result',
+
+  'compare.zoom_in': 'Zoom in',
+  'compare.zoom_out': 'Zoom out',
+  'compare.zoom_fit': 'Fit to the frame',
+  'compare.pan_hint': 'Drag to move',
   'common.editing': 'Editing',
   'common.download_hint': 'Saved at full resolution',
   'common.drag_hint': 'PNG, JPEG, WebP, GIF or AVIF · up to 50 MB',
@@ -1015,6 +1020,11 @@ const PT: Record<TranslationKey, string> = {
   'common.dismiss': 'Dispensar',
   'common.original': 'Original',
   'common.result': 'Resultado',
+
+  'compare.zoom_in': 'Aproximar',
+  'compare.zoom_out': 'Afastar',
+  'compare.zoom_fit': 'Ajustar à moldura',
+  'compare.pan_hint': 'Arraste para mover',
   'common.editing': 'Editando',
   'common.download_hint': 'Salvo em resolução total',
   'common.drag_hint': 'PNG, JPEG, WebP, GIF ou AVIF · até 50 MB',
