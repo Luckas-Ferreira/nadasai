@@ -4,9 +4,10 @@
  *   1. quantização        k-means em CIELAB, k automático        quantize.ts
  *   2. segmentação        componentes conexos + despeckle        segment.ts
  *   3. subdivisão planar  DIFERENCIAL 1: aresta compartilhada    planar.ts
- *   4. cantos             curvatura discreta                      fit.ts
- *   5. simplificação      RDP ancorado nos cantos                 fit.ts
- *   6. ajuste             Bézier cúbica, Schneider, G1            fit.ts
+ *   4. sub-pixel          borda lida no antialiasing              refine.ts
+ *   5. cantos             curvatura discreta, duas escalas        fit.ts
+ *   6. ajuste             Bézier cúbica, Schneider, sobre TODOS
+ *                          os pontos do contorno                   fit.ts
  *   7. degradês           DIFERENCIAL 2: linear/radial            gradient.ts
  *   8. serialização       precisão 2, comandos relativos          serialize.ts
  *
@@ -24,7 +25,9 @@
  */
 
 import { ALPHA_CUTOFF } from './alpha';
-import { type Cubic, type Pt, detectCorners, fitCurve, simplifyAnchored, tangentAtJoin } from './fit';
+import type { Lab } from './color';
+import { snapEdgeBands, transitionMask } from './edges';
+import { type Cubic, type Pt, detectCorners, fitCurve } from './fit';
 import { DEFAULT_GRADIENT_FIT, type GradientFitOptions, fitLinearGradient, fitRadialGradient } from './gradient';
 import { OUTSIDE, type ArcRef, buildPlanarMap } from './planar';
 import { DEFAULT_PREPROCESS, type PreprocessOptions, preprocess } from './preprocess';
@@ -82,6 +85,8 @@ export interface VectorizeOptions {
   readonly denoise: PreprocessOptions;
   /** Remoção da escada do reticulado, antes do ajuste. Ver refine.ts. */
   readonly refine: RefineOptions;
+  /** Devolver o pixel de transição às cores vizinhas. Ver edges.ts. */
+  readonly snapEdges: boolean;
 }
 
 /**
@@ -102,8 +107,9 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     precision: 2,
     // Digitalização é papel: grão de scanner e ruído de JPEG viram ilha preta
     // no meio do branco. Raio maior que os outros modos, de propósito.
-    denoise: { radius: 3, epsilon: 90 },
+    denoise: { radius: 3, epsilon: 400 },
     refine: DEFAULT_REFINE,
+    snapEdges: true,
   },
   /** Logo/arte plana: poucas cores, aresta dura, nada de degradê. */
   logo: {
@@ -117,6 +123,7 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     precision: 2,
     denoise: DEFAULT_PREPROCESS,
     refine: DEFAULT_REFINE,
+    snapEdges: true,
   },
   /** Ilustração: muitas cores e degradês; tolerância maior porque a fidelidade
    *  de contorno importa menos que a de cor. */
@@ -131,6 +138,7 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     precision: 2,
     denoise: DEFAULT_PREPROCESS,
     refine: DEFAULT_REFINE,
+    snapEdges: true,
   },
   /**
    * Pixel art: NADA de suavização.
@@ -154,6 +162,8 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     denoise: { radius: 0, epsilon: 0 },
     // E a escada do reticulado É o desenho: suavizá-la derreteria o sprite.
     refine: NO_REFINE,
+    // Idem: num sprite, a linha de 1 px entre duas cores É conteúdo.
+    snapEdges: false,
   },
 };
 
@@ -206,6 +216,9 @@ export function vectorize(
 
   let colorIndex: Int32Array;
   let palette: ReadonlyArray<{ r: number; g: number; b: number }>;
+  // A paleta em Lab, para `snapEdgeBands` decidir "entre duas cores" onde a
+  // pergunta faz sentido. Vazia em `trace`, que é bilevel e não tem meio-termo.
+  let labPalette: readonly Lab[] = [];
 
   if (opts.mode === 'trace') {
     // Bilevel por Otsu. Não passa pelo k-means: com duas classes o limiar ótimo
@@ -222,13 +235,37 @@ export function vectorize(
       { r: 255, g: 255, b: 255 },
     ];
   } else {
-    const q = quantize(clean, w, h, {
-      ...DEFAULT_QUANTIZE,
-      maxColors: opts.maxColors,
-      minColors: Math.min(2, opts.maxColors),
-    });
+    // A paleta é escolhida SEM os pixels de transição: sem isso o k-means adota
+    // as cores da borda (que somadas são muitos pixels) como cores do desenho.
+    // Ver `transitionMask`.
+    const q = quantize(
+      clean,
+      w,
+      h,
+      {
+        ...DEFAULT_QUANTIZE,
+        maxColors: opts.maxColors,
+        minColors: Math.min(2, opts.maxColors),
+      },
+      opts.snapEdges ? transitionMask(clean, w, h) : null,
+    );
     colorIndex = q.indices;
     palette = q.rgb;
+    labPalette = q.colors;
+  }
+
+  /**
+   * A fita de transição volta a ser borda antes de virar região.
+   *
+   * Tem de ser AQUI: depois da atribuição de cor (o critério é "esta cor está
+   * entre as de dois vizinhos") e antes da segmentação, que é onde a fita
+   * viraria componente conexo e, logo em seguida, `<path>`. Ver edges.ts —
+   * num logotipo de duas cores isso era a diferença entre 64 formas com uma
+   * casquinha clara em volta de cada letra e o desenho que a pessoa mandou.
+   */
+  if (opts.snapEdges && opts.mode !== 'trace') {
+    const holeMask = holeCount > 0 ? holes : null;
+    snapEdgeBands(colorIndex, labPalette, w, h, holeMask);
   }
 
   // O buraco é um índice de paleta a mais, fora do alcance da paleta real. Assim
@@ -519,43 +556,84 @@ function fitPolyline(
   const withCorners =
     opts.refine.passes > 0 ? snapCorners(smooth, closed, corners) : smooth;
 
-  const kept = simplifyAnchored(withCorners, corners, opts.smoothness);
-  if (kept.length < 2) return [];
-
-  const simple = kept.map((i) => withCorners[i]);
-  const simpleCorner = kept.map((i) => corners[i]);
-
-  // Quebrar nos cantos e ajustar cada trecho. Um trecho sem canto nenhum é uma
-  // chamada só, e o `fitCurve` subdivide internamente conforme o erro.
+  /**
+   * O AJUSTE VÊ TODOS OS PONTOS. Este era o defeito mais caro do módulo.
+   *
+   * Aqui rodava um RDP com a tolerância pedida e o Bézier era ajustado sobre os
+   * SOBREVIVENTES — não sobre o contorno. As duas etapas garantem coisas
+   * diferentes e a segunda garantia não vale nada sem a primeira: o RDP promete
+   * que a polilinha decimada não se afasta mais que ε do traçado; o ajuste
+   * promete que a curva não se afasta mais que ε dos PONTOS QUE RECEBEU. Entre
+   * dois sobreviventes distantes ninguém media nada, e a cúbica — com tangentes
+   * impostas por vizinhos que agora estavam a dezenas de pixels — passeava.
+   *
+   * O sintoma era grosseiro e não parecia vir daqui: a base reta das letras de
+   * um logotipo saía ONDULADA, com três a quatro pixels de amplitude, com a
+   * tolerância nominal em 0,45 px. Baixar a tolerância para 0,06 fazia a onda
+   * sumir — o que dizia que o problema não era o raster nem a leitura sub-pixel,
+   * e sim que a tolerância não estava sendo aplicada onde ela dizia.
+   *
+   * Sem o RDP, o `fitCurve` faz o trabalho todo: mínimos quadrados sobre a
+   * sequência inteira e subdivisão no ponto de PIOR erro, que é colocação de nó
+   * guiada pelo erro real. Sai com menos nós que o RDP para a mesma fidelidade,
+   * porque um nó só é criado onde a curva não dá conta.
+   */
+  const eps = opts.smoothness;
   const out: Cubic[] = [];
-  let start = 0;
+  const n = withCorners.length;
 
-  for (let i = 1; i <= simple.length - 1; i++) {
-    const isLast = i === simple.length - 1;
-    if (!simpleCorner[i] && !isLast) continue;
+  const cornerIdx: number[] = [];
+  for (let i = 0; i < n - 1; i++) if (corners[i]) cornerIdx.push(i);
 
-    const segPts = simple.slice(start, i + 1);
-    if (segPts.length >= 2) {
-      // G1: nas pontas que não são canto, a tangente é a da junção — a mesma
-      // que o trecho vizinho vai usar. É isso que faz a emenda sumir.
-      const tStart =
-        start > 0 && !simpleCorner[start]
-          ? tangentAtJoin(simple[start - 1], simple[start], simple[Math.min(start + 1, simple.length - 1)])
-          : undefined;
-      const tEnd =
-        !isLast && !simpleCorner[i]
-          ? negate(tangentAtJoin(simple[i - 1], simple[i], simple[Math.min(i + 1, simple.length - 1)]))
-          : undefined;
+  if (cornerIdx.length === 0) {
+    /**
+     * Contorno sem canto nenhum (um disco, uma bolha): um trecho só, da costura
+     * até ela mesma, com as tangentes das pontas LIVRES.
+     *
+     * A tentação é impor a mesma tangente nas duas pontas para dar G1 na
+     * costura. Foi tentado e é pior: com `p0 === p3` o sistema de mínimos
+     * quadrados da primeira cúbica fica degenerado (a corda tem comprimento
+     * zero, os alfas caem no caso singular), e a recursão herda um corte ruim.
+     * O teste do disco pegou — a pior cobertura caiu de 239 para 218 de 255,
+     * que é uma mossa visível na borda. Com as pontas livres, o `fitCurve`
+     * estima as duas tangentes dos próprios pontos e a emenda fica onde
+     * ninguém repara.
+     */
+    out.push(...fitCurve(withCorners, eps * eps));
+    return out;
+  }
 
-      out.push(...fitCurve(segPts, opts.smoothness * opts.smoothness, tStart, tEnd));
-    }
-    start = i;
+  /**
+   * Um trecho por par de quebras consecutivas. O canto NÃO recebe tangente
+   * imposta — é justamente ali que a curva tem direito de virar; nas junções
+   * internas o `fitCurve` já compartilha a tangente ao subdividir, então a
+   * continuidade G1 sai de graça e sem ninguém impor nada.
+   *
+   * Num arco ABERTO as duas pontas são nós da subdivisão planar e entram como
+   * quebras. Num FECHADO a costura já foi girada para cair num canto, então a
+   * lista de cantos, percorrida em círculo, cobre o contorno inteiro.
+   */
+  const breaks = closed
+    ? cornerIdx
+    : [0, ...cornerIdx.filter((i) => i > 0 && i < n - 1), n - 1];
+
+  const last = closed ? breaks.length : breaks.length - 1;
+
+  for (let c = 0; c < last; c++) {
+    const from = breaks[c];
+    const to = breaks[(c + 1) % breaks.length];
+
+    const segPts: Pt[] =
+      to > from
+        ? withCorners.slice(from, to + 1)
+        : [...withCorners.slice(from, n - 1), ...withCorners.slice(0, to + 1)];
+
+    if (segPts.length >= 2) out.push(...fitCurve(segPts, eps * eps));
   }
 
   return out;
 }
 
-const negate = (p: Pt): Pt => ({ x: -p.x, y: -p.y });
 
 /** Concatena a geometria dos arcos de um ciclo, revertendo onde preciso.
  *  Reverter uma cúbica é trocar p0<->p3 e c1<->c2 — a curva é a mesma, o sentido

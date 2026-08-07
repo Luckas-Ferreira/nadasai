@@ -64,19 +64,59 @@ export interface QuantizeOptions {
   /** ΔE2000 abaixo do qual duas cores da paleta são "a mesma". ~2.3 é o JND
    *  clássico; valores maiores dão menos paths e mais chapado. */
   readonly mergeThreshold: number;
+  /**
+   * ΔE76 dentro do qual um pixel conta como EXPLICADO pela cor dele.
+   *
+   * Ver `explainFraction`. É ΔE76 e não ΔE2000 de propósito: aqui a pergunta não
+   * é perceptual ("essas duas cores são a mesma?") e sim de ajuste ("este pixel
+   * é essa cor mais ruído?"), e ΔE76 é uma distância euclidiana em Lab, dez
+   * vezes mais barata numa conta que roda por pixel amostrado e por k.
+   */
+  readonly explainThreshold: number;
+  /**
+   * Fração dos pixels amostrados que precisa estar explicada para a busca de k
+   * PARAR.
+   *
+   * ESTE CRITÉRIO EXISTE PORQUE O OUTRO ESTAVA INVERTIDO PARA ARTE PLANA.
+   *
+   * Sozinha, a regra "cresce k até dois centróides ficarem indistinguíveis"
+   * maximiza k: numa imagem real sempre há tons intermediários para justificar
+   * mais uma cor, então a busca ia até o teto e parava por colisão — um evento
+   * de faca, que muda com qualquer mexida no filtro de ruído. Medido no
+   * logotipo do usuário (512x512, 9,9 kB, quatro cores de verdade), variando só
+   * o raio e o epsilon do filtro:
+   *
+   *     r=2 e=200 ->  6 cores, 38 formas       r=3 e=400 ->  4 cores, 26 formas
+   *     r=2 e=400 -> 10 cores, 61 formas       r=3 e=800 ->  6 cores, 36 formas
+   *     r=4 e=400 ->  8 cores, 49 formas       r=5 e=400 ->  9 cores, 60 formas
+   *
+   * Não há tendência aí: o número de cores não estava sendo decidido pelo
+   * conteúdo da imagem, e sim por onde a colisão calhava de acontecer. Com a
+   * regra de cobertura, k para quando a paleta já descreve as áreas chapadas —
+   * que é a pergunta que um logotipo faz.
+   */
+  readonly explainFraction: number;
 }
 
 export const DEFAULT_QUANTIZE: QuantizeOptions = {
   maxColors: 16,
   minColors: 2,
   mergeThreshold: 2.3,
+  explainThreshold: 6,
+  explainFraction: 0.985,
 };
 
+/**
+ * @param sampleSkip 1 onde o pixel NÃO deve entrar na escolha da paleta — os
+ *   pixels em cima de uma transição (ver `transitionMask` em edges.ts). Eles
+ *   continuam recebendo cor no fim; só não votam em quais cores existem.
+ */
 export function quantize(
   rgba: Uint8ClampedArray,
   w: number,
   h: number,
   opts: QuantizeOptions = DEFAULT_QUANTIZE,
+  sampleSkip: Uint8Array | null = null,
 ): Palette {
   const n = w * h;
 
@@ -98,9 +138,30 @@ export function quantize(
   // todos os pixels.
   const sampleStep = Math.max(1, Math.floor(n / 40000));
   const sample: number[] = [];
-  for (let i = 0; i < n; i += sampleStep) sample.push(i);
+  for (let i = 0; i < n; i += sampleStep) {
+    if (sampleSkip && sampleSkip[i]) continue;
+    sample.push(i);
+  }
+  // Uma imagem que é só transição (uma foto de folhagem, um degradê inteiro)
+  // esvaziaria a amostra. Aí a máscara não descreve nada e é melhor ignorá-la.
+  if (sample.length < 64) {
+    for (let i = 0; i < n; i += sampleStep) sample.push(i);
+  }
 
   let best: Lab[] | null = null;
+
+  /** Fração da amostra que fica a menos de `explainThreshold` do centróide mais
+   *  próximo — "esta paleta já descreve a imagem?". */
+  const explained = (centers: readonly Lab[]): number => {
+    let ok = 0;
+    for (const i of sample) {
+      const px: Lab = { L: L[i], a: A[i], b: B[i] };
+      let nearest = Infinity;
+      for (const c of centers) nearest = Math.min(nearest, deltaE76(px, c));
+      if (nearest <= opts.explainThreshold) ok++;
+    }
+    return ok / (sample.length || 1);
+  };
 
   for (let k = opts.minColors; k <= opts.maxColors; k++) {
     const centers = kmeans(L, A, B, sample, k, rng(0x9e3779b9));
@@ -117,6 +178,10 @@ export function quantize(
     if (minPair < opts.mergeThreshold && best) break;
     best = centers;
     if (minPair < opts.mergeThreshold) break;
+
+    // E a parada que vale para arte plana: a paleta já explica o que é chapado.
+    // Ver `explainFraction` — sem ela, k ia sempre ao teto.
+    if (explained(centers) >= opts.explainFraction) break;
   }
 
   const colors = best ?? [{ L: 50, a: 0, b: 0 }];

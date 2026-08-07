@@ -76,3 +76,7 @@ cf-token.txt
 # endereço. Os probes em e2e/debug-*.spec.ts leem daqui e pulam se não acharem.
 /*.pdf
 probe-*.png
+
+# Mesma história para imagem: o probe da vetorização (e2e/debug-vectorize-real)
+# lê o logotipo largado aqui, e um logotipo é material de marca de alguém.
+/*.png
