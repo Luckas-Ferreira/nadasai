@@ -27,7 +27,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ROOT = join('dist', 'imgwork', 'browser');
+const ROOT = join('dist', 'nadasai', 'browser');
 
 const entry = readdirSync(ROOT).find((f) => /^main-[A-Z0-9]+\.js$/.test(f));
 if (!entry) {

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "imgwork": {
+    "nadasai": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/imgwork",
+            "outputPath": "dist/nadasai",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "server": "src/main.server.ts",
@@ -114,10 +114,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "imgwork:build:production"
+              "buildTarget": "nadasai:build:production"
             },
             "development": {
-              "buildTarget": "imgwork:build:development"
+              "buildTarget": "nadasai:build:development"
             }
           },
           "defaultConfiguration": "development"

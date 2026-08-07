@@ -760,7 +760,7 @@ node e2e/preview-server.mjs 4310          # em outro terminal
 #   reescrevê-los é ~60 linhas de Playwright + zlib.
 
 # checagens pontuais
-grep -o "font-display:[a-z]*" dist/imgwork/browser/styles-*.css | sort | uniq -c
-grep -rl "chunk-PVBUKQ2Y" --include=*.html dist/imgwork/browser
-node -e "const j=require('./dist/imgwork/browser/ngsw.json');for(const g of j.assetGroups)console.log(g.name,g.installMode,g.urls.length)"
+grep -o "font-display:[a-z]*" dist/nadasai/browser/styles-*.css | sort | uniq -c
+grep -rl "chunk-PVBUKQ2Y" --include=*.html dist/nadasai/browser
+node -e "const j=require('./dist/nadasai/browser/ngsw.json');for(const g of j.assetGroups)console.log(g.name,g.installMode,g.urls.length)"
 ```

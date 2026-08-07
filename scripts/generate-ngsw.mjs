@@ -31,7 +31,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DIST = join('dist', 'imgwork', 'browser');
+const DIST = join('dist', 'nadasai', 'browser');
 const CLI = join('node_modules', '@angular', 'service-worker', 'ngsw-config.js');
 
 if (!existsSync(DIST)) {

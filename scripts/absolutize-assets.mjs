@@ -37,7 +37,7 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const ROOT = join('dist', 'imgwork', 'browser');
+const ROOT = join('dist', 'nadasai', 'browser');
 
 // Só os prefixos que o `outputHashing` do Angular emite na raiz. Restringir a
 // eles é o que impede de sair prefixando caminho de conteúdo — um `src` dentro

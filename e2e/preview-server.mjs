@@ -15,7 +15,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 
-const ROOT = resolve('dist/imgwork/browser');
+const ROOT = resolve('dist/nadasai/browser');
 const PORT = Number(process.argv[2] ?? 4300);
 
 const TYPES = {
