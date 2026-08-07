@@ -86,13 +86,32 @@ export interface PreprocessOptions {
    * Quanta variância ainda conta como "chapado". Na escala 0-255 ao quadrado.
    *
    * ~1e-4 * 255² ≈ 6.5 é o que a literatura usa para suavização suave. Aqui o
-   * padrão é mais alto porque o alvo não é estética e sim impedir que o
-   * quantizador enxergue estrutura onde há artefato.
+   * padrão é MUITO mais alto porque o alvo não é estética e sim impedir que o
+   * quantizador enxergue estrutura onde há artefato — e o número tem de ser
+   * comparado com a variância do ruído que se quer apagar, não escolhido por
+   * gosto: com `a = var/(var + eps)`, um eps da ordem do var deixa METADE do
+   * ruído passar.
+   *
+   * O valor era 60, calibrado para o ruído de ±3 níveis de um JPEG de qualidade
+   * alta (var ≈ 3). Um logotipo real de 10 kB chega com ±14 (var ≈ 70), e aí
+   * `a` ficava em 0,54: o filtro deixava passar mais da metade. Medido num logo
+   * sintético com esse ruído, formas no SVG final:
+   *
+   *     eps    60 -> 252 formas, 5 cores
+   *     eps   200 ->  14 formas, 3 cores
+   *     eps   500 ->  14 formas, 3 cores
+   *     eps  1200 ->  14 formas, 3 cores
+   *     eps  3000 ->  29 formas, 5 cores   <- longe demais: o filtro vira média
+   *                                           de janela e alarga a rampa da borda
+   *
+   * A borda de verdade não é atingida porque ali a variância é de outra ordem
+   * (azul contra branco dá ~10⁴), então `a` continua perto de 1 mesmo com eps
+   * alto — é exatamente para isso que o filtro guiado serve.
    */
   readonly epsilon: number;
 }
 
-export const DEFAULT_PREPROCESS: PreprocessOptions = { radius: 2, epsilon: 60 };
+export const DEFAULT_PREPROCESS: PreprocessOptions = { radius: 3, epsilon: 400 };
 
 /**
  * Filtro guiado auto-guiado, canal a canal, in-place num novo buffer.

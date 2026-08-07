@@ -436,6 +436,73 @@ describe('vectorize', () => {
     });
 
     /**
+     * ARESTA RETA TEM DE SAIR RETA, e este é o teste que faltava.
+     *
+     * O ajuste rodava um RDP com a tolerância pedida e ajustava a Bézier sobre
+     * os SOBREVIVENTES. As duas etapas garantem coisas diferentes, e a segunda
+     * garantia não vale nada sem a primeira: o RDP promete que a polilinha
+     * decimada não se afasta mais que ε do traçado; o ajuste promete que a curva
+     * não se afasta mais que ε DOS PONTOS QUE RECEBEU. Entre dois sobreviventes
+     * distantes ninguém media nada.
+     *
+     * O sintoma era a base reta das letras de um logotipo saindo ONDULADA, com
+     * três a quatro pixels de amplitude e a tolerância nominal em 0,45 px.
+     * Nenhum teste pegava porque todos usavam formas curvas ou retângulos
+     * alinhados à grade, onde a decimação deixa os pontos onde estavam.
+     *
+     * Aqui a aresta é reta mas NÃO alinhada à grade (inclinação de 1/40) e tem
+     * ruído de meio nível: o RDP escolhe pontos sobre o ruído, e a cúbica que
+     * passa por eles é que produzia a onda.
+     */
+    it('não inventa ondulação numa aresta reta e ruidosa', async () => {
+      const w = 320;
+      const h = 160;
+      const rgba = new Uint8ClampedArray(w * h * 4);
+
+      let seed = 99;
+      const noise = (): number => {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        return ((seed >>> 9) % 3) - 1;
+      };
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          // Borda em y = 60 + x/40, com meio pixel de antialiasing e ±1 nível.
+          const edge = 60 + x / 40;
+          const cov = Math.max(0, Math.min(1, y - edge + 0.5));
+          const i = (y * w + x) * 4;
+          rgba[i] = Math.round(BLUE[0] * cov + 255 * (1 - cov)) + noise();
+          rgba[i + 1] = Math.round(BLUE[1] * cov + 255 * (1 - cov)) + noise();
+          rgba[i + 2] = Math.round(BLUE[2] * cov + 255 * (1 - cov)) + noise();
+          rgba[i + 3] = 255;
+        }
+      }
+
+      const out = vectorize(rgba, w, h, MODE_PRESETS.logo);
+      const px = await renderSvg(out.svg, w * 4, h * 4);
+
+      // Onde a borda caiu, coluna a coluna, no SVG rasterizado em 4x.
+      const residual: number[] = [];
+      for (let x = 20; x < w - 20; x += 4) {
+        let found = -1;
+        for (let yy = 4 * 40; yy < 4 * 100; yy++) {
+          const red = px[(yy * w * 4 + x * 4) * 4];
+          if (red < 140) {
+            found = yy / 4;
+            break;
+          }
+        }
+        if (found >= 0) residual.push(found - (60 + x / 40));
+      }
+
+      expect(residual.length).toBeGreaterThan(50);
+      const spread = Math.max(...residual) - Math.min(...residual);
+      // A borda traçada tem de acompanhar a reta. Com o defeito, este número
+      // passava de 3 px.
+      expect(spread).withContext(`ondulação de ${spread.toFixed(2)} px`).toBeLessThan(1.2);
+    });
+
+    /**
      * Cantos. Um losango tem quatro esquinas de 90° em diagonal — o pior caso
      * conjunto: a aresta é a escada máxima e a esquina é o que qualquer
      * suavização come primeiro.
