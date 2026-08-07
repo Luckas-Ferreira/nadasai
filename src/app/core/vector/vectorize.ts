@@ -23,11 +23,21 @@
  * qualquer conversor online.
  */
 
+import { ALPHA_CUTOFF } from './alpha';
 import { type Cubic, type Pt, detectCorners, fitCurve, simplifyAnchored, tangentAtJoin } from './fit';
 import { DEFAULT_GRADIENT_FIT, type GradientFitOptions, fitLinearGradient, fitRadialGradient } from './gradient';
 import { OUTSIDE, type ArcRef, buildPlanarMap } from './planar';
 import { DEFAULT_PREPROCESS, type PreprocessOptions, preprocess } from './preprocess';
 import { DEFAULT_QUANTIZE, otsuThreshold, quantize } from './quantize';
+import {
+  type CoverageFn,
+  DEFAULT_REFINE,
+  NO_REFINE,
+  type RefineOptions,
+  refineLattice,
+  snapCorners,
+  snapToCoverage,
+} from './refine';
 import { segment } from './segment';
 import { type SvgOptions, type VectorShape, countNodes, toSvg } from './serialize';
 
@@ -42,25 +52,23 @@ export interface VectorizeOptions {
   /**
    * Tolerância do ajuste de curva, em pixels. Maior = menos nós, mais solto.
    *
-   * O PISO ÚTIL É 1,0 E ISSO É PROPRIEDADE DO RETICULADO, não gosto.
+   * O PISO DE 1,0 PX ERA PROPRIEDADE DA ESCADA, E A ESCADA NÃO EXISTE MAIS.
    *
-   * O contorno traçado anda pelos cantos de pixel, então ele tem uma ESCADA
-   * intrínseca de meio pixel de amplitude, que não existe no desenho original —
-   * é artefato de amostragem. Uma tolerância abaixo disso manda o ajuste
-   * reproduzir a escada em vez da forma, e o custo é brutal. Medido no mesmo
-   * logo de 400x300 (círculo, triângulo, retângulo):
+   * Enquanto o ajuste recebia a polilinha crua do reticulado, medir tolerância
+   * abaixo de 1 px era medir a reprodução do artefato de amostragem, e o custo
+   * era brutal — 0,7 gastava 5,5x mais nós que 1,2 para descrever o mesmo
+   * desenho com fidelidade pior. Daí os presets de 1,1 a 1,6.
    *
-   *     0,7 -> 936 nós, 17,7 kB     <- ajustando o RUÍDO
-   *     0,9 -> 254 nós,  6,1 kB
-   *     1,0 -> 170 nós,  4,4 kB
-   *     1,2 -> 112 nós,  3,1 kB
-   *     1,5 -> 108 nós,  3,1 kB     <- o SINAL, e daqui para cima a curva satura
-   *     2,4 ->  98 nós,  2,8 kB
+   * O erro estava em tolerar a escada em vez de removê-la. `refine.ts` agora
+   * entrega uma polilinha sub-pixel, e com ela a tolerância volta a significar
+   * "de quanto pode errar a FORMA". Medido no círculo de raio 100 com
+   * antialiasing, ondulação do raio traçado (min..max) e número de nós:
    *
-   * Ou seja: 0,7 custava 5,5 vezes mais nós que 1,2 para descrever o MESMO
-   * desenho com fidelidade pior. É assim que um vetorizador produz aquela sopa
-   * de milhares de pontos que ninguém consegue editar — e o presets deste
-   * arquivo já nasceram com esse erro, corrigido depois de medir.
+   *     antes:  1,41 px de tolerância, reticulado cru -> 99,06..101,80  18 nós
+   *     depois: 0,45 px, borda em sub-pixel           -> 99,88..101,01  28 nós
+   *
+   * Metade da ondulação por dez nós a mais num círculo inteiro. É o inverso da
+   * troca que o comentário antigo descrevia, porque a entrada do ajuste mudou.
    */
   readonly smoothness: number;
   /** Ângulo (graus) acima do qual uma virada é canto e não é suavizada. */
@@ -72,6 +80,8 @@ export interface VectorizeOptions {
   readonly precision: number;
   /** Filtro que preserva aresta, antes de quantizar. Ver preprocess.ts. */
   readonly denoise: PreprocessOptions;
+  /** Remoção da escada do reticulado, antes do ajuste. Ver refine.ts. */
+  readonly refine: RefineOptions;
 }
 
 /**
@@ -85,7 +95,7 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     mode: 'trace',
     maxColors: 2,
     minArea: 8,
-    smoothness: 1.1,
+    smoothness: 0.45,
     cornerThreshold: 55,
     gradients: false,
     gradientFit: DEFAULT_GRADIENT_FIT,
@@ -93,18 +103,20 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     // Digitalização é papel: grão de scanner e ruído de JPEG viram ilha preta
     // no meio do branco. Raio maior que os outros modos, de propósito.
     denoise: { radius: 3, epsilon: 90 },
+    refine: DEFAULT_REFINE,
   },
   /** Logo/arte plana: poucas cores, aresta dura, nada de degradê. */
   logo: {
     mode: 'logo',
     maxColors: 12,
     minArea: 16,
-    smoothness: 1.2,
+    smoothness: 0.45,
     cornerThreshold: 50,
     gradients: false,
     gradientFit: DEFAULT_GRADIENT_FIT,
     precision: 2,
     denoise: DEFAULT_PREPROCESS,
+    refine: DEFAULT_REFINE,
   },
   /** Ilustração: muitas cores e degradês; tolerância maior porque a fidelidade
    *  de contorno importa menos que a de cor. */
@@ -112,12 +124,13 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     mode: 'illustration',
     maxColors: 24,
     minArea: 24,
-    smoothness: 1.6,
+    smoothness: 0.7,
     cornerThreshold: 68,
     gradients: true,
     gradientFit: DEFAULT_GRADIENT_FIT,
     precision: 2,
     denoise: DEFAULT_PREPROCESS,
+    refine: DEFAULT_REFINE,
   },
   /**
    * Pixel art: NADA de suavização.
@@ -139,6 +152,8 @@ export const MODE_PRESETS: Record<VectorMode, VectorizeOptions> = {
     precision: 0,
     // Em pixel art todo pixel é conteúdo. Filtrar aqui apagaria o desenho.
     denoise: { radius: 0, epsilon: 0 },
+    // E a escada do reticulado É o desenho: suavizá-la derreteria o sprite.
+    refine: NO_REFINE,
   },
 };
 
@@ -171,6 +186,21 @@ export function vectorize(
   report('denoise', 0);
   const clean = preprocess(rgba, w, h, opts.denoise);
 
+  // --- 0b. buracos ---------------------------------------------------------
+  //
+  // O que é transparente vira uma REGIÃO como qualquer outra — segmentada,
+  // traçada, e no fim não emitida. Ver alpha.ts: tratar a imagem como opaca
+  // devolvia um retângulo branco (ou, sem o branco, um retângulo da cor do
+  // objeto) onde o original era vazio.
+  const holes = new Uint8Array(w * h);
+  let holeCount = 0;
+  for (let i = 0; i < w * h; i++) {
+    if (rgba[i * 4 + 3] < ALPHA_CUTOFF) {
+      holes[i] = 1;
+      holeCount++;
+    }
+  }
+
   // --- 1. quantização ------------------------------------------------------
   report('quantize', 0.1);
 
@@ -201,6 +231,15 @@ export function vectorize(
     palette = q.rgb;
   }
 
+  // O buraco é um índice de paleta a mais, fora do alcance da paleta real. Assim
+  // a segmentação, a subdivisão planar e o ajuste tratam a área transparente com
+  // o mesmo código de todo o resto — e a fronteira entre o objeto e o vazio é
+  // ajustada UMA vez, como qualquer outra fronteira.
+  const HOLE = palette.length;
+  if (holeCount > 0) {
+    for (let i = 0; i < colorIndex.length; i++) if (holes[i]) colorIndex[i] = HOLE;
+  }
+
   // --- 2. segmentação ------------------------------------------------------
   report('segment', 0.2);
   const seg = segment(colorIndex, w, h, opts.minArea);
@@ -217,9 +256,15 @@ export function vectorize(
   report('fit', 0.5);
   const arcCurves = new Map<number, Cubic[]>();
 
+  // A leitura sub-pixel precisa saber o que há dos DOIS lados do arco para saber
+  // o que procurar: uma rampa entre duas cores, ou uma rampa de alfa contra o
+  // vazio. `clean` é o raster filtrado — o alfa nele é o original, porque
+  // `preprocess` só toca os três primeiros canais.
+  const coverageFor = makeCoverageFactory(clean, w, h, seg.regionColor, palette, HOLE);
+
   for (const arc of planar.arcs) {
     const pts: Pt[] = arc.points.map((p) => ({ x: p.x, y: p.y }));
-    arcCurves.set(arc.id, fitPolyline(pts, arc.closed, opts));
+    arcCurves.set(arc.id, fitPolyline(pts, arc.closed, opts, coverageFor(arc.left, arc.right)));
   }
 
   // --- 7/8. montar as formas ----------------------------------------------
@@ -244,6 +289,10 @@ export function vectorize(
 
   for (const [region, cycles] of planar.cycles) {
     if (region === OUTSIDE) continue;
+    // A região transparente foi traçada como todas as outras — ela só não vira
+    // `<path>`. O que sobra no lugar dela é buraco no SVG, que é o que um
+    // recorte tem de devolver.
+    if (seg.regionColor[region] === HOLE) continue;
 
     const subpaths: Cubic[][] = [];
     for (const cycle of cycles) {
@@ -309,16 +358,171 @@ export function vectorize(
   };
 }
 
-/** Ajusta uma polilinha do reticulado: cantos -> simplificação -> Bézier, com
- *  G1 imposto nas junções que NÃO são canto. */
-function fitPolyline(pts: Pt[], closed: boolean, opts: VectorizeOptions): Cubic[] {
+/**
+ * Constrói a função de cobertura de um arco a partir das regiões que ele separa.
+ *
+ * Três casos, e o terceiro é o que faz um recorte PNG sair com a borda certa:
+ *
+ *   - fora da imagem de um dos lados: sem cobertura. A moldura tem de ficar
+ *     exatamente onde está, ou toda forma encostada na borda encolhe para dentro
+ *     dela;
+ *   - duas cores: a rampa é medida projetando a cor lida no segmento que liga as
+ *     duas cores da paleta. Cores próximas demais não têm rampa que signifique
+ *     alguma coisa — aí não se mexe;
+ *   - um dos lados é BURACO: a rampa está no alfa, não na cor. É o único sinal
+ *     que existe ali, porque `alpha.ts` justamente copiou a cor do objeto para
+ *     dentro da área transparente.
+ */
+function makeCoverageFactory(
+  px: Uint8ClampedArray,
+  w: number,
+  h: number,
+  regionColor: Int32Array,
+  palette: ReadonlyArray<{ r: number; g: number; b: number }>,
+  hole: number,
+): (left: number, right: number) => CoverageFn | null {
+  /** Amostra bilinear de um canal. O centro do pixel (i,j) fica em (i+.5, j+.5),
+   *  e o traçado anda pelos CANTOS — sem esse meio pixel a leitura sai deslocada
+   *  meio pixel, que é justamente a ordem de grandeza que se está medindo. */
+  const at = (ch: number, x: number, y: number): number => {
+    const fx = x - 0.5;
+    const fy = y - 0.5;
+    const x0 = Math.floor(fx);
+    const y0 = Math.floor(fy);
+    const tx = fx - x0;
+    const ty = fy - y0;
+
+    const cx0 = Math.max(0, Math.min(w - 1, x0));
+    const cx1 = Math.max(0, Math.min(w - 1, x0 + 1));
+    const cy0 = Math.max(0, Math.min(h - 1, y0));
+    const cy1 = Math.max(0, Math.min(h - 1, y0 + 1));
+
+    const p00 = px[(cy0 * w + cx0) * 4 + ch];
+    const p10 = px[(cy0 * w + cx1) * 4 + ch];
+    const p01 = px[(cy1 * w + cx0) * 4 + ch];
+    const p11 = px[(cy1 * w + cx1) * 4 + ch];
+
+    return (p00 * (1 - tx) + p10 * tx) * (1 - ty) + (p01 * (1 - tx) + p11 * tx) * ty;
+  };
+
+  const colorOf = (region: number): { r: number; g: number; b: number } | null => {
+    const idx = regionColor[region];
+    return idx === hole ? null : (palette[idx] ?? null);
+  };
+
+  return (left: number, right: number): CoverageFn | null => {
+    if (left === OUTSIDE || right === OUTSIDE) return null;
+
+    const cl = colorOf(left);
+    const cr = colorOf(right);
+
+    if (cl === null || cr === null) {
+      // Buraco de um dos lados: a rampa é o alfa. `flip` orienta para que a
+      // cobertura continue valendo 0 na região da esquerda e 1 na da direita.
+      const flip = cr === null;
+      return (x, y) => {
+        const a = at(3, x, y) / 255;
+        return flip ? 1 - a : a;
+      };
+    }
+
+    const dr = cr.r - cl.r;
+    const dg = cr.g - cl.g;
+    const db = cr.b - cl.b;
+    const dd = dr * dr + dg * dg + db * db;
+    // ~14 níveis somados nos três canais. Abaixo disso o "cruzamento" seria
+    // decidido pelo ruído que sobrou do filtro, e mexer o ponto pioraria.
+    if (dd < 200) return null;
+
+    return (x, y) => {
+      const t =
+        ((at(0, x, y) - cl.r) * dr + (at(1, x, y) - cl.g) * dg + (at(2, x, y) - cl.b) * db) / dd;
+      return t < 0 ? 0 : t > 1 ? 1 : t;
+    };
+  };
+}
+
+/** Ajusta uma polilinha do reticulado: cantos -> sub-pixel -> simplificação ->
+ *  Bézier, com G1 imposto nas junções que NÃO são canto. */
+function fitPolyline(
+  pts: Pt[],
+  closed: boolean,
+  opts: VectorizeOptions,
+  coverage: CoverageFn | null,
+): Cubic[] {
   if (pts.length < 2) return [];
 
-  const corners = detectCorners(pts, closed, 3, opts.cornerThreshold);
-  const kept = simplifyAnchored(pts, corners, opts.smoothness);
+  // Os cantos são detectados no RETICULADO, antes de suavizar: é o traçado cru
+  // que ainda tem a virada de 90° inteira para medir. Depois do filtro, um canto
+  // já está parcialmente arredondado e o mesmo limiar deixaria de vê-lo — a
+  // ordem aqui é o que mantém o "L" de um logo com o canto no lugar.
+  /**
+   * A ORDEM AQUI JÁ FOI O CONTRÁRIO, E O CONTRÁRIO ESTAVA ERRADO.
+   *
+   * Detectar canto ANTES do sub-pixel parece o certo — o traçado cru ainda tem a
+   * virada de 90° inteira para medir — e é o que este código fazia. Só que medir
+   * ângulo no reticulado é medir ângulo numa escada: num círculo de raio 70, um
+   * trecho onde a escada troca de "quase diagonal" para "quase vertical" mede
+   * 63° com braço de três pontos e 34° com braço de seis, quando a curva real
+   * virou 10°. Isso não é canto, é amostragem — e cada falso positivo virava uma
+   * âncora que `snapCorners` transformava numa corda cortada para dentro do
+   * arco. Medido: 67,99 a 71,11 px de raio, três pixels de bossa, no mesmo
+   * círculo que sem cantos falsos saía 69,89 a 70,67.
+   *
+   * Depois da busca por cobertura a polilinha tem precisão de ~0,1 px, e o mesmo
+   * ângulo passa a medir o que a forma faz. O canto de verdade continua com seus
+   * 90°; a escada some. Custa que o canto entra na busca com a normal ambígua —
+   * o que não importa, porque `snapCorners` reescreve a posição dele logo depois
+   * pela interseção das duas retas.
+   */
+  const unpinned = new Array<boolean>(pts.length).fill(false);
+  const located =
+    coverage && opts.refine.passes > 0
+      ? snapToCoverage(pts, closed, unpinned, coverage, 1)
+      : pts;
+
+  let corners = detectCorners(located, closed, 3, opts.cornerThreshold);
+
+  /**
+   * Num ciclo, a costura do array cai onde o traçado começou — um ponto
+   * arbitrário, quase nunca um canto. Tudo o que trata a polilinha como aberta
+   * (o afinamento de cantos, a quebra em trechos, o próprio RDP) trata esse
+   * ponto como ponta fixa, e uma esquina que caia ali sai arredondada enquanto
+   * as outras três do mesmo losango saem perfeitas — o defeito aparecia como um
+   * canto amassado por forma, sempre um só, sempre em lugar diferente.
+   *
+   * Girar o ciclo para começar NUM canto resolve na origem: a costura passa a
+   * cair onde o ajuste já ia quebrar de qualquer jeito.
+   */
+  let onEdge = located;
+  if (closed && onEdge.length > 3) {
+    const first = corners.findIndex((c, i) => c && i > 0 && i < onEdge.length - 1);
+    if (first > 0) {
+      const m = onEdge.length - 1; // o último ponto é cópia do primeiro
+      const rot = <T>(arr: readonly T[]): T[] => {
+        const outArr: T[] = [];
+        for (let i = 0; i <= m; i++) outArr.push(arr[(first + i) % m]);
+        return outArr;
+      };
+      onEdge = rot(onEdge);
+      corners = rot(corners);
+    }
+  }
+
+  // O passa-baixa limpa o ruído de medida que sobrou da busca por cobertura,
+  // sem tocar nos cantos.
+  const smooth = refineLattice(onEdge, closed, corners, opts.refine);
+
+  // E o canto, que a busca por cobertura não sabe mexer, vai para onde as duas
+  // bordas já refinadas se cruzam. Depois do passa-baixa de propósito: as retas
+  // são ajustadas sobre os pontos definitivos.
+  const withCorners =
+    opts.refine.passes > 0 ? snapCorners(smooth, closed, corners) : smooth;
+
+  const kept = simplifyAnchored(withCorners, corners, opts.smoothness);
   if (kept.length < 2) return [];
 
-  const simple = kept.map((i) => pts[i]);
+  const simple = kept.map((i) => withCorners[i]);
   const simpleCorner = kept.map((i) => corners[i]);
 
   // Quebrar nos cantos e ajustar cada trecho. Um trecho sem canto nenhum é uma
@@ -408,6 +612,11 @@ export function suggestMode(rgba: Uint8ClampedArray, w: number, h: number): Vect
   let grayish = 0;
 
   for (let i = 0; i < n; i += step) {
+    // O que é transparente não conta: com o vazamento de cor de `alpha.ts` a
+    // área vazia carrega uma cópia da cor da borda, e contá-la faria um recorte
+    // com fundo grande parecer ter menos cores do que tem.
+    if (rgba[i * 4 + 3] < ALPHA_CUTOFF) continue;
+
     const r = rgba[i * 4] >> 3;
     const g = rgba[i * 4 + 1] >> 3;
     const b = rgba[i * 4 + 2] >> 3;
@@ -419,7 +628,9 @@ export function suggestMode(rgba: Uint8ClampedArray, w: number, h: number): Vect
   }
 
   const distinct = seen.size;
-  const grayShare = grayish / sampled;
+  // Imagem inteiramente transparente: nada amostrado, e dividir por zero daria
+  // NaN, que reprova toda comparação e cai no modo de ilustração por acidente.
+  const grayShare = sampled === 0 ? 0 : grayish / sampled;
 
   // Imagem pequena com poucas cores é sprite, não logo: suavizar destruiria.
   if (w * h <= 128 * 128 && distinct <= 64) return 'pixel';

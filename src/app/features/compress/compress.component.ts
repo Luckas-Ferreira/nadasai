@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { compressImage } from '../../core/image/converters';
+import { compressFormatFor, compressImage, compressKeepsFormat } from '../../core/image/converters';
 import { saveBlob } from '../../core/image/download';
-import { formatBytes, suffixedName } from '../../core/image/image-file.util';
+import { extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
 import { ImageStateService } from '../../core/services/image-state.service';
@@ -47,8 +47,9 @@ export class CompressComponent {
   protected readonly resultUrl = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly errorKey = signal<TranslationKey | null>(null);
+  protected readonly noticeKey = signal<TranslationKey | null>(null);
 
-  /** Maps straight onto WebP encoder quality. No guesswork about target size. */
+  /** Maps straight onto the encoder quality. No guesswork about target size. */
   protected readonly quality = signal(75);
 
   /** The quality the result on screen was encoded at; null while there is no result. */
@@ -62,6 +63,28 @@ export class CompressComponent {
   protected readonly stale = computed(() => this.ranQuality() !== this.quality());
 
   protected readonly sourceFile = this.state.currentFile;
+
+  /** What will actually be written — the input's own format, wherever possible. */
+  protected readonly outputFormat = computed(() => {
+    const file = this.sourceFile();
+    return file ? compressFormatFor(file) : null;
+  });
+
+  /** Shown next to the note, so the panel names the format it is promising. */
+  protected readonly outputLabel = computed(() => this.outputFormat()?.toUpperCase() ?? '');
+
+  /** False for GIF/BMP/AVIF: no browser writes them, so the output must change. */
+  protected readonly keepsFormat = computed(() => {
+    const file = this.sourceFile();
+    return !!file && compressKeepsFormat(file);
+  });
+
+  /**
+   * PNG has no lossy mode, so there is no quality to trade away and the slider
+   * would be a control that changes nothing. Hidden rather than disabled: a
+   * greyed-out slider still reads as a promise the format cannot keep.
+   */
+  protected readonly lossless = computed(() => this.outputFormat() === 'png');
 
   protected readonly originalSize = computed(() => {
     const file = this.sourceFile();
@@ -90,6 +113,7 @@ export class CompressComponent {
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
+    this.noticeKey.set(null);
 
     try {
       this.state.load(file);
@@ -108,13 +132,18 @@ export class CompressComponent {
 
     this.busy.set(true);
     this.errorKey.set(null);
+    this.noticeKey.set(null);
 
     try {
       const quality = this.quality();
-      const blob = await compressImage(file, quality / 100);
+      const { blob, keptOriginal } = await compressImage(file, quality / 100);
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
       this.ranQuality.set(quality);
+
+      // Byte-identical output with nothing saying why is the failure the PDF
+      // compressor's `cpdf.no_gain` exists to avoid — same reasoning here.
+      if (keptOriginal) this.noticeKey.set('compress.no_gain');
     } catch (err) {
       console.error('Compression failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -128,7 +157,7 @@ export class CompressComponent {
     const session = this.state.session();
     if (!blob || !session) return;
 
-    saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, 'webp'));
+    saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, this.ext()));
   }
 
   protected continueEdit(): void {
@@ -136,7 +165,7 @@ export class CompressComponent {
     if (!blob) return;
 
     try {
-      this.state.apply('compress', blob, this.tool.suffix, 'webp');
+      this.state.apply('compress', blob, this.tool.suffix, this.ext());
       this.router.navigate(['/']);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
@@ -150,7 +179,17 @@ export class CompressComponent {
     this.resultUrl.set(null);
     this.ranQuality.set(null);
     this.errorKey.set(null);
+    this.noticeKey.set(null);
     this.state.clear();
+  }
+
+  /**
+   * Derived from the RESULT's format, never from the source name: a GIF comes
+   * back as WebP, and a `.gif` holding WebP bytes is the same lie the AVIF
+   * output used to be.
+   */
+  private ext(): string {
+    return extForMime(`image/${this.outputFormat() ?? 'webp'}`);
   }
 
   private clearResult(): void {
@@ -158,5 +197,6 @@ export class CompressComponent {
     this.resultBlob.set(null);
     this.resultUrl.set(null);
     this.ranQuality.set(null);
+    this.noticeKey.set(null);
   }
 }

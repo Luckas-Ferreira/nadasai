@@ -49,17 +49,44 @@ export function detectCorners(pts: readonly Pt[], closed: boolean, span = 3, max
   const corner = new Array<boolean>(n).fill(false);
   if (n < 3) return corner;
 
-  const idx = (i: number): number => (closed ? ((i % n) + n) % n : Math.max(0, Math.min(n - 1, i)));
+  /**
+   * Num ciclo o último ponto é uma CÓPIA do primeiro, e ignorar isso custou um
+   * canto por forma.
+   *
+   * Com o módulo tomado sobre `n`, o ponto de costura aparece duas vezes na
+   * varredura, e as duas aparições são vizinhas uma da outra. O afinamento
+   * abaixo então enxerga "dois cantos colados", mede os dois com braço de
+   * comprimento zero (a distância entre uma cópia e a outra é zero), empata em
+   * sharpness 0 e apaga um deles — justamente o do índice 0.
+   *
+   * O efeito não fica no canto. Sem a âncora, o ajuste trata a esquina como
+   * ponto de passagem, impõe G1 ali e resolve as duas arestas vizinhas com
+   * tangentes a 45°: elas saem com pontos de controle a um terço da corda FORA
+   * da reta. Medido na moldura de uma imagem de 240x240, duas das quatro bordas
+   * saíam como um S de ±10 px de amplitude — numa borda que é literalmente uma
+   * linha reta de um pixel. Era a assinatura de "o recorte ficou estranho".
+   */
+  const dup = closed && pts[0].x === pts[n - 1].x && pts[0].y === pts[n - 1].y;
+  const count = dup ? n - 1 : n;
+  if (count < 3) return corner;
+
+  const idx = (i: number): number =>
+    closed ? ((i % count) + count) % count : Math.max(0, Math.min(n - 1, i));
 
   const cos = Math.cos((maxAngle * Math.PI) / 180);
+  // Segunda escala, mais tolerante: um canto de verdade continua virando quando
+  // se olha de mais longe, mas não precisa virar o mesmo tanto.
+  const cosWide = Math.cos(((maxAngle * 0.6) * Math.PI) / 180);
 
   const from = closed ? 0 : 1;
-  const to = closed ? n : n - 1;
+  const to = closed ? count : n - 1;
 
-  for (let i = from; i < to; i++) {
+  /** cos do ângulo entre chegada e saída, com braços de `s` pontos. 1 = reto,
+   *  0 = 90°, -1 = volta. `null` quando um dos braços é degenerado. */
+  const turn = (i: number, s: number): number | null => {
     const p = pts[idx(i)];
-    const a = pts[idx(i - span)];
-    const b = pts[idx(i + span)];
+    const a = pts[idx(i - s)];
+    const b = pts[idx(i + s)];
 
     const v1x = p.x - a.x;
     const v1y = p.y - a.y;
@@ -68,27 +95,81 @@ export function detectCorners(pts: readonly Pt[], closed: boolean, span = 3, max
 
     const l1 = Math.hypot(v1x, v1y);
     const l2 = Math.hypot(v2x, v2y);
-    if (l1 === 0 || l2 === 0) continue;
+    if (l1 === 0 || l2 === 0) return null;
 
-    // cos do ângulo entre chegada e saída. 1 = reto, 0 = 90°, -1 = volta.
-    const c = (v1x * v2x + v1y * v2y) / (l1 * l2);
-    if (c < cos) corner[idx(i)] = true;
+    return (v1x * v2x + v1y * v2y) / (l1 * l2);
+  };
+
+  /**
+   * DUAS ESCALAS, e a segunda é o que separa canto de RUÍDO DE UM PIXEL.
+   *
+   * Uma escala só não consegue: um degrau isolado no reticulado — o pixel cuja
+   * cobertura ficou em 0,49 quando os vizinhos ficaram em 0,51 — vira duas
+   * viradas de 90° coladas, indistinguíveis de uma esquina para um braço de três
+   * pontos. Um canto de verdade continua virando quando os braços dobram de
+   * tamanho; o degrau, não: de longe ele é uma reta com um solavanco.
+   *
+   * O estrago do falso positivo não é só um nó a mais. O canto vira âncora, e
+   * `snapCorners` então ajusta uma reta de cada lado dele e põe o ponto na
+   * interseção — sobre uma curva, isso corta uma CORDA. Medido num círculo de
+   * raio 70 desenhado pelo Chrome: o contorno traçado ia de 67,98 a 71,33 px,
+   * três pixels de bossa, e era exatamente esse o "serrilhado" que sobrava
+   * depois de todo o refino sub-pixel. Sem os cantos falsos: 69,89 a 70,67.
+   *
+   * A defesa PRINCIPAL contra isso não está aqui: é `vectorize.ts` chamar esta
+   * função sobre a polilinha já levada ao sub-pixel, onde o ângulo medido é o
+   * que a forma faz e não o que a escada fez (naquele círculo, 63° de ruído com
+   * braço curto contra 10° de curva real). A segunda escala é o que sobra para
+   * os trechos onde a busca por cobertura não achou borda e o ponto continua no
+   * reticulado — em digitalização ruim e JPEG velho, isso é comum.
+   *
+   * A escala larga usa 60% do limiar de propósito. Exigir os mesmos graus nas
+   * duas mataria o canto agudo de uma letra, onde os braços longos já entraram
+   * na curva do outro lado da serifa.
+   */
+  const wide = span * 2;
+  const wideFits = closed ? count > wide * 2 + 1 : n > wide * 2 + 1;
+
+  for (let i = from; i < to; i++) {
+    const c = turn(i, span);
+    if (c === null || c >= cos) continue;
+
+    if (wideFits) {
+      const cw = turn(i, wide);
+      if (cw !== null && cw >= cosWide) continue;
+    }
+
+    corner[idx(i)] = true;
   }
 
   // Cantos adjacentes são a mesma esquina medida duas vezes; manter só o mais
   // agudo evita dois nós colados e um segmento de curva de comprimento ~1.
-  return thinCorners(pts, corner, closed, span);
+  const thinned = thinCorners(pts, corner, closed, span, count);
+
+  // A cópia do ponto de costura carrega a mesma marca do original, para quem
+  // percorrer o array até o fim.
+  if (dup) thinned[n - 1] = thinned[0];
+  return thinned;
 }
 
-function thinCorners(pts: readonly Pt[], corner: boolean[], closed: boolean, span: number): boolean[] {
-  const n = pts.length;
+function thinCorners(
+  pts: readonly Pt[],
+  corner: boolean[],
+  closed: boolean,
+  span: number,
+  count: number,
+): boolean[] {
+  const n = count;
   const out = corner.slice();
   const idx = (i: number): number => (closed ? ((i % n) + n) % n : i);
 
   const sharpness = (i: number): number => {
+    // Num ciclo os braços dão a volta; num traçado aberto eles param na ponta.
+    // Grampear o índice num ciclo (o que este código fazia) zerava o braço
+    // esquerdo do ponto 0 e dava a ele sharpness 0 em qualquer desempate.
     const p = pts[idx(i)];
-    const a = pts[idx(Math.max(0, i - span))];
-    const b = pts[idx(Math.min(n - 1, i + span))];
+    const a = pts[closed ? idx(i - span) : Math.max(0, i - span)];
+    const b = pts[closed ? idx(i + span) : Math.min(n - 1, i + span)];
     const v1x = p.x - a.x;
     const v1y = p.y - a.y;
     const v2x = b.x - p.x;

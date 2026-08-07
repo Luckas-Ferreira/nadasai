@@ -229,19 +229,19 @@ export class VectorizeComponent {
   private optionsFor(mode: VectorMode, detail: number) {
     const preset = MODE_PRESETS[mode];
 
-    // 0..100 -> 1.5x..0.85x sobre a tolerância. Mais detalhe = tolerância menor
+    // 0..100 -> 1.55x..0.7x sobre a tolerância. Mais detalhe = tolerância menor
     // = mais nós e mais fidelidade.
     //
-    // A faixa é ESTREITA de propósito, e o extremo de baixo não desce mais que
-    // isso. A tolerância tem um piso físico de ~1 px (a escada do reticulado —
-    // ver `VectorizeOptions.smoothness`), e abaixo dele o ajuste passa a
-    // reproduzir o ruído de amostragem: medido, 0,7 gastou 5,5x mais nós que 1,2
-    // para descrever o mesmo desenho com fidelidade PIOR. Um slider que
-    // alcançasse esse regime entregaria ao usuário um botão cuja ponta só piora
-    // o resultado — e, pior, piora de um jeito que parece "mais detalhe".
-    // Com os presets em 1,1-1,6, esta faixa mantém tudo entre ~0,94 e ~2,4.
+    // A faixa mudou de lugar junto com os presets (1,1-1,6 -> 0,45-0,7) quando
+    // `refine.ts` passou a entregar o contorno em sub-pixel. O piso de ~1 px que
+    // justificava a faixa antiga era a escada do reticulado, e ela não chega
+    // mais até aqui; o piso de agora é o ruído da leitura de cobertura, uma
+    // ordem de grandeza abaixo. O que NÃO mudou é o motivo de a faixa ser
+    // limitada dos dois lados: abaixo do ruído, o ajuste gasta nós para
+    // reproduzir erro de medida, e isso parece "mais detalhe" enquanto piora o
+    // desenho. Com os presets atuais, tudo fica entre ~0,32 e ~1,1 px.
     const t = detail / 100;
-    const smoothScale = 1.5 - 0.65 * t;
+    const smoothScale = 1.55 - 0.85 * t;
     // E mais cores, porque em arte plana o que limita fidelidade é a paleta.
     const colorScale = 0.6 + 0.8 * t;
 

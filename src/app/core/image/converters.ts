@@ -264,7 +264,67 @@ export async function encodeIco(
   return new Blob([out], { type: MIME_FOR_TARGET.ICO });
 }
 
-/** Compresses to WebP at the requested quality. Dimensions are left untouched. */
-export function compressImage(file: File, quality: number): Promise<Blob> {
-  return encodeImage(file, 'webp', quality);
+/**
+ * What compression can produce for a given input MIME.
+ *
+ * Anything absent is decodable but not encodable by a browser (GIF, BMP, AVIF —
+ * see ACCEPTED_INPUT_MIME), so those cannot be compressed in place at all.
+ */
+const COMPRESS_FORMAT: Record<string, ImageFormat> = {
+  'image/jpeg': 'jpeg',
+  'image/jpg': 'jpeg', // some scanners and old exporters still write this
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+/**
+ * The format a compression run will produce for `file`.
+ *
+ * Compression must not change what the file IS — that is the convert tool's
+ * job. This used to force WebP on everything, so someone who dropped a JPEG in
+ * to make it smaller got back a `.webp` their destination might refuse, and the
+ * chain then carried a different format than the one they started with.
+ *
+ * WebP is only a FALLBACK, for inputs the browser can decode but not write.
+ * There is no way to keep those, and it must not be left to `canvas.toBlob`,
+ * which silently writes PNG for a type it does not support (see encodeImage).
+ */
+export function compressFormatFor(file: File): ImageFormat {
+  return COMPRESS_FORMAT[file.type.toLowerCase()] ?? 'webp';
+}
+
+/** False only for GIF/BMP/AVIF, where the output has to change format. */
+export function compressKeepsFormat(file: File): boolean {
+  return COMPRESS_FORMAT[file.type.toLowerCase()] !== undefined;
+}
+
+export interface CompressResult {
+  blob: Blob;
+  /** What was actually written — the caller names the file from this. */
+  format: ImageFormat;
+  /** True when re-encoding grew the file and the input bytes were handed back. */
+  keptOriginal: boolean;
+}
+
+/**
+ * Recompresses at the requested quality, in the input's own format. Dimensions
+ * are left untouched.
+ *
+ * `keptOriginal` is the same call `PdfCompressorService` makes: a compressor
+ * that returns a BIGGER file is the one failure nobody forgives, and it stopped
+ * being an edge case once the format is preserved — PNG has no lossy mode, so
+ * its re-encode is a lossless rewrite that routinely lands above the original.
+ * Only when the format survived, though: a GIF that came back as WebP has to
+ * stay WebP even if it grew, or the download would carry the wrong extension
+ * for its bytes.
+ */
+export async function compressImage(file: File, quality: number): Promise<CompressResult> {
+  const format = compressFormatFor(file);
+  const blob = await encodeImage(file, format, quality);
+
+  if (compressKeepsFormat(file) && blob.size >= file.size) {
+    return { blob: file.slice(0, file.size, file.type), format, keptOriginal: true };
+  }
+
+  return { blob, format, keptOriginal: false };
 }
