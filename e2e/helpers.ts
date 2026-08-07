@@ -29,6 +29,54 @@ export async function upload(page: Page, file = PHOTO): Promise<void> {
 }
 
 /**
+ * The same picture as PHOTO, but as a JPEG — needed since compression keeps the
+ * input's format, so a lossy run cannot be exercised with a PNG at all.
+ *
+ * Encoded in the page rather than committed, for the reason `fixtures/generate.ts`
+ * hand-rolls its PNG encoder: no binaries in the repo. Node has no JPEG writer,
+ * the browser under test does, and the noise makes q=95 → q=75 a real saving.
+ */
+export async function uploadJpeg(page: Page, name = 'photo.jpg'): Promise<void> {
+  const bytes = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+
+    const ctx = canvas.getContext('2d')!;
+    const image = ctx.createImageData(canvas.width, canvas.height);
+
+    // Deterministic LCG, same as the PNG fixture: no Math.random flake.
+    let seed = 12345;
+    const noise = (spread: number) => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return ((seed >>> 8) % (spread * 2 + 1)) - spread;
+    };
+
+    for (let i = 0; i < image.data.length; i += 4) {
+      const x = (i / 4) % canvas.width;
+      const y = Math.floor(i / 4 / canvas.width);
+      image.data[i] = Math.min(255, Math.max(0, 40 + ((x * 5) % 30) + noise(24)));
+      image.data[i + 1] = Math.min(255, Math.max(0, 90 + noise(24)));
+      image.data[i + 2] = Math.min(255, Math.max(0, 170 + ((y * 4) % 50) + noise(24)));
+      image.data[i + 3] = 255;
+    }
+
+    ctx.putImageData(image, 0, 0);
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.95),
+    );
+
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name, mimeType: 'image/jpeg', buffer: Buffer.from(bytes) });
+}
+
+/**
  * Pick the next tool from the home grid — how the chain continues.
  *
  * `continueEdit()` routes to the home, and the home belongs to no module, so it

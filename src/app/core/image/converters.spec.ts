@@ -1,6 +1,9 @@
 import {
   TARGET_FORMATS,
   TERMINAL_FORMATS,
+  compressFormatFor,
+  compressImage,
+  compressKeepsFormat,
   encodeIco,
   encodeImage,
   encodePdf,
@@ -135,6 +138,64 @@ describe('converters', () => {
       const out = await resizeImage(file, { width: 100, height: 100 });
 
       expect(await dimensions(out)).toEqual({ width: 100, height: 100 });
+    });
+  });
+
+  describe('compressImage', () => {
+    /** The canonical 1x1 GIF: decodable by every browser, writable by none. */
+    function makeGifFile(): File {
+      const base64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      const binary = atob(base64);
+      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+      return new File([bytes], 'tiny.gif', { type: 'image/gif' });
+    }
+
+    /**
+     * Compressing is not converting. This forced WebP on every input, so a JPEG
+     * dropped in to be made smaller came back as a `.webp` — a different file
+     * type than the one the user brought, and than the one the chain carried on
+     * with.
+     */
+    it('writes the input format back, rather than forcing WebP', async () => {
+      const jpeg = await makeImageFile(40, 20, 'image/jpeg');
+      const png = await makeImageFile(40, 20, 'image/png');
+
+      const fromJpeg = await compressImage(jpeg, 0.6);
+      expect(fromJpeg.format).toBe('jpeg');
+      expect(fromJpeg.blob.type).toBe('image/jpeg');
+
+      const fromPng = await compressImage(png, 0.6);
+      expect(fromPng.format).toBe('png');
+      expect(fromPng.blob.type).toBe('image/png');
+    });
+
+    it('falls back to WebP only for formats no browser can write', async () => {
+      const gif = makeGifFile();
+
+      expect(compressKeepsFormat(gif)).toBeFalse();
+      expect(compressFormatFor(gif)).toBe('webp');
+
+      const out = await compressImage(gif, 0.6);
+      expect(out.blob.type).toBe('image/webp');
+
+      // A GIF that came back as WebP must stay WebP even if it grew: handing the
+      // GIF bytes back would leave the caller naming a `.webp` file after them.
+      expect(out.keptOriginal).toBeFalse();
+    });
+
+    /**
+     * A compressor that returns a BIGGER file is the failure nobody forgives,
+     * and it stopped being an edge case once the format is preserved: PNG has no
+     * lossy mode, and a JPEG re-encoded upwards grows.
+     */
+    it('hands the original bytes back when re-encoding would grow the file', async () => {
+      const jpeg = await makeImageFile(40, 20, 'image/jpeg');
+
+      const out = await compressImage(jpeg, 1);
+
+      expect(out.keptOriginal).toBeTrue();
+      expect(out.blob.size).toBe(jpeg.size);
+      expect(out.blob.type).toBe('image/jpeg');
     });
   });
 

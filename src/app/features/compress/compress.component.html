@@ -1,9 +1,14 @@
 <app-tool-page [toolId]="'compress'">
-  @if (errorKey(); as key) {
-    <div banner class="mb-5">
+  <!-- One slot element, so the margin has to come and go with its contents. -->
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || !!noticeKey()">
+    @if (errorKey(); as key) {
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
-    </div>
-  }
+    }
+
+    @if (noticeKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" tone="info" dismissible (dismiss)="noticeKey.set(null)" />
+    }
+  </div>
 
   <div stage>
     @if (!sourceUrl()) {
@@ -17,32 +22,51 @@
 
   <div panel class="flex flex-col gap-4">
     @if (sourceUrl()) {
-      <app-panel [heading]="i18n.t()['compress.quality']">
-        <div class="flex items-baseline justify-between">
-          <span class="text-sm text-muted">{{ i18n.t()['compress.quality'] }}</span>
-          <span class="font-mono text-md font-medium text-text tabular">{{ quality() }}%</span>
-        </div>
+      @if (lossless()) {
+        <!-- No slider at all: PNG is lossless, so there is no quality to trade. -->
+        <app-panel [heading]="i18n.t()['compress.output']">
+          <p class="text-sm text-muted">
+            {{ i18n.t()['compress.output_same'] }}
+            <span class="font-mono text-text">{{ outputLabel() }}</span>
+          </p>
 
-        <input
-          type="range"
-          min="10"
-          max="100"
-          step="5"
-          [ngModel]="quality()"
-          (ngModelChange)="quality.set($event)"
-          class="mt-3 w-full"
-          [attr.aria-label]="i18n.t()['compress.quality']"
-        />
+          <p class="mt-3 border-t border-line pt-3 text-xs text-faint">
+            {{ i18n.t()['compress.png_lossless'] }}
+          </p>
+        </app-panel>
+      } @else {
+        <app-panel [heading]="i18n.t()['compress.quality']">
+          <div class="flex items-baseline justify-between">
+            <span class="text-sm text-muted">{{ i18n.t()['compress.quality'] }}</span>
+            <span class="font-mono text-md font-medium text-text tabular">{{ quality() }}%</span>
+          </div>
 
-        <div class="mt-1.5 flex justify-between text-xs text-faint">
-          <span>{{ i18n.t()['compress.quality.low'] }}</span>
-          <span>{{ i18n.t()['compress.quality.high'] }}</span>
-        </div>
+          <input
+            type="range"
+            min="10"
+            max="100"
+            step="5"
+            [ngModel]="quality()"
+            (ngModelChange)="quality.set($event)"
+            class="mt-3 w-full"
+            [attr.aria-label]="i18n.t()['compress.quality']"
+          />
 
-        <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
-          {{ i18n.t()['compress.output_note'] }}
-        </p>
-      </app-panel>
+          <div class="mt-1.5 flex justify-between text-xs text-faint">
+            <span>{{ i18n.t()['compress.quality.low'] }}</span>
+            <span>{{ i18n.t()['compress.quality.high'] }}</span>
+          </div>
+
+          <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+            @if (keepsFormat()) {
+              {{ i18n.t()['compress.output_same'] }}
+              <span class="font-mono text-muted">{{ outputLabel() }}</span>
+            } @else {
+              {{ i18n.t()['compress.output_webp'] }}
+            }
+          </p>
+        </app-panel>
+      }
 
       <app-panel>
         <dl class="flex flex-col gap-2.5 text-sm">

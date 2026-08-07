@@ -27,7 +27,7 @@ test.describe('Undo', () => {
 
     const bar = page.locator('app-current-file-bar');
     await expect(bar).toContainText('Comprimir  →  Redimensionar');
-    await expect(bar).toContainText('photo-resized.webp');
+    await expect(bar).toContainText('photo-resized.png');
 
     // The resize was a mistake. The button names the step it drops, so there is
     // no guessing about what is about to disappear.
@@ -36,7 +36,7 @@ test.describe('Undo', () => {
     await expect(bar).toContainText('Comprimir');
     await expect(bar).not.toContainText('Redimensionar');
     // Back to the compressed file, byte for byte — not a re-encode.
-    await expect(bar).toContainText('photo-min.webp');
+    await expect(bar).toContainText('photo-min.png');
 
     // And again, back to the untouched upload.
     await page.getByRole('button', { name: 'Desfazer Comprimir' }).click();

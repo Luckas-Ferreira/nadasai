@@ -310,6 +310,186 @@ describe('vectorize', () => {
     expect(transparentShare(px)).toBe(0);
   });
 
+  /**
+   * Uma borda com ANTIALIASING, que é o que existe em qualquer PNG ou JPG real,
+   * e que os testes acima — todos de borda dura alinhada à grade — não exercitam.
+   * Aqui está a diferença entre um traçado e um vetor.
+   */
+  describe('borda com antialiasing', () => {
+    /** Círculo com cobertura por supersample 4x4. `alpha` decide se a área de
+     *  fora é branca ou transparente. */
+    function aaCircle(w: number, h: number, r: number, transparent: boolean): Uint8ClampedArray {
+      const rgba = new Uint8ClampedArray(w * h * 4);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let cov = 0;
+          for (let sy = 0; sy < 4; sy++) {
+            for (let sx = 0; sx < 4; sx++) {
+              if (Math.hypot(x + (sx + 0.5) / 4 - w / 2, y + (sy + 0.5) / 4 - h / 2) < r) cov++;
+            }
+          }
+          cov /= 16;
+          const i = (y * w + x) * 4;
+          if (transparent) {
+            // O caso do recorte: a SILHUETA está no alfa e o RGB é constante.
+            rgba[i] = RED[0];
+            rgba[i + 1] = RED[1];
+            rgba[i + 2] = RED[2];
+            rgba[i + 3] = Math.round(cov * 255);
+          } else {
+            rgba[i] = Math.round(RED[0] * cov + 255 * (1 - cov));
+            rgba[i + 1] = Math.round(RED[1] * cov + 255 * (1 - cov));
+            rgba[i + 2] = Math.round(RED[2] * cov + 255 * (1 - cov));
+            rgba[i + 3] = 255;
+          }
+        }
+      }
+      return rgba;
+    }
+
+    /** Raio do desenho em 360 direções, medido no SVG rasterizado em 4x com o
+     *  cruzamento interpolado — resolução de ~0,05 px. */
+    function radii(px: Uint8ClampedArray, w: number, h: number, ss: number): number[] {
+      const cx = (w / 2) * ss;
+      const cy = (h / 2) * ss;
+      const green = (x: number, y: number): number => {
+        const xi = Math.max(0, Math.min(w * ss - 1, Math.round(x)));
+        const yi = Math.max(0, Math.min(h * ss - 1, Math.round(y)));
+        return px[(yi * w * ss + xi) * 4 + 1];
+      };
+
+      const out: number[] = [];
+      for (let a = 0; a < 360; a++) {
+        const th = (a * Math.PI) / 180;
+        let prev = green(cx, cy);
+        let r = 0;
+        for (let t = 0.25; t < w / 2; t += 0.25) {
+          const v = green(cx + Math.cos(th) * t * ss, cy + Math.sin(th) * t * ss);
+          if (prev < 142 && v >= 142) {
+            r = t - 0.25 + 0.25 * ((142 - prev) / (v - prev || 1));
+            break;
+          }
+          prev = v;
+        }
+        out.push(r);
+      }
+      return out;
+    }
+
+    /**
+     * O NÚMERO QUE DEFINE A QUALIDADE DESTA FERRAMENTA.
+     *
+     * O contorno sai do reticulado com uma escada de meio pixel que não existe
+     * no desenho. Enquanto o ajuste recebia essa escada crua, a única defesa era
+     * tolerância alta (1,41 px nos presets de então), e o resultado media 99,06
+     * a 101,80 px de raio num círculo de 100: 2,7 px de ondulação — o
+     * "serrilhado" que se vê na tela, e que é PIOR que a escada que ele
+     * substituiu, porque escada de meio pixel some de longe e ondulação de três
+     * pixels não.
+     *
+     * Com a borda localizada em sub-pixel pela cobertura do antialiasing
+     * (`refine.ts`), a tolerância pôde cair para 0,45 px e a mesma medida dá
+     * 99,88 a 101,01. O limite abaixo é folgado de propósito: ele existe para
+     * pegar uma REGRESSÃO de regime, não para congelar o número.
+     */
+    it('traça um círculo redondo, e não um polígono ondulado', async () => {
+      const w = 300;
+      const h = 300;
+      const out = vectorize(aaCircle(w, h, 100, false), w, h, MODE_PRESETS.logo);
+      const px = await renderSvg(out.svg, w * 4, h * 4);
+
+      const r = radii(px, w, h, 4);
+      const spread = Math.max(...r) - Math.min(...r);
+
+      expect(spread).withContext(`raio de ${Math.min(...r)} a ${Math.max(...r)}`).toBeLessThan(1.6);
+      // E com poucos nós: fidelidade que custasse uma sopa de pontos não serve.
+      expect(out.nodeCount).toBeLessThan(60);
+    });
+
+    /**
+     * O PNG recortado, que é a entrada mais comum de uma ferramenta cujo vizinho
+     * de menu é a remoção de fundo.
+     *
+     * O vetorizador tratava a imagem como opaca e o serviço pintava branco antes
+     * de desenhar, então todo recorte voltava com um retângulo branco atrás. Sem
+     * o branco era pior: um logo de uma cor só, com a forma inteira descrita
+     * pelo alfa, chegava ao quantizador como UMA cor em todo pixel e saía como
+     * um retângulo da cor do objeto cobrindo a imagem inteira.
+     */
+    it('mantém o fundo transparente transparente, e acha a forma no alfa', async () => {
+      const w = 200;
+      const h = 200;
+      const out = vectorize(aaCircle(w, h, 70, true), w, h, MODE_PRESETS.logo);
+
+      // Nenhum retângulo de fundo: a única forma é o disco.
+      expect(out.shapeCount).toBe(1);
+
+      const px = await renderSvg(out.svg, w, h);
+      const alphaAt = (x: number, y: number): number => px[(y * w + x) * 4 + 3];
+
+      expect(alphaAt(3, 3)).withContext('canto da imagem').toBe(0);
+      expect(alphaAt(w - 4, 3)).toBe(0);
+      expect(alphaAt(w / 2, h / 2)).withContext('miolo do disco').toBeGreaterThan(250);
+      // E o disco tem o tamanho certo: logo fora do raio 70 já é vazio.
+      expect(alphaAt(w / 2 + 75, h / 2)).toBe(0);
+      expect(alphaAt(w / 2 + 60, h / 2)).toBeGreaterThan(250);
+    });
+
+    /**
+     * Cantos. Um losango tem quatro esquinas de 90° em diagonal — o pior caso
+     * conjunto: a aresta é a escada máxima e a esquina é o que qualquer
+     * suavização come primeiro.
+     *
+     * Aqui também morria o defeito da emenda do ciclo (ver fit.spec.ts): um dos
+     * quatro cantos, sempre um, saía arredondado e com as duas arestas vizinhas
+     * estufadas.
+     */
+    it('mantém os quatro cantos de um losango no lugar', async () => {
+      const w = 240;
+      const h = 240;
+      const rgba = new Uint8ClampedArray(w * h * 4);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let cov = 0;
+          for (let sy = 0; sy < 4; sy++) {
+            for (let sx = 0; sx < 4; sx++) {
+              const px2 = Math.abs(x + (sx + 0.5) / 4 - 120);
+              const py = Math.abs(y + (sy + 0.5) / 4 - 120);
+              if (px2 + py < 80) cov++;
+            }
+          }
+          cov /= 16;
+          const i = (y * w + x) * 4;
+          rgba[i] = Math.round(BLUE[0] * cov + 255 * (1 - cov));
+          rgba[i + 1] = Math.round(BLUE[1] * cov + 255 * (1 - cov));
+          rgba[i + 2] = Math.round(BLUE[2] * cov + 255 * (1 - cov));
+          rgba[i + 3] = 255;
+        }
+      }
+
+      const out = vectorize(rgba, w, h, MODE_PRESETS.logo);
+
+      // Quatro retas e quatro cantos cabem em poucos nós. Antes da correção da
+      // emenda eram 26, com uma cúbica de 2 px em cada esquina para passar por
+      // cima do erro de leitura do canto.
+      expect(out.nodeCount).toBeLessThan(18);
+
+      const px = await renderSvg(out.svg, w * 4, h * 4);
+      // Canal VERMELHO: 30 dentro do losango azul, 255 no fundo branco. O azul
+      // não serve para medir — ele vale 200 dentro e 255 fora, e a diferença
+      // some no antialiasing.
+      const red = (x: number, y: number): number => px[(y * 4 * (w * 4) + x * 4) * 4];
+
+      // A ponta direita fica em (200,120): a 2 px dela ainda é desenho, a 4 px
+      // depois já é fundo. Um canto arredondado perde justamente esses 2 px.
+      expect(red(198, 120)).withContext('dentro da ponta direita').toBeLessThan(120);
+      expect(red(204, 120)).withContext('fora da ponta direita').toBeGreaterThan(200);
+      // E o mesmo vale para a ponta de cima, que é onde a emenda do ciclo caía.
+      expect(red(120, 43)).withContext('dentro da ponta de cima').toBeLessThan(120);
+      expect(red(120, 36)).withContext('fora da ponta de cima').toBeGreaterThan(200);
+    });
+  });
+
   describe('suggestMode', () => {
     it('sprite pequeno de poucas cores -> pixel', () => {
       const { rgba, w, h } = raster(['abab', 'baba', 'abab', 'baba'], { a: BLACK, b: WHITE });

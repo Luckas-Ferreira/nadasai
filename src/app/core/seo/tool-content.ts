@@ -493,7 +493,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   vectorize: {
     pt: {
-      features: ['PNG e JPG para SVG', 'Curvas Bézier reais', 'Sem costura entre cores', 'Degradês detectados'],
+      features: ['PNG e JPG para SVG', 'Curvas Bézier reais', 'Mantém a transparência', 'Sem costura entre cores'],
       faq: [
         {
           q: 'O que é vetorizar uma imagem?',
@@ -508,13 +508,17 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
           a: 'A ferramenta mede a imagem e sugere. Traço para assinatura e digitalização em preto e branco; Logo para marca e ícone de poucas cores; Ilustração para desenho com sombreado, que é onde os degradês entram; Pixel art para sprite, onde suavizar destruiria o desenho. O modo define o regime, e o slider de detalhe anda dentro dele.',
         },
         {
+          q: 'O PNG com fundo transparente continua transparente?',
+          a: 'Continua. A área transparente é traçada como qualquer outra região e simplesmente não vira forma no SVG — o que sobra ali é vazio, não um retângulo branco. A silhueta é lida no canal alfa, então um recorte cuja forma só existe na transparência (o caso de quem acabou de remover o fundo) sai com o contorno certo, e a borda com antialiasing é posicionada em sub-pixel.',
+        },
+        {
           q: 'Dá para vetorizar uma foto?',
           a: 'Dá, e o resultado costuma decepcionar — não por defeito da ferramenta, mas porque foto não é arte vetorial. Uma foto tem textura contínua e milhões de transições, então qualquer vetorização honesta produz milhares de formas e um arquivo maior que o JPG original. Vetorizar vale para logo, ícone, desenho e traço: coisas que foram desenhadas com formas.',
         },
       ],
     },
     en: {
-      features: ['PNG and JPG to SVG', 'Real Bézier curves', 'No seams between colours', 'Gradient detection'],
+      features: ['PNG and JPG to SVG', 'Real Bézier curves', 'Keeps transparency', 'No seams between colours'],
       faq: [
         {
           q: 'What does vectorizing an image mean?',
@@ -527,6 +531,10 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         {
           q: 'Which mode should I pick?',
           a: 'The tool measures the image and suggests one. Line art for signatures and black-and-white scans; Logo for brands and few-colour icons; Illustration for shaded drawings, which is where gradients come in; Pixel art for sprites, where smoothing would destroy the artwork. The mode sets the regime, and the detail slider moves within it.',
+        },
+        {
+          q: 'Does a transparent PNG stay transparent?',
+          a: 'It does. The transparent area is traced like any other region and simply never becomes a shape in the SVG — what is left there is emptiness, not a white rectangle. The silhouette is read from the alpha channel, so a cutout whose shape exists only in the transparency (the case of someone who has just removed the background) comes out with the right outline, and its anti-aliased edge is placed at sub-pixel accuracy.',
         },
         {
           q: 'Can I vectorize a photo?',
@@ -640,7 +648,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         },
         {
           q: 'Dá para cortar e depois comprimir sem baixar duas vezes?',
-          a: 'Dá. "Continuar editando" leva o resultado direto para a próxima ferramenta, e o nome do arquivo acumula os passos — foto.jpg vira foto-crop.png e depois foto-min.webp, sempre derivado do nome original.',
+          a: 'Dá. "Continuar editando" leva o resultado direto para a próxima ferramenta, e o nome do arquivo acumula os passos — foto.jpg vira foto-crop.png e depois foto-min.png, sempre derivado do nome original e sempre no formato que a etapa anterior produziu.',
         },
       ],
     },
@@ -657,7 +665,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         },
         {
           q: 'Can I crop and then compress without downloading twice?',
-          a: 'Yes. "Keep editing" carries the result straight into the next tool, and the filename accumulates the steps — photo.jpg becomes photo-crop.png and then photo-min.webp, always derived from the original name.',
+          a: 'Yes. "Keep editing" carries the result straight into the next tool, and the filename accumulates the steps — photo.jpg becomes photo-crop.png and then photo-min.png, always derived from the original name and always in the format the previous step produced.',
         },
       ],
     },
@@ -665,19 +673,23 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   compress: {
     pt: {
-      features: ['WebP, JPEG e PNG', 'Qualidade ajustável', 'Mostra a economia real', 'Sem envio para servidor'],
+      features: ['Mantém o formato de entrada', 'Qualidade ajustável', 'Mostra a economia real', 'Sem envio para servidor'],
       faq: [
         {
           q: 'Como reduzir o tamanho de uma imagem?',
           a: 'Solte a imagem e ajuste a qualidade. A ferramenta mostra o tamanho antes e depois, então a decisão é tomada com o número na frente e não no escuro.',
         },
         {
-          q: 'Qual formato comprime melhor?',
-          a: 'WebP, na maioria das fotos, com uma margem larga sobre JPEG na mesma qualidade percebida. A exceção é arte chapada — logotipo, captura de tela, desenho com poucas cores — onde o PNG sem perdas costuma ficar menor que qualquer formato com perdas.',
+          q: 'A compressão muda o formato do arquivo?',
+          a: 'Não. Um JPEG sai JPEG, um WebP sai WebP e um PNG sai PNG — comprimir não é converter. A única exceção é GIF, BMP e AVIF, que nenhum navegador sabe escrever: esses saem em WebP, e o painel avisa antes. Para trocar de formato de propósito existe a ferramenta Converter.',
+        },
+        {
+          q: 'Por que não dá para escolher a qualidade de um PNG?',
+          a: 'Porque PNG é um formato sem perdas: não existe qualidade para negociar. O arquivo é reescrito e, se não ficar menor, o original é devolvido intacto em vez de um arquivo maior. Para reduzir muito uma imagem PNG, converta para WebP ou JPEG.',
         },
         {
           q: 'Por que o arquivo comprimido ficou maior?',
-          a: 'Porque nem toda imagem tem o que comprimir. Uma imagem já otimizada, ou uma arte chapada mandada para um formato com perdas, sai maior — e nesse caso a ferramenta não mostra economia nenhuma em vez de fingir que houve.',
+          a: 'Porque nem toda imagem tem o que comprimir. Uma imagem já otimizada não tem folga — e nesse caso a ferramenta devolve o original e diz que devolveu, em vez de entregar um arquivo maior chamado de comprimido.',
         },
         {
           q: 'Dá para comprimir várias imagens de uma vez?',
@@ -686,19 +698,23 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
     en: {
-      features: ['WebP, JPEG and PNG', 'Adjustable quality', 'Shows the real saving', 'Never uploaded'],
+      features: ['Keeps the input format', 'Adjustable quality', 'Shows the real saving', 'Never uploaded'],
       faq: [
         {
           q: 'How do I reduce an image’s file size?',
           a: 'Drop the image and set the quality. The tool shows the size before and after, so the decision is made with the number in front of you rather than blind.',
         },
         {
-          q: 'Which format compresses best?',
-          a: 'WebP, for most photographs, by a wide margin over JPEG at the same perceived quality. The exception is flat art — a logo, a screenshot, a drawing with few colours — where lossless PNG usually ends up smaller than any lossy format.',
+          q: 'Does compressing change the file format?',
+          a: 'No. A JPEG comes out JPEG, a WebP comes out WebP and a PNG comes out PNG — compressing is not converting. The one exception is GIF, BMP and AVIF, which no browser can write: those come out as WebP, and the panel says so beforehand. To change format on purpose, there is the Convert tool.',
+        },
+        {
+          q: 'Why is there no quality setting for a PNG?',
+          a: 'Because PNG is a lossless format: there is no quality to trade away. The file is rewritten and, if that does not come out smaller, the original is handed back untouched instead of a larger file. To shrink a PNG a lot, convert it to WebP or JPEG.',
         },
         {
           q: 'Why did the compressed file come out bigger?',
-          a: 'Because not every image has anything left to compress. An already-optimised image, or flat art pushed into a lossy format, comes out larger — and in that case the tool shows no saving at all rather than pretending there was one.',
+          a: 'Because not every image has anything left to compress. An already-optimised image has no slack — and in that case the tool hands the original back and says so, rather than delivering a bigger file called compressed.',
         },
         {
           q: 'Can I compress several images at once?',

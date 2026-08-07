@@ -97,10 +97,11 @@ export const DEFAULT_PREPROCESS: PreprocessOptions = { radius: 2, epsilon: 60 };
 /**
  * Filtro guiado auto-guiado, canal a canal, in-place num novo buffer.
  *
- * O alfa NÃO é filtrado nem consultado: o vetorizador trata a imagem como opaca
- * (a partição cobre todo pixel), e misturar alfa aqui borraria a borda de um
- * recorte PNG para dentro, que é exatamente o detalhe que quem vetoriza um
- * recorte quer preservar.
+ * O alfa é COPIADO e nunca filtrado, e isso é uma dependência, não um detalhe:
+ * quem decide o que é buraco (`alpha.ts`) e quem localiza a borda de um recorte
+ * em sub-pixel (`refine.ts`) leem o alfa DESTE buffer. Borrá-lo aqui empurraria
+ * a silhueta do recorte para dentro — o detalhe que quem vetoriza um recorte
+ * mais quer preservar.
  */
 export function preprocess(
   rgba: Uint8ClampedArray,

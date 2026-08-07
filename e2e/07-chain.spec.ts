@@ -14,7 +14,7 @@ test.describe('The chain', () => {
 
     await primary(page, 'Comprimir').click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
-    await expect(page.getByText('photo-min.webp')).toBeVisible();
+    await expect(page.getByText('photo-min.png')).toBeVisible();
 
     // Landed on the home, mid-chain — and it asks what is next instead of
     // pitching to a first-time visitor again.
@@ -27,8 +27,8 @@ test.describe('The chain', () => {
     await primary(page, 'Redimensionar').click();
     await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    // Suffixes must not stack: photo.png, never resized-min-photo.webp.
-    await expect(page.getByText('photo-resized.webp')).toBeVisible();
+    // Suffixes must not stack: photo.png, never resized-min-photo.png.
+    await expect(page.getByText('photo-resized.png')).toBeVisible();
     await expect(page.getByText('Comprimir  →  Redimensionar')).toBeVisible();
 
     await pickFromHome(page, 'Converter');
@@ -54,7 +54,7 @@ test.describe('The chain', () => {
 
     await rail(page).getByRole('link', { name: 'Converter' }).click();
     await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
-    await expect(page.getByText('photo-min.webp')).toBeVisible();
+    await expect(page.getByText('photo-min.png')).toBeVisible();
   });
 
   test('Clear drops the file everywhere', async ({ page }) => {

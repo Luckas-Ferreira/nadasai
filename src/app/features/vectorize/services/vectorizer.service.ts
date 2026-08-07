@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AppError } from '../../../core/errors';
 import { loadImage } from '../../../core/image/image-file.util';
+import { bleedTransparentColors } from '../../../core/vector/alpha';
 import type { VectorizeOptions } from '../../../core/vector/vectorize';
 import type { VectorWorkerRequest, VectorWorkerResponse } from '../../../core/vector/vector.worker';
 
@@ -74,15 +75,16 @@ export class VectorizerService {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new AppError('encode_failed');
 
-    // Fundo branco antes de desenhar: um PNG com alfa entraria no vetorizador
-    // com RGB indefinido nos pixels transparentes (tipicamente preto), e o
-    // resultado seria uma mancha preta onde o original era vazio. O vetorizador
-    // trata a imagem como opaca por construção — a partição cobre todo pixel.
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
+    // NADA de fundo branco. Isto pintava `#ffffff` antes de desenhar, e todo PNG
+    // recortado voltava com um retângulo branco atrás — na ferramenta cujo
+    // vizinho de menu é a remoção de fundo. O motivo alegado (RGB indefinido sob
+    // o alfa) é real, mas a resposta certa é `bleedTransparentColors`: cor
+    // plausível debaixo do vazio, e o vazio continua vazio até o fim do
+    // pipeline, onde vira buraco no SVG. Ver core/vector/alpha.ts.
     ctx.drawImage(img, 0, 0, width, height);
 
     const data = ctx.getImageData(0, 0, width, height).data;
+    bleedTransparentColors(data, width, height);
     return { rgba: data, width, height };
   }
 

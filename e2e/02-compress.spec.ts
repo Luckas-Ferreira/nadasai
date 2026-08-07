@@ -1,13 +1,16 @@
 import { expect, test } from '@playwright/test';
-import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
+import { expectDownload, openApp, pickFromHome, primary, upload, uploadJpeg } from './helpers';
 
 test.describe('Comprimir', () => {
-  test('compresses, reports savings, re-runs at a new quality and downloads WebP', async ({ page }) => {
+  test('compresses, reports savings, re-runs at a new quality and keeps the JPEG a JPEG', async ({ page }) => {
     await openApp(page, '/compress');
-    await upload(page);
+
+    // A JPEG, not the PNG fixture: compression keeps the input's format, and PNG
+    // has no lossy mode — the quality slider does not exist on that path.
+    await uploadJpeg(page);
 
     // The panel only exists once a source is loaded.
-    await expect(page.getByText('A saída é WebP')).toBeVisible();
+    await expect(page.getByText('O arquivo sai no mesmo formato que entrou:')).toBeVisible();
     await expect(page.getByRole('slider', { name: 'Qualidade' })).toHaveValue('75');
 
     await primary(page, 'Comprimir').click();
@@ -59,7 +62,28 @@ test.describe('Comprimir', () => {
     await expect(compressed).toContainText(/\d+%/);
     await expect(primary(page, 'Comprimir')).toBeHidden();
 
-    await expectDownload(page, /^photo-min\.webp$/);
+    // The whole point: a JPEG went in, a JPEG comes out. This used to be
+    // `photo-min.webp` — the tool converted every file it touched.
+    await expectDownload(page, /^photo-min\.jpg$/);
+  });
+
+  /**
+   * PNG is lossless, so there is no quality to trade away and no slider. The tool
+   * rewrites the file and, when that is not smaller, hands the original back and
+   * says so — rather than shipping a bigger file called "compressed", or quietly
+   * turning the PNG into a WebP to manufacture a saving.
+   */
+  test('a PNG stays a PNG, with no quality control to pretend otherwise', async ({ page }) => {
+    await openApp(page, '/compress');
+    await upload(page);
+
+    await expect(page.getByRole('slider', { name: 'Qualidade' })).toHaveCount(0);
+    await expect(page.getByText('PNG é sem perdas')).toBeVisible();
+
+    await primary(page, 'Comprimir').click();
+    await expect(page.getByRole('slider', { name: 'Original / Result' })).toBeVisible({ timeout: 30_000 });
+
+    await expectDownload(page, /^photo-min\.png$/);
   });
 
   test('Keep editing pushes the result into the chain', async ({ page }) => {
@@ -73,7 +97,7 @@ test.describe('Comprimir', () => {
     // `/` redirects to the language root. Asserted without the port, which was
     // hardcoded to 4200 and made the spec unrunnable against any other server.
     await expect(page).toHaveURL(/\/pt$/);
-    await expect(page.getByText('photo-min.webp')).toBeVisible();
+    await expect(page.getByText('photo-min.png')).toBeVisible();
     await expect(page.getByText('O que você quer fazer com ela?')).toBeVisible();
 
     // The next tool hydrates from the chain — no second upload. Picked from the
