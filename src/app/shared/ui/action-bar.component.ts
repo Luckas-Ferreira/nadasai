@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, inject, input, output } from '@angular/core';
 import { TranslationService } from '../../core/services/translation.service';
+import { type ToolDef } from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
 import { IconComponent } from './icon/icon.component';
 
@@ -16,6 +17,10 @@ import { IconComponent } from './icon/icon.component';
  * keeping it after a run: the templates before this kit hid it behind
  * `*ngIf="!result()"`, so trying a different quality or format meant starting
  * over and re-uploading the file.
+ *
+ * When `nextTools` is provided (image module only), the generic "keep editing"
+ * button is replaced by labelled chips — one per chainable tool — so the user
+ * can go directly to the next step without passing through the home launcher.
  */
 @Component({
   selector: 'app-action-bar',
@@ -52,9 +57,8 @@ import { IconComponent } from './icon/icon.component';
             {{ i18n.t()['common.download'] }}
           </button>
 
-          @if (canContinue()) {
-            <!-- No icon here: the label is the longest of the two and the arrow
-                 pushed it onto a second line at half width. -->
+          <!-- Legacy fallback: audio/PDF tools pass canContinue but no nextTools. -->
+          @if (canContinue() && nextTools().length === 0) {
             <button
               appButton
               variant="secondary"
@@ -66,6 +70,36 @@ import { IconComponent } from './icon/icon.component';
             </button>
           }
         </div>
+
+        <!-- Tool chips: shown when the caller provides a list of peer tools. -->
+        @if (canContinue() && nextTools().length > 0) {
+          <div class="rounded-lg border border-line bg-raised px-3 py-2.5">
+            <p class="mb-2 text-2xs font-medium uppercase tracking-wider text-faint">
+              {{ i18n.t()['common.next_tool'] }}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              @for (tool of nextTools(); track tool.id) {
+                <button
+                  appButton
+                  variant="ghost"
+                  size="sm"
+                  class="group gap-1.5 transition-all duration-150 hover:border-[color:var(--tone-fg)] hover:bg-[color:var(--tone-bg)]"
+                  [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
+                  [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
+                  (click)="continueToTool.emit(tool)"
+                >
+                  <span class="shrink-0 text-[color:var(--tone-fg)]">
+                    <app-icon [name]="tool.icon" [size]="13" />
+                  </span>
+                  <span class="text-text">{{ i18n.t()[tool.navKey] }}</span>
+                  <span class="shrink-0 text-faint opacity-0 transition-opacity group-hover:opacity-100">
+                    <app-icon name="arrowRight" [size]="11" />
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        }
 
         <p class="mt-0.5 text-center text-xs text-faint">{{ i18n.t()['common.download_hint'] }}</p>
       }
@@ -92,9 +126,16 @@ export class ActionBarComponent {
   readonly busy = input(false, { transform: booleanAttribute });
   readonly canDownload = input(false, { transform: booleanAttribute });
   readonly canContinue = input(false, { transform: booleanAttribute });
+  /** Chainable peer tools to display as chips. Empty for audio/PDF tools. */
+  readonly nextTools = input<readonly ToolDef[]>([]);
 
   readonly primary = output<void>();
   readonly download = output<void>();
+  /** Legacy: emitted when canContinue is true but nextTools is empty. */
   readonly continueEdit = output<void>();
+  /** Emitted when the user picks a specific next tool from the chips. */
+  readonly continueToTool = output<ToolDef>();
   readonly reset = output<void>();
 }
+
+

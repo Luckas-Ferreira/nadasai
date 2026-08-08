@@ -43,7 +43,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Nada Sai — seus arquivos não saem do seu computador',
+        title: 'Nada Sai — seus arquivos não saem do seu dispositivo',
         loadComponent: () => import('./features/hero/hero.component').then((m) => m.HeroComponent),
         data: {
           metaDescription: 'Ferramentas gratuitas de imagem, PDF, áudio e privacidade que rodam 100% offline no seu navegador. Sem cadastro, sem marca d\'água e sem enviar arquivo nenhum.',
@@ -119,7 +119,7 @@ export const routes: Routes = [
         title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
         data: {
-          metaDescription: 'Tire a trilha de áudio de um MP4, MOV, WebM ou MKV e baixe em MP3 ou WAV sem perda. O vídeo não sai do seu computador — 100% offline no navegador.'
+          metaDescription: 'Tire a trilha de áudio de um MP4, MOV, WebM ou MKV e baixe em MP3 ou WAV sem perda. O vídeo não sai do seu dispositivo — 100% offline no navegador.'
         }
       },
       {
@@ -223,7 +223,7 @@ export const routes: Routes = [
         title: 'Proteger PDF com Senha Online — Nada Sai',
         loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
         data: {
-          metaDescription: 'Coloque senha em um PDF com criptografia, para que só quem tiver a chave consiga abrir. A senha nunca sai do seu computador: 100% offline no seu navegador.'
+          metaDescription: 'Coloque senha em um PDF com criptografia, para que só quem tiver a chave consiga abrir. A senha nunca sai do seu dispositivo: 100% offline no seu navegador.'
         }
       },
       {
@@ -319,7 +319,7 @@ export const routes: Routes = [
         title: 'Sobre o Nada Sai — Como Funciona',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
         data: {
-          metaDescription: 'Como o Nada Sai processa imagens, PDFs, áudio e dados sensíveis inteiramente no seu navegador, com WebAssembly e IA local. Nenhum arquivo sai do computador.',
+          metaDescription: 'Como o Nada Sai processa imagens, PDFs, áudio e dados sensíveis inteiramente no seu navegador, com WebAssembly e IA local. Nenhum arquivo sai do dispositivo.',
         }
       },
       {
@@ -356,7 +356,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        title: 'Nada Sai — your files never leave your computer',
+        title: 'Nada Sai — your files never leave your device',
         loadComponent: () => import('./features/hero/hero.component').then((m) => m.HeroComponent),
         data: {
           metaDescription: 'Free tools to edit images and PDFs 100% offline in your browser. Total privacy, no data sent to servers.',
@@ -432,7 +432,7 @@ export const routes: Routes = [
         title: 'Extract Audio from Video (MP4 to MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
         data: {
-          metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and save it as MP3 or lossless WAV. The video never leaves your computer — 100% offline.'
+          metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and save it as MP3 or lossless WAV. The video never leaves your device — 100% offline.'
         }
       },
       {
@@ -536,7 +536,7 @@ export const routes: Routes = [
         title: 'Password Protect a PDF Online — Nada Sai',
         loadComponent: () => import('./features/protect-pdf/protect-pdf.component').then((m) => m.ProtectPdfComponent),
         data: {
-          metaDescription: 'Lock a PDF with an encrypted password so only someone with the key can open it. The password never leaves your computer: 100% offline in your browser.'
+          metaDescription: 'Lock a PDF with an encrypted password so only someone with the key can open it. The password never leaves your device: 100% offline in your browser.'
         }
       },
       {
@@ -632,7 +632,7 @@ export const routes: Routes = [
         title: 'About Nada Sai — How It Works',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
         data: {
-          metaDescription: 'How Nada Sai processes images, PDFs, audio and sensitive data entirely inside your browser, using WebAssembly and local AI. No file ever leaves your computer.',
+          metaDescription: 'How Nada Sai processes images, PDFs, audio and sensitive data entirely inside your browser, using WebAssembly and local AI. No file ever leaves your device.',
         }
       },
       {

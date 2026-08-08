@@ -6,7 +6,7 @@ test.describe('Shell: home, nav, i18n', () => {
     await openApp(page);
 
     await expect(
-      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu dispositivo.' }),
     ).toBeVisible();
     await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
@@ -194,13 +194,13 @@ test.describe('Shell: home, nav, i18n', () => {
 
     await expect(page.getByRole('radiogroup', { name: 'Mudar idioma' })).toHaveCount(0);
     await expect(
-      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu dispositivo.' }),
     ).toBeVisible();
     await expect(page.getByText('Seus arquivos nunca saem do seu dispositivo.')).toBeVisible();
 
     await page.reload();
     await expect(
-      page.getByRole('heading', { name: 'Seus arquivos não saem do seu computador.' }),
+      page.getByRole('heading', { name: 'Seus arquivos não saem do seu dispositivo.' }),
     ).toBeVisible();
   });
 

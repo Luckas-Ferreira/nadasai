@@ -7,8 +7,9 @@ import { saveBlob } from '../../core/image/download';
 import { extForMime, formatBytes, loadImage, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -43,10 +44,13 @@ export class ResizeComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
   private readonly tool = toolById('resize');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
   protected readonly presets = PRESETS;
+
+  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('resize'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly resultBlob = signal<Blob | null>(null);
@@ -163,6 +167,16 @@ export class ResizeComponent {
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
       this.ranDimensions.set(dimensions);
+
+      // Register commit for rail/mobile-bar navigation.
+      this.pendingTransition.register(() => {
+        try {
+          this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
+          return true;
+        } catch {
+          return false;
+        }
+      });
     } catch (err) {
       console.error('Resize failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -185,7 +199,22 @@ export class ResizeComponent {
 
     try {
       this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
-      this.router.navigate(['/']);
+      this.pendingTransition.clear();
+      this.router.navigate(['/' + this.i18n.currentLang()]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  protected goToTool(tool: ToolDef): void {
+    const blob = this.resultBlob();
+    if (!blob) return;
+
+    try {
+      this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
@@ -210,6 +239,7 @@ export class ResizeComponent {
     this.resultBlob.set(null);
     this.resultUrl.set(null);
     this.ranDimensions.set(null);
+    this.pendingTransition.clear();
   }
 
   private clamp(value: number): number {

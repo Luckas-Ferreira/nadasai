@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ActiveToolService } from '../../core/services/active-tool.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { type ToolDef, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -15,21 +16,11 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 /**
  * The rail: the tools of the module you are in, and nothing else.
  *
- * It used to list every tool of every module, grouped under two collapsible
- * headers. That shape had a hard ceiling — at 15 tools the list already ran past
- * the bottom of a 700px window, and the container had no scroll, so the last PDF
- * tools were simply unreachable. Scoping to one module fixes it structurally
- * instead: the rail's length now tracks the size of a module, not the size of the
- * product, so the tenth module costs nothing here.
+ * Navigation is handled programmatically so that a pending result from the current
+ * tool is committed to the chain before the route change — eliminating the detour
+ * through the home page.
  *
- * `overflow-y-auto` stays on the container anyway, as the floor for a module that
- * one day carries twenty tools.
- *
- * Renders nothing outside a module (home, /sobre, /faq). Those pages are the
- * launcher and the reading — the top bar's switcher and the palette are how you
- * leave them, and a rail there would be listing a module you are not in.
- *
- * Active state is resolved in TS rather than with an arbitrary `[&.is-active]:`
+ * Active state is resolved in TS rather than with an arbitrary [&.is-active]:
  * Tailwind variant — the CSS parser silently DROPS those rules, which would leave
  * the current tool with no highlight at all.
  */
@@ -55,6 +46,7 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
             #rla="routerLinkActive"
             [attr.aria-current]="rla.isActive ? 'page' : null"
             [class]="rla.isActive ? active : idle"
+            (click)="onToolClick(tool)"
           >
             @if (rla.isActive) {
               <span
@@ -85,6 +77,8 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 export class ToolNavComponent {
   protected readonly i18n = inject(TranslationService);
   private readonly activeTool = inject(ActiveToolService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly router = inject(Router);
 
   protected readonly active = ACTIVE;
   protected readonly idle = IDLE;
@@ -102,5 +96,17 @@ export class ToolNavComponent {
   protected path(tool: ToolDef): string {
     const lang = this.i18n.currentLang();
     return `/${lang}/${toolPath(tool, lang)}`;
+  }
+
+  /**
+   * Commit any pending result before letting RouterLink complete the navigation.
+   * This is what makes clicking a rail item from inside a tool skip the home page:
+   * the result is written into the chain here, synchronously, and the new tool's
+   * constructor then reads the updated `state.currentFile()`.
+   */
+  protected onToolClick(tool: ToolDef): void {
+    if (!this.pendingTransition.hasPending()) return;
+    // Commit is synchronous; RouterLink handles the actual URL change.
+    this.pendingTransition.tryCommit();
   }
 }

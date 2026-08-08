@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { formatBytes } from '../../core/image/image-file.util';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
@@ -12,6 +13,11 @@ import { IconComponent } from './icon/icon.component';
  * The file currently flowing through the tool chain, with a thumbnail and the
  * steps already applied. The chain existed before but was invisible, so nobody
  * discovered that "Keep editing" hands the result to the next tool.
+ *
+ * A pulsing dot appears next to the file name when there is a processed result
+ * that has not yet been committed — a gentle signal that the user can click any
+ * tool in the rail (or pick a chip in the action bar) to send it forward without
+ * going back to the home page.
  */
 @Component({
   selector: 'app-current-file-bar',
@@ -34,6 +40,22 @@ import { IconComponent } from './icon/icon.component';
           <div class="flex items-baseline gap-2">
             <span class="truncate text-sm font-medium text-text">{{ session.file.name }}</span>
             <span class="shrink-0 font-mono text-xs text-faint tabular">{{ size() }}</span>
+            @if (hasPending()) {
+              <!-- Subtle "result ready" indicator: pulses while there is an uncommitted
+                   result. The tooltip explains the affordance to first-time users. -->
+              <span
+                class="shrink-0"
+                title="{{ i18n.t()['common.next_tool'] }}"
+                aria-hidden="true"
+              >
+                <span class="relative flex h-2 w-2">
+                  <span
+                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75"
+                  ></span>
+                  <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
+                </span>
+              </span>
+            }
           </div>
 
           @if (steps().length) {
@@ -64,8 +86,12 @@ export class CurrentFileBarComponent {
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+  protected readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly thumb = signal<string | null>(null);
+
+  /** True when there is an uncommitted result — drives the pulsing dot. */
+  protected readonly hasPending = this.pendingTransition.hasPending;
 
   protected readonly size = computed(() => {
     const file = this.state.currentFile();
@@ -117,3 +143,4 @@ export class CurrentFileBarComponent {
     });
   }
 }
+

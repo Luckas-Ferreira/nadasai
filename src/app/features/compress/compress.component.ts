@@ -7,8 +7,9 @@ import { extForMime, formatBytes, suffixedName } from '../../core/image/image-fi
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { CompareSliderComponent } from '../../shared/ui/compare-slider.component';
@@ -38,9 +39,12 @@ export class CompressComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
   private readonly tool = toolById('compress');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+
+  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('compress'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly resultBlob = signal<Blob | null>(null);
@@ -144,6 +148,17 @@ export class CompressComponent {
       // Byte-identical output with nothing saying why is the failure the PDF
       // compressor's `cpdf.no_gain` exists to avoid — same reasoning here.
       if (keptOriginal) this.noticeKey.set('compress.no_gain');
+
+      // Register commit for rail/mobile-bar navigation.
+      const ext = this.ext();
+      this.pendingTransition.register(() => {
+        try {
+          this.state.apply('compress', blob, this.tool.suffix, ext);
+          return true;
+        } catch {
+          return false;
+        }
+      });
     } catch (err) {
       console.error('Compression failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -166,7 +181,22 @@ export class CompressComponent {
 
     try {
       this.state.apply('compress', blob, this.tool.suffix, this.ext());
-      this.router.navigate(['/']);
+      this.pendingTransition.clear();
+      this.router.navigate(['/' + this.i18n.currentLang()]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  protected goToTool(tool: ToolDef): void {
+    const blob = this.resultBlob();
+    if (!blob) return;
+
+    try {
+      this.state.apply('compress', blob, this.tool.suffix, this.ext());
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
@@ -198,5 +228,6 @@ export class CompressComponent {
     this.resultUrl.set(null);
     this.ranQuality.set(null);
     this.noticeKey.set(null);
+    this.pendingTransition.clear();
   }
 }

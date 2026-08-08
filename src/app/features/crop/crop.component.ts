@@ -16,8 +16,9 @@ import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -25,6 +26,7 @@ import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PanelComponent } from '../../shared/ui/panel.component';
 import { ToolPageComponent } from '../../shared/ui/tool-page.component';
+
 
 /** GIF and BMP have no lossy encoder here; PNG keeps their alpha and quality. */
 const ALPHA_SAFE = new Set(['image/png', 'image/webp', 'image/gif', 'image/bmp']);
@@ -49,9 +51,13 @@ export class CropComponent implements OnDestroy {
   private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
   private readonly tool = toolById('crop');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+
+  /** Peer tools that accept and produce a raster image, for the "continue with" chips. */
+  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('crop'));
 
   private readonly imageRef = viewChild<ElementRef<HTMLImageElement>>('image');
   private cropper: Cropper | null = null;
@@ -126,6 +132,9 @@ export class CropComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyCropper();
+    // Clear any pending commit so the service does not hold a stale closure after
+    // this component is gone.
+    this.pendingTransition.clear();
   }
 
   protected onFile(file: File): void {
@@ -186,6 +195,16 @@ export class CropComponent implements OnDestroy {
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
       this.ranBox.set(box);
+
+      // Register the commit so navigating via rail/mobile bar auto-applies the result.
+      this.pendingTransition.register(() => {
+        try {
+          this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
+          return true;
+        } catch {
+          return false;
+        }
+      });
     } catch (err) {
       console.error('Crop failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -208,7 +227,23 @@ export class CropComponent implements OnDestroy {
 
     try {
       this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
-      this.router.navigate(['/']);
+      this.pendingTransition.clear();
+      this.router.navigate(['/' + this.i18n.currentLang()]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  /** Navigate directly to a peer tool, committing the result into the chain first. */
+  protected goToTool(tool: ToolDef): void {
+    const blob = this.resultBlob();
+    if (!blob) return;
+
+    try {
+      this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
@@ -231,6 +266,7 @@ export class CropComponent implements OnDestroy {
     this.resultBlob.set(null);
     this.resultUrl.set(null);
     this.ranBox.set(null);
+    this.pendingTransition.clear();
   }
 
   private destroyCropper(): void {
