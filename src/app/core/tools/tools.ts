@@ -854,3 +854,35 @@ export function toolFromUrl(url: string): ToolDef | null {
     TOOLS.find((t) => path.endsWith(`/${t.pathPt}`) || path.endsWith(`/${t.pathEn}`)) ?? null
   );
 }
+
+/**
+ * Image tools that accept a raster image as input AND produce a raster image
+ * as output — i.e., they can be chained together.
+ *
+ * Excluded on purpose:
+ * - `vectorize`    → produces SVG, not raster
+ * - `extract-text` → produces plain text
+ * - `img-to-pdf`   → produces PDF
+ *
+ * Used by the action bar to populate the "continue in" chips and by the
+ * PendingTransitionService to know which navigations should auto-commit the
+ * current result.
+ */
+export const IMAGE_CHAIN_TOOLS: readonly ToolId[] = [
+  'remove-bg',
+  'upscale',
+  'crop',
+  'compress',
+  'convert',
+  'resize',
+];
+
+/**
+ * Returns all chainable image tools except the one currently active.
+ * The result is ordered as declared in IMAGE_CHAIN_TOOLS so the chips
+ * always appear in the same sequence regardless of which tool is open.
+ */
+export function chainableImageTools(excludeId: ToolId): readonly ToolDef[] {
+  return TOOLS.filter((t) => IMAGE_CHAIN_TOOLS.includes(t.id) && t.id !== excludeId);
+}
+

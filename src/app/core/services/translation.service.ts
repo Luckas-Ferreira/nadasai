@@ -119,7 +119,7 @@ const EN = {
   'nav.search_hint': '↑↓ to move · Enter to open · Esc to close',
   'nav.home': 'Home',
 
-  'hero.title': 'Your files never leave your computer.',
+  'hero.title': 'Your files never leave your device.',
   'hero.subtitle':
     'No upload, no server. Everything — including the AI — runs right here, inside your browser. You do not have to take our word for it: the counter below is live.',
   'hero.badge': '100% local processing · zero upload',
@@ -175,6 +175,7 @@ const EN = {
   'common.retry': 'Try again',
   'common.download': 'Download',
   'common.continue': 'Keep editing',
+  'common.next_tool': 'Continue with',
   'common.reset': 'Start over',
   'common.undo': 'Undo',
   /** Suffixed with the tool name, e.g. "Undo Crop". */
@@ -346,7 +347,7 @@ const EN = {
   'nav.short.compress_audio': 'Compress Audio',
 
   'video_audio.title': 'Extract Audio from Video 100% offline',
-  'video_audio.subtitle': 'Pull the soundtrack out of an MP4, MOV, WebM or MKV — the video never leaves your computer.',
+  'video_audio.subtitle': 'Pull the soundtrack out of an MP4, MOV, WebM or MKV — the video never leaves your device.',
   'video_audio.btn': 'Extract audio',
   'video_audio.drag': 'Drop a video here',
   'video_audio.drag_hint': 'MP4, MOV, WebM, MKV, AVI · up to 500 MB and 30 minutes',
@@ -558,7 +559,7 @@ const EN = {
   'mergepdf.terminal_note': 'The merged PDF is downloaded straight to your device — nothing is uploaded.',
 
   'cpdf.title': 'Compress PDF',
-  'cpdf.subtitle': 'Make a PDF smaller without it leaving your computer.',
+  'cpdf.subtitle': 'Make a PDF smaller without it leaving your device.',
   'cpdf.btn': 'Compress PDF',
   'cpdf.drag': 'Drop a PDF here',
   'cpdf.drag_hint': 'PDF files only · up to 100 MB',
@@ -606,7 +607,7 @@ const EN = {
   'splitpdf.deselect_all': 'Deselect all',
 
   'p2w.title': 'PDF to Word',
-  'p2w.subtitle': 'Turn a PDF into an editable Word document, on your computer.',
+  'p2w.subtitle': 'Turn a PDF into an editable Word document, on your device.',
   'p2w.btn': 'Convert to Word',
   'p2w.drag': 'Drop a PDF here',
   'p2w.drag_hint': 'PDF files only · up to 100 MB',
@@ -625,7 +626,7 @@ const EN = {
   'p2w.warn_enable_ocr': 'Turn on OCR',
   'pdf.wrong_password': 'Wrong password. Please try again.',
   'pdf2img.title': 'PDF to Image',
-  'pdf2img.subtitle': 'Convert PDF pages into JPG, PNG or WEBP images on your computer.',
+  'pdf2img.subtitle': 'Convert PDF pages into JPG, PNG or WEBP images on your device.',
   'pdf2img.btn': 'Convert to Images',
   'pdf2img.drag': 'Drop a PDF here',
   'pdf2img.drag_hint': 'PDF files only · up to 100 MB',
@@ -863,9 +864,9 @@ const PT: Record<TranslationKey, string> = {
   'model.hint': 'Para a remoção de fundo funcionar offline depois.',
 
   'module.image': 'Ferramentas de Imagem',
-  'module.image_desc': 'Edite, converta, comprima e melhore imagens no seu computador.',
+  'module.image_desc': 'Edite, converta, comprima e melhore imagens no seu dispositivo.',
   'module.pdf': 'Ferramentas de PDF',
-  'module.pdf_desc': 'Edite, junte, comprima e divida PDFs no seu computador.',
+  'module.pdf_desc': 'Edite, junte, comprima e divida PDFs no seu dispositivo.',
   'module.audio': 'Ferramentas de Áudio',
   'module.audio_desc': 'Corte áudio aqui mesmo — nada é enviado.',
   'module.privacy': 'Privacidade & Segurança',
@@ -948,7 +949,7 @@ const PT: Record<TranslationKey, string> = {
   'nav.search_hint': '↑↓ para navegar · Enter para abrir · Esc para fechar',
   'nav.home': 'Início',
 
-  'hero.title': 'Seus arquivos não saem do seu computador.',
+  'hero.title': 'Seus arquivos não saem do seu dispositivo.',
   'hero.subtitle':
     'Sem upload, sem servidor. Tudo — inclusive a inteligência artificial — roda aqui dentro, no seu navegador. E você não precisa acreditar: o contador abaixo é ao vivo.',
   'hero.badge': '100% processamento local · zero upload',
@@ -987,7 +988,7 @@ const PT: Record<TranslationKey, string> = {
   'faq.q1': 'Como o Nada Sai edita PDFs e remove fundo sem enviar arquivos para servidores?',
   'faq.a1': 'O Nada Sai utiliza recursos modernos do navegador, como WebAssembly, Web Workers e modelos locais de IA (WebGPU/TensorFlow). Todo o processamento dos seus documentos e imagens roda diretamente na memória e no processador do seu próprio dispositivo — nenhum byte é enviado para a internet.',
   'faq.q2': 'É seguro editar documentos confidenciais ou fotos pessoais no Nada Sai?',
-  'faq.a2': 'Sim, 100% seguro. Como nenhum dado de arquivo é transmitido para servidores externos, seus arquivos sigilosos nunca saem do seu computador. Você pode inclusive usar as ferramentas com o Wi-Fi desligado.',
+  'faq.a2': 'Sim, 100% seguro. Como nenhum dado de arquivo é transmitido para servidores externos, seus arquivos sigilosos nunca saem do seu dispositivo. Você pode inclusive usar as ferramentas com o Wi-Fi desligado.',
   'faq.q3': 'As ferramentas do Nada Sai são totalmente gratuitas?',
   'faq.a3': 'Sim! Todas as ferramentas de edição de PDF (juntar, dividir, comprimir, assinar, marca d\'água, editar texto) e ferramentas de imagem (remover fundo, cortar, converter) são gratuitas, sem limite diário e sem cadastro.',
   'faq.q4': 'Como juntar ou comprimir PDFs mantendo a qualidade original?',
@@ -1003,6 +1004,7 @@ const PT: Record<TranslationKey, string> = {
   'common.retry': 'Tentar de novo',
   'common.download': 'Baixar',
   'common.continue': 'Continuar editando',
+  'common.next_tool': 'Continuar com',
   'common.reset': 'Recomeçar',
   'common.undo': 'Desfazer',
   'common.undo_tool': 'Desfazer',
@@ -1170,7 +1172,7 @@ const PT: Record<TranslationKey, string> = {
   'nav.short.compress_audio': 'Comprimir Áudio',
 
   'video_audio.title': 'Extrair Áudio de Vídeo 100% offline',
-  'video_audio.subtitle': 'Tire a trilha sonora de um MP4, MOV, WebM ou MKV — o vídeo não sai do seu computador.',
+  'video_audio.subtitle': 'Tire a trilha sonora de um MP4, MOV, WebM ou MKV — o vídeo não sai do seu dispositivo.',
   'video_audio.btn': 'Extrair áudio',
   'video_audio.drag': 'Solte um vídeo aqui',
   'video_audio.drag_hint': 'MP4, MOV, WebM, MKV, AVI · até 500 MB e 30 minutos',
@@ -1382,7 +1384,7 @@ const PT: Record<TranslationKey, string> = {
   'mergepdf.terminal_note': 'O PDF final é baixado direto para o seu dispositivo — nada é enviado.',
 
   'cpdf.title': 'Comprimir PDF',
-  'cpdf.subtitle': 'Deixe um PDF menor sem ele sair do seu computador.',
+  'cpdf.subtitle': 'Deixe um PDF menor sem ele sair do seu dispositivo.',
   'cpdf.btn': 'Comprimir PDF',
   'cpdf.drag': 'Solte um PDF aqui',
   'cpdf.drag_hint': 'Somente arquivos PDF · até 100 MB',
@@ -1431,7 +1433,7 @@ const PT: Record<TranslationKey, string> = {
 
   'pdf2img.title': 'PDF para Imagem',
   'p2w.title': 'PDF para Word',
-  'p2w.subtitle': 'Transforme um PDF em documento do Word editável, no seu computador.',
+  'p2w.subtitle': 'Transforme um PDF em documento do Word editável, no seu dispositivo.',
   'p2w.btn': 'Converter para Word',
   'p2w.drag': 'Solte um PDF aqui',
   'p2w.drag_hint': 'Somente arquivos PDF · até 100 MB',
@@ -1449,7 +1451,7 @@ const PT: Record<TranslationKey, string> = {
   'p2w.warn_skipped': 'Algumas páginas não têm camada de texto e ficaram de fora porque o reconhecimento está desligado.',
   'p2w.warn_enable_ocr': 'Ligar OCR',
   'pdf.wrong_password': 'Senha incorreta. Tente novamente.',
-  'pdf2img.subtitle': 'Converta páginas de PDF em imagens JPG, PNG ou WEBP no seu computador.',
+  'pdf2img.subtitle': 'Converta páginas de PDF em imagens JPG, PNG ou WEBP no seu dispositivo.',
   'pdf2img.btn': 'Converter em Imagens',
   'pdf2img.drag': 'Solte um PDF aqui',
   'pdf2img.drag_hint': 'Somente arquivos PDF · até 100 MB',

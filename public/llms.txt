@@ -22,10 +22,10 @@ Nada Sai provides 33 tools across 4 modules, all of which run entirely offline i
 
 - [Editar / Edit](https://nadasai.com/pt/pdf/editar): Edit, read and make scanned PDFs searchable — all locally.
 - [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Drop all the files, put them in the order you want and download the single document.
-- [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Make a PDF smaller without it leaving your computer.
+- [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Make a PDF smaller without it leaving your device.
 - [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Choose between picking individual pages, defining ranges (1-3, 8, 12-20), or slicing into fixed-size chunks.
 - [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Drop the file, pick the format and resolution, and select the pages.
-- [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Turn a PDF into an editable Word document, on your computer.
+- [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Turn a PDF into an editable Word document, on your device.
 - [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): The pages appear as thumbnails: drag to change the order, or use each page’s arrows.
 - [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Drop the file, choose a password and download.
 - [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Draw your signature or upload an image of it, place it on the page and adjust the size.

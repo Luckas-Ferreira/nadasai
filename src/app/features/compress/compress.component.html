@@ -98,9 +98,10 @@
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
         [canContinue]="!!resultUrl()"
+        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
+        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

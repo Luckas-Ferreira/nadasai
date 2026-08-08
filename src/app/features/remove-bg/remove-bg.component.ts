@@ -7,8 +7,9 @@ import { canvasToBlob, flatten, loadImage, suffixedName } from '../../core/image
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { BackgroundRemovalService } from '../../core/services/background-removal.service';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { chainableImageTools, toolById, toolPath, type ToolDef } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -50,9 +51,13 @@ export class RemoveBgComponent {
   private readonly router = inject(Router);
   private readonly removal = inject(BackgroundRemovalService);
   private readonly tool = toolById('remove-bg');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.stopTrickle());
+    inject(DestroyRef).onDestroy(() => {
+      this.stopTrickle();
+      this.pendingTransition.clear();
+    });
     const file = this.sourceFile();
     if (!file) return;
 
@@ -73,6 +78,8 @@ export class RemoveBgComponent {
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+
+  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('remove-bg'));
 
   protected readonly backdrops = BACKDROPS;
   protected readonly transparent = TRANSPARENT;
@@ -155,6 +162,17 @@ export class RemoveBgComponent {
       // A new cutout has earned its reveal.
       this.wipePlayed.set(false);
       this.finishTrickle();
+
+      // Register pending commit: the cutout PNG is always available synchronously;
+      // the backdrop is only visual and is not committed into the chain.
+      this.pendingTransition.register(() => {
+        try {
+          this.state.apply('remove-bg', blob, this.tool.suffix, 'png');
+          return true;
+        } catch {
+          return false;
+        }
+      });
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
       this.stopTrickle();
@@ -264,7 +282,23 @@ export class RemoveBgComponent {
       if (!result) return;
 
       this.state.apply('remove-bg', result.blob, this.tool.suffix, result.ext);
-      this.router.navigate(['/']);
+      this.pendingTransition.clear();
+      this.router.navigate(['/' + this.i18n.currentLang()]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  /** Navigate directly to a peer tool after compositing the result into the chain. */
+  protected async goToTool(tool: ToolDef): Promise<void> {
+    try {
+      const result = await this.compose();
+      if (!result) return;
+
+      this.state.apply('remove-bg', result.blob, this.tool.suffix, result.ext);
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
@@ -280,6 +314,7 @@ export class RemoveBgComponent {
     this.progress.set(0);
     this.backdrop.set(TRANSPARENT);
     this.editing.set(false);
+    this.pendingTransition.clear();
     this.state.clear();
   }
 
@@ -290,5 +325,6 @@ export class RemoveBgComponent {
     // Strokes belong to the cutout they were painted on. Dropping a new file while
     // the editor is open must not leave it open over an image that no longer exists.
     this.editing.set(false);
+    this.pendingTransition.clear();
   }
 }

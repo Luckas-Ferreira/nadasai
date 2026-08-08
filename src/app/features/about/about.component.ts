@@ -35,12 +35,12 @@ import { TranslationService } from '../../core/services/translation.service';
           <h2 class="mb-3 text-lg font-semibold text-text">Como funciona?</h2>
           <p class="mb-4 text-base leading-relaxed text-muted">
             Cada operação, inclusive a remoção de fundo com inteligência artificial, é executada diretamente no
-            seu computador usando tecnologias modernas do navegador: WebAssembly, Web Workers e WebGPU quando
+            seu dispositivo usando tecnologias modernas do navegador: WebAssembly, Web Workers e WebGPU quando
             disponível. O modelo de IA é baixado uma única vez e fica armazenado localmente.
           </p>
           <p class="text-base leading-relaxed text-muted">
             Isso significa que suas imagens nunca trafegam pela internet — elas saem do seu disco, passam pelo
-            processador do seu computador e voltam para você. Daí o nome: <em>nada sai</em>.
+            processador do seu dispositivo e voltam para você. Daí o nome: <em>nada sai</em>.
           </p>
         </section>
 
@@ -95,12 +95,12 @@ import { TranslationService } from '../../core/services/translation.service';
           <h2 class="mb-3 text-lg font-semibold text-text">How does it work?</h2>
           <p class="mb-4 text-base leading-relaxed text-muted">
             Every operation, including AI background removal, is executed directly on
-            your computer using modern browser technologies: WebAssembly, Web Workers, and WebGPU when
+            your device using modern browser technologies: WebAssembly, Web Workers, and WebGPU when
             available. The AI model is downloaded once and stored locally.
           </p>
           <p class="text-base leading-relaxed text-muted">
             This means your images never travel through the internet — they leave your disk, pass through
-            your computer's processor, and come right back to you. Hence the name: <em>nada sai</em>.
+            your device's processor, and come right back to you. Hence the name: <em>nada sai</em>.
           </p>
         </section>
 

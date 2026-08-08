@@ -62,7 +62,7 @@ export class SeoService {
        * que lê a propriedade certa e roda depois deste bloco. O que saía errado
        * era tudo o que só existe aqui — `og:title` e `twitter:title` — nas 72
        * páginas de ferramenta, todas anunciando "Nada Sai — seus arquivos não
-       * saem do seu computador" em vez do nome da ferramenta. A `description`
+       * saem do seu dispositivo" em vez do nome da ferramenta. A `description`
        * escapou por vir de `data`, que é o motivo de a divergência ter passado:
        * metade das tags estava certa.
        *
@@ -82,7 +82,7 @@ export class SeoService {
       }
 
       // Title
-      const pageTitle = routeTitle || data['title'] || (isEnglish ? 'Nada Sai — Your files never leave your computer' : 'Nada Sai — seus arquivos não saem do seu computador');
+      const pageTitle = routeTitle || data['title'] || (isEnglish ? 'Nada Sai — Your files never leave your device' : 'Nada Sai — seus arquivos não saem do seu dispositivo');
       this.title.setTitle(pageTitle);
 
       // Meta Description

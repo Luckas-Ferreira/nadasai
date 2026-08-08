@@ -14,8 +14,9 @@ import { saveBlob } from '../../core/image/download';
 import { extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
@@ -44,9 +45,15 @@ export class ConvertComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
   private readonly tool = toolById('convert');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+
+  /** Only non-terminal formats re-enter the image chain (not PDF or ICO). */
+  protected readonly nextTools = computed<readonly ToolDef[]>(() =>
+    this.isTerminal() ? [] : chainableImageTools('convert'),
+  );
 
   protected readonly formatOptions = TARGET_FORMATS.map((value) => ({ value, label: value }));
   protected readonly backdropOptions = [
@@ -133,6 +140,21 @@ export class ConvertComponent {
       this.resultBlob.set(blob);
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
       this.ranSettings.set(settings);
+
+      // Only register a commit when the output is a raster image, not PDF/ICO.
+      if (!this.isTerminal()) {
+        const ext = extForMime(MIME_FOR_TARGET[this.format()]);
+        this.pendingTransition.register(() => {
+          try {
+            this.state.apply('convert', blob, this.tool.suffix, ext);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+      } else {
+        this.pendingTransition.clear();
+      }
     } catch (err) {
       console.error('Conversion failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -172,7 +194,23 @@ export class ConvertComponent {
     try {
       const ext = extForMime(MIME_FOR_TARGET[this.format()]);
       this.state.apply('convert', blob, this.tool.suffix, ext);
-      this.router.navigate(['/']);
+      this.pendingTransition.clear();
+      this.router.navigate(['/' + this.i18n.currentLang()]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  protected goToTool(tool: ToolDef): void {
+    const blob = this.resultBlob();
+    if (!blob || this.isTerminal()) return;
+
+    try {
+      const ext = extForMime(MIME_FOR_TARGET[this.format()]);
+      this.state.apply('convert', blob, this.tool.suffix, ext);
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
@@ -194,5 +232,6 @@ export class ConvertComponent {
     this.resultBlob.set(null);
     this.resultUrl.set(null);
     this.ranSettings.set(null);
+    this.pendingTransition.clear();
   }
 }

@@ -7,8 +7,9 @@ import { extForMime, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
 import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { toolById } from '../../core/tools/tools';
+import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { CompareSliderComponent } from '../../shared/ui/compare-slider.component';
@@ -41,9 +42,12 @@ export class UpscaleComponent {
   private readonly router = inject(Router);
   protected readonly tool = toolById('upscale');
   private readonly upscaler = inject(UpscaleService);
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly state = inject(ImageStateService);
   protected readonly i18n = inject(TranslationService);
+
+  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('upscale'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly result = signal<UpscaleResult | null>(null);
@@ -111,6 +115,26 @@ export class UpscaleComponent {
       );
       this.result.set(res);
       this.resultUrl.set(res.dataUrl);
+
+      // Register pending commit for rail/mobile-bar navigation.
+      const original = this.sourceFile();
+      if (original) {
+        const ext = extForMime(original.type) || 'png';
+        const mimeType = original.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        this.pendingTransition.register(() => {
+          const nextFile = new File(
+            [res.blob],
+            suffixedName(original.name, this.tool.suffix, ext),
+            { type: mimeType },
+          );
+          try {
+            this.state.load(nextFile);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+      }
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     } finally {
@@ -138,13 +162,35 @@ export class UpscaleComponent {
       type: mimeType,
     });
     this.state.load(nextFile);
+    this.pendingTransition.clear();
     void this.router.navigateByUrl(`/${this.i18n.currentLang()}`);
+  }
+
+  protected goToTool(tool: ToolDef): void {
+    const res = this.result();
+    const original = this.sourceFile();
+    if (!res || !original) return;
+
+    const ext = extForMime(original.type) || 'png';
+    const mimeType = original.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    const nextFile = new File([res.blob], suffixedName(original.name, this.tool.suffix, ext), {
+      type: mimeType,
+    });
+    try {
+      this.state.load(nextFile);
+      this.pendingTransition.clear();
+      const lang = this.i18n.currentLang();
+      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
   }
 
   protected reset(): void {
     this.result.set(null);
     this.resultUrl.set(null);
     this.sourceUrl.set(null);
+    this.pendingTransition.clear();
     this.state.clear();
   }
 }

@@ -130,9 +130,10 @@
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
         [canContinue]="!!resultUrl()"
+        [nextTools]="nextTools()"
         (primary)="runUpscale()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
+        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

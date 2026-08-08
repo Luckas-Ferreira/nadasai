@@ -63,9 +63,10 @@
         [busy]="busy()"
         [canDownload]="!!resultBlob()"
         [canContinue]="!!resultBlob() && !isTerminal()"
+        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
+        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

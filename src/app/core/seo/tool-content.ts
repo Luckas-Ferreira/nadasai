@@ -227,7 +227,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       faq: [
         {
           q: 'Que informação um PDF carrega sem eu saber?',
-          a: 'Normalmente o autor, o software que gerou o arquivo, as datas de criação e modificação e um bloco XMP. Programas como Illustrator e InDesign ainda gravam dados por página que costumam incluir o caminho local do arquivo e o nome de usuário do computador. A ferramenta lista tudo o que encontrou antes de remover.',
+          a: 'Normalmente o autor, o software que gerou o arquivo, as datas de criação e modificação e um bloco XMP. Programas como Illustrator e InDesign ainda gravam dados por página que costumam incluir o caminho local do arquivo e o nome de usuário do dispositivo. A ferramenta lista tudo o que encontrou antes de remover.',
         },
         {
           q: 'O conteúdo do documento muda?',
@@ -248,7 +248,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       faq: [
         {
           q: 'What does a PDF carry without me knowing?',
-          a: 'Usually the author, the software that produced it, creation and modification dates, and an XMP block. Programs like Illustrator and InDesign also write per-page application data that routinely includes the local file path and the computer\'s username. The tool lists everything it found before removing any of it.',
+          a: 'Usually the author, the software that produced it, creation and modification dates, and an XMP block. Programs like Illustrator and InDesign also write per-page application data that routinely includes the local file path and the device\'s username. The tool lists everything it found before removing any of it.',
         },
         {
           q: 'Does the document content change?',
