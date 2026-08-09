@@ -49,9 +49,25 @@
 
       <footer class="border-t border-line px-5 py-4 md:px-8">
         <div
-          class="flex flex-col gap-1.5 text-xs text-faint sm:flex-row sm:items-center sm:justify-between"
+          class="flex flex-col gap-3 text-xs text-faint sm:flex-row sm:items-center sm:justify-between"
         >
-          <p>{{ i18n.t()['app.footer.secure'] }}</p>
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <p>{{ i18n.t()['app.footer.secure'] }}</p>
+            <a
+              href="https://www.producthunt.com/products/nada-sai?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nada-sai"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center transition-opacity hover:opacity-90"
+            >
+              <img
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1218890&theme=light&t=1786305644316"
+                alt="Nada Sai - 33 free, 100% offline tools for PDF, Image, Audio & Privacy | Product Hunt"
+                style="width: 250px; height: 54px;"
+                width="250"
+                height="54"
+              />
+            </a>
+          </div>
 
           <!-- Nomeado porque a página tem três <nav> (rail, barra mobile, este)
                e os outros dois já se identificam. Sem rótulo, o leitor de tela
