@@ -1473,6 +1473,51 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
     },
   },
 
+  'normalize-audio': {
+    pt: {
+      features: ['Loudness em LUFS ou pico', 'Limitador com look-ahead', 'Medição antes de aplicar', 'Sem envio para servidor'],
+      faq: [
+        {
+          q: 'Como aumentar o volume de um áudio que ficou baixo?',
+          a: 'Solte o arquivo e deixe no modo loudness: a ferramenta mede o volume percebido da gravação, calcula quantos decibéis faltam para o alvo e mostra o número antes de aplicar. Para uma gravação de voz ou reunião, o preset de podcast costuma ser o certo. O modo pico só encosta a amostra mais alta no teto, o que não resolve gravação baixa com um estalo no meio.',
+        },
+        {
+          q: 'Qual a diferença entre normalizar por pico e por loudness?',
+          a: 'Normalizar por pico olha uma única amostra: a mais alta do arquivo. Se houver uma esbarrada na mesa, ela já está perto do máximo e o ganho aplicado é praticamente zero — a gravação continua baixa. Loudness mede a energia média ponderada pela sensibilidade do ouvido, ao longo de todo o arquivo e ignorando as pausas, que é o que a gente de fato chama de volume. É a medida que Spotify, YouTube e as emissoras usam.',
+        },
+        {
+          q: 'O que significam -14 LUFS, -16 LUFS e -23 LUFS?',
+          a: 'São alvos de referência. -14 LUFS é o nível para o qual as plataformas de streaming ajustam o que você envia; -16 LUFS é o costume em podcast e voz falada; -23 LUFS é a norma de broadcast europeia (EBU R128). Enviar bem acima do alvo da plataforma não deixa mais alto: ela abaixa de volta, e o que sobra é a dinâmica que foi perdida no caminho.',
+        },
+        {
+          q: 'A normalização pode estourar o áudio?',
+          a: 'Não. O ganho é aplicado com um limitador que desce a envoltória antes do pico chegar e sobe devagar depois, em vez de cortar a onda — o teto escolhido vale para o arquivo escrito, por construção. Quando o limitador precisa entrar, o painel diz quanto ele segurou, para você poder escolher um alvo mais baixo se preferir não comprimir a dinâmica.',
+        },
+      ],
+    },
+    en: {
+      features: ['LUFS loudness or peak', 'Look-ahead limiter', 'Measured before it runs', 'Never uploaded'],
+      faq: [
+        {
+          q: 'How do I make a quiet recording louder?',
+          a: 'Drop the file and leave it in loudness mode: the tool measures the perceived level of the recording, works out how many decibels are missing to reach the target and shows you the number before applying anything. For a voice or meeting recording the podcast preset is usually right. Peak mode only pushes the loudest sample up to the ceiling, which does nothing for a quiet recording that has one bump in it.',
+        },
+        {
+          q: 'What is the difference between peak and loudness normalization?',
+          a: 'Peak normalization looks at a single sample: the loudest one in the file. If someone knocked the desk, that sample is already near maximum and the gain applied is close to nothing — the recording stays quiet. Loudness measures the average energy weighted for how the ear hears it, across the whole file and ignoring the pauses, which is what people actually mean by volume. It is the measure Spotify, YouTube and broadcasters use.',
+        },
+        {
+          q: 'What do -14 LUFS, -16 LUFS and -23 LUFS mean?',
+          a: 'They are reference targets. -14 LUFS is the level streaming platforms normalize uploads to; -16 LUFS is the usual choice for podcasts and spoken word; -23 LUFS is the European broadcast standard (EBU R128). Delivering well above the platform target does not make you louder: it turns you back down, and what is left is the dynamics lost on the way.',
+        },
+        {
+          q: 'Can normalizing clip the audio?',
+          a: 'No. The gain goes through a limiter that lowers the envelope before the peak arrives and lets it back up slowly afterwards, rather than chopping the waveform — the ceiling you pick holds for the written file by construction. When the limiter does engage, the panel says how much it held back, so you can choose a lower target if you would rather not squeeze the dynamics.',
+        },
+      ],
+    },
+  },
+
   'video-to-audio': {
     pt: {
       features: ['MP4, MOV, WebM, MKV', 'MP3 ou WAV sem perda', 'Até 500 MB e 30 minutos', 'O vídeo não é enviado'],

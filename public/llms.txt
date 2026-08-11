@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 33 tools across 4 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 34 tools across 4 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -37,6 +37,7 @@ Nada Sai provides 33 tools across 4 modules, all of which run entirely offline i
 - [Juntar áudio / Merge audio](https://nadasai.com/pt/audio/juntar): Drop the tracks, drag the thumbnails into the order you want — each one shows its own waveform — and download.
 - [Converter áudio / Convert audio](https://nadasai.com/pt/audio/converter): Drop the file, pick the output format and adjust channels and bitrate if you need to.
 - [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Pick the bitrate and, where it makes sense, convert to mono.
+- [Normalizar Áudio / Normalize Audio](https://nadasai.com/pt/audio/normalizar): Drop the file and leave it in loudness mode: the tool measures the perceived level of the recording, works out how many decibels are missing to reach the target and shows you the number before applying anything.
 - [Vídeo para áudio / Video to audio](https://nadasai.com/pt/audio/extrair-de-video): Drop the video, pick MP3 or WAV and download.
 
 ## Privacy & Security Tools

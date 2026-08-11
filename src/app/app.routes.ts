@@ -115,6 +115,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'audio/normalizar',
+        title: 'Normalizar Áudio e Aumentar Volume Online — Nada Sai',
+        loadComponent: () => import('./features/normalize-audio/normalize-audio.component').then((m) => m.NormalizeAudioComponent),
+        data: {
+          metaDescription: 'Deixe um áudio baixo no volume certo: normalização por loudness (LUFS) ou por pico, com limitador para não estourar. Até 100 MB, grátis e 100% offline no seu navegador.'
+        }
+      },
+      {
         path: 'audio/extrair-de-video',
         title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
@@ -425,6 +433,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
           metaDescription: 'Shrink MP3, WAV, OGG and M4A by choosing the bitrate, with the final size estimated before you download. Up to 100 MB, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'audio/normalize',
+        title: 'Normalize Audio and Increase Volume Online — Nada Sai',
+        loadComponent: () => import('./features/normalize-audio/normalize-audio.component').then((m) => m.NormalizeAudioComponent),
+        data: {
+          metaDescription: 'Bring a quiet recording up to a proper level: loudness (LUFS) or peak normalization, with a limiter so nothing clips. Up to 100 MB, 100% offline in your browser.'
         }
       },
       {
