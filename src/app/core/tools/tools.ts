@@ -10,6 +10,7 @@ export type ToolId =
   | 'merge-audio'
   | 'convert-audio'
   | 'compress-audio'
+  | 'normalize-audio'
   | 'video-to-audio'
   | 'crop'
   | 'compress'
@@ -272,6 +273,31 @@ export const TOOLS: readonly ToolDef[] = [
       'compress audio', 'reduce audio file size', 'shrink mp3', 'audio compressor',
       'lower bitrate', 'compress mp3', 'compress wav', 'reduce mp3 size', 'audio file reducer',
       'make audio smaller', 'compress ogg', 'reduce audio bitrate'
+    ],
+  },
+  {
+    id: 'normalize-audio',
+    pathPt: 'audio/normalizar',
+    pathEn: 'audio/normalize',
+    icon: 'zap',
+    category: 'audio',
+    navKey: 'nav.normalize_audio',
+    shortKey: 'nav.short.normalize_audio',
+    titleKey: 'normalize_audio.title',
+    descKey: 'normalize_audio.subtitle',
+    suffix: 'normalized',
+    tone: 'amber',
+    keywordsPt: [
+      'normalizar audio', 'aumentar volume do audio', 'aumentar volume mp3', 'audio muito baixo',
+      'deixar audio mais alto', 'equalizar volume', 'nivelar volume', 'normalizar volume mp3',
+      'ajustar volume do audio', 'volume baixo', 'aumentar som de gravacao', 'normalizar podcast',
+      'lufs', 'normalizar wav', 'diminuir volume do audio'
+    ],
+    keywordsEn: [
+      'normalize audio', 'increase audio volume', 'make audio louder', 'audio volume booster',
+      'normalize mp3 volume', 'loudness normalization', 'lufs normalization', 'audio too quiet',
+      'level audio volume', 'boost mp3 volume', 'normalize podcast audio', 'peak normalization',
+      'adjust audio volume', 'audio gain'
     ],
   },
   {
