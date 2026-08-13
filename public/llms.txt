@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 34 tools across 4 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 35 tools across 4 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -51,6 +51,7 @@ Nada Sai provides 34 tools across 4 modules, all of which run entirely offline i
 - [Censurar PDF / Tarja preta / Redact PDF / Black bar](https://nadasai.com/pt/privacidade/censurar-pdf): Because a rectangle is just another object drawn on top.
 - [Limpar metadados do PDF / Clean PDF metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): Usually the author, the software that produced it, creation and modification dates, and an XMP block.
 - [Criptografar texto (AES-256) / Encrypt text (AES-256)](https://nadasai.com/pt/privacidade/criptografar-texto): Write the text, set a password and copy the block it produces.
+- [QR Code (Gerador & Leitor) / QR Code (Generator & Scanner)](https://nadasai.com/pt/privacidade/qr-code): Select the content type (URL, Wi-Fi, Pix, Contact, etc.), enter your information, and download the PNG or SVG.
 
 ## Privacy Architecture
 

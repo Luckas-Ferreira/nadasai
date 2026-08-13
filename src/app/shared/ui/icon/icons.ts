@@ -63,6 +63,7 @@ export const ICONS = {
   video: 'M15 10l4.55-2.28A1 1 0 0 1 21 8.62v6.76a1 1 0 0 1-1.45.89L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z',
   palette: 'M12 21a9 9 0 1 1 0-18 9 9 0 0 1 9 9c0 1.5-1 2.5-2.5 2.5H16a2 2 0 0 0-2 2v.5c0 1.5-1 2.5-2 2.5Z M7.5 10.5h.01 M10.5 7.5h.01 M13.5 7.5h.01 M16.5 10.5h.01',
   zap: 'M13 2 3 14h9l-1 8 10-12h-9l1-8Z',
+  qrcode: 'M3 3h7v7H3V3Zm2 2v3h3V5H5Zm8-2h7v7h-7V3Zm2 2v3h3V5h-3ZM3 13h7v7H3v-7Zm2 2v3h3v-3H5Zm8 0h3v3h-3v-3Zm4 0h3v7h-3v-3h-3v-4h3Zm-4 4h3v3h-3v-3Z',
 } as const;
 
 export type IconName = keyof typeof ICONS;
