@@ -1562,6 +1562,50 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'qr-code': {
+    pt: {
+      features: ['100% Offline e Seguro', 'Wi-Fi, Pix, Links, vCard e Texto', 'Leitor por Imagem e Câmera', 'Exportação PNG e SVG Vetorial'],
+      faq: [
+        {
+          q: 'Como criar um QR Code seguro sem enviar meus dados para a internet?',
+          a: 'Basta escolher o tipo desejado (Link, Wi-Fi, Pix, Contato, etc.), preencher as informações e baixar a imagem em PNG ou SVG. A matriz do QR Code é desenhada diretamente pelo seu navegador via Canvas/SVG. Nenhuma informação ou senha passa por servidores.',
+        },
+        {
+          q: 'É seguro gerar QR Code de rede Wi-Fi e chave Pix aqui?',
+          a: 'Sim, e esse é o grande diferencial do Nada Sai. Geradores de QR Code comuns na internet salvam e rastreiam as senhas e links criados em seus bancos de dados. Aqui, tudo roda no seu próprio dispositivo, tornando seguro até para senhas de Wi-Fi corporativas e chaves financeiras.',
+        },
+        {
+          q: 'Como funciona o leitor de QR Code integrado?',
+          a: 'Você pode enviar uma imagem, colar direto com Ctrl+V ou ligar a câmera do computador/celular. O processamento da imagem é feito em TypeScript localmente com detecção automática de tipo (identificando redes Wi-Fi, chaves Pix, links seguros e cartões de visita).',
+        },
+        {
+          q: 'Qual a diferença entre baixar em PNG ou SVG?',
+          a: 'O PNG é ideal para redes sociais, mensagens e uso digital comum. O SVG é vetorial e não perde nitidez em nenhuma escala, perfeito para impressão em alta definição, cartões de visita, totens e materiais gráficos.',
+        },
+      ],
+    },
+    en: {
+      features: ['100% Offline & Private', 'Wi-Fi, Pix, Links, vCard and Text', 'Image & Camera Scanner', 'PNG and Vector SVG Export'],
+      faq: [
+        {
+          q: 'How do I generate a QR code without sending data to a server?',
+          a: 'Select the content type (URL, Wi-Fi, Pix, Contact, etc.), enter your information, and download the PNG or SVG. The QR matrix is generated directly inside your browser via Canvas/SVG — nothing is ever sent over the network.',
+        },
+        {
+          q: 'Is it safe to generate Wi-Fi passwords and private QR codes here?',
+          a: 'Yes, and that is the entire purpose of Nada Sai. Traditional online QR code generators track and log what you type. Here, everything runs locally on your machine, so your Wi-Fi credentials and private notes stay completely confidential.',
+        },
+        {
+          q: 'How does the offline QR code reader / scanner work?',
+          a: 'You can upload an image, paste directly with Ctrl+V, or enable your device camera. Image decoding is performed locally via pure TypeScript, automatically identifying Wi-Fi configs, links, contacts and payment payloads.',
+        },
+        {
+          q: 'Should I download PNG or SVG?',
+          a: 'PNG is great for screens, apps and social sharing. SVG is a resolution-independent vector format that scales infinitely without blur, making it the best choice for print, banners, packaging and merchandise.',
+        },
+      ],
+    },
+  },
 };
 
 /**

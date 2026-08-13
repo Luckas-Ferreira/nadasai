@@ -323,6 +323,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'privacidade/qr-code',
+        title: 'Gerador e Leitor de QR Code Offline — Nada Sai',
+        loadComponent: () => import('./features/privacy/qr-code/qr-code.component').then((m) => m.QrCodeComponent),
+        data: {
+          metaDescription: 'Crie e leia QR Codes 100% offline para Wi-Fi, Pix, links, vCard e textos. Nenhum dado é enviado para a internet. Rápido, seguro e gratuito no seu navegador.',
+        }
+      },
+      {
         path: 'sobre',
         title: 'Sobre o Nada Sai — Como Funciona',
         loadComponent: () => import('./features/about/about.component').then((m) => m.AboutComponent),
@@ -641,6 +649,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/privacy/encrypt-text/encrypt-text.component').then((m) => m.EncryptTextComponent),
         data: {
           metaDescription: 'Encrypt a message with a password and AES-256 and get a block you can paste into email or chat. Nothing is uploaded: 100% offline in your browser.',
+        }
+      },
+      {
+        path: 'privacy/qr-code',
+        title: 'Offline QR Code Generator & Scanner — Nada Sai',
+        loadComponent: () => import('./features/privacy/qr-code/qr-code.component').then((m) => m.QrCodeComponent),
+        data: {
+          metaDescription: 'Generate and scan QR codes 100% offline for Wi-Fi, Pix, links, vCards, and text. Zero tracking, zero uploads: fast and private in your browser.',
         }
       },
       {
