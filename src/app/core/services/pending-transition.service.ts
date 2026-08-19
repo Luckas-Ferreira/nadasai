@@ -6,7 +6,7 @@ import { WorkspaceService } from './workspace.service';
 
 /**
  * Allows a tool to register a "commit" function that runs when the user
- * navigates away without explicitly clicking "Editar o resultado".
+ * navigates away (e.g. clicking a next-tool chip, rail link, or switcher).
  *
  * The commit is a closure that calls `state.apply(...)` synchronously. Registering
  * it here means every navigation surface can trigger it without knowing anything
@@ -29,8 +29,7 @@ import { WorkspaceService } from './workspace.service';
  *
  * Lifecycle:
  * - A tool registers a commit when its result blob becomes non-null.
- * - It clears the registration when the result is discarded, or when it applies
- *   the result itself (`continueEdit`, a "next tool" chip).
+ * - It clears the registration when the result is discarded.
  * - Any navigation commits whatever is still registered.
  */
 @Injectable({ providedIn: 'root' })

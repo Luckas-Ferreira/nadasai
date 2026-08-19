@@ -182,7 +182,6 @@ const EN = {
   'common.processing': 'Working…',
   'common.retry': 'Try again',
   'common.download': 'Download',
-  'common.continue': 'Edit the result',
   'common.next_tool': 'Send to another tool',
   'common.back_to': 'Back to',
   /** The file bar's own way into the chain, available before anything has run. */
@@ -1185,7 +1184,6 @@ const PT: Record<TranslationKey, string> = {
   'common.processing': 'Processando…',
   'common.retry': 'Tentar de novo',
   'common.download': 'Baixar',
-  'common.continue': 'Editar o resultado',
   'common.next_tool': 'Enviar para outra ferramenta',
   'common.back_to': 'Voltar para',
   'common.send_to': 'Enviar para',

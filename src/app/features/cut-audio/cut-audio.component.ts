@@ -9,7 +9,6 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { AudioEngine, type Segment } from '../../core/audio/audio-engine';
 import {
   MAX_AUDIO_SECONDS,
@@ -100,7 +99,6 @@ export class CutAudioComponent implements OnDestroy {
   protected readonly tool = toolById('cut-audio');
   private readonly cutter = inject(AudioCutterService);
   private readonly workspace = inject(WorkspaceService);
-  private readonly router = inject(Router);
 
   /**
    * Owned by the component, not injected. It holds a live AudioContext and
@@ -825,20 +823,6 @@ export class CutAudioComponent implements OnDestroy {
   protected download(): void {
     const res = this.result();
     if (res) saveBlob(res.blob, res.filename);
-  }
-
-  protected continueEdit(): void {
-    const res = this.result();
-    if (!res) return;
-
-    try {
-      // NÃO reaplica: run() já commitou este corte na sessão (é o que permite
-      // cortar de novo em cima do resultado). Aplicar aqui de novo gravava
-      // `audio-cut-cut.wav` com dois passos iguais no breadcrumb.
-      void this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   // ------------------------------------------------------------ formatting
