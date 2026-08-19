@@ -27,9 +27,6 @@ test.describe('Imagens para PDF', () => {
     await primary(page, 'Gerar PDF').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 45_000 });
 
-    // A PDF is terminal: it cannot re-enter the editing chain.
-    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toHaveCount(0);
-
     await expectDownload(page, /^photo-tall-pdf\.pdf$/);
   });
 

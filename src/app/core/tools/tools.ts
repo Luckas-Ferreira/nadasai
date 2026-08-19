@@ -1051,23 +1051,6 @@ export function toolFromUrl(url: string): ToolDef | null {
 const LOSSLESS_SINKS: readonly ToolId[] = ['encrypt-file', 'file-hash'];
 
 /**
- * Ferramentas cuja FONTE é uma lista local, não a sessão.
- *
- * Juntar PDFs, juntar áudios e imagens→PDF montam uma ordem que a pessoa
- * arranjou na mão, e por isso leem a sessão uma vez no construtor em vez de
- * reagir a ela (ver o comentário de `img-to-pdf`). A consequência é que
- * "Editar o resultado" — que significa "torne este resultado o arquivo de
- * trabalho e siga daqui" — não tem o que continuar: commitar não recarrega a
- * lista, então o botão some e nada mais acontece na tela.
- *
- * `accepts.includes(produces)` sozinho não pega as duas primeiras: juntar PDFs
- * come PDF e devolve PDF. Como em `LOSSLESS_SINKS`, a exceção fica aqui, com o
- * motivo ao lado, e não como um campo do `ToolDef` que a próxima ferramenta de
- * várias fontes esqueceria de preencher.
- */
-export const MULTI_SOURCE_TOOLS: readonly ToolId[] = ['merge-pdf', 'merge-audio', 'img-to-pdf'];
-
-/**
  * Quantos chips a barra de ações mostra.
  *
  * Uma imagem é aceita por treze ferramentas depois que a cadeia passou a

@@ -30,8 +30,8 @@ test.describe('Undo', () => {
 
     await page.getByRole('button', { name: '400', exact: true }).click();
     await page.getByRole('button', { name: 'Redimensionar', exact: true }).click();
-    // "Editar o resultado" transforma o resultado no arquivo de trabalho SEM sair da ferramenta.
-    await page.getByRole('button', { name: 'Editar o resultado' }).click();
+    // Segue para Converter pelo chip, que commita o redimensionamento.
+    await page.getByRole('button', { name: 'Converter' }).click();
 
     const bar = page.locator('app-file-bar');
     await expect(bar).toContainText('Comprimir  →  Redimensionar');

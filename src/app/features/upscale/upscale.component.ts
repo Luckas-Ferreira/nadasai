@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { saveBlob } from '../../core/image/download';
 import { extForMime, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
@@ -39,7 +38,6 @@ import { ScaleFactor, SharpnessLevel, UpscaleResult, UpscaleService } from './se
 })
 export class UpscaleComponent {
   private readonly urls = inject(ObjectUrlScope);
-  private readonly router = inject(Router);
   protected readonly tool = toolById('upscale');
   private readonly upscaler = inject(UpscaleService);
   private readonly pendingTransition = inject(PendingTransitionService);
@@ -58,6 +56,20 @@ export class UpscaleComponent {
   protected readonly sharpness = signal<SharpnessLevel>('balanced');
   protected readonly denoise = signal<boolean>(true);
   protected readonly aiStrength = signal<number>(1.4);
+
+  private readonly ranScale = signal<ScaleFactor | null>(null);
+  private readonly ranSharpness = signal<SharpnessLevel | null>(null);
+  private readonly ranDenoise = signal<boolean | null>(null);
+  private readonly ranAiStrength = signal<number | null>(null);
+
+  protected readonly stale = computed(
+    () =>
+      !this.result() ||
+      this.ranScale() !== this.scale() ||
+      this.ranSharpness() !== this.sharpness() ||
+      this.ranDenoise() !== this.denoise() ||
+      this.ranAiStrength() !== this.aiStrength(),
+  );
 
   /**
    * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
@@ -95,9 +107,7 @@ export class UpscaleComponent {
   }
 
   private hydrate(file: File | null): void {
-    this.result.set(null);
-    this.resultUrl.set(null);
-    this.pendingTransition.clear();
+    this.clearResult();
 
     if (!file) {
       this.urls.revoke(this.sourceUrl());
@@ -106,7 +116,17 @@ export class UpscaleComponent {
     }
 
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
-    void this.runUpscale();
+    void this.autoRun();
+  }
+
+  /**
+   * Executa automaticamente apenas na primeira vez que uma imagem entra na ferramenta.
+   * Se 'upscale' já consta no histórico da sessão, significa que a imagem já foi melhorada,
+   * portanto não deve executar novamente ao voltar para a ferramenta.
+   */
+  private async autoRun(): Promise<void> {
+    if (this.state.history().includes('upscale')) return;
+    await this.runUpscale();
   }
 
   protected async runUpscale(): Promise<void> {
@@ -117,35 +137,37 @@ export class UpscaleComponent {
     this.errorKey.set(null);
     this.progress.set(0);
 
+    const scale = this.scale();
+    const sharpness = this.sharpness();
+    const denoise = this.denoise();
+    const aiStrength = this.aiStrength();
+
     try {
       const res = await this.upscaler.upscaleImage(
         file,
         {
-          scale: this.scale(),
-          sharpness: this.sharpness(),
-          denoise: this.denoise(),
-          aiStrength: this.aiStrength(),
+          scale,
+          sharpness,
+          denoise,
+          aiStrength,
         },
         (pct) => this.progress.set(pct)
       );
       this.result.set(res);
       this.resultUrl.set(res.dataUrl);
+      this.ranScale.set(scale);
+      this.ranSharpness.set(sharpness);
+      this.ranDenoise.set(denoise);
+      this.ranAiStrength.set(aiStrength);
 
       // `registerResult` (que chama `apply`), não `load`.
-      //
-      // O commit daqui montava um File e chamava `load()`, e `load()` começa uma
-      // sessão NOVA: history e past zerados. Ou seja, melhorar a qualidade no meio
-      // de uma cadeia apagava o breadcrumb e o desfazer de tudo que veio antes, e
-      // o nome do arquivo passava a derivar do resultado em vez do upload
-      // original — que é justamente o `crop-nobg-photo.jpg` que `originalName`
-      // existe para impedir.
-      const original = this.sourceFile();
-      if (original) {
+      const session = this.state.session();
+      if (session) {
         this.pendingTransition.registerResult(
           'upscale',
           res.blob,
           this.tool.suffix,
-          extForMime(original.type) || 'png',
+          extForMime(session.file.type) || 'png',
         );
       }
     } catch (err) {
@@ -156,19 +178,31 @@ export class UpscaleComponent {
   }
 
   protected download(): void {
-    const file = this.sourceFile();
+    const session = this.state.session();
     const res = this.result();
-    if (!file || !res) return;
+    if (!session || !res) return;
 
-    const ext = extForMime(file.type) || 'png';
-    saveBlob(res.blob, suffixedName(file.name, this.tool.suffix, ext));
+    const ext = extForMime(session.file.type) || 'png';
+    saveBlob(res.blob, suffixedName(session.originalName, this.tool.suffix, ext));
   }
 
   protected reset(): void {
+    this.urls.releaseAll();
+    this.sourceUrl.set(null);
+    this.clearResult();
+    this.errorKey.set(null);
+    this.progress.set(0);
+    this.state.clear();
+  }
+
+  private clearResult(): void {
+    this.urls.revoke(this.resultUrl());
     this.result.set(null);
     this.resultUrl.set(null);
-    this.sourceUrl.set(null);
+    this.ranScale.set(null);
+    this.ranSharpness.set(null);
+    this.ranDenoise.set(null);
+    this.ranAiStrength.set(null);
     this.pendingTransition.clear();
-    this.state.clear();
   }
 }

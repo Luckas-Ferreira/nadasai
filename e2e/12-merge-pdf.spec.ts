@@ -39,9 +39,6 @@ test.describe('Juntar PDF', () => {
     await primary(page, 'Juntar PDFs').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
 
-    // A PDF is terminal: it cannot re-enter the editing chain.
-    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toHaveCount(0);
-
     await expectDownload(page, /^doc-b-merged\.pdf$/);
   });
 

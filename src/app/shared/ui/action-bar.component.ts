@@ -13,7 +13,6 @@ import { PendingTransitionService } from '../../core/services/pending-transition
 import { TranslationService } from '../../core/services/translation.service';
 import {
   MAX_NEXT_TOOL_CHIPS,
-  MULTI_SOURCE_TOOLS,
   type ToolDef,
   type ToolId,
   nextToolsFor,
@@ -24,8 +23,7 @@ import { ButtonDirective } from './button.directive';
 import { IconComponent } from './icon/icon.component';
 
 /**
- * Apply / Download / Keep editing / Start over, previously duplicated in all
- * five tools.
+ * Apply / Download / Start over, previously duplicated in all five tools.
  *
  * `primaryLabel` is nullable, and every tool passes null once pressing the button
  * could only reproduce the result already on screen — see each tool's `stale`.
@@ -37,19 +35,13 @@ import { IconComponent } from './icon/icon.component';
  * `*ngIf="!result()"`, so trying a different quality or format meant starting
  * over and re-uploading the file.
  *
- * **Toda a parte de encadeamento é resolvida aqui, a partir de `toolId`.** A
- * versão anterior fazia cada ferramenta montar `nextTools`, decidir `canContinue`
- * e escrever seu próprio `goToTool()` com `apply` + `clear` + `navigate` — seis
- * cópias no módulo de imagem e nenhuma nos outros três, que por isso não tinham
- * chip nenhum. Sobraram três coisas, e todas são deriváveis:
+ * **Toda a parte de encadeamento é resolvida aqui, a partir de `toolId`.**
  *
  * - **Os destinos** saem de `accepts`/`produces` via `nextToolsFor`.
  * - **A navegação** é feita aqui mesmo, porque o commit do resultado pendente
  *   acontece no `NavigationStart` (ver `PendingTransitionService`): quem clica
  *   num chip não precisa aplicar nada antes, basta navegar.
- * - **Se há o que continuar** é exatamente `hasPending()`. Era um booleano que o
- *   template passava, o que permitia oferecer "continuar" para um resultado que
- *   ninguém tinha registrado — chips que não levavam nada junto.
+ * - **Se há o que continuar** é exatamente `hasPending()`.
  *
  * `resultKind` existe para as duas saídas que não são fixas: split-pdf e
  * pdf-to-img devolvem um zip quando geram vários arquivos, e oferecer "assinar
@@ -81,35 +73,17 @@ import { IconComponent } from './icon/icon.component';
         </button>
       }
 
-      <!-- Using the result: side by side, because they are alternatives to each
-           other, not a sequence. -->
       @if (canDownload()) {
-        <div class="flex gap-2">
-          <button appButton variant="secondary" size="lg" class="flex-1" (click)="download.emit()">
-            <app-icon name="download" [size]="16" />
-            {{ i18n.t()['common.download'] }}
-          </button>
-
-          <!-- "Editar o resultado" torna o resultado o arquivo de trabalho e
-               recarrega a ferramenta em cima dele — é a única forma de encadear
-               uma ferramenta na própria saída (cortar de novo o corte, carimbar
-               duas marcas). O rótulo era "Continuar editando", ao lado de um
-               painel chamado "Continuar com" que faz o OPOSTO (sai daqui): duas
-               ações contrárias com quase as mesmas palavras. Só aparece quando a
-               ferramenta come o que ela mesma produz; numa que não come —
-               img-to-pdf, pdf-to-word — prometia uma continuação inexistente. -->
-          @if (canContinue() && selfChainable()) {
-            <button
-              appButton
-              variant="secondary"
-              size="lg"
-              class="flex-1 whitespace-nowrap"
-              (click)="continueHere()"
-            >
-              {{ i18n.t()['common.continue'] }}
-            </button>
-          }
-        </div>
+        <button
+          appButton
+          variant="secondary"
+          size="lg"
+          block
+          (click)="download.emit()"
+        >
+          <app-icon name="download" [size]="16" />
+          {{ i18n.t()['common.download'] }}
+        </button>
 
         @if (canContinue() && nextTools().length > 0) {
           <div class="rounded-lg border border-line bg-raised px-3 py-2.5">
@@ -160,7 +134,7 @@ export class ActionBarComponent {
   private readonly pendingTransition = inject(PendingTransitionService);
   private readonly router = inject(Router);
 
-  /** Quem está pedindo. É daqui que saem os chips e o "continuar editando". */
+  /** Quem está pedindo. É daqui que saem os chips. */
   readonly toolId = input.required<ToolId>();
   /**
    * O tipo REAL do resultado, quando ele difere do `produces` declarado.
@@ -199,20 +173,6 @@ export class ActionBarComponent {
   protected readonly nextTools = computed<readonly ToolDef[]>(() =>
     nextToolsFor(this.kind(), this.toolId(), MAX_NEXT_TOOL_CHIPS),
   );
-
-  /** Come o que produz — é isso que dá sentido a "continuar editando". */
-  protected readonly selfChainable = computed(() => {
-    const tool = this.tool();
-    if (MULTI_SOURCE_TOOLS.includes(tool.id)) return false;
-
-    const kind = this.kind();
-    return kind !== null && tool.accepts.includes(kind);
-  });
-
-  /** Aceita o resultado sem sair: a ferramenta se re-hidrata em cima dele. */
-  protected continueHere(): void {
-    this.pendingTransition.tryCommit();
-  }
 
   protected go(tool: ToolDef): void {
     const lang = this.i18n.currentLang();

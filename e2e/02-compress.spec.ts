@@ -86,35 +86,6 @@ test.describe('Comprimir', () => {
     await expectDownload(page, /^photo-min\.png$/);
   });
 
-  test('Keep editing pushes the result into the chain without leaving the tool', async ({ page }) => {
-    await openApp(page, '/compress');
-    await upload(page);
-    await primary(page, 'Comprimir').click();
-
-    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toBeVisible({ timeout: 30_000 });
-    await page.getByRole('button', { name: 'Editar o resultado' }).click();
-
-    // Continua na ferramenta, agora trabalhando em cima do resultado. Antes isto
-    // navegava para a home — um desvio que existia só porque a ferramenta lia o
-    // arquivo uma vez, no construtor, e precisava ser reconstruída para enxergar
-    // o novo.
-    await expect(page).toHaveURL(/\/comprimir$/);
-    const bar = page.locator('app-file-bar');
-    await expect(bar).toContainText('photo-min.png');
-    await expect(bar).toContainText('Comprimir');
-
-    // Aceitar o resultado CONSOME o pendente, então os chips somem junto — não há
-    // mais nada a levar. Daqui em diante quem leva é o "Enviar para…" da barra,
-    // que existe independentemente de haver resultado; é exatamente para isso.
-    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toHaveCount(0);
-
-    await bar.getByRole('button', { name: 'Enviar para' }).click();
-    await page.getByRole('menuitem', { name: 'Redimensionar' }).click();
-
-    await expect(page.getByRole('button', { name: 'Redimensionar', exact: true })).toBeVisible();
-    await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
-  });
-
   test('Start over empties the chain', async ({ page }) => {
     await openApp(page, '/compress');
     await upload(page);

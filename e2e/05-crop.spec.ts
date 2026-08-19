@@ -47,7 +47,7 @@ test.describe('Cortar', () => {
     await expect(page.locator('.cropper-crop-box')).toBeVisible({ timeout: 20_000 });
 
     await primary(page, 'Aplicar corte').click();
-    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
 
     // The result matches the selection, so there is nothing left to apply.
     await expect(primary(page, 'Aplicar corte')).toBeHidden();
@@ -57,7 +57,7 @@ test.describe('Cortar', () => {
     await primary(page, 'Aplicar corte').click();
     await expect(page.getByRole('img', { name: 'Resultado' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Editar o resultado' }).click();
+    await page.getByRole('button', { name: 'Redimensionar' }).click();
     await expect(page.locator('app-file-bar')).toContainText('photo-crop.png');
   });
 });
