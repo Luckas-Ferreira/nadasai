@@ -6,10 +6,10 @@ import { resizeImage } from '../../core/image/converters';
 import { saveBlob } from '../../core/image/download';
 import { extForMime, formatBytes, loadImage, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -46,11 +46,9 @@ export class ResizeComponent {
   private readonly tool = toolById('resize');
   private readonly pendingTransition = inject(PendingTransitionService);
 
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
   protected readonly i18n = inject(TranslationService);
   protected readonly presets = PRESETS;
-
-  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('resize'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly resultBlob = signal<Blob | null>(null);
@@ -64,7 +62,17 @@ export class ResizeComponent {
   protected readonly height = signal(0);
   protected readonly lockAspect = signal(true);
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('resize'));
 
   protected readonly resultSize = computed(() => {
     const blob = this.resultBlob();
@@ -88,25 +96,28 @@ export class ResizeComponent {
   private readonly dimensions = computed(() => `${this.width()}x${this.height()}`);
 
   constructor() {
-    const file = this.sourceFile();
-    if (file) void this.hydrate(file);
+    hydrateFromWorkspace('resize', (file) => void this.hydrate(file));
   }
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
 
     try {
-      this.state.load(file);
+      this.state.load(file, 'resize');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async hydrate(file: File | null): Promise<void> {
+    this.clearResult();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
       return;
     }
 
-    this.clearResult();
-    void this.hydrate(file);
-  }
-
-  private async hydrate(file: File): Promise<void> {
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
 
     try {
@@ -169,14 +180,7 @@ export class ResizeComponent {
       this.ranDimensions.set(dimensions);
 
       // Register commit for rail/mobile-bar navigation.
-      this.pendingTransition.register(() => {
-        try {
-          this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      this.pendingTransition.registerResult('resize', blob, this.tool.suffix, extForMime(blob.type));
     } catch (err) {
       console.error('Resize failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -191,33 +195,6 @@ export class ResizeComponent {
     if (!blob || !session) return;
 
     saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, extForMime(blob.type)));
-  }
-
-  protected continueEdit(): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
-      this.pendingTransition.clear();
-      this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  protected goToTool(tool: ToolDef): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('resize', blob, this.tool.suffix, extForMime(blob.type));
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   protected reset(): void {

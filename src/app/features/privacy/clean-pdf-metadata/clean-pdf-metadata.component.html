@@ -85,6 +85,7 @@
       }
 
       <app-action-bar
+        [toolId]="'clean-pdf-metadata'"
         [primaryLabel]="stale() ? i18n.t()['cleanpdf.btn_clean'] : null"
         [busy]="busy()"
         [canDownload]="!!result()"

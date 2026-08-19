@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { ActiveToolService } from './core/services/active-tool.service';
-import { AudioStateService } from './core/services/audio-state.service';
-import { ImageStateService } from './core/services/image-state.service';
+import { WorkspaceService } from './core/services/workspace.service';
 import { SeoService } from './core/services/seo.service';
 import { TranslationService } from './core/services/translation.service';
 import { CommandPaletteComponent } from './shared/ui/command-palette.component';
-import { CurrentAudioFileBarComponent } from './shared/ui/current-audio-file-bar.component';
-import { CurrentFileBarComponent } from './shared/ui/current-file-bar.component';
+import { FileBarComponent } from './shared/ui/file-bar.component';
 import { MobileToolBarComponent } from './shared/ui/mobile-tool-bar.component';
 import { ModelDownloadBarComponent } from './shared/ui/model-download-bar.component';
 import { SplashScreenComponent } from './shared/ui/splash-screen.component';
@@ -34,8 +32,7 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
     ToolNavComponent,
     MobileToolBarComponent,
     CommandPaletteComponent,
-    CurrentFileBarComponent,
-    CurrentAudioFileBarComponent,
+    FileBarComponent,
     UpdateOverlayComponent,
     ModelDownloadBarComponent,
     SplashScreenComponent,
@@ -47,8 +44,7 @@ export class AppComponent {
   protected readonly seo = inject(SeoService);
   protected readonly i18n = inject(TranslationService);
   protected readonly activeTool = inject(ActiveToolService);
-  protected readonly imageState = inject(ImageStateService);
-  protected readonly audioState = inject(AudioStateService);
+  protected readonly workspace = inject(WorkspaceService);
 
   /** Global Ctrl+Z / Cmd+Z shortcut to trigger undo on the active state session. */
   @HostListener('window:keydown', ['$event'])
@@ -66,14 +62,12 @@ export class AppComponent {
       return;
     }
 
-    if (this.audioState.undoableTool()) {
-      event.preventDefault();
-      this.audioState.undo();
-      void this.router.navigate(['/']);
-    } else if (this.imageState.undoableTool()) {
-      event.preventDefault();
-      this.imageState.undo();
-      void this.router.navigate(['/']);
-    }
+    // Uma sessão só, então uma checagem só. Eram duas porque eram dois
+    // serviços, e o `else if` decidia em silêncio que o áudio ganhava do
+    // imagem quando as duas cadeias estavam vivas ao mesmo tempo.
+    if (!this.workspace.undoableTool()) return;
+
+    event.preventDefault();
+    this.workspace.undo();
   }
 }

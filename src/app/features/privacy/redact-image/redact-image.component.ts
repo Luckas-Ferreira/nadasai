@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { TranslationService } from '../../../core/services/translation.service';
 import type { TranslationKey } from '../../../core/services/translation.service';
 import { toMessageKey } from '../../../core/errors';
+import { PendingTransitionService } from '../../../core/services/pending-transition.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
+import { toolById } from '../../../core/tools/tools';
 import type { RedactMode, Region } from '../../../core/geometry/region';
 import { ObjectUrlScope } from '../../../core/image/object-url';
 import { saveBlob } from '../../../core/image/download';
@@ -59,14 +62,41 @@ export class RedactImageComponent {
   /** Moving or adding a box has to bring the export button back. */
   protected readonly stale = computed(() => !this.result() || this.regions() !== this.ranRegions());
 
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly tool = toolById('redact-image');
+
+  constructor() {
+    hydrateFromWorkspace('redact-image', (file) => this.openFile(file));
+  }
+
   protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'redact-image');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private openFile(file: File | null): void {
+    this.regions.set([]);
+    this.result.set(null);
+    this.errorKey.set(null);
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.file.set(null);
+      this.urls.revoke(this.previewUrl());
+      this.previewUrl.set(null);
+      return;
+    }
+
     this.file.set(file);
     // Was a raw createObjectURL that leaked one URL per file for the tab's
     // lifetime — reset() did not even revoke it.
     this.previewUrl.set(this.urls.replace(this.previewUrl(), file));
-    this.regions.set([]);
-    this.result.set(null);
-    this.errorKey.set(null);
   }
 
   protected addRegion(region: Region): void {
@@ -97,7 +127,14 @@ export class RedactImageComponent {
     this.busy.set(true);
     this.errorKey.set(null);
     try {
-      this.result.set(await this.redactor.redact({ file, regions }));
+      const outcome = await this.redactor.redact({ file, regions });
+      this.result.set(outcome);
+      this.pendingTransition.registerResult(
+        'redact-image',
+        outcome.blob,
+        this.tool.suffix,
+        outcome.filename.split('.').pop() ?? 'png',
+      );
       this.ranRegions.set(regions);
     } catch (err) {
       // There was no try/catch here at all before.
@@ -113,6 +150,8 @@ export class RedactImageComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.urls.revoke(this.previewUrl());
     this.previewUrl.set(null);
     this.file.set(null);

@@ -1,4 +1,13 @@
-import { MODULES, TOOLS, moduleById, toolFromUrl, toolPath, toolsOfModule } from './tools';
+import {
+  MAX_NEXT_TOOL_CHIPS,
+  MODULES,
+  TOOLS,
+  moduleById,
+  nextToolsFor,
+  toolFromUrl,
+  toolPath,
+  toolsOfModule,
+} from './tools';
 
 describe('tools registry', () => {
   /**
@@ -82,5 +91,76 @@ describe('tools registry', () => {
 
   it('throws on an unknown module rather than rendering an empty shell', () => {
     expect(() => moduleById('nope' as never)).toThrowError(/Unknown module/);
+  });
+
+  /**
+   * Toda a cadeia — os chips da barra de ações, o "Enviar para…" da barra de
+   * arquivo e a porta de hidratação de cada ferramenta — sai destes dois campos.
+   * Uma ferramenta nova que os esqueça não quebra: ela some da cadeia em
+   * silêncio, que é pior. Por isso o teste, e não a confiança no checklist.
+   */
+  it('every tool declares what it eats and what it hands back', () => {
+    for (const tool of TOOLS) {
+      expect(Array.isArray(tool.accepts)).withContext(tool.id).toBe(true);
+      expect(tool.produces === null || typeof tool.produces === 'string')
+        .withContext(tool.id)
+        .toBe(true);
+      // 'any' é uma entrada, nunca uma saída: nada "produz qualquer coisa".
+      expect(tool.produces).withContext(tool.id).not.toBe('any');
+    }
+  });
+
+  it('offers the tools that accept what the source produced', () => {
+    const ids = (kind: Parameters<typeof nextToolsFor>[0], from: Parameters<typeof nextToolsFor>[1]) =>
+      nextToolsFor(kind, from).map((t) => t.id);
+
+    // A cadeia que não existia: sair do PDF e voltar para o módulo de imagem.
+    expect(ids('image', 'pdf-to-img')).toContain('crop');
+    // E a de volta, que a guarda de tipo antiga tornava impossível.
+    expect(ids('pdf', 'img-to-pdf')).toContain('merge-pdf');
+    // Os destinos universais estão sempre lá.
+    expect(ids('audio', 'normalize-audio')).toContain('encrypt-file');
+    expect(ids('zip', 'split-pdf')).toEqual(['encrypt-file', 'file-hash']);
+  });
+
+  it('never offers a tool itself, and offers nothing for a null kind', () => {
+    expect(nextToolsFor('image', 'crop').map((t) => t.id)).not.toContain('crop');
+    expect(nextToolsFor(null, 'protect-pdf')).toEqual([]);
+  });
+
+  it('puts the source module first, because that is the common case', () => {
+    const first = nextToolsFor('pdf', 'compress-pdf')[0];
+    expect(first.category).toBe('pdf');
+  });
+
+  /**
+   * O teste que a suíte e2e escreveu: com a ordem de declaração e um corte em
+   * seis, "Converter" caía fora dos chips do redimensionar — vetorizar e
+   * extrair-texto passavam na frente porque estão declarados antes. Continuar
+   * mexendo na imagem vem antes de transformá-la em outra coisa.
+   */
+  it('offers the tools that keep the kind before the ones that change it', () => {
+    const chips = nextToolsFor('image', 'resize', MAX_NEXT_TOOL_CHIPS).map((t) => t.id);
+
+    expect(chips).toContain('convert');
+    expect(chips).toContain('crop');
+    expect(chips.indexOf('convert')).toBeLessThan(chips.indexOf('vectorize'));
+    expect(chips.indexOf('compress')).toBeLessThan(chips.indexOf('img-to-pdf'));
+  });
+
+  /**
+   * O strip do remove-exif é byte a byte, e qualquer editor raster daqui em
+   * diante decodifica num canvas e reencoda — desfazendo em silêncio a única
+   * coisa que a ferramenta faz. Só cifrar e resumir em hash não tocam num pixel.
+   */
+  it('sends a losslessly stripped image only where it stays lossless', () => {
+    expect(nextToolsFor('image', 'remove-exif').map((t) => t.id)).toEqual([
+      'encrypt-file',
+      'file-hash',
+    ]);
+  });
+
+  it('honours the chip limit', () => {
+    expect(nextToolsFor('image', 'crop', 3).length).toBe(3);
   });
 });

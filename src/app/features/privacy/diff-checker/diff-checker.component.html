@@ -135,6 +135,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'diff-checker'"
         [primaryLabel]="null"
         [canDownload]="hasDifferences()"
         (download)="downloadPatch()"

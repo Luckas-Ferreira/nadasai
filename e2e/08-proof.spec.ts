@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
+import { expectDownload, openApp, primary, upload } from './helpers';
 
 /**
  * The product is one claim: the file never leaves the machine. Everything else —
@@ -40,13 +40,14 @@ test.describe('Zero-upload, asserted from outside the app', () => {
     await openApp(page, '/pt/imagem/comprimir');
     await upload(page);
     await primary(page, 'Comprimir').click();
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    // Keep editing lands on the home, where the grid is the navigation.
-    await pickFromHome(page, 'Redimensionar');
+    // O chip leva o resultado junto e vai direto para a ferramenta seguinte: a
+    // cadeia não passa mais pela home, e é justamente atravessando duas
+    // ferramentas sem escala que um vazamento apareceria.
+    await page.getByRole('button', { name: 'Redimensionar' }).click();
     await page.getByRole('button', { name: '400', exact: true }).click();
     await primary(page, 'Redimensionar').click();
-    await expectDownload(page, /^photo-resized\.webp$/);
+    await expectDownload(page, /^photo-resized\.png$/);
 
     expect(requests, 'no requests seen at all — the listener is not attached').toBeGreaterThan(0);
 

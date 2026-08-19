@@ -12,7 +12,7 @@ import { IconComponent } from './icon/icon.component';
  * skews how you judge an image's brightness — but an empty dropzone has no
  * image in it, so on the light theme it was just a black slab.
  *
- * Validation is the caller's job (ImageStateService / assertUsableImage) — this
+ * Validation is the caller's job (WorkspaceService / assertUsableImage) — this
  * only emits the File. `accept` is a filter, not a guarantee: the OS picker lets
  * users switch to "All files", which is how a .txt used to reach the tools.
  */

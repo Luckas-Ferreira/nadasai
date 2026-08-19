@@ -4,7 +4,9 @@ import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../core/pdf/pdfjs';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -45,6 +47,18 @@ export class OrganizePdfComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly organizer = inject(PdfOrganizerService);
   protected readonly tool = toolById('organize-pdf');
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+
+  constructor() {
+    // A sessão é a fonte: um PDF que veio de img-to-pdf, de outra ferramenta de
+    // PDF ou de um desfazer chega por aqui exatamente como o que a pessoa soltou
+    // no dropzone. A senha vem junto — antes cada ferramenta guardava a sua, e
+    // encadear três num arquivo protegido pedia a mesma senha três vezes.
+    hydrateFromWorkspace('organize-pdf', (file) =>
+      void this.openFile(file, this.workspace.pdfPassword() ?? undefined),
+    );
+  }
 
   protected readonly i18n = inject(TranslationService);
 
@@ -82,7 +96,34 @@ export class OrganizePdfComponent {
 
   private nextId = 0;
 
-  protected async onFile(file: File, password?: string): Promise<void> {
+  /**
+   * O upload. Só entra na sessão — abrir o documento é do `openFile()`, que a
+   * hidratação chama. Antes este método fazia as duas coisas, e por isso o
+   * caminho "o arquivo já estava na sessão" simplesmente não existia no módulo
+   * de PDF: cada ferramenta começava do zero, com um novo upload.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'organize-pdf');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  /** A senha do prompt: guardada na sessão, para o resto da cadeia não repetir. */
+  protected onUnlock(password: string): void {
+    this.workspace.setPdfPassword(password);
+    void this.openFile(this.pendingFile(), password);
+  }
+
+  private async openFile(file: File | null, password?: string): Promise<void> {
+    if (!file) {
+      this.reset();
+      return;
+    }
+
     if (this.reading() || this.busy()) return;
 
     this.errorKey.set(null);
@@ -194,6 +235,7 @@ export class OrganizePdfComponent {
       });
 
       this.resultBlob.set(blob);
+      this.pendingTransition.registerResult('organize-pdf', blob, this.tool.suffix, 'pdf');
       this.ranSettings.set(this.settings());
     } catch (err) {
       console.error('[OrganizePdf] Build failed:', err);
@@ -213,6 +255,8 @@ export class OrganizePdfComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.urls.releaseAll();
     this.file.set(null);
     this.pendingFile.set(null);

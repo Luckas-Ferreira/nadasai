@@ -1,0 +1,173 @@
+<!--
+  O gravador não tem dropzone: ele é a única ferramenta do produto cuja entrada
+  não é um arquivo. `forceLoaded` existe exatamente para isso — o `loaded` padrão
+  olha a sessão, que aqui está vazia até a primeira gravação existir.
+-->
+<app-tool-page [toolId]="'screen-recorder'" [forceLoaded]="true">
+  <div banner>
+    @if (!supported()) {
+      <app-alert [message]="i18n.t()['error.capture_unsupported']" />
+    }
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+    @if (noticeKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" tone="info" dismissible (dismiss)="noticeKey.set(null)" />
+    }
+  </div>
+
+  <div stage>
+    <!--
+      `bg-stage` e não `bg-doc-stage`: o que está aqui é uma imagem em movimento
+      cujo enquadramento a pessoa está julgando ("é essa janela mesmo?"), não um
+      documento que ela lê. É o caso para o qual o token escuro foi escrito.
+    -->
+    <div
+      class="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-[10px] bg-stage p-4"
+    >
+      @if (recording()) {
+        <video
+          #preview
+          muted
+          playsinline
+          class="max-h-[62vh] w-full rounded-md object-contain"
+        ></video>
+
+        <span
+          class="absolute left-6 top-6 flex items-center gap-2 rounded-md bg-black/60 px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur"
+        >
+          <span class="relative flex h-2.5 w-2.5">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--tone-rose-fg)] opacity-75"
+            ></span>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--tone-rose-fg)]"></span>
+          </span>
+          {{ i18n.t()['screenrec.recording'] }}
+          <span class="font-mono tabular">{{ elapsed() }}</span>
+        </span>
+      } @else if (resultUrl()) {
+        <video
+          [src]="resultUrl()"
+          controls
+          playsinline
+          class="max-h-[62vh] w-full rounded-md object-contain"
+        ></video>
+      } @else {
+        <div class="flex flex-col items-center gap-3 px-6 py-16 text-center">
+          <span
+            class="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white/70"
+          >
+            <app-icon name="screenRecord" [size]="24" />
+          </span>
+          <p class="max-w-[42ch] text-sm text-white/70">
+            {{ i18n.t()['screenrec.subtitle'] }}
+          </p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div panel>
+    <div class="flex flex-col gap-4">
+      <app-panel [heading]="i18n.t()['screenrec.sources']">
+        <div class="flex flex-col gap-3">
+          <label class="flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-fill)]"
+              [checked]="systemAudio()"
+              [disabled]="recording()"
+              (change)="systemAudio.set($any($event.target).checked)"
+            />
+            <span class="min-w-0">
+              <span class="block text-sm text-text">{{ i18n.t()['screenrec.system_audio'] }}</span>
+              <span class="mt-0.5 block text-xs text-faint">{{
+                i18n.t()['screenrec.system_audio_hint']
+              }}</span>
+            </span>
+          </label>
+
+          <label class="flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-fill)]"
+              [checked]="microphone()"
+              [disabled]="recording()"
+              (change)="microphone.set($any($event.target).checked)"
+            />
+            <span class="min-w-0">
+              <span class="block text-sm text-text">{{ i18n.t()['screenrec.mic'] }}</span>
+              <span class="mt-0.5 block text-xs text-faint">{{ i18n.t()['screenrec.mic_hint'] }}</span>
+            </span>
+          </label>
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['screenrec.format']">
+        @if (formatOptions().length > 1) {
+          <app-segmented
+            [options]="formatOptions()"
+            [value]="format()"
+            (valueChange)="format.set($event)"
+            [ariaLabel]="i18n.t()['screenrec.format']"
+            [columns]="2"
+          />
+        } @else {
+          <!-- Um formato só não é uma escolha: mostrar um seletor de uma opção
+               fingiria que há decisão a tomar. Mas a pessoa ainda precisa saber
+               que arquivo vai receber, então o nome fica escrito. -->
+          <p class="text-sm text-text">{{ soleFormat() }}</p>
+        }
+        <p class="mt-2 text-xs text-faint">{{ i18n.t()['screenrec.format_hint'] }}</p>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['screenrec.quality']">
+        <app-segmented
+          [options]="qualityOptions()"
+          [value]="quality()"
+          (valueChange)="quality.set($event)"
+          [ariaLabel]="i18n.t()['screenrec.quality']"
+          [columns]="3"
+        />
+      </app-panel>
+
+      @if (recording()) {
+        <app-panel>
+          <div class="flex items-baseline justify-between">
+            <span class="text-sm text-muted">{{ i18n.t()['screenrec.elapsed'] }}</span>
+            <span class="font-mono text-lg text-text tabular">{{ elapsed() }}</span>
+          </div>
+          <p class="mt-2 text-xs text-faint">{{ i18n.t()['screenrec.limit_hint'] }}</p>
+        </app-panel>
+      } @else if (result()) {
+        <app-panel [heading]="i18n.t()['screenrec.ready']">
+          <div class="flex flex-col gap-1.5 text-sm">
+            <div class="flex items-baseline justify-between">
+              <span class="text-muted">{{ i18n.t()['screenrec.duration'] }}</span>
+              <span class="font-mono text-text tabular">{{ resultDuration() }}</span>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span class="text-muted">{{ i18n.t()['screenrec.size'] }}</span>
+              <span class="font-mono text-text tabular">{{ resultSize() }}</span>
+            </div>
+          </div>
+          <p class="mt-2 text-xs text-faint">{{ i18n.t()['screenrec.preview_hint'] }}</p>
+        </app-panel>
+      }
+
+      <!--
+        O botão principal É o estado. Ele não some depois de gravar: gravar de
+        novo é a ação seguinte mais provável, e a barra já mostra o download e os
+        destinos da gravação que existe.
+      -->
+      <app-action-bar
+        [toolId]="'screen-recorder'"
+        [primaryLabel]="supported() ? primaryLabel() : null"
+        [canDownload]="!!result()"
+        (primary)="toggle()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    </div>
+  </div>
+</app-tool-page>

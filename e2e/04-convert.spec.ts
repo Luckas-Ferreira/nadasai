@@ -42,7 +42,7 @@ test.describe('Converter', () => {
     // jspdf is a dynamic import, so the first PDF run also exercises lazy chunk loading.
     await primary(page, 'Converter').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 45_000 });
-    await expect(page.getByRole('button', { name: 'Continuar editando' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toHaveCount(0);
     await expectDownload(page, /^photo-converted\.pdf$/);
 
     // The backdrop reaches the output only for PDF, so here — and only here —
@@ -57,7 +57,7 @@ test.describe('Converter', () => {
     await format(page, 'ICO').click();
     await primary(page, 'Converter').click();
     await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole('button', { name: 'Continuar editando' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toHaveCount(0);
     await expectDownload(page, /^photo-converted\.ico$/);
   });
 
@@ -75,8 +75,8 @@ test.describe('Converter', () => {
 
     await format(page, 'PNG').click();
     await primary(page, 'Converter').click();
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
+    await page.getByRole('button', { name: 'Editar o resultado' }).click();
 
-    await expect(page.getByText('photo-converted.png')).toBeVisible();
+    await expect(page.locator('app-file-bar')).toContainText('photo-converted.png');
   });
 });

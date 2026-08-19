@@ -59,14 +59,12 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'convert'"
         [primaryLabel]="stale() ? i18n.t()['convert.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"
-        [canContinue]="!!resultBlob() && !isTerminal()"
-        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

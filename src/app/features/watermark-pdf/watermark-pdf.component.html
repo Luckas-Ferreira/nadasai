@@ -1,19 +1,17 @@
 <app-tool-page [toolId]="'watermark-pdf'" [forceLoaded]="!!file()">
-  <!-- Error Banners -->
   <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
     @if (errorKey(); as key) {
       <app-alert [message]="i18n.t()[key]" dismissible (dismiss)="errorKey.set(null)" />
     }
   </div>
 
-  <!-- STAGE AREA: Live Watermark Overlay Preview -->
   <div stage>
     @if (!file()) {
       @if (pdfProtected()) {
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -26,60 +24,47 @@
         />
       }
     } @else {
-      <div class="relative flex flex-col items-center justify-center min-h-[380px] overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage p-4 md:p-6">
-        <!-- Stage Top Bar -->
-        <div class="absolute top-0 inset-x-0 flex items-center justify-between gap-3 p-3 border-b border-doc-stage-line text-xs bg-doc-stage/70 backdrop-blur-sm z-10">
-          <div class="flex items-center gap-2 min-w-0">
+      <div
+        class="relative flex min-h-[380px] flex-col items-center justify-center overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage p-4 md:p-6"
+      >
+        <div
+          class="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 border-b border-doc-stage-line bg-doc-stage/70 p-3 text-xs backdrop-blur-sm"
+        >
+          <div class="flex min-w-0 items-center gap-2">
             <span class="truncate font-medium text-text">{{ file()?.name }}</span>
-            <span class="shrink-0 font-mono text-faint">({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})</span>
+            <span class="shrink-0 font-mono text-faint"
+              >({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})</span
+            >
           </div>
 
-          <button
-            appButton
-            variant="ghost"
-            size="sm"
-            class="text-faint hover:text-text"
-            (click)="reset()"
-          >
+          <button appButton variant="ghost" size="sm" class="text-faint hover:text-text" (click)="reset()">
             <app-icon name="close" [size]="14" />
             {{ i18n.t()['common.clear'] }}
           </button>
         </div>
 
-        <!-- Preview Image Canvas with Live Watermark Text Overlay -->
-        <div class="mt-10 flex items-center justify-center w-full flex-1 relative">
+        <!-- A prévia é um canvas e não uma <img> com um <span> por cima: a marca é
+             desenhada pela mesma geometria do resultado, então o que está na tela
+             é o que sai no arquivo — inclusive quantas marcas e onde. -->
+        <div class="mt-10 flex w-full flex-1 items-center justify-center">
           @if (renderingPreview()) {
             <div class="flex flex-col items-center justify-center gap-3 py-16">
               <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
-              <p class="text-sm font-medium text-muted">Carregando pré-visualização…</p>
-            </div>
-          } @else if (previewUrl()) {
-            <div class="relative max-h-[52vh] overflow-hidden rounded-md bg-white shadow-page flex items-center justify-center">
-              <img [src]="previewUrl()" [alt]="file()?.name" class="max-h-[52vh] w-auto object-contain block" />
-
-              <!-- Live Watermark Overlay Text -->
-              @if (text().trim()) {
-                <div
-                  class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
-                >
-                  <span
-                    class="font-extrabold uppercase tracking-widest text-center whitespace-nowrap"
-                    [style.color]="colorHex()"
-                    [style.opacity]="opacity()"
-                    [style.transform]="'rotate(' + rotationDegrees() + 'deg)'"
-                    [style.font-size.px]="fontSize() * 0.75"
-                  >
-                    {{ text() }}
-                  </span>
-                </div>
-              }
+              <p class="text-sm font-medium text-muted">{{ i18n.t()['wmpdf.loading_preview'] }}</p>
             </div>
           }
+          <canvas
+            #preview
+            class="max-h-[52vh] w-auto rounded-md bg-white shadow-page"
+            [class.hidden]="renderingPreview()"
+            [attr.aria-label]="i18n.t()['wmpdf.preview_alt']"
+          ></canvas>
         </div>
 
-        <!-- Busy Processing Overlay -->
         @if (busy()) {
-          <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px] z-20">
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px]"
+          >
             <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
             <p class="text-sm font-medium text-text">{{ i18n.t()['wmpdf.working'] }}</p>
             <div class="w-56">
@@ -89,7 +74,7 @@
                   [style.width.%]="progress() ?? 0"
                 ></div>
               </div>
-              <p class="mt-2 text-center text-xs text-faint tabular" aria-live="polite">
+              <p class="mt-2 text-center text-xs tabular text-faint" aria-live="polite">
                 {{ progress() ?? 0 }}%
               </p>
             </div>
@@ -99,89 +84,188 @@
     }
   </div>
 
-  <!-- PANEL AREA: Watermark Options & Actions -->
   <div panel class="flex flex-col gap-4">
     @if (file()) {
-      <app-panel [heading]="i18n.t()['wmpdf.title']">
+      <app-panel [heading]="i18n.t()['wmpdf.mark']">
         <div class="flex flex-col gap-4">
-          <!-- Text Field -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-muted">
-              {{ i18n.t()['wmpdf.text_label'] }}
-            </label>
-            <input
-              type="text"
-              [value]="text()"
-              (input)="text.set($any($event.target).value)"
-              placeholder="Ex: CONFIDENCIAL"
-              class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent font-semibold"
-            />
-          </div>
+          <app-segmented
+            [options]="kindOptions()"
+            [value]="kind()"
+            (valueChange)="kind.set($event)"
+            [ariaLabel]="i18n.t()['wmpdf.mark']"
+            [columns]="2"
+          />
 
-          <!-- Color Selector -->
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-medium text-muted">Cor da Marca d'Água</span>
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="h-6 w-6 rounded-full border-2"
-                [class.border-accent]="colorHex() === '#ef4444'"
-                [class.border-transparent]="colorHex() !== '#ef4444'"
-                style="background-color: #ef4444;"
-                (click)="colorHex.set('#ef4444')"
-              ></button>
-              <button
-                type="button"
-                class="h-6 w-6 rounded-full border-2"
-                [class.border-accent]="colorHex() === '#64748b'"
-                [class.border-transparent]="colorHex() !== '#64748b'"
-                style="background-color: #64748b;"
-                (click)="colorHex.set('#64748b')"
-              ></button>
-              <button
-                type="button"
-                class="h-6 w-6 rounded-full border-2"
-                [class.border-accent]="colorHex() === '#3b82f6'"
-                [class.border-transparent]="colorHex() !== '#3b82f6'"
-                style="background-color: #3b82f6;"
-                (click)="colorHex.set('#3b82f6')"
-              ></button>
-              <button
-                type="button"
-                class="h-6 w-6 rounded-full border-2"
-                [class.border-accent]="colorHex() === '#000000'"
-                [class.border-transparent]="colorHex() !== '#000000'"
-                style="background-color: #000000;"
-                (click)="colorHex.set('#000000')"
-              ></button>
+          @if (kind() === 'text') {
+            <div class="flex flex-col gap-1.5">
+              <label for="wm-text" class="text-xs font-medium text-muted">
+                {{ i18n.t()['wmpdf.text_label'] }}
+              </label>
+              <!-- Um textarea, não um input: cada linha vira uma linha da marca, que
+                   é como se põem vários nomes numa marca só. -->
+              <textarea
+                id="wm-text"
+                rows="3"
+                [value]="text()"
+                (input)="text.set($any($event.target).value)"
+                class="w-full resize-y rounded-md border border-line bg-surface px-3 py-2 text-sm font-semibold text-text outline-none focus:border-accent"
+              ></textarea>
+              <p class="text-xs text-faint">{{ i18n.t()['wmpdf.text_hint'] }}</p>
             </div>
-          </div>
 
-          <!-- Rotation Angle -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-muted">
-              {{ i18n.t()['wmpdf.rotation_label'] }}
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between text-xs text-muted">
+                <span>{{ i18n.t()['wmpdf.size_label'] }}</span>
+                <span class="font-mono tabular">{{ fontSize() }} pt</span>
+              </div>
+              <input
+                type="range"
+                min="8"
+                max="120"
+                step="1"
+                [value]="fontSize()"
+                (input)="fontSize.set(+$any($event.target).value)"
+                class="cursor-pointer accent-accent"
+                [attr.aria-label]="i18n.t()['wmpdf.size_label']"
+              />
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-muted">{{ i18n.t()['wmpdf.color_label'] }}</span>
+              <div class="flex gap-2">
+                @for (colour of colours; track colour) {
+                  <button
+                    type="button"
+                    class="h-6 w-6 rounded-full border-2"
+                    [class.border-accent]="colorHex() === colour"
+                    [class.border-transparent]="colorHex() !== colour"
+                    [style.background-color]="colour"
+                    [attr.aria-label]="colour"
+                    [attr.aria-pressed]="colorHex() === colour"
+                    (click)="colorHex.set(colour)"
+                  ></button>
+                }
+              </div>
+            </div>
+
+            <label class="flex cursor-pointer items-center gap-2.5">
+              <input
+                type="checkbox"
+                class="h-4 w-4 shrink-0 accent-[var(--accent-fill)]"
+                [checked]="bold()"
+                (change)="bold.set($any($event.target).checked)"
+              />
+              <span class="text-sm text-text">{{ i18n.t()['wmpdf.bold'] }}</span>
             </label>
-            <app-segmented
-              [options]="rotationOptions()"
+          } @else {
+            @if (logoUrl(); as url) {
+              <div class="flex items-center gap-3 rounded-lg border border-line bg-raised p-3">
+                <img [src]="url" alt="" class="h-12 w-12 shrink-0 object-contain" />
+                <span class="min-w-0 flex-1 truncate text-sm text-text">{{ logo()?.name }}</span>
+                <button appButton variant="ghost" size="sm" (click)="logo.set(null); logoUrl.set(null)">
+                  <app-icon name="close" [size]="14" />
+                </button>
+              </div>
+            } @else {
+              <app-dropzone
+                [accept]="'image/*'"
+                [titleKey]="'wmpdf.logo_drag'"
+                [hintKey]="'wmpdf.logo_hint'"
+                [buttonKey]="'pdf.upload_btn'"
+                (fileSelected)="onLogo($event)"
+              />
+            }
+
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between text-xs text-muted">
+                <span>{{ i18n.t()['wmpdf.logo_width'] }}</span>
+                <span class="font-mono tabular">{{ logoWidthPercent() }}%</span>
+              </div>
+              <input
+                type="range"
+                min="5"
+                max="100"
+                step="1"
+                [value]="logoWidthPercent()"
+                (input)="logoWidthPercent.set(+$any($event.target).value)"
+                class="cursor-pointer accent-accent"
+                [attr.aria-label]="i18n.t()['wmpdf.logo_width']"
+              />
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['wmpdf.arrangement']">
+        <div class="flex flex-col gap-4">
+          <app-segmented
+            [options]="layoutOptions()"
+            [value]="layout()"
+            (valueChange)="layout.set($event)"
+            [ariaLabel]="i18n.t()['wmpdf.arrangement']"
+            [columns]="2"
+          />
+
+          @if (layout() === 'single') {
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-medium text-muted">{{ i18n.t()['wmpdf.position'] }}</span>
+              <!-- Nove pontos, e não um par de sliders: "no canto de baixo à
+                   direita" é uma escolha, não uma coordenada para acertar no olho. -->
+              <div
+                class="grid w-fit grid-cols-3 gap-1 rounded-md border border-line bg-raised p-1"
+                role="radiogroup"
+                [attr.aria-label]="i18n.t()['wmpdf.position']"
+              >
+                @for (spot of positions; track spot) {
+                  <button
+                    type="button"
+                    role="radio"
+                    [attr.aria-checked]="position() === spot"
+                    [attr.aria-label]="positionLabel(spot)"
+                    class="h-7 w-7 rounded-sm border border-line-strong/40"
+                    [class.bg-accent-fill]="position() === spot"
+                    [class.bg-surface]="position() !== spot"
+                    (click)="position.set(spot)"
+                  ></button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="flex flex-col gap-1">
+              <div class="flex justify-between text-xs text-muted">
+                <span>{{ i18n.t()['wmpdf.gap'] }}</span>
+                <span class="font-mono tabular">{{ gapPercent() }}%</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="200"
+                step="5"
+                [value]="gapPercent()"
+                (input)="gapPercent.set(+$any($event.target).value)"
+                class="cursor-pointer accent-accent"
+                [attr.aria-label]="i18n.t()['wmpdf.gap']"
+              />
+            </div>
+          }
+
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-xs text-muted">
+              <span>{{ i18n.t()['wmpdf.rotation_label'] }}</span>
+              <span class="font-mono tabular">{{ rotationDegrees() }}°</span>
+            </div>
+            <input
+              type="range"
+              min="-90"
+              max="90"
+              step="5"
               [value]="rotationDegrees()"
-              (valueChange)="rotationDegrees.set($event)"
-              [columns]="3"
+              (input)="rotationDegrees.set(+$any($event.target).value)"
+              class="cursor-pointer accent-accent"
+              [attr.aria-label]="i18n.t()['wmpdf.rotation_label']"
             />
           </div>
 
-          <!-- Font Size -->
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-medium text-muted">Tamanho do Texto</label>
-            <app-segmented
-              [options]="fontSizeOptions()"
-              [value]="fontSize()"
-              (valueChange)="fontSize.set($event)"
-              [columns]="3"
-            />
-          </div>
-
-          <!-- Opacity Slider -->
           <div class="flex flex-col gap-1">
             <div class="flex justify-between text-xs text-muted">
               <span>{{ i18n.t()['wmpdf.opacity_label'] }}</span>
@@ -189,34 +273,44 @@
             </div>
             <input
               type="range"
-              min="0.1"
+              min="0.05"
               max="1"
               step="0.05"
               [value]="opacity()"
               (input)="opacity.set(+$any($event.target).value)"
-              class="accent-accent cursor-pointer"
+              class="cursor-pointer accent-accent"
+              [attr.aria-label]="i18n.t()['wmpdf.opacity_label']"
             />
           </div>
 
-          <!-- Summary Stats -->
           <div class="flex justify-between border-t border-line pt-3 text-sm">
             <span class="text-muted">{{ i18n.t()['cpdf.pages'] }}</span>
-            <span class="font-mono text-text tabular">{{ pageCount() }}</span>
+            <span class="font-mono tabular text-text">{{ pageCount() }}</span>
           </div>
 
           @if (resultSize(); as size) {
             <div class="flex justify-between text-sm">
-              <span class="text-muted">Resultado</span>
-              <span class="font-mono text-text tabular">{{ size }}</span>
+              <span class="text-muted">{{ i18n.t()['wmpdf.result'] }}</span>
+              <span class="font-mono tabular text-text">{{ size }}</span>
             </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-muted">{{ i18n.t()['wmpdf.marks_per_page'] }}</span>
+              <span class="font-mono tabular text-text">{{ marksPerPage() }}</span>
+            </div>
+          }
+
+          <!-- Diz que apertou, em vez de aplicar um espaçamento diferente do que o
+               controle mostra — mesma regra do crossfade em juntar-áudio. -->
+          @if (spacingClamped()) {
+            <p class="text-xs text-warning">{{ i18n.t()['wmpdf.spacing_clamped'] }}</p>
           }
         </div>
       </app-panel>
 
-      <!-- Action Bar -->
       <app-action-bar
+        [toolId]="'watermark-pdf'"
         [primaryLabel]="stale() ? i18n.t()['wmpdf.btn'] : null"
-        [primaryDisabled]="!text().trim()"
+        [primaryDisabled]="!canRun()"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"
         (primary)="run()"

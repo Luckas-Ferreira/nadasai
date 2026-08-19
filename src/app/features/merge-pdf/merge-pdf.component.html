@@ -110,6 +110,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'merge-pdf'"
         [primaryLabel]="stale() ? i18n.t()['mergepdf.btn'] : null"
         [primaryDisabled]="reading()"
         [busy]="busy()"

@@ -330,13 +330,12 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'normalize-audio'"
         [primaryLabel]="primaryLabel()"
         [busy]="busy()"
         [canDownload]="!!result()"
-        [canContinue]="!!result()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

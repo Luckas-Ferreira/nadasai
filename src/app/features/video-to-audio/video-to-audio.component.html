@@ -236,13 +236,12 @@
       }
 
       <app-action-bar
+        [toolId]="'video-to-audio'"
         [primaryLabel]="primaryLabel()"
         [busy]="busy()"
         [canDownload]="!!result()"
-        [canContinue]="chained()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

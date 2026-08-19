@@ -22,7 +22,8 @@ import { computePeaks, rulerStep, type Peaks } from '../../core/audio/waveform';
 import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
-import { AudioStateService } from '../../core/services/audio-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -84,7 +85,8 @@ export class NormalizeAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('normalize-audio');
   private readonly normalizer = inject(AudioNormalizerService);
-  private readonly audioState = inject(AudioStateService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
   private readonly router = inject(Router);
   private readonly engine = new AudioEngine();
 
@@ -285,8 +287,7 @@ export class NormalizeAudioComponent implements OnDestroy {
       this.draw();
     });
 
-    const savedFile = this.audioState.currentFile();
-    if (savedFile) void this.onFile(savedFile);
+    hydrateFromWorkspace('normalize-audio', (file) => void this.openFile(file));
   }
 
   ngOnDestroy(): void {
@@ -301,13 +302,41 @@ export class NormalizeAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- carga
 
-  protected async onFile(file: File): Promise<void> {
+  /**
+   * O upload. Só carrega na sessão — decodificar é do `openFile()`, que a
+   * hidratação chama tanto para o arquivo que a pessoa soltou aqui quanto para o
+   * que chegou pela cadeia ou voltou por um desfazer.
+   *
+   * A separação conserta um bug real: o caminho de hidratação chamava este mesmo
+   * método, e ele chamava `load()` — que zera `history` e `past`. Ou seja, ir de
+   * cortar para normalizar apagava o breadcrumb e o desfazer do módulo inteiro,
+   * exatamente no momento em que a cadeia ia começar a valer alguma coisa.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'normalize-audio');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.stopPlayback();
     this.errorKey.set(null);
     this.result.set(null);
+    this.pendingTransition.clear();
     this.ranOptions.set(null);
     this.measurement.set(null);
     this.phase.set('decoding');
+
+    if (!file) {
+      this.currentFile.set(null);
+      this.audioBuffer.set(null);
+      this.phase.set(null);
+      return;
+    }
 
     try {
       assertUsableAudio(file);
@@ -319,7 +348,6 @@ export class NormalizeAudioComponent implements OnDestroy {
       if (buffer.duration > 3 * 3600) throw new AppError('audio_too_long');
 
       this.currentFile.set(file);
-      this.audioState.load(file);
       this.audioBuffer.set(buffer);
       this.zoomLevel.set(1);
       this.viewStart.set(0);
@@ -350,7 +378,8 @@ export class NormalizeAudioComponent implements OnDestroy {
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
-    this.audioState.clear();
+    this.pendingTransition.clear();
+    this.workspace.clear();
   }
 
   // ---------------------------------------------------------------- zoom
@@ -450,7 +479,13 @@ export class NormalizeAudioComponent implements OnDestroy {
   }
 
   private stopPlayback(): void {
-    cancelAnimationFrame(this.frame);
+    // Mesma guarda do `ngOnDestroy`, por um caminho novo: a hidratação chama
+    // `openFile(null)` na construção da ferramenta, e ele passa por aqui antes de
+    // qualquer quadro ter sido agendado. No prerender isso roda no Node, onde
+    // `cancelAnimationFrame` não existe — sem o `if`, abrir qualquer rota de áudio
+    // matava o worker e derrubava as rotas que ainda estavam na fila dele.
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.frame = 0;
     this.engine.stop();
     this.playing.set(false);
     this.playhead.set(null);
@@ -487,7 +522,8 @@ export class NormalizeAudioComponent implements OnDestroy {
       });
       this.ranOptions.set(options);
 
-      this.audioState.apply('normalize-audio', outcome.blob, this.tool.suffix, outcome.ext);
+      // Registrado, não aplicado: ver compress-audio.
+      this.pendingTransition.registerResult('normalize-audio', outcome.blob, this.tool.suffix, outcome.ext);
     } catch (err) {
       console.error('[NormalizeAudio] run error:', err);
       this.errorKey.set(toMessageKey(err));
@@ -500,18 +536,6 @@ export class NormalizeAudioComponent implements OnDestroy {
   protected download(): void {
     const current = this.result();
     if (current) saveBlob(current.blob, current.filename);
-  }
-
-  protected continueEdit(): void {
-    const current = this.result();
-    if (!current) return;
-
-    try {
-      this.audioState.apply('normalize-audio', current.blob, this.tool.suffix, current.ext);
-      void this.router.navigate(['/']);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   // ---------------------------------------------------------------- formatação

@@ -4,7 +4,9 @@ import { toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { toolById } from '../../core/tools/tools';
 import { MODE_PRESETS, type VectorMode, suggestMode } from '../../core/vector/vectorize';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -20,7 +22,7 @@ import { VectorizerService } from './services/vectorizer.service';
 /**
  * Imagem -> SVG.
  *
- * FORA DA CADEIA DO ImageStateService, e isso não é esquecimento. A saída é SVG,
+ * FORA DA CADEIA DO WorkspaceService, e isso não é esquecimento. A saída é SVG,
  * não `image/*`, então `apply()` recusaria — e recusa com razão: o próximo tool
  * da cadeia reencoda por canvas, o que rasteriza de volta exatamente o vetor que
  * esta ferramenta acabou de produzir. Mesmo argumento que já isola `remove-exif`
@@ -51,6 +53,12 @@ export class VectorizeComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly vectorizer = inject(VectorizerService);
   private readonly tool = toolById('vectorize');
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+
+  constructor() {
+    hydrateFromWorkspace('vectorize', (file) => void this.openFile(file));
+  }
 
   protected readonly i18n = inject(TranslationService);
 
@@ -150,9 +158,27 @@ export class VectorizeComponent {
     return `vector.suggest.${s}` as TranslationKey;
   });
 
-  protected async onFile(file: File): Promise<void> {
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'vectorize');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.errorKey.set(null);
     this.clearResult();
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.file.set(null);
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
+      return;
+    }
 
     this.file.set(file);
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
@@ -207,6 +233,17 @@ export class VectorizeComponent {
       });
       this.ranMode.set(mode);
       this.ranDetail.set(detail);
+
+      // O SVG entra na sessão como `kind: 'svg'`, e é por isso que `kindOf` testa
+      // `image/svg+xml` ANTES do prefixo `image/`: classificado como raster, o
+      // vetor recém-criado seria oferecido ao cortar, que o decodifica num canvas
+      // e joga fora exatamente o que esta ferramenta acabou de produzir.
+      this.pendingTransition.registerResult(
+        'vectorize',
+        new Blob([out.svg], { type: 'image/svg+xml' }),
+        this.tool.suffix,
+        'svg',
+      );
     } catch (err) {
       console.error('Vectorize failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -261,6 +298,8 @@ export class VectorizeComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.vectorizer.cancel();
     this.urls.releaseAll();
     this.file.set(null);

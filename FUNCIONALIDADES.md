@@ -267,7 +267,35 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Reduce audio file sizes and adjust bitrates while keeping the sound clear.
   - **URL:** https://nadasai.com/en/audio/compress
 
-### 24. Extrair Áudio de Vídeo / Extract Audio from Video
+### 24. Normalizar Áudio / Normalize Audio
+- **ID:** `normalize-audio`
+- **Português:**
+  - **Nome:** Normalizar Áudio (Volume e Loudness)
+  - **Descrição:** Deixe um áudio baixo no volume certo: normalização por loudness (LUFS) ou por pico, com limitador para não estourar.
+  - **URL:** https://nadasai.com/pt/audio/normalizar
+- **English:**
+  - **Name:** Normalize Audio (Volume and Loudness)
+  - **Description:** Bring a quiet recording up to a proper level: loudness (LUFS) or peak normalization, with a limiter so nothing clips.
+  - **URL:** https://nadasai.com/en/audio/normalize
+
+---
+
+## 🎬 Módulo Vídeo / Video Module
+
+*O módulo é definido pelo arquivo que a ferramenta RECEBE, não pelo que ela devolve — por isso "Extrair Áudio de Vídeo" está aqui e não em Áudio. A URL dele continua sob `/audio/`, de propósito: é o endereço que o Google já indexou.*
+
+### 25. Gravador de Tela / Screen Recorder
+- **ID:** `screen-recorder`
+- **Português:**
+  - **Nome:** Gravador de Tela (com áudio)
+  - **Descrição:** Grave a tela, uma janela ou uma aba do navegador, com som do sistema e microfone. O vídeo é escrito dentro da própria aba.
+  - **URL:** https://nadasai.com/pt/video/gravar-tela
+- **English:**
+  - **Name:** Screen Recorder (with audio)
+  - **Description:** Record your screen, a window, or a browser tab, with system and microphone audio. The video is written inside the tab itself.
+  - **URL:** https://nadasai.com/en/video/screen-record
+
+### 26. Extrair Áudio de Vídeo / Extract Audio from Video
 - **ID:** `video-to-audio`
 - **Português:**
   - **Nome:** Extrair Áudio de Vídeo (Vídeo para MP3)
@@ -282,7 +310,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
 
 ## 🛡️ Módulo Privacidade & Segurança / Privacy & Security Module
 
-### 25. Criptografar Arquivo / Encrypt File (AES-256)
+### 27. Criptografar Arquivo / Encrypt File (AES-256)
 - **ID:** `encrypt-file`
 - **Português:**
   - **Nome:** Criptografar Arquivo (AES-256)
@@ -293,7 +321,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Protect any file format with password-based military-grade AES-256-GCM encryption.
   - **URL:** https://nadasai.com/en/privacy/encrypt-file
 
-### 26. Hash de Arquivo / File Hash & Checksum
+### 28. Hash de Arquivo / File Hash & Checksum
 - **ID:** `file-hash`
 - **Português:**
   - **Nome:** Hash de Arquivo & Checksum
@@ -304,7 +332,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Calculate local SHA-256, MD5, and SHA-512 hashes to verify file integrity and authenticity.
   - **URL:** https://nadasai.com/en/privacy/file-hash
 
-### 27. Gerador de Senhas / Password Generator
+### 29. Gerador de Senhas / Password Generator
 - **ID:** `password-generator`
 - **Português:**
   - **Nome:** Gerador de Senhas Seguras
@@ -315,7 +343,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** High-entropy random password generator running completely offline with zero tracking.
   - **URL:** https://nadasai.com/en/privacy/password-generator
 
-### 28. Remover EXIF / Remove EXIF Metadata
+### 30. Remover EXIF / Remove EXIF Metadata
 - **ID:** `remove-exif`
 - **Português:**
   - **Nome:** Remover EXIF & Dados de GPS de Fotos
@@ -326,7 +354,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Strip GPS coordinates, camera details, and EXIF tags from photos without image quality loss.
   - **URL:** https://nadasai.com/en/privacy/remove-exif
 
-### 29. Censurar Imagem / Redact Image
+### 31. Censurar Imagem / Redact Image
 - **ID:** `redact-image`
 - **Português:**
   - **Nome:** Censurar Imagem (Tarja Preta / Desfocar)
@@ -337,7 +365,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Draw black bars or blur zones over sensitive information like IDs, faces, and card numbers.
   - **URL:** https://nadasai.com/en/privacy/redact-image
 
-### 30. Comparar Texto / Text Diff Checker
+### 32. Comparar Texto / Text Diff Checker
 - **ID:** `diff-checker`
 - **Português:**
   - **Nome:** Comparador de Textos e Código (Diff)
@@ -348,7 +376,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Compare two text blocks or code files side-by-side to highlight additions, deletions, and edits.
   - **URL:** https://nadasai.com/en/privacy/diff-checker
 
-### 31. Censurar PDF / Redact PDF
+### 33. Censurar PDF / Redact PDF
 - **ID:** `redact-pdf`
 - **Português:**
   - **Nome:** Censurar PDF (Tarja Preta Permanente)
@@ -359,7 +387,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Permanently remove and cover sensitive text or confidential sections in PDF files.
   - **URL:** https://nadasai.com/en/privacy/redact-pdf
 
-### 32. Limpar Metadados do PDF / Clean PDF Metadata
+### 34. Limpar Metadados do PDF / Clean PDF Metadata
 - **ID:** `clean-pdf-metadata`
 - **Português:**
   - **Nome:** Limpar Metadados de PDF
@@ -370,7 +398,7 @@ Este documento contém a lista completa de ferramentas e funcionalidades do **Na
   - **Description:** Strip author name, software tags, document titles, and hidden properties from PDFs.
   - **URL:** https://nadasai.com/en/privacy/clean-pdf-metadata
 
-### 33. Criptografar Texto / Encrypt Text (AES-256)
+### 35. Criptografar Texto / Encrypt Text (AES-256)
 - **ID:** `encrypt-text`
 - **Português:**
   - **Nome:** Criptografar Texto (AES-256)

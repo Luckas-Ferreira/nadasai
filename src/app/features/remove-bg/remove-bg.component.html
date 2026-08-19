@@ -117,14 +117,12 @@
       }
 
       <app-action-bar
+        [toolId]="'remove-bg'"
         [primaryLabel]="stale() ? i18n.t()['bg.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!cutoutUrl()"
-        [canContinue]="!!cutoutUrl()"
-        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

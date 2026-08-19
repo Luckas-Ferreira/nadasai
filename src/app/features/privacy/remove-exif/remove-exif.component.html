@@ -122,6 +122,7 @@
       }
 
       <app-action-bar
+        [toolId]="'remove-exif'"
         [primaryLabel]="stale() ? i18n.t()['exif.btn_clean'] : null"
         [busy]="busy()"
         [canDownload]="!!result()"

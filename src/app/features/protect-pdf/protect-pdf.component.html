@@ -13,7 +13,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -171,6 +171,7 @@
 
       <!-- Action Bar -->
       <app-action-bar
+        [toolId]="'protect-pdf'"
         [primaryLabel]="stale() ? i18n.t()['protpdf.btn'] : null"
         [primaryDisabled]="!password().trim()"
         [busy]="busy()"

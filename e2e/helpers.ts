@@ -91,11 +91,25 @@ export async function pickFromHome(page: Page, name: string): Promise<void> {
   await page.getByRole('link', { name: new RegExp(`^${name} `) }).first().click();
 }
 
-/** Downloads go through file-saver, so assert on the browser event, not the disk. */
-export async function expectDownload(page: Page, namePattern: RegExp): Promise<string> {
+/**
+ * Downloads go through file-saver, so assert on the browser event, not the disk.
+ *
+ * `within` restringe onde procurar o botão. O padrão — a página inteira — basta
+ * em toda ferramenta que apresenta o resultado só pela barra de ações. Cortar
+ * áudio é a exceção: ele desenha um cartão de "pronto" com um "Baixar" próprio,
+ * e enquanto ele está na tela a consulta solta acha dois botões e falha no modo
+ * estrito, ou seja, pelo seletor e não pelo comportamento.
+ */
+export async function expectDownload(
+  page: Page,
+  namePattern: RegExp,
+  within?: string,
+): Promise<string> {
+  const root = within ? page.locator(within) : page;
+
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Baixar' }).click(),
+    root.getByRole('button', { name: 'Baixar' }).click(),
   ]);
 
   const name = download.suggestedFilename();

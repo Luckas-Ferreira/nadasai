@@ -151,17 +151,16 @@ test.describe('Remover fundo', () => {
     await openApp(page, '/remove-bg');
     await upload(page);
 
-    await expect(page.getByRole('button', { name: 'Continuar editando' })).toBeVisible({
+    await expect(page.getByRole('button', { name: 'Editar o resultado' })).toBeVisible({
       timeout: 360_000,
     });
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
-    await expect(page.getByText('photo-nobg.png')).toBeVisible();
+    await page.getByRole('button', { name: 'Editar o resultado' }).click();
+    await expect(page.locator('app-file-bar')).toContainText('photo-nobg.png');
 
-    // Re-entering with remove-bg already in the history: the file is a finished
-    // cutout, so auto-running would spend inference chewing on its own transparent
-    // output. It waits, and offers the button instead.
-    await pickFromHome(page, 'Remover fundo');
-
+    // Aceitar o recorte já é "voltar com ele na mão": remove-bg está no histórico
+    // e o arquivo é um recorte pronto, então rodar de novo gastaria segundos de
+    // inferência mastigando a própria saída transparente. Ele espera, e oferece o
+    // botão. Isto agora acontece SEM sair da ferramenta, que é o teste.
     await expect(page.getByRole('button', { name: 'Remover fundo', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Ver original' })).toHaveCount(0);
   });

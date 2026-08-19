@@ -15,10 +15,10 @@ import { toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -53,11 +53,8 @@ export class CropComponent implements OnDestroy {
   private readonly tool = toolById('crop');
   private readonly pendingTransition = inject(PendingTransitionService);
 
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
   protected readonly i18n = inject(TranslationService);
-
-  /** Peer tools that accept and produce a raster image, for the "continue with" chips. */
-  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('crop'));
 
   private readonly imageRef = viewChild<ElementRef<HTMLImageElement>>('image');
   private cropper: Cropper | null = null;
@@ -69,7 +66,17 @@ export class CropComponent implements OnDestroy {
   protected readonly errorKey = signal<TranslationKey | null>(null);
   protected readonly ratio = signal<number | null>(null);
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('crop'));
 
   protected readonly ratioOptions = [
     { value: null, label: '' },
@@ -106,8 +113,7 @@ export class CropComponent implements OnDestroy {
   };
 
   constructor() {
-    const file = this.sourceFile();
-    if (file) this.sourceUrl.set(this.urls.create(file));
+    hydrateFromWorkspace('crop', (file) => this.hydrate(file));
 
     // The <img> only exists once a source is set, so attach the Cropper when the
     // view child appears. It then stays mounted for the life of the component —
@@ -141,13 +147,21 @@ export class CropComponent implements OnDestroy {
     this.errorKey.set(null);
 
     try {
-      this.state.load(file);
+      this.state.load(file, 'crop');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private hydrate(file: File | null): void {
+    this.clearResult();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
       return;
     }
 
-    this.clearResult();
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
 
     // Same <img> element, new source: swap it in place rather than rebuilding.
@@ -197,14 +211,7 @@ export class CropComponent implements OnDestroy {
       this.ranBox.set(box);
 
       // Register the commit so navigating via rail/mobile bar auto-applies the result.
-      this.pendingTransition.register(() => {
-        try {
-          this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      this.pendingTransition.registerResult('crop', blob, this.tool.suffix, extForMime(blob.type));
     } catch (err) {
       console.error('Crop failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -219,34 +226,6 @@ export class CropComponent implements OnDestroy {
     if (!blob || !session) return;
 
     saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, extForMime(blob.type)));
-  }
-
-  protected continueEdit(): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
-      this.pendingTransition.clear();
-      this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  /** Navigate directly to a peer tool, committing the result into the chain first. */
-  protected goToTool(tool: ToolDef): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('crop', blob, this.tool.suffix, extForMime(blob.type));
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   protected reset(): void {

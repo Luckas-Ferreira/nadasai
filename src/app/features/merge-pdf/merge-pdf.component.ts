@@ -4,6 +4,7 @@ import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../core/pdf/pdfjs';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -35,7 +36,7 @@ interface MergePageItem extends PageItem {
 /**
  * Merge PDFs, with page-level arrangement.
  *
- * Like img-to-pdf, this deliberately stays off `ImageStateService`: that service
+ * Like img-to-pdf, this deliberately stays off `WorkspaceService`: that service
  * holds one image per session and rejects anything that is not `image/*`, which
  * is exactly what keeps a PDF out of the editing chain. A merged PDF is
  * terminal — it is downloaded, not handed to the next tool.
@@ -59,6 +60,7 @@ export class MergePdfComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly merger = inject(PdfMergerService);
   private readonly tool = toolById('merge-pdf');
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly i18n = inject(TranslationService);
 
@@ -236,6 +238,10 @@ export class MergePdfComponent {
       );
 
       this.resultBlob.set(blob);
+      // Como img-to-pdf: a lista de origens é local (uma lista reordenável não é
+      // uma cadeia), mas o RESULTADO entra na sessão, para seguir direto para
+      // comprimir, proteger ou assinar sem passar pelo disco.
+      this.pendingTransition.registerResult('merge-pdf', blob, this.tool.suffix, 'pdf');
       this.ranSettings.set(settings);
     } catch (err) {
       console.error('Merge PDF failed:', err);
@@ -256,6 +262,7 @@ export class MergePdfComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
     this.urls.releaseAll();
     this.items.set([]);
     this.resultBlob.set(null);

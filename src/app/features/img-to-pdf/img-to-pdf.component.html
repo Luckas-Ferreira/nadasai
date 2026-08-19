@@ -117,6 +117,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'img-to-pdf'"
         [primaryLabel]="stale() ? i18n.t()['imgpdf.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"

@@ -94,14 +94,12 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'compress'"
         [primaryLabel]="stale() ? i18n.t()['compress.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
-        [canContinue]="!!resultUrl()"
-        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

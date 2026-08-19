@@ -1,7 +1,9 @@
+import type { FileKind } from '../files/kind';
 import { IconName } from '../../shared/ui/icon/icons';
 import type { TranslationKey } from '../services/translation.service';
 
 export type ToolId =
+  | 'screen-recorder'
   | 'remove-bg'
   | 'upscale'
   | 'vectorize'
@@ -48,7 +50,7 @@ export type ToolTone =
   | 'teal'
   | 'fuchsia';
 
-export type ToolCategory = 'image' | 'pdf' | 'audio' | 'privacy';
+export type ToolCategory = 'image' | 'pdf' | 'audio' | 'video' | 'privacy';
 
 export type ModuleId = ToolCategory;
 
@@ -64,6 +66,7 @@ export const MODULES: readonly ModuleDef[] = [
   { id: 'image', icon: 'image', nameKey: 'module.image', descKey: 'module.image_desc', tone: 'sky' },
   { id: 'pdf', icon: 'pdf', nameKey: 'module.pdf', descKey: 'module.pdf_desc', tone: 'rose' },
   { id: 'audio', icon: 'audio', nameKey: 'module.audio', descKey: 'module.audio_desc', tone: 'violet' },
+  { id: 'video', icon: 'video', nameKey: 'module.video', descKey: 'module.video_desc', tone: 'indigo' },
   { id: 'privacy', icon: 'shield', nameKey: 'module.privacy', descKey: 'module.privacy_desc', tone: 'emerald' },
 ];
 
@@ -73,6 +76,20 @@ export interface ToolDef {
   readonly pathEn: string;
   readonly icon: IconName;
   readonly category: ToolCategory;
+  /**
+   * The file kinds this tool's dropzone takes. `[]` means it takes no file at
+   * all (password-generator). `['any']` means literally anything, which is what
+   * makes encrypt-file and file-hash the universal end of every chain.
+   *
+   * This is what a tool hydrates on, NOT `category`: a tool only picks the
+   * session up when the session's kind is in this list, which is a stronger
+   * guard than the `image/*` check it replaced — the converter can put a PDF in
+   * the session and crop still refuses it, while img-to-pdf's output now feeds
+   * the whole PDF module.
+   */
+  readonly accepts: readonly FileKind[];
+  /** The kind this tool hands back, or `null` when it produces no chainable file. */
+  readonly produces: FileKind | null;
   readonly navKey: TranslationKey;
   readonly shortKey: TranslationKey;
   readonly titleKey: TranslationKey;
@@ -85,11 +102,42 @@ export interface ToolDef {
 
 export const TOOLS: readonly ToolDef[] = [
   {
+    id: 'screen-recorder',
+    pathPt: 'video/gravar-tela',
+    pathEn: 'video/screen-record',
+    icon: 'screenRecord',
+    category: 'video',
+    // A única do produto que não recebe arquivo nenhum: ela CRIA um.
+    accepts: [],
+    produces: 'video',
+    navKey: 'nav.screen_recorder',
+    shortKey: 'nav.short.screen_recorder',
+    titleKey: 'screenrec.title',
+    descKey: 'screenrec.subtitle',
+    suffix: 'gravacao',
+    tone: 'rose',
+    keywordsPt: [
+      'gravar tela', 'gravador de tela', 'gravar tela do pc', 'gravar tela online',
+      'capturar tela', 'gravar aula', 'gravar reuniao', 'gravar tutorial',
+      'gravar tela com audio', 'gravar tela com microfone', 'screencast',
+      'gravar navegador', 'gravar janela', 'filmar a tela', 'gravar video da tela',
+      'gravador de tela sem programa', 'gravar tela gratis'
+    ],
+    keywordsEn: [
+      'screen recorder', 'record screen', 'screen capture', 'record my screen',
+      'browser screen recorder', 'record tab', 'record window', 'screencast',
+      'record screen with audio', 'record screen with microphone', 'free screen recorder',
+      'online screen recorder', 'record meeting', 'record tutorial', 'no download screen recorder'
+    ],
+  },
+  {
     id: 'remove-bg',
     pathPt: 'imagem/remover-fundo',
     pathEn: 'image/remove-bg',
     icon: 'remove-bg',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.remove_bg',
     shortKey: 'nav.short.remove_bg',
     titleKey: 'bg.title',
@@ -114,6 +162,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/upscale',
     icon: 'sparkles',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.upscale',
     shortKey: 'nav.short.upscale',
     titleKey: 'upscale.title',
@@ -138,6 +188,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/vectorize',
     icon: 'palette',
     category: 'image',
+    accepts: ['image'],
+    produces: 'svg',
     navKey: 'nav.vectorize',
     shortKey: 'nav.short.vectorize',
     titleKey: 'vector.title',
@@ -163,6 +215,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/extract-text',
     icon: 'scan',
     category: 'image',
+    accepts: ['image'],
+    produces: 'text',
     navKey: 'nav.extract_text',
     shortKey: 'nav.short.extract_text',
     titleKey: 'extract_text.title',
@@ -186,6 +240,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'audio/cut',
     icon: 'scissors',
     category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
     navKey: 'nav.cut_audio',
     shortKey: 'nav.short.cut_audio',
     titleKey: 'cut_audio.title',
@@ -210,6 +266,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'audio/merge',
     icon: 'merge',
     category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
     navKey: 'nav.merge_audio',
     shortKey: 'nav.short.merge_audio',
     titleKey: 'mergeaudio.title',
@@ -234,6 +292,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'audio/convert',
     icon: 'convert',
     category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
     navKey: 'nav.convert_audio',
     shortKey: 'nav.short.convert_audio',
     titleKey: 'convert_audio.title',
@@ -257,6 +317,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'audio/compress',
     icon: 'compress',
     category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
     navKey: 'nav.compress_audio',
     shortKey: 'nav.short.compress_audio',
     titleKey: 'compress_audio.title',
@@ -281,6 +343,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'audio/normalize',
     icon: 'zap',
     category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
     navKey: 'nav.normalize_audio',
     shortKey: 'nav.short.normalize_audio',
     titleKey: 'normalize_audio.title',
@@ -302,10 +366,18 @@ export const TOOLS: readonly ToolDef[] = [
   },
   {
     id: 'video-to-audio',
+    // A URL fica onde está: `ActiveToolService` casa por caminho declarado e
+    // nunca por prefixo — é a mesma razão pela qual `img-to-pdf` mora em
+    // `imagem/para-pdf` e é do módulo de imagem. Mudar a categoria não custa
+    // redirect, sitemap nem hreflang.
     pathPt: 'audio/extrair-de-video',
     pathEn: 'audio/extract-from-video',
     icon: 'video',
-    category: 'audio',
+    // O módulo é o tipo de ENTRADA, não o de saída. Esta ferramenta recebe um
+    // vídeo; que ela devolva áudio é o que ela faz, não onde ela mora.
+    category: 'video',
+    accepts: ['video'],
+    produces: 'audio',
     navKey: 'nav.video_to_audio',
     shortKey: 'nav.short.video_to_audio',
     titleKey: 'video_audio.title',
@@ -331,6 +403,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/crop',
     icon: 'crop',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.crop',
     shortKey: 'nav.short.crop',
     titleKey: 'crop.title',
@@ -353,6 +427,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/compress',
     icon: 'compress',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.compress',
     shortKey: 'nav.short.compress',
     titleKey: 'compress.title',
@@ -375,6 +451,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/resize',
     icon: 'resize',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.resize',
     shortKey: 'nav.short.resize',
     titleKey: 'resize.title',
@@ -397,6 +475,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/convert',
     icon: 'convert',
     category: 'image',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.convert',
     shortKey: 'nav.short.convert',
     titleKey: 'convert.title',
@@ -419,6 +499,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'image/to-pdf',
     icon: 'images',
     category: 'image',
+    accepts: ['image'],
+    produces: 'pdf',
     navKey: 'nav.img_to_pdf',
     shortKey: 'nav.short.img_to_pdf',
     titleKey: 'imgpdf.title',
@@ -441,6 +523,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/edit',
     icon: 'pdf',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.pdf',
     shortKey: 'nav.short.pdf',
     titleKey: 'pdf.title',
@@ -464,6 +548,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/merge',
     icon: 'merge',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.merge_pdf',
     shortKey: 'nav.short.merge_pdf',
     titleKey: 'mergepdf.title',
@@ -486,6 +572,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/compress',
     icon: 'compress',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.compress_pdf',
     shortKey: 'nav.short.compress_pdf',
     titleKey: 'cpdf.title',
@@ -508,6 +596,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/split',
     icon: 'split',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.split_pdf',
     shortKey: 'nav.short.split_pdf',
     titleKey: 'splitpdf.title',
@@ -530,6 +620,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/to-image',
     icon: 'image',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'image',
     navKey: 'nav.pdf_to_img',
     shortKey: 'nav.short.pdf_to_img',
     titleKey: 'pdf2img.title',
@@ -552,6 +644,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/to-word',
     icon: 'doc',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'docx',
     navKey: 'nav.pdf_to_word',
     shortKey: 'nav.short.pdf_to_word',
     titleKey: 'p2w.title',
@@ -576,6 +670,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/organize',
     icon: 'doc',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.organize_pdf',
     shortKey: 'nav.short.organize_pdf',
     titleKey: 'orgpdf.title',
@@ -598,6 +694,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/protect',
     icon: 'lock',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: null,
     navKey: 'nav.protect_pdf',
     shortKey: 'nav.short.protect_pdf',
     titleKey: 'protpdf.title',
@@ -620,6 +718,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/sign',
     icon: 'brush',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.sign_pdf',
     shortKey: 'nav.short.sign_pdf',
     titleKey: 'signpdf.title',
@@ -642,6 +742,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'pdf/watermark',
     icon: 'image',
     category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.watermark_pdf',
     shortKey: 'nav.short.watermark_pdf',
     titleKey: 'wmpdf.title',
@@ -664,6 +766,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/encrypt-file',
     icon: 'lock',
     category: 'privacy',
+    accepts: ['any'],
+    produces: null,
     navKey: 'nav.encrypt_file',
     shortKey: 'nav.short.encrypt_file',
     titleKey: 'encrypt.title',
@@ -685,6 +789,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/file-hash',
     icon: 'hash',
     category: 'privacy',
+    accepts: ['any'],
+    produces: null,
     navKey: 'nav.file_hash',
     shortKey: 'nav.short.file_hash',
     titleKey: 'hash.title',
@@ -706,6 +812,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/password-generator',
     icon: 'key',
     category: 'privacy',
+    accepts: [],
+    produces: null,
     navKey: 'nav.password_generator',
     shortKey: 'nav.short.password_generator',
     titleKey: 'passgen.title',
@@ -727,6 +835,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/remove-exif',
     icon: 'eyeOff',
     category: 'privacy',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.remove_exif',
     shortKey: 'nav.short.remove_exif',
     titleKey: 'exif.title',
@@ -748,6 +858,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/redact-image',
     icon: 'brush',
     category: 'privacy',
+    accepts: ['image'],
+    produces: 'image',
     navKey: 'nav.redact_image',
     shortKey: 'nav.short.redact_image',
     titleKey: 'redact.title',
@@ -769,6 +881,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/diff-checker',
     icon: 'diff',
     category: 'privacy',
+    accepts: ['text'],
+    produces: null,
     navKey: 'nav.diff_checker',
     shortKey: 'nav.short.diff_checker',
     titleKey: 'diff.title',
@@ -790,6 +904,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/redact-pdf',
     icon: 'square',
     category: 'privacy',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.redact_pdf',
     shortKey: 'nav.short.redact_pdf',
     titleKey: 'redactpdf.title',
@@ -813,6 +929,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/clean-pdf-metadata',
     icon: 'sparkles',
     category: 'privacy',
+    accepts: ['pdf'],
+    produces: 'pdf',
     navKey: 'nav.clean_pdf_metadata',
     shortKey: 'nav.short.clean_pdf_metadata',
     titleKey: 'cleanpdf.title',
@@ -836,6 +954,8 @@ export const TOOLS: readonly ToolDef[] = [
     pathEn: 'privacy/encrypt-text',
     icon: 'text',
     category: 'privacy',
+    accepts: ['text'],
+    produces: 'text',
     navKey: 'nav.encrypt_text',
     shortKey: 'nav.short.encrypt_text',
     titleKey: 'enctext.title',
@@ -882,33 +1002,103 @@ export function toolFromUrl(url: string): ToolDef | null {
 }
 
 /**
- * Image tools that accept a raster image as input AND produce a raster image
- * as output — i.e., they can be chained together.
+ * Destinos permitidos para `remove-exif`, e a exceção precisa existir.
  *
- * Excluded on purpose:
- * - `vectorize`    → produces SVG, not raster
- * - `extract-text` → produces plain text
- * - `img-to-pdf`   → produces PDF
+ * O strip é lossless por construção — o scan JPEG é copiado byte a byte, os
+ * chunks do PNG só são removidos — e essa é a feature inteira. Qualquer editor
+ * raster daqui em diante decodifica para um canvas e reencoda, desfazendo em
+ * silêncio exatamente o que a pessoa veio fazer. Cifrar e resumir em hash são as
+ * duas únicas coisas que não tocam em um pixel.
  *
- * Used by the action bar to populate the "continue in" chips and by the
- * PendingTransitionService to know which navigations should auto-commit the
- * current result.
+ * É por isso que a regra mora aqui e não num campo do `ToolDef`: um campo é fácil
+ * de esquecer na próxima ferramenta lossless; uma exceção nomeada, com o bug
+ * escrito ao lado, não é.
  */
-export const IMAGE_CHAIN_TOOLS: readonly ToolId[] = [
-  'remove-bg',
-  'upscale',
-  'crop',
-  'compress',
-  'convert',
-  'resize',
-];
+const LOSSLESS_SINKS: readonly ToolId[] = ['encrypt-file', 'file-hash'];
 
 /**
- * Returns all chainable image tools except the one currently active.
- * The result is ordered as declared in IMAGE_CHAIN_TOOLS so the chips
- * always appear in the same sequence regardless of which tool is open.
+ * Ferramentas cuja FONTE é uma lista local, não a sessão.
+ *
+ * Juntar PDFs, juntar áudios e imagens→PDF montam uma ordem que a pessoa
+ * arranjou na mão, e por isso leem a sessão uma vez no construtor em vez de
+ * reagir a ela (ver o comentário de `img-to-pdf`). A consequência é que
+ * "Editar o resultado" — que significa "torne este resultado o arquivo de
+ * trabalho e siga daqui" — não tem o que continuar: commitar não recarrega a
+ * lista, então o botão some e nada mais acontece na tela.
+ *
+ * `accepts.includes(produces)` sozinho não pega as duas primeiras: juntar PDFs
+ * come PDF e devolve PDF. Como em `LOSSLESS_SINKS`, a exceção fica aqui, com o
+ * motivo ao lado, e não como um campo do `ToolDef` que a próxima ferramenta de
+ * várias fontes esqueceria de preencher.
  */
-export function chainableImageTools(excludeId: ToolId): readonly ToolDef[] {
-  return TOOLS.filter((t) => IMAGE_CHAIN_TOOLS.includes(t.id) && t.id !== excludeId);
+export const MULTI_SOURCE_TOOLS: readonly ToolId[] = ['merge-pdf', 'merge-audio', 'img-to-pdf'];
+
+/**
+ * Quantos chips a barra de ações mostra.
+ *
+ * Uma imagem é aceita por treze ferramentas depois que a cadeia passou a
+ * atravessar módulos, e treze chips num painel de 324px são três linhas de
+ * botõezinhos — que é como se esconde uma escolha, não como se oferece uma. O
+ * resto continua a um clique no "Enviar para…" da barra de arquivo, que não tem
+ * limite porque é um popover que rola.
+ *
+ * Oito, e não seis: com seis, o módulo de imagem perdia "Converter" — a ordem de
+ * declaração empurrava vetorizar e extrair-texto na frente e a ferramenta mais
+ * óbvia da cadeia caía fora da lista. O corte agora é depois das oito do próprio
+ * módulo, e a ordenação abaixo é o que garante que as óbvias venham primeiro.
+ */
+export const MAX_NEXT_TOOL_CHIPS = 8;
+
+/**
+ * Para onde um resultado deste tipo pode ir a seguir.
+ *
+ * Substituiu `chainableImageTools`, que era uma lista escrita à mão de seis
+ * ferramentas de imagem — e por isso só existia no módulo de imagem, e por isso
+ * mesmo lá deixava de fora `vectorize`, `extract-text` e `img-to-pdf`, que
+ * ACEITAM uma imagem perfeitamente: eram destinos válidos que ninguém alcançava
+ * com o arquivo na mão.
+ *
+ * Derivar de `accepts` dá de graça o que faltava, inclusive atravessando módulos:
+ * `pdf-to-img` → crop, `img-to-pdf` → as dez de PDF, `extract-text` →
+ * diff-checker, e qualquer arquivo → encrypt-file / file-hash.
+ *
+ * A ordem coloca as ferramentas do mesmo módulo da origem primeiro: quem acabou
+ * de comprimir um PDF quase sempre quer outra coisa de PDF, e as opções de outro
+ * módulo são o caso raro que não deve empurrar as comuns para a segunda linha.
+ */
+export function nextToolsFor(
+  kind: FileKind | null,
+  fromId: ToolId | null,
+  limit?: number,
+): readonly ToolDef[] {
+  if (!kind) return [];
+
+  const from = fromId ? TOOLS.find((t) => t.id === fromId) ?? null : null;
+  const allow = fromId === 'remove-exif' ? LOSSLESS_SINKS : null;
+
+  const matches = TOOLS.filter(
+    (t) =>
+      t.id !== fromId &&
+      (t.accepts.includes(kind) || t.accepts.includes('any')) &&
+      (!allow || allow.includes(t.id)),
+  );
+
+  // Duas chaves, nesta ordem, e as duas importam mais desde que a cadeia
+  // atravessa módulos:
+  //
+  // 1. Mesmo módulo da origem. Quem acabou de comprimir um PDF quase sempre quer
+  //    outra coisa de PDF, e as opções de outro módulo são o caso raro que não
+  //    deve empurrar as comuns para a segunda linha.
+  // 2. Devolve o MESMO tipo. "Continue mexendo nesta imagem" vem antes de
+  //    "transforme esta imagem em outra coisa" — e é o que mantém cortar,
+  //    comprimir e converter na frente de vetorizar e img-para-pdf, em vez de
+  //    deixar a ordem de declaração decidir. Com `MAX_NEXT_TOOL_CHIPS` cortando
+  //    a lista, essa decisão é a diferença entre oferecer e esconder.
+  const rank = (t: ToolDef): number =>
+    (from && t.category !== from.category ? 2 : 0) + (t.produces === kind ? 0 : 1);
+
+  const ordered = [...matches].sort((a, b) => rank(a) - rank(b));
+
+  return limit === undefined ? ordered : ordered.slice(0, limit);
 }
 

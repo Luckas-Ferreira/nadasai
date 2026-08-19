@@ -44,10 +44,52 @@ test.describe('The chain', () => {
     await upload(page);
     await primary(page, 'Comprimir').click();
 
+    // Espera o resultado EXISTIR antes de sair pelo trilho. Diferente do chip, o
+    // link do trilho está na tela desde o começo, então não há nada nele para o
+    // Playwright esperar: sem esta linha o clique chega antes do fim da
+    // compressão, a navegação commita um resultado que ainda não existe e o
+    // teste acusa a ferramenta por uma corrida que é dele.
+    await expect(
+      page.locator('app-action-bar').getByRole('button', { name: 'Baixar' }),
+    ).toBeVisible({ timeout: 30_000 });
+
     // Clicking Converter on the rail while a result is pending auto-commits and navigates
     await rail(page).getByRole('link', { name: 'Converter' }).click();
     await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
     await expect(page.getByText('photo-min.png')).toBeVisible();
+  });
+
+
+  /**
+   * Sair de uma ferramenta para a home era mão única: o arquivo continuava na
+   * barra e voltar significava caçar a ferramenta na grade outra vez. O nome do
+   * arquivo leva de volta para onde ele estava sendo mexido.
+   */
+  test('o nome do arquivo na barra leva de volta para a última ferramenta', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page);
+    await primary(page, 'Comprimir').click();
+
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
+    await expect(page.getByRole('heading', { name: 'Imagem pronta' })).toBeVisible();
+
+    const back = page.locator('app-file-bar').getByRole('button', { name: 'Voltar para Comprimir' });
+    await expect(back).toBeVisible();
+    await back.click();
+
+    await expect(page).toHaveURL(/\/pt\/imagem\/comprimir$/);
+    // Chegou com o arquivo, não num dropzone vazio.
+    await expect(page.getByText('Solte uma imagem aqui')).toHaveCount(0);
+  });
+
+  /** Já estando na ferramenta, o nome é só texto: um botão que não sai do lugar. */
+  test('não oferece voltar para a ferramenta em que já se está', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page);
+
+    await expect(
+      page.locator('app-file-bar').getByRole('button', { name: 'Voltar para' }),
+    ).toHaveCount(0);
   });
 
   test('Clear drops the file everywhere', async ({ page }) => {
@@ -55,9 +97,9 @@ test.describe('The chain', () => {
     await upload(page);
     await expect(page.getByText('photo.png')).toBeVisible();
 
-    // Cleared from the home, because `clear()` empties the chain without routing:
-    // a tool reads its source once, at construction, so the one you are standing in
-    // keeps showing what it already loaded. "Everywhere" means the NEXT tool.
+    // Cleared from the home only because that is where this test happens to be:
+    // hydration is an effect now, so `clear()` also empties the tool you are
+    // standing in. "Everywhere" is what still needs proving — the NEXT tool.
     await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     await page.getByRole('button', { name: 'Limpar' }).click();
 

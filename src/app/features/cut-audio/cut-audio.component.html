@@ -328,14 +328,13 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'cut-audio'"
         [primaryLabel]="stale() ? i18n.t()['cut_audio.btn'] : null"
         [primaryDisabled]="!canRun()"
         [busy]="busy()"
         [canDownload]="!!result()"
-        [canContinue]="!!result()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

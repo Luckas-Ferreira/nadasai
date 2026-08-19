@@ -5,7 +5,9 @@ import { saveBlob } from '../../core/image/download';
 import { formatBytes } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../core/pdf/pdfjs';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -33,7 +35,7 @@ interface PageThumb {
 /**
  * PDF → Word.
  *
- * Fora da chain do `ImageStateService`, como todas as ferramentas de PDF: a
+ * Fora da chain do `WorkspaceService`, como todas as ferramentas de PDF: a
  * chain guarda um arquivo de imagem por sessão, e um .docx é terminal do mesmo
  * jeito que um PDF é. Todo o estado de execução mora aqui para que o Angular o
  * destrua na navegação; o serviço é stateless.
@@ -61,6 +63,18 @@ export class PdfToWordComponent {
   private readonly converter = inject(PdfToWordService);
   private readonly urls = inject(ObjectUrlScope);
   protected readonly tool = toolById('pdf-to-word');
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+
+  constructor() {
+    // A sessão é a fonte: um PDF que veio de img-to-pdf, de outra ferramenta de
+    // PDF ou de um desfazer chega por aqui exatamente como o que a pessoa soltou
+    // no dropzone. A senha vem junto — antes cada ferramenta guardava a sua, e
+    // encadear três num arquivo protegido pedia a mesma senha três vezes.
+    hydrateFromWorkspace('pdf-to-word', (file) =>
+      void this.openFile(file, this.workspace.pdfPassword() ?? undefined),
+    );
+  }
   protected readonly i18n = inject(TranslationService);
 
   protected readonly file = signal<File | null>(null);
@@ -120,7 +134,34 @@ export class PdfToWordComponent {
     return res && res.skippedPages > 0 ? res.skippedPages : 0;
   });
 
-  protected async onFile(file: File, password?: string): Promise<void> {
+  /**
+   * O upload. Só entra na sessão — abrir o documento é do `openFile()`, que a
+   * hidratação chama. Antes este método fazia as duas coisas, e por isso o
+   * caminho "o arquivo já estava na sessão" simplesmente não existia no módulo
+   * de PDF: cada ferramenta começava do zero, com um novo upload.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'pdf-to-word');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  /** A senha do prompt: guardada na sessão, para o resto da cadeia não repetir. */
+  protected onUnlock(password: string): void {
+    this.workspace.setPdfPassword(password);
+    void this.openFile(this.pendingFile(), password);
+  }
+
+  private async openFile(file: File | null, password?: string): Promise<void> {
+    if (!file) {
+      this.reset();
+      return;
+    }
+
     this.errorKey.set(null);
     this.result.set(null);
     this.ranSettings.set(null);
@@ -205,6 +246,7 @@ export class PdfToWordComponent {
 
       this.result.set(res);
       this.ranSettings.set(this.settingsKey());
+      this.pendingTransition.registerResult('pdf-to-word', res.blob, this.tool.suffix, 'docx');
     } catch (err) {
       console.error('[PdfToWord] Conversão falhou:', err);
       this.errorKey.set(toMessageKey(err));
@@ -223,6 +265,8 @@ export class PdfToWordComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.urls.releaseAll();
     this.file.set(null);
     this.pendingFile.set(null);

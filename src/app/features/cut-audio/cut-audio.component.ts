@@ -25,7 +25,7 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes } from '../../core/image/image-file.util';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { AudioStateService } from '../../core/services/audio-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -99,7 +99,7 @@ export class CutAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('cut-audio');
   private readonly cutter = inject(AudioCutterService);
-  private readonly audioState = inject(AudioStateService);
+  private readonly workspace = inject(WorkspaceService);
   private readonly router = inject(Router);
 
   /**
@@ -262,9 +262,7 @@ export class CutAudioComponent implements OnDestroy {
       this.draw();
     });
 
-    // Auto-load the persisted audio file when the user navigates to this tool.
-    const savedFile = this.audioState.currentFile();
-    if (savedFile) void this.onFile(savedFile);
+    hydrateFromWorkspace('cut-audio', (file) => void this.openFile(file));
   }
 
   ngOnDestroy(): void {
@@ -284,12 +282,51 @@ export class CutAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- loading
 
-  protected async onFile(file: File): Promise<void> {
+  /**
+   * O upload. Só carrega na sessão — decodificar é do `openFile()`, que a
+   * hidratação chama tanto para o arquivo que a pessoa soltou aqui quanto para o
+   * que chegou pela cadeia ou voltou por um desfazer.
+   *
+   * A separação conserta um bug real: o caminho de hidratação chamava este mesmo
+   * método, e ele chamava `load()` — que zera `history` e `past`. Ou seja, ir de
+   * cortar para comprimir apagava o breadcrumb e o desfazer do módulo inteiro,
+   * exatamente no momento em que a cadeia ia começar a valer alguma coisa.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'cut-audio');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.stopPlayback();
     this.errorKey.set(null);
-    this.result.set(null);
-    this.ranSignature.set(null);
+
+    // Só um arquivo vindo de FORA invalida o que está na tela.
+    //
+    // O corte commita na hora (ver `run`), e é esse commit que re-hidrata esta
+    // mesma ferramenta com o próprio resultado — de propósito, é assim que a
+    // forma de onda passa a mostrar o corte. Mas zerar `result` aqui apagava o
+    // botão "Baixar" no mesmo quadro em que ele apareceu, e o áudio cortado
+    // ficava sem nenhuma forma de ser salvo. O último passo do histórico diz
+    // quem trouxe este arquivo: se fui eu, o resultado continua valendo.
+    if (this.workspace.history().at(-1) !== 'cut-audio') {
+      this.result.set(null);
+      this.ranSignature.set(null);
+    }
+
     this.loading.set(true);
+
+    if (!file) {
+      this.file.set(null);
+      this.buffer.set(null);
+      this.loading.set(false);
+      return;
+    }
 
     try {
       assertUsableAudio(file);
@@ -298,7 +335,6 @@ export class CutAudioComponent implements OnDestroy {
 
       this.file.set(file);
       this.buffer.set(buffer);
-      this.audioState.load(file);   // persist across tool navigation
       this.mode.set('keep');
       this.fadeIn.set(0);
       this.fadeOut.set(0);
@@ -331,7 +367,7 @@ export class CutAudioComponent implements OnDestroy {
     this.mode.set('keep');
     this.zoomLevel.set(1);
     this.viewStart.set(0);
-    this.audioState.clear();   // clear the global bar too
+    this.workspace.clear();   // clear the global bar too
   }
 
   // -------------------------------------------------------------- selection
@@ -508,7 +544,13 @@ export class CutAudioComponent implements OnDestroy {
   }
 
   private stopPlayback(): void {
-    cancelAnimationFrame(this.frame);
+    // Mesma guarda do `ngOnDestroy`, por um caminho novo: a hidratação chama
+    // `openFile(null)` na construção da ferramenta, e ele passa por aqui antes de
+    // qualquer quadro ter sido agendado. No prerender isso roda no Node, onde
+    // `cancelAnimationFrame` não existe — sem o `if`, abrir qualquer rota de áudio
+    // matava o worker e derrubava as rotas que ainda estavam na fila dele.
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.frame = 0;
     this.engine.stop();
     this.playing.set(false);
     this.playhead.set(null);
@@ -760,25 +802,17 @@ export class CutAudioComponent implements OnDestroy {
       this.result.set(res);
       this.ranSignature.set(this.signature());
 
-      // Save output in session history (past[] and history[]) so undo and tool chaining work seamlessly.
-      this.audioState.apply('cut-audio', res.blob, this.tool.suffix, 'wav');
-
-      const resultFile = this.audioState.currentFile();
-      if (resultFile) {
-        try {
-          const cutCtx = new AudioContext();
-          const cutBuffer = await cutCtx.decodeAudioData(await res.blob.arrayBuffer());
-          void cutCtx.close();
-          this.file.set(resultFile);
-          this.buffer.set(cutBuffer);
-          this.selStart.set(0);
-          this.selEnd.set(cutBuffer.duration);
-          this.zoomLevel.set(1);
-          this.viewStart.set(0);
-        } catch {
-          // Non-fatal fallback
-        }
-      }
+      // O cortador é a única ferramenta de áudio que commita na hora, e é de
+      // propósito: o corte VIRA o arquivo de trabalho, para dar para cortar de
+      // novo em cima dele. Por isso ele também não registra commit pendente —
+      // não há nada pendente, já foi.
+      //
+      // Recarregar o resultado na tela era um bloco de vinte linhas aqui
+      // (decodifica de novo, reposiciona a seleção, reseta o zoom) e agora é
+      // consequência: a sessão mudou, `hydrateFromWorkspace` chama `openFile`
+      // com o arquivo novo e ele faz exatamente isso. O mesmo caminho serve o
+      // desfazer, que antes não voltava a forma de onda para o áudio anterior.
+      this.workspace.apply('cut-audio', res.blob, this.tool.suffix, 'wav');
     } catch (err) {
       console.error('[CutAudio] cut failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -798,8 +832,10 @@ export class CutAudioComponent implements OnDestroy {
     if (!res) return;
 
     try {
-      this.audioState.apply('cut-audio', res.blob, this.tool.suffix, 'wav');
-      void this.router.navigate(['/']);
+      // NÃO reaplica: run() já commitou este corte na sessão (é o que permite
+      // cortar de novo em cima do resultado). Aplicar aqui de novo gravava
+      // `audio-cut-cut.wav` com dois passos iguais no breadcrumb.
+      void this.router.navigate(['/' + this.i18n.currentLang()]);
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }

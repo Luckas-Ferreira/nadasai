@@ -282,13 +282,12 @@
         }
 
       <app-action-bar
+        [toolId]="'convert-audio'"
         [primaryLabel]="i18n.t()['convert_audio.btn']"
         [busy]="busy()"
         [canDownload]="!!result()"
-        [canContinue]="!!result()"
         (primary)="convert()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

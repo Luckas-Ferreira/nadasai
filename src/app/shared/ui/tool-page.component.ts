@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, computed, inject } from '@angular/core';
 import { input } from '@angular/core';
 import { FaqComponent } from './faq.component';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService } from '../../core/services/workspace.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToolId, toolById } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -76,7 +76,7 @@ import { IconComponent } from './icon/icon.component';
 })
 export class ToolPageComponent {
   protected readonly i18n = inject(TranslationService);
-  private readonly state = inject(ImageStateService);
+  private readonly state = inject(WorkspaceService);
 
   readonly toolId = input.required<ToolId>();
   readonly forceLoaded = input<boolean | undefined>(undefined);
@@ -85,11 +85,19 @@ export class ToolPageComponent {
 
   protected readonly tool = computed(() => toolById(this.toolId()));
 
-  /** Drives the layout: the panel only has content once a file is in the chain. */
+  /**
+   * Drives the layout: the panel only has content once THIS tool has a file.
+   *
+   * `accepts`, not `currentFile()`: a single session now carries whatever the
+   * last tool produced, so a PDF in the chain would otherwise put every image
+   * tool into the loaded two-column shape with an empty stage and an empty
+   * panel — the exact "reserved 324px track that is always blank" this layout
+   * was written to get rid of.
+   */
   protected readonly loaded = computed(() => {
     const forced = this.forceLoaded();
     if (forced !== undefined) return forced;
-    return !!this.state.currentFile();
+    return this.state.accepts(this.toolId());
   });
 
   protected readonly loadedLayout = 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_324px]';

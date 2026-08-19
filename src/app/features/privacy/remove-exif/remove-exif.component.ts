@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PendingTransitionService } from '../../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
+import { toolById } from '../../../core/tools/tools';
 import { toMessageKey } from '../../../core/errors';
 import { type MetadataReport, formatGps } from '../../../core/exif/exif-parser';
 import { STRIPPABLE_ACCEPT } from '../../../core/exif/strip';
@@ -45,6 +48,9 @@ interface Finding {
 export class RemoveExifComponent {
   protected readonly i18n = inject(TranslationService);
   private readonly stripper = inject(MetadataStripperService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly tool = toolById('remove-exif');
   private readonly urls = inject(ObjectUrlScope);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly formatBytes = formatBytes;
@@ -73,6 +79,8 @@ export class RemoveExifComponent {
     this.destroyRef.onDestroy(() => {
       if (this.copyTimer !== null) clearTimeout(this.copyTimer);
     });
+
+    hydrateFromWorkspace('remove-exif', (file) => void this.openFile(file));
   }
 
   protected readonly stale = computed(() =>
@@ -139,10 +147,28 @@ export class RemoveExifComponent {
     return out;
   });
 
-  protected async onFileSelected(file: File): Promise<void> {
+  protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'remove-exif');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.result.set(null);
     this.report.set(null);
     this.errorKey.set(null);
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.file.set(null);
+      this.urls.revoke(this.previewUrl());
+      this.previewUrl.set(null);
+      return;
+    }
 
     try {
       const { report } = await this.stripper.inspect(file);
@@ -177,6 +203,17 @@ export class RemoveExifComponent {
       this.ranFile.set(file);
       this.ranOrientation.set(this.keepOrientation());
       this.ranIcc.set(this.keepIcc());
+
+      // Entra na cadeia, mas `nextToolsFor` restringe os destinos a encrypt-file
+      // e file-hash (LOSSLESS_SINKS em tools.ts): o strip copia o scan byte a
+      // byte, e qualquer editor raster daqui em diante decodifica num canvas e
+      // reencoda — desfazendo em silêncio a única coisa que esta ferramenta faz.
+      this.pendingTransition.registerResult(
+        'remove-exif',
+        outcome.blob,
+        this.tool.suffix,
+        outcome.filename.split('.').pop() ?? 'jpg',
+      );
     } catch (err) {
       // The old catch was a bare console.error, so a failure looked to the user
       // like the spinner simply stopping.
@@ -199,6 +236,8 @@ export class RemoveExifComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.urls.revoke(this.previewUrl());
     this.previewUrl.set(null);
     this.file.set(null);
