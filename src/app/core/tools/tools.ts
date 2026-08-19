@@ -37,7 +37,8 @@ export type ToolId =
   | 'diff-checker'
   | 'redact-pdf'
   | 'clean-pdf-metadata'
-  | 'encrypt-text';
+  | 'encrypt-text'
+  | 'qr-code';
 
 export type ToolTone =
   | 'violet'
@@ -970,6 +971,39 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'encrypt text', 'encrypt message', 'decrypt text', 'secret message',
       'aes 256 text', 'password protect text', 'secure message', 'cipher text'
+    ],
+  },
+  {
+    id: 'qr-code',
+    pathPt: 'privacidade/qr-code',
+    pathEn: 'privacy/qr-code',
+    icon: 'qrcode',
+    category: 'privacy',
+    // Fora da cadeia, e é o que o componente diz: ele não injeta
+    // `WorkspaceService` em lugar nenhum — lê a imagem a ser escaneada pelo
+    // seletor dele e salva o QR direto com `saveBlob`. Declarar `['image']`
+    // faria os chips oferecerem "QR Code" depois de cortar uma foto, e a
+    // ferramenta abriria com o dropzone vazio: a continuação prometida que
+    // `img-to-pdf` já custou uma vez. Ligar o QR à sessão é uma mudança de
+    // verdade — hidratar na entrada e registrar o resultado — e não uma
+    // resolução de conflito.
+    accepts: [],
+    produces: null,
+    navKey: 'nav.qr_code',
+    shortKey: 'nav.short.qr_code',
+    titleKey: 'qrcode.title',
+    descKey: 'qrcode.subtitle',
+    suffix: 'qrcode',
+    tone: 'emerald',
+    keywordsPt: [
+      'gerar qr code', 'ler qr code', 'criar qr code', 'qr code wifi', 'qr code pix',
+      'qr code offline', 'escanear qr code', 'leitor de qr code', 'gerador de qr code',
+      'qr code seguro', 'qr code sem servidor', 'qr code vcard', 'qr code whatsapp'
+    ],
+    keywordsEn: [
+      'qr code generator', 'qr code reader', 'create qr code', 'wifi qr code',
+      'offline qr code', 'scan qr code', 'qr code scanner', 'secure qr code',
+      'vcard qr code', 'whatsapp qr code', 'private qr code'
     ],
   },
 ];

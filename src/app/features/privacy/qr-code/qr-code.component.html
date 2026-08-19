@@ -1,0 +1,591 @@
+<app-tool-page [toolId]="'qr-code'" [forceLoaded]="true">
+
+  <!-- STAGE: QR Code Preview (Generator) or Scanner View / Results (Scanner) -->
+  <div stage class="space-y-6">
+
+    @if (activeTab() === 'generate') {
+      <!-- GENERATOR PREVIEW -->
+      <app-panel>
+        <div class="flex flex-col items-center justify-center gap-6 py-4">
+          
+          <!-- Canvas Wrapper with clean backdrop -->
+          <div class="relative flex items-center justify-center rounded-xl border border-line bg-raised/50 p-6 shadow-sm">
+            <canvas
+              #qrCanvas
+              class="max-h-[360px] max-w-[360px] w-full h-auto rounded-lg shadow-sm"
+              style="image-rendering: pixelated;"
+            ></canvas>
+          </div>
+
+          <!-- Payload Summary Chip -->
+          <div class="flex max-w-full items-center gap-2 rounded-md border border-line bg-raised px-3 py-1.5 text-xs text-muted">
+            <app-icon name="qrcode" [size]="14" class="text-accent shrink-0" />
+            <span class="truncate font-mono font-medium text-text select-all">{{ computedPayload() }}</span>
+            <button
+              type="button"
+              (click)="copyPayload()"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-surface text-text transition"
+              title="Copiar texto do QR Code"
+            >
+              <app-icon [name]="copiedPayload() ? 'check' : 'copy'" [size]="14" />
+            </button>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="flex flex-wrap items-center justify-center gap-2.5">
+            <button type="button" appButton variant="primary" size="md" (click)="downloadPng()">
+              <app-icon name="download" [size]="16" />
+              <span>{{ i18n.t()['qrcode.btn_download_png'] }}</span>
+            </button>
+
+            <button type="button" appButton variant="secondary" size="md" (click)="downloadSvg()">
+              <app-icon name="download" [size]="16" />
+              <span>{{ i18n.t()['qrcode.btn_download_svg'] }}</span>
+            </button>
+
+            <button type="button" appButton variant="secondary" size="md" (click)="copyImage()">
+              <app-icon [name]="copiedImage() ? 'check' : 'copy'" [size]="16" />
+              <span>{{ copiedImage() ? i18n.t()['qrcode.copied'] : i18n.t()['qrcode.btn_copy_image'] }}</span>
+            </button>
+          </div>
+
+        </div>
+      </app-panel>
+    } @else {
+      <!-- SCANNER STAGE -->
+      <app-panel [heading]="i18n.t()['qrcode.tab_scan']">
+        <div class="space-y-6">
+
+          <!-- Dropzone for image input -->
+          @if (!isCameraActive()) {
+            <app-dropzone
+              [compact]="true"
+              accept="image/*"
+              [multiple]="false"
+              (fileSelected)="onScanFile($event)"
+            />
+          }
+
+          <!-- Camera Stream Section -->
+          @if (isCameraActive()) {
+            <div class="relative overflow-hidden rounded-xl border border-line bg-black">
+              <video #videoPreview class="w-full max-h-[380px] object-contain"></video>
+              
+              <!-- Target Viewfinder Overlay -->
+              <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div class="h-48 w-48 rounded-lg border-2 border-accent shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"></div>
+              </div>
+
+              <div class="absolute bottom-4 left-0 right-0 flex justify-center">
+                <button type="button" appButton variant="danger" size="md" (click)="stopCamera()">
+                  <app-icon name="close" [size]="16" />
+                  <span>{{ i18n.t()['qrcode.scan_camera_stop'] }}</span>
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="flex justify-center">
+              <button type="button" appButton variant="secondary" size="md" (click)="toggleCamera()">
+                <app-icon name="scan" [size]="16" />
+                <span>{{ i18n.t()['qrcode.scan_camera_btn'] }}</span>
+              </button>
+            </div>
+          }
+
+          <!-- Scan Error -->
+          @if (scanError()) {
+            <div class="rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs text-danger flex items-center gap-2">
+              <app-icon name="alert" [size]="16" class="shrink-0" />
+              <span>{{ scanError() }}</span>
+            </div>
+          }
+
+          <!-- Scan Result Panel -->
+          @if (scanResult(); as res) {
+            <div class="space-y-4 rounded-xl border border-accent/30 bg-accent/5 p-5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="rounded bg-accent px-2 py-0.5 text-xs font-semibold text-white uppercase tracking-wider">
+                    {{ res.type }}
+                  </span>
+                  <h4 class="text-sm font-semibold text-text">{{ i18n.t()['qrcode.scan_result_title'] }}</h4>
+                </div>
+
+                <button type="button" appButton variant="ghost" size="sm" (click)="loadInGenerator()">
+                  <app-icon name="refresh" [size]="14" />
+                  <span>{{ i18n.t()['qrcode.scan_edit_generator'] }}</span>
+                </button>
+              </div>
+
+              <!-- Contextual Display per Type -->
+              @if (res.type === 'wifi') {
+                <div class="space-y-2 rounded-lg border border-line bg-surface p-4 text-xs">
+                  <div class="flex justify-between items-center">
+                    <span class="text-muted">{{ i18n.t()['qrcode.wifi_ssid'] }}:</span>
+                    <span class="font-semibold text-text select-all">{{ res.ssid }}</span>
+                  </div>
+                  @if (res.password) {
+                    <div class="flex justify-between items-center">
+                      <span class="text-muted">{{ i18n.t()['qrcode.wifi_pass'] }}:</span>
+                      <div class="flex items-center gap-2">
+                        <span class="font-mono font-semibold text-text select-all">{{ res.password }}</span>
+                        <button
+                          type="button"
+                          appButton
+                          variant="secondary"
+                          size="sm"
+                          (click)="copyField(res.password, 'pass')"
+                        >
+                          <app-icon [name]="copiedScanField() === 'pass' ? 'check' : 'copy'" [size]="12" />
+                          <span>{{ copiedScanField() === 'pass' ? i18n.t()['qrcode.copied'] : i18n.t()['qrcode.scan_copy_pass'] }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  <div class="flex justify-between items-center">
+                    <span class="text-muted">{{ i18n.t()['qrcode.wifi_enc'] }}:</span>
+                    <span class="text-text">{{ res.encryption }}</span>
+                  </div>
+                </div>
+              } @else if (res.type === 'pix') {
+                <div class="space-y-2 rounded-lg border border-line bg-surface p-4 text-xs">
+                  <div class="flex justify-between items-center">
+                    <span class="text-muted">{{ i18n.t()['qrcode.pix_key'] }}:</span>
+                    <span class="font-mono font-semibold text-text select-all">{{ res.key }}</span>
+                  </div>
+                  @if (res.name) {
+                    <div class="flex justify-between items-center">
+                      <span class="text-muted">{{ i18n.t()['qrcode.pix_name'] }}:</span>
+                      <span class="text-text">{{ res.name }}</span>
+                    </div>
+                  }
+                  @if (res.amount) {
+                    <div class="flex justify-between items-center">
+                      <span class="text-muted">{{ i18n.t()['qrcode.pix_amount'] }}:</span>
+                      <span class="font-bold text-accent">R$ {{ res.amount.toFixed(2) }}</span>
+                    </div>
+                  }
+                  <div class="pt-2">
+                    <button type="button" appButton variant="primary" size="sm" block (click)="copyField(res.raw, 'pix')">
+                      <app-icon [name]="copiedScanField() === 'pix' ? 'check' : 'copy'" [size]="14" />
+                      <span>{{ copiedScanField() === 'pix' ? i18n.t()['qrcode.copied'] : i18n.t()['qrcode.scan_copy_pix'] }}</span>
+                    </button>
+                  </div>
+                </div>
+              } @else if (res.type === 'url') {
+                <div class="flex items-center justify-between gap-3 rounded-lg border border-line bg-surface p-4 text-xs">
+                  <span class="font-mono text-text truncate select-all">{{ res.url }}</span>
+                  <a [href]="res.url" target="_blank" rel="noopener noreferrer" appButton variant="primary" size="sm" class="shrink-0">
+                    <app-icon name="arrowRight" [size]="14" />
+                    <span>{{ i18n.t()['qrcode.scan_open_link'] }}</span>
+                  </a>
+                </div>
+              } @else if (res.type === 'vcard') {
+                <div class="space-y-2 rounded-lg border border-line bg-surface p-4 text-xs">
+                  <div class="flex justify-between items-center">
+                    <span class="text-muted">{{ i18n.t()['qrcode.vcard_fn'] }}:</span>
+                    <span class="font-semibold text-text">{{ res.name }}</span>
+                  </div>
+                  @if (res.phone) {
+                    <div class="flex justify-between items-center">
+                      <span class="text-muted">{{ i18n.t()['qrcode.vcard_phone'] }}:</span>
+                      <span class="text-text select-all">{{ res.phone }}</span>
+                    </div>
+                  }
+                  @if (res.email) {
+                    <div class="flex justify-between items-center">
+                      <span class="text-muted">{{ i18n.t()['qrcode.vcard_email'] }}:</span>
+                      <span class="text-text select-all">{{ res.email }}</span>
+                    </div>
+                  }
+                  <div class="pt-2">
+                    <button type="button" appButton variant="secondary" size="sm" (click)="downloadVCard(res.raw)">
+                      <app-icon name="download" [size]="14" />
+                      <span>{{ i18n.t()['qrcode.scan_save_vcard'] }}</span>
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <!-- Raw text / email / phone -->
+                <div class="space-y-3 rounded-lg border border-line bg-surface p-4 text-xs">
+                  <p class="whitespace-pre-wrap break-all font-mono text-text select-all">{{ scanRawText() }}</p>
+                  <button type="button" appButton variant="secondary" size="sm" (click)="copyField(scanRawText() || '', 'text')">
+                    <app-icon [name]="copiedScanField() === 'text' ? 'check' : 'copy'" [size]="14" />
+                    <span>{{ copiedScanField() === 'text' ? i18n.t()['qrcode.copied'] : i18n.t()['qrcode.btn_copy_payload'] }}</span>
+                  </button>
+                </div>
+              }
+
+            </div>
+          }
+
+        </div>
+      </app-panel>
+    }
+
+  </div>
+
+  <!-- PANEL: Controls -->
+  <div panel class="flex flex-col gap-4">
+
+    <!-- Mode Switcher (Gerar / Ler) -->
+    <app-panel>
+      <div class="space-y-4">
+        <app-segmented
+          [options]="tabOptions()"
+          [value]="activeTab()"
+          (valueChange)="setTab($event)"
+          [columns]="2"
+        />
+      </div>
+    </app-panel>
+
+    @if (activeTab() === 'generate') {
+      <!-- GENERATOR CONTROLS -->
+      <app-panel [heading]="i18n.t()['qrcode.tab_generate']">
+        <div class="space-y-4">
+
+          <!-- Content Type Selector -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-semibold text-muted">Tipo de Dado</span>
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 text-xs">
+              @for (opt of contentTypeOptions(); track opt.value) {
+                <button
+                  type="button"
+                  (click)="setContentType(opt.value)"
+                  [class]="contentType() === opt.value
+                    ? 'rounded-md border p-2 text-center transition font-medium text-xs truncate border-accent bg-accent/10 text-accent'
+                    : 'rounded-md border p-2 text-center transition font-medium text-xs truncate border-line bg-raised text-text hover:border-text-muted'"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Form Fields depending on Content Type -->
+          <div class="space-y-3 pt-2">
+
+            @if (contentType() === 'url') {
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.type_url'] }}</label>
+                <input
+                  type="url"
+                  [ngModel]="urlInput()"
+                  (ngModelChange)="urlInput.set($event); updateRender()"
+                  [placeholder]="i18n.t()['qrcode.url_placeholder']"
+                  class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none"
+                />
+              </div>
+            }
+
+            @if (contentType() === 'text') {
+              <div class="space-y-1">
+                <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.type_text'] }}</label>
+                <textarea
+                  rows="3"
+                  [ngModel]="textInput()"
+                  (ngModelChange)="textInput.set($event); updateRender()"
+                  [placeholder]="i18n.t()['qrcode.text_placeholder']"
+                  class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none"
+                ></textarea>
+              </div>
+            }
+
+            @if (contentType() === 'wifi') {
+              <div class="space-y-2.5">
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wifi_ssid'] }}</label>
+                  <input
+                    type="text"
+                    [ngModel]="wifiSsid()"
+                    (ngModelChange)="wifiSsid.set($event); updateRender()"
+                    placeholder="MinhaRede"
+                    class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wifi_pass'] }}</label>
+                  <input
+                    type="text"
+                    [ngModel]="wifiPass()"
+                    (ngModelChange)="wifiPass.set($event); updateRender()"
+                    placeholder="Senha do Wi-Fi"
+                    class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                  />
+                </div>
+                <div class="flex items-center justify-between text-xs pt-1">
+                  <label class="flex items-center gap-2 text-text cursor-pointer">
+                    <input
+                      type="checkbox"
+                      [ngModel]="wifiHidden()"
+                      (ngModelChange)="wifiHidden.set($event); updateRender()"
+                      class="rounded accent-accent"
+                    />
+                    <span>{{ i18n.t()['qrcode.wifi_hidden'] }}</span>
+                  </label>
+                </div>
+              </div>
+            }
+
+            @if (contentType() === 'pix') {
+              <div class="space-y-2.5">
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_key'] }}</label>
+                  <input
+                    type="text"
+                    [ngModel]="pixKey()"
+                    (ngModelChange)="pixKey.set($event); updateRender()"
+                    placeholder="CPF, CNPJ, E-mail ou Telefone"
+                    class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_name'] }}</label>
+                    <input
+                      type="text"
+                      [ngModel]="pixName()"
+                      (ngModelChange)="pixName.set($event); updateRender()"
+                      placeholder="NOME"
+                      class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_city'] }}</label>
+                    <input
+                      type="text"
+                      [ngModel]="pixCity()"
+                      (ngModelChange)="pixCity.set($event); updateRender()"
+                      placeholder="CIDADE"
+                      class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_amount'] }}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      [ngModel]="pixAmount()"
+                      (ngModelChange)="pixAmount.set($event); updateRender()"
+                      placeholder="0.00"
+                      class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_txid'] }}</label>
+                    <input
+                      type="text"
+                      [ngModel]="pixTxId()"
+                      (ngModelChange)="pixTxId.set($event); updateRender()"
+                      placeholder="***"
+                      class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+
+            @if (contentType() === 'vcard') {
+              <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_fn'] }}</label>
+                    <input
+                      type="text"
+                      [ngModel]="vcardFn()"
+                      (ngModelChange)="vcardFn.set($event); updateRender()"
+                      class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_ln'] }}</label>
+                    <input
+                      type="text"
+                      [ngModel]="vcardLn()"
+                      (ngModelChange)="vcardLn.set($event); updateRender()"
+                      class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_phone'] }}</label>
+                  <input
+                    type="tel"
+                    [ngModel]="vcardPhone()"
+                    (ngModelChange)="vcardPhone.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_email'] }}</label>
+                  <input
+                    type="email"
+                    [ngModel]="vcardEmail()"
+                    (ngModelChange)="vcardEmail.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_org'] }}</label>
+                  <input
+                    type="text"
+                    [ngModel]="vcardOrg()"
+                    (ngModelChange)="vcardOrg.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  />
+                </div>
+              </div>
+            }
+
+            @if (contentType() === 'email') {
+              <div class="space-y-2.5">
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_to'] }}</label>
+                  <input
+                    type="email"
+                    [ngModel]="emailTo()"
+                    (ngModelChange)="emailTo.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_subject'] }}</label>
+                  <input
+                    type="text"
+                    [ngModel]="emailSubject()"
+                    (ngModelChange)="emailSubject.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_body'] }}</label>
+                  <textarea
+                    rows="2"
+                    [ngModel]="emailBody()"
+                    (ngModelChange)="emailBody.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  ></textarea>
+                </div>
+              </div>
+            }
+
+            @if (contentType() === 'whatsapp') {
+              <div class="space-y-2.5">
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wa_phone'] }}</label>
+                  <input
+                    type="tel"
+                    [ngModel]="waPhone()"
+                    (ngModelChange)="waPhone.set($event); updateRender()"
+                    placeholder="5511999998888"
+                    class="w-full rounded-md border border-line bg-raised p-2.5 text-sm text-text focus:border-accent focus:outline-none font-mono"
+                  />
+                </div>
+                <div class="space-y-1">
+                  <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wa_msg'] }}</label>
+                  <textarea
+                    rows="2"
+                    [ngModel]="waMsg()"
+                    (ngModelChange)="waMsg.set($event); updateRender()"
+                    class="w-full rounded-md border border-line bg-raised p-2 text-sm text-text focus:border-accent focus:outline-none"
+                  ></textarea>
+                </div>
+              </div>
+            }
+
+          </div>
+
+        </div>
+      </app-panel>
+
+      <!-- CUSTOMIZATION PANEL -->
+      <app-panel [heading]="i18n.t()['qrcode.customize']">
+        <div class="space-y-4">
+
+          <!-- Colors -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.fg_color'] }}</label>
+              <div class="flex items-center gap-2 rounded-md border border-line bg-raised p-1.5">
+                <input
+                  type="color"
+                  [ngModel]="fgColor()"
+                  (ngModelChange)="fgColor.set($event); updateRender()"
+                  class="h-7 w-7 cursor-pointer rounded border-0 bg-transparent p-0"
+                />
+                <span class="font-mono text-xs text-text uppercase">{{ fgColor() }}</span>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.bg_color'] }}</label>
+              <div class="flex items-center gap-2 rounded-md border border-line bg-raised p-1.5">
+                <input
+                  type="color"
+                  [disabled]="isTransparentBg()"
+                  [ngModel]="bgColor()"
+                  (ngModelChange)="bgColor.set($event); updateRender()"
+                  class="h-7 w-7 cursor-pointer rounded border-0 bg-transparent p-0 disabled:opacity-30"
+                />
+                <span class="font-mono text-xs text-text uppercase">{{ isTransparentBg() ? 'Transp.' : bgColor() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 text-xs text-text cursor-pointer">
+            <input
+              type="checkbox"
+              [ngModel]="isTransparentBg()"
+              (ngModelChange)="isTransparentBg.set($event); updateRender()"
+              class="rounded accent-accent"
+            />
+            <span>{{ i18n.t()['qrcode.transparent_bg'] }}</span>
+          </label>
+
+          <!-- Error Correction Level -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-semibold text-muted">{{ i18n.t()['qrcode.ecc_level'] }}</span>
+            <app-segmented
+              [options]="eccOptions()"
+              [value]="eccLevel()"
+              (valueChange)="eccLevel.set($event); updateRender()"
+              [columns]="4"
+            />
+          </div>
+
+          <!-- Logo Upload (Optional) -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.logo'] }}</span>
+              @if (logoImage()) {
+                <button type="button" class="text-xs text-danger hover:underline" (click)="clearLogo()">
+                  Remover
+                </button>
+              }
+            </div>
+            
+            <label
+              class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-line bg-raised/40 p-2.5 text-xs text-muted hover:border-line-strong hover:text-text transition"
+            >
+              <app-icon name="image" [size]="16" />
+              <span>{{ logoImage() ? 'Alterar Logo' : 'Adicionar Logo no Centro' }}</span>
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                (change)="onLogoSelected($any($event.target).files[0])"
+              />
+            </label>
+            <p class="text-[11px] text-muted">{{ i18n.t()['qrcode.logo_hint'] }}</p>
+          </div>
+
+        </div>
+      </app-panel>
+    }
+
+  </div>
+
+</app-tool-page>

@@ -66,6 +66,7 @@ export const ICONS = {
   /** Monitor com o ponto de gravação: a tela é o que entra, não uma câmera. */
   screenRecord: 'M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Zm5 15h6m-3-5v5m0-11.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
   stop: 'M8 8h8v8H8z',
+  qrcode: 'M3 3h7v7H3V3Zm2 2v3h3V5H5Zm8-2h7v7h-7V3Zm2 2v3h3V5h-3ZM3 13h7v7H3v-7Zm2 2v3h3v-3H5Zm8 0h3v3h-3v-3Zm4 0h3v7h-3v-3h-3v-4h3Zm-4 4h3v3h-3v-3Z',
 } as const;
 
 export type IconName = keyof typeof ICONS;
