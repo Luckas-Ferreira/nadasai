@@ -6,10 +6,10 @@ import { saveBlob } from '../../core/image/download';
 import { extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { CompareSliderComponent } from '../../shared/ui/compare-slider.component';
@@ -41,10 +41,8 @@ export class CompressComponent {
   private readonly tool = toolById('compress');
   private readonly pendingTransition = inject(PendingTransitionService);
 
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
   protected readonly i18n = inject(TranslationService);
-
-  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('compress'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly resultBlob = signal<Blob | null>(null);
@@ -66,7 +64,17 @@ export class CompressComponent {
    */
   protected readonly stale = computed(() => this.ranQuality() !== this.quality());
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('compress'));
 
   /** What will actually be written — the input's own format, wherever possible. */
   protected readonly outputFormat = computed(() => {
@@ -111,8 +119,7 @@ export class CompressComponent {
   });
 
   constructor() {
-    const file = this.sourceFile();
-    if (file) this.sourceUrl.set(this.urls.create(file));
+    hydrateFromWorkspace('compress', (file) => this.hydrate(file));
   }
 
   protected onFile(file: File): void {
@@ -120,14 +127,26 @@ export class CompressComponent {
     this.noticeKey.set(null);
 
     try {
-      this.state.load(file);
+      // Só carrega. A prévia e a limpeza do resultado anterior são do hydrate(),
+      // que roda tanto para um upload quanto para um arquivo que chegou pela
+      // cadeia ou voltou por um desfazer — antes eram três caminhos escrevendo as
+      // mesmas duas linhas, e o do desfazer simplesmente não existia.
+      this.state.load(file, 'compress');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private hydrate(file: File | null): void {
+    this.clearResult();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
       return;
     }
 
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
-    this.clearResult();
   }
 
   protected async run(): Promise<void> {
@@ -151,14 +170,7 @@ export class CompressComponent {
 
       // Register commit for rail/mobile-bar navigation.
       const ext = this.ext();
-      this.pendingTransition.register(() => {
-        try {
-          this.state.apply('compress', blob, this.tool.suffix, ext);
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      this.pendingTransition.registerResult('compress', blob, this.tool.suffix, ext);
     } catch (err) {
       console.error('Compression failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -173,33 +185,6 @@ export class CompressComponent {
     if (!blob || !session) return;
 
     saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, this.ext()));
-  }
-
-  protected continueEdit(): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('compress', blob, this.tool.suffix, this.ext());
-      this.pendingTransition.clear();
-      this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  protected goToTool(tool: ToolDef): void {
-    const blob = this.resultBlob();
-    if (!blob) return;
-
-    try {
-      this.state.apply('compress', blob, this.tool.suffix, this.ext());
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   protected reset(): void {

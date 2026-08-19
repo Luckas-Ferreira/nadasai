@@ -22,7 +22,8 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { AudioStateService } from '../../core/services/audio-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -72,7 +73,8 @@ export class CompressAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('compress-audio');
   private readonly compressor = inject(AudioCompressorService);
-  private readonly audioState = inject(AudioStateService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
   private readonly router = inject(Router);
   private readonly engine = new AudioEngine();
 
@@ -180,9 +182,7 @@ export class CompressAudioComponent implements OnDestroy {
       this.draw();
     });
 
-    // Auto-load the persisted audio file when the user navigates to this tool.
-    const savedFile = this.audioState.currentFile();
-    if (savedFile) void this.onFile(savedFile);
+    hydrateFromWorkspace('compress-audio', (file) => void this.openFile(file));
   }
 
   ngOnDestroy(): void {
@@ -197,11 +197,39 @@ export class CompressAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- loading
 
-  protected async onFile(file: File): Promise<void> {
+  /**
+   * O upload. Só carrega na sessão — decodificar é do `openFile()`, que a
+   * hidratação chama tanto para o arquivo que a pessoa soltou aqui quanto para o
+   * que chegou pela cadeia ou voltou por um desfazer.
+   *
+   * A separação conserta um bug real: o caminho de hidratação chamava este mesmo
+   * método, e ele chamava `load()` — que zera `history` e `past`. Ou seja, ir de
+   * cortar para comprimir apagava o breadcrumb e o desfazer do módulo inteiro,
+   * exatamente no momento em que a cadeia ia começar a valer alguma coisa.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'compress-audio');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.stopPlayback();
     this.errorKey.set(null);
     this.result.set(null);
+    this.pendingTransition.clear();
     this.loading.set(true);
+
+    if (!file) {
+      this.currentFile.set(null);
+      this.audioBuffer.set(null);
+      this.loading.set(false);
+      return;
+    }
 
     try {
       assertUsableAudio(file);
@@ -216,7 +244,6 @@ export class CompressAudioComponent implements OnDestroy {
       const fmt = file.name.split('.').pop()?.toLowerCase() ?? 'mp3';
       this.sourceFormat.set(fmt);
       this.currentFile.set(file);
-      this.audioState.load(file);   // persist across tool navigation
       this.audioBuffer.set(buffer);
       this.zoomLevel.set(1);
       this.viewStart.set(0);
@@ -238,7 +265,8 @@ export class CompressAudioComponent implements OnDestroy {
     this.errorKey.set(null);
     this.zoomLevel.set(1);
     this.viewStart.set(0);
-    this.audioState.clear();   // clear the global bar too
+    this.pendingTransition.clear();
+    this.workspace.clear();   // clear the global bar too
   }
 
   // ---------------------------------------------------------------- zoom
@@ -339,7 +367,13 @@ export class CompressAudioComponent implements OnDestroy {
   }
 
   private stopPlayback(): void {
-    cancelAnimationFrame(this.frame);
+    // Mesma guarda do `ngOnDestroy`, por um caminho novo: a hidratação chama
+    // `openFile(null)` na construção da ferramenta, e ele passa por aqui antes de
+    // qualquer quadro ter sido agendado. No prerender isso roda no Node, onde
+    // `cancelAnimationFrame` não existe — sem o `if`, abrir qualquer rota de áudio
+    // matava o worker e derrubava as rotas que ainda estavam na fila dele.
+    if (this.frame) cancelAnimationFrame(this.frame);
+    this.frame = 0;
     this.engine.stop();
     this.playing.set(false);
     this.playhead.set(null);
@@ -373,8 +407,11 @@ export class CompressAudioComponent implements OnDestroy {
       const filename = suffixedName(file.name, this.tool.suffix, ext);
       this.result.set({ blob, filename });
 
-      // Save output in session history so undo and tool chaining work seamlessly.
-      this.audioState.apply('compress-audio', blob, this.tool.suffix, ext);
+      // Registrado, não aplicado. Aplicar aqui adiantava o breadcrumb e o undo para
+      // antes de a pessoa decidir ficar com o resultado — e como continueEdit()
+      // aplicava DE NOVO, aceitar produzia `audio-compressed-compressed.mp3` com
+      // dois passos iguais no histórico. Quem commita é a navegação.
+      this.pendingTransition.registerResult('compress-audio', blob, this.tool.suffix, ext);
     } catch (err) {
       console.error('[CompressAudio] run error:', err);
       this.errorKey.set(toMessageKey(err));
@@ -387,18 +424,6 @@ export class CompressAudioComponent implements OnDestroy {
   protected download(): void {
     const r = this.result();
     if (r) saveBlob(r.blob, r.filename);
-  }
-
-  protected continueEdit(): void {
-    const r = this.result();
-    if (!r) return;
-
-    try {
-      this.audioState.apply('compress-audio', r.blob, this.tool.suffix, this.outputExt() || 'mp3');
-      void this.router.navigate(['/']);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   // ---------------------------------------------------------------- formatting

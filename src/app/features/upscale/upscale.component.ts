@@ -6,10 +6,10 @@ import { saveBlob } from '../../core/image/download';
 import { extForMime, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { CompareSliderComponent } from '../../shared/ui/compare-slider.component';
@@ -44,10 +44,8 @@ export class UpscaleComponent {
   private readonly upscaler = inject(UpscaleService);
   private readonly pendingTransition = inject(PendingTransitionService);
 
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
   protected readonly i18n = inject(TranslationService);
-
-  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('upscale'));
 
   protected readonly sourceUrl = signal<string | null>(null);
   protected readonly result = signal<UpscaleResult | null>(null);
@@ -61,7 +59,17 @@ export class UpscaleComponent {
   protected readonly denoise = signal<boolean>(true);
   protected readonly aiStrength = signal<number>(1.4);
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('upscale'));
 
   protected readonly originalDimensions = computed(() => {
     const res = this.result();
@@ -74,24 +82,31 @@ export class UpscaleComponent {
   });
 
   constructor() {
-    const file = this.sourceFile();
-    if (file) {
-      this.sourceUrl.set(this.urls.create(file));
-      void this.runUpscale();
-    }
+    hydrateFromWorkspace('upscale', (file) => this.hydrate(file));
   }
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
     try {
-      this.state.load(file);
-      this.sourceUrl.set(this.urls.create(file));
-      this.result.set(null);
-      this.resultUrl.set(null);
-      void this.runUpscale();
+      this.state.load(file, 'upscale');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
+  }
+
+  private hydrate(file: File | null): void {
+    this.result.set(null);
+    this.resultUrl.set(null);
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
+      return;
+    }
+
+    this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
+    void this.runUpscale();
   }
 
   protected async runUpscale(): Promise<void> {
@@ -116,24 +131,22 @@ export class UpscaleComponent {
       this.result.set(res);
       this.resultUrl.set(res.dataUrl);
 
-      // Register pending commit for rail/mobile-bar navigation.
+      // `registerResult` (que chama `apply`), não `load`.
+      //
+      // O commit daqui montava um File e chamava `load()`, e `load()` começa uma
+      // sessão NOVA: history e past zerados. Ou seja, melhorar a qualidade no meio
+      // de uma cadeia apagava o breadcrumb e o desfazer de tudo que veio antes, e
+      // o nome do arquivo passava a derivar do resultado em vez do upload
+      // original — que é justamente o `crop-nobg-photo.jpg` que `originalName`
+      // existe para impedir.
       const original = this.sourceFile();
       if (original) {
-        const ext = extForMime(original.type) || 'png';
-        const mimeType = original.type === 'image/png' ? 'image/png' : 'image/jpeg';
-        this.pendingTransition.register(() => {
-          const nextFile = new File(
-            [res.blob],
-            suffixedName(original.name, this.tool.suffix, ext),
-            { type: mimeType },
-          );
-          try {
-            this.state.load(nextFile);
-            return true;
-          } catch {
-            return false;
-          }
-        });
+        this.pendingTransition.registerResult(
+          'upscale',
+          res.blob,
+          this.tool.suffix,
+          extForMime(original.type) || 'png',
+        );
       }
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
@@ -149,41 +162,6 @@ export class UpscaleComponent {
 
     const ext = extForMime(file.type) || 'png';
     saveBlob(res.blob, suffixedName(file.name, this.tool.suffix, ext));
-  }
-
-  protected continueEdit(): void {
-    const res = this.result();
-    const original = this.sourceFile();
-    if (!res || !original) return;
-
-    const ext = extForMime(original.type) || 'png';
-    const mimeType = original.type === 'image/png' ? 'image/png' : 'image/jpeg';
-    const nextFile = new File([res.blob], suffixedName(original.name, this.tool.suffix, ext), {
-      type: mimeType,
-    });
-    this.state.load(nextFile);
-    this.pendingTransition.clear();
-    void this.router.navigateByUrl(`/${this.i18n.currentLang()}`);
-  }
-
-  protected goToTool(tool: ToolDef): void {
-    const res = this.result();
-    const original = this.sourceFile();
-    if (!res || !original) return;
-
-    const ext = extForMime(original.type) || 'png';
-    const mimeType = original.type === 'image/png' ? 'image/png' : 'image/jpeg';
-    const nextFile = new File([res.blob], suffixedName(original.name, this.tool.suffix, ext), {
-      type: mimeType,
-    });
-    try {
-      this.state.load(nextFile);
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   protected reset(): void {

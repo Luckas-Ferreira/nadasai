@@ -24,6 +24,12 @@ export type ErrorCode =
   | 'video_too_long'
   | 'video_decode_failed'
   | 'video_no_audio'
+  // A captura de tela tem três finais distintos e nenhum deles é "deu erro":
+  // o navegador não oferece a API (todo iOS), a pessoa fechou o seletor sem
+  // escolher, ou a fonte escolhida não tem vídeo. Só o primeiro é definitivo.
+  | 'capture_unsupported'
+  | 'capture_denied'
+  | 'capture_no_video'
   // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
   // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
   // código existe para que o `catch` distinga isso do resto e não mostre nada.
@@ -90,6 +96,9 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   video_too_long: 'error.video_too_long',
   video_decode_failed: 'error.video_decode_failed',
   video_no_audio: 'error.video_no_audio',
+  capture_unsupported: 'error.capture_unsupported',
+  capture_denied: 'error.capture_denied',
+  capture_no_video: 'error.capture_no_video',
   cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',

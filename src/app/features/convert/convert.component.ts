@@ -13,10 +13,10 @@ import {
 import { saveBlob } from '../../core/image/download';
 import { extForMime, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { type ToolDef, chainableImageTools, toolById, toolPath } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
@@ -47,13 +47,8 @@ export class ConvertComponent {
   private readonly tool = toolById('convert');
   private readonly pendingTransition = inject(PendingTransitionService);
 
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
   protected readonly i18n = inject(TranslationService);
-
-  /** Only non-terminal formats re-enter the image chain (not PDF or ICO). */
-  protected readonly nextTools = computed<readonly ToolDef[]>(() =>
-    this.isTerminal() ? [] : chainableImageTools('convert'),
-  );
 
   protected readonly formatOptions = TARGET_FORMATS.map((value) => ({ value, label: value }));
   protected readonly backdropOptions = [
@@ -70,7 +65,17 @@ export class ConvertComponent {
   protected readonly format = signal<TargetFormat>('WEBP');
   protected readonly pdfBackground = signal('#ffffff');
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('convert'));
 
   /** PDF and ICO are not images, so they cannot re-enter the editing chain. */
   protected readonly isTerminal = computed(() => TERMINAL_FORMATS.includes(this.format()));
@@ -104,22 +109,29 @@ export class ConvertComponent {
   protected readonly stale = computed(() => this.ranSettings() !== this.settings());
 
   constructor() {
-    const file = this.sourceFile();
-    if (file) this.sourceUrl.set(this.urls.create(file));
+    hydrateFromWorkspace('convert', (file) => this.hydrate(file));
   }
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
 
     try {
-      this.state.load(file);
+      this.state.load(file, 'convert');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private hydrate(file: File | null): void {
+    this.clearResult();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
       return;
     }
 
     this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
-    this.clearResult();
   }
 
   protected onFormatChange(format: TargetFormat): void {
@@ -144,14 +156,7 @@ export class ConvertComponent {
       // Only register a commit when the output is a raster image, not PDF/ICO.
       if (!this.isTerminal()) {
         const ext = extForMime(MIME_FOR_TARGET[this.format()]);
-        this.pendingTransition.register(() => {
-          try {
-            this.state.apply('convert', blob, this.tool.suffix, ext);
-            return true;
-          } catch {
-            return false;
-          }
-        });
+        this.pendingTransition.registerResult('convert', blob, this.tool.suffix, ext);
       } else {
         this.pendingTransition.clear();
       }
@@ -185,35 +190,6 @@ export class ConvertComponent {
 
     const ext = extForMime(MIME_FOR_TARGET[this.format()]);
     saveBlob(blob, suffixedName(session.originalName, this.tool.suffix, ext));
-  }
-
-  protected continueEdit(): void {
-    const blob = this.resultBlob();
-    if (!blob || this.isTerminal()) return;
-
-    try {
-      const ext = extForMime(MIME_FOR_TARGET[this.format()]);
-      this.state.apply('convert', blob, this.tool.suffix, ext);
-      this.pendingTransition.clear();
-      this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  protected goToTool(tool: ToolDef): void {
-    const blob = this.resultBlob();
-    if (!blob || this.isTerminal()) return;
-
-    try {
-      const ext = extForMime(MIME_FOR_TARGET[this.format()]);
-      this.state.apply('convert', blob, this.tool.suffix, ext);
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
   }
 
   protected reset(): void {

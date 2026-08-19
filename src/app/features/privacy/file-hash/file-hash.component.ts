@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { FormsModule } from '@angular/forms';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
 import { toMessageKey } from '../../../core/errors';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
 import { type HashAlgo, type HashResult, matchAlgo } from '../../../core/hash/hash-file';
 import { formatBytes } from '../../../core/image/image-file.util';
 import { FileHasherService } from './services/file-hasher.service';
@@ -70,6 +71,10 @@ export class FileHashComponent {
       if (this.textDebounce !== null) clearTimeout(this.textDebounce);
       if (this.copyTimer !== null) clearTimeout(this.copyTimer);
     });
+
+    // Como encrypt-file: `accepts: ['any']`, então conferir o hash do que quer
+    // que esteja na sessão é sempre um passo disponível.
+    hydrateFromWorkspace('file-hash', (file) => this.openFile(file));
   }
 
   /**
@@ -130,10 +135,22 @@ export class FileHashComponent {
     this.wantSha512.set(value);
   }
 
+  private readonly workspace = inject(WorkspaceService);
+
   protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'file-hash');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private openFile(file: File | null): void {
     this.file.set(file);
     this.clearResult();
-    void this.run();
+    if (file) void this.run();
   }
 
   /**
@@ -198,6 +215,7 @@ export class FileHashComponent {
   }
 
   protected reset(): void {
+    this.workspace.clear();
     this.file.set(null);
     this.textInput.set('');
     this.expectedHash.set('');

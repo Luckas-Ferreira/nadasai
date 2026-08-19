@@ -95,15 +95,13 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'resize'"
         [primaryLabel]="stale() ? i18n.t()['resize.btn'] : null"
         [primaryDisabled]="!canRun()"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
-        [canContinue]="!!resultUrl()"
-        [nextTools]="nextTools()"
         (primary)="run()"
         (download)="download()"
-        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

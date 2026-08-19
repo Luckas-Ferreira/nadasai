@@ -235,13 +235,12 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'compress-audio'"
         [primaryLabel]="i18n.t()['compress_audio.btn']"
         [busy]="busy()"
         [canDownload]="!!result()"
-        [canContinue]="!!result()"
         (primary)="run()"
         (download)="download()"
-        (continueEdit)="continueEdit()"
         (reset)="reset()"
       />
     }

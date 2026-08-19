@@ -1,4 +1,4 @@
-<!-- `forceLoaded` porque esta ferramenta NÃO está na cadeia do ImageStateService
+<!-- `forceLoaded` porque esta ferramenta NÃO está na cadeia do WorkspaceService
      (ver o cabeçalho da componente): o `loaded` padrão observa a cadeia, que
      aqui está sempre vazia, e o painel nunca apareceria. -->
 <app-tool-page [toolId]="'vectorize'" [forceLoaded]="!!sourceUrl()">
@@ -132,13 +132,13 @@
       <p class="text-xs text-faint">{{ i18n.t()['vector.note'] }}</p>
 
       <!-- `canContinue` é false e não há handler de continuar: a saída é SVG, e o
-           ImageStateService recusa o que não é image/* — corretamente, porque o
+           WorkspaceService recusa o que não é image/* — corretamente, porque o
            próximo tool reencodaria por canvas e rasterizaria de volta o vetor. -->
       <app-action-bar
+        [toolId]="'vectorize'"
         [primaryLabel]="stale() ? i18n.t()['vector.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
-        [canContinue]="false"
         (primary)="run()"
         (download)="download()"
         (reset)="reset()"

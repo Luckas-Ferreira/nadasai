@@ -648,7 +648,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         },
         {
           q: 'Dá para cortar e depois comprimir sem baixar duas vezes?',
-          a: 'Dá. "Continuar editando" leva o resultado direto para a próxima ferramenta, e o nome do arquivo acumula os passos — foto.jpg vira foto-crop.png e depois foto-min.png, sempre derivado do nome original e sempre no formato que a etapa anterior produziu.',
+          a: 'Dá. Os atalhos em "Enviar para outra ferramenta" levam o resultado direto para a próxima, e o nome do arquivo acumula os passos — foto.jpg vira foto-crop.png e depois foto-min.png, sempre derivado do nome original e sempre no formato que a etapa anterior produziu.',
         },
       ],
     },
@@ -1250,11 +1250,11 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'watermark-pdf': {
     pt: {
-      features: ['Texto, cor e opacidade', 'Ângulo ajustável', 'Todas as páginas', 'Sem envio para servidor'],
+      features: ['Texto ou logo', 'Repetida na diagonal', 'Várias linhas numa marca', 'Sem envio para servidor'],
       faq: [
         {
           q: 'Como colocar marca d’água num PDF?',
-          a: 'Digite o texto — CONFIDENCIAL, RASCUNHO, o nome de quem recebe — e ajuste tamanho, cor, opacidade e ângulo. A marca é aplicada em todas as páginas.',
+          a: 'Escolha entre texto e logo. No texto, cada linha vira uma linha da marca — dá para carimbar três nomes de uma vez. Depois escolha entre repetir pela página inteira, na diagonal, ou uma marca só num dos nove pontos, e ajuste tamanho, cor, opacidade, ângulo e espaçamento. A prévia mostra o resultado antes de aplicar.',
         },
         {
           q: 'A marca d’água some se a pessoa imprimir?',
@@ -1271,11 +1271,11 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
     en: {
-      features: ['Text, colour and opacity', 'Adjustable angle', 'Every page', 'Never uploaded'],
+      features: ['Text or logo', 'Tiled diagonally', 'Several lines per mark', 'Never uploaded'],
       faq: [
         {
           q: 'How do I add a watermark to a PDF?',
-          a: 'Type the text — CONFIDENTIAL, DRAFT, the recipient’s name — and set size, colour, opacity and angle. The mark is applied to every page.',
+          a: 'Pick text or a logo. In text mode each line becomes a line of the mark, so you can stamp three names at once. Then choose between repeating it across the whole page on a diagonal or placing a single mark at one of nine spots, and set size, colour, opacity, angle and spacing. The preview shows the result before you apply it.',
         },
         {
           q: 'Does the watermark disappear when printed?',
@@ -1518,6 +1518,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
     },
   },
 
+  'screen-recorder': {
+    pt: {
+      features: [
+        'Tela inteira, janela ou aba',
+        'Som do sistema + microfone',
+        'Até 60 minutos por gravação',
+        'O vídeo nunca sai da aba',
+      ],
+      faq: [
+        {
+          q: 'Como gravar a tela sem instalar programa?',
+          a: 'Abra a ferramenta, escolha se quer o som do sistema e o microfone e clique em gravar. O navegador mostra o seletor dele — tela inteira, uma janela ou uma aba — e a gravação começa depois que você escolhe. O vídeo é montado pelo próprio navegador dentro desta aba: não há upload, não há conta e não existe servidor para onde mandar.',
+        },
+        {
+          q: 'Por que o som do sistema não aparece quando escolho uma janela?',
+          a: 'Porque o Chrome só oferece o áudio do sistema para uma aba ou para a tela inteira, nunca para uma janela isolada — é uma restrição do navegador, não da ferramenta. Se você precisa do som do que está sendo mostrado, escolha a aba ou a tela inteira. O microfone funciona em qualquer uma das três, e quando os dois estão ligados eles são misturados numa faixa só.',
+        },
+        {
+          q: 'Em que formato sai a gravação?',
+          a: 'WebM com VP9 e Opus no Chrome, Edge e Firefox, que é o formato que esses navegadores realmente escrevem; no Safari sai MP4. A ferramenta escolhe o primeiro que o seu navegador suporta em vez de prometer um formato e entregar outro com a extensão errada. Se você precisa só do áudio, o extrator de áudio do mesmo módulo abre a gravação direto, sem baixar e subir de novo.',
+        },
+        {
+          q: 'Por que a gravação para sozinha em 60 minutos?',
+          a: 'É o tamanho do arquivo, não memória: os pedaços do vídeo vão para disco enquanto você grava, mas a 2,5 Mbps uma hora já dá cerca de 1,1 GB para baixar. O limite é anunciado no painel em vez de aparecer como surpresa no fim, e o cronômetro na tela mostra o quanto falta. Gravar de novo em seguida começa um arquivo novo.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Entire screen, window or tab',
+        'System audio + microphone',
+        'Up to 60 minutes per take',
+        'The video never leaves the tab',
+      ],
+      faq: [
+        {
+          q: 'How do I record my screen without installing anything?',
+          a: 'Open the tool, decide whether you want system audio and the microphone, and press record. The browser shows its own picker — whole screen, a window or a tab — and recording starts once you choose. The video is assembled by the browser inside this tab: no upload, no account, and no server to send it to.',
+        },
+        {
+          q: 'Why is there no system audio when I pick a window?',
+          a: 'Because Chrome only offers system audio for a tab or the entire screen, never for a single window — that is a browser restriction, not this tool. If you need the sound of what is on screen, pick the tab or the whole screen. The microphone works with all three, and when both are on they are mixed into a single track.',
+        },
+        {
+          q: 'What format does the recording come out in?',
+          a: 'WebM with VP9 and Opus on Chrome, Edge and Firefox, which is what those browsers actually write; Safari gets MP4. The tool picks the first format your browser supports instead of promising one and handing back another under the wrong extension. If you only wanted the sound, the audio extractor in the same module opens the recording directly, with no download-and-reupload round trip.',
+        },
+        {
+          q: 'Why does recording stop on its own at 60 minutes?',
+          a: 'It is file size, not memory: the video chunks go to disk while you record, but at 2.5 Mbps an hour is already about 1.1 GB to download. The limit is stated in the panel rather than sprung on you at the end, and the on-screen timer shows how much is left. Recording again starts a fresh file.',
+        },
+      ],
+    },
+  },
   'video-to-audio': {
     pt: {
       features: ['MP4, MOV, WebM, MKV', 'MP3 ou WAV sem perda', 'Até 500 MB e 30 minutos', 'O vídeo não é enviado'],

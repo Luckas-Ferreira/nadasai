@@ -91,6 +91,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'encrypt-file'"
         [primaryLabel]="stale() ? (mode() === 'encrypt' ? i18n.t()['encrypt.btn_encrypt'] : i18n.t()['encrypt.btn_decrypt']) : null"
         [primaryDisabled]="!password()"
         [busy]="busy()"

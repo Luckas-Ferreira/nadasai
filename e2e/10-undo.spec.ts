@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openApp, pickFromHome, upload } from './helpers';
+import { openApp, upload } from './helpers';
 
 /**
  * Stepping back through the chain.
@@ -8,6 +8,13 @@ import { openApp, pickFromHome, upload } from './helpers';
  * carry on editing, resize, accept a crop — and only then notice the crop was
  * bad. Before undo, the chain was one-way: the previous file was dropped on the
  * floor by apply(), so the only way back was Start over and re-uploading.
+ *
+ * Undo NÃO navega mais, e é isso que os dois testes aqui passaram a afirmar. Ele
+ * fazia `navigate(['/'])` para forçar a ferramenta aberta a se reconstruir com o
+ * arquivo restaurado — o que expulsava a pessoa da ferramenta e, de quebra,
+ * trocava o idioma, porque a rota `''` é um `redirectTo: 'pt'` e quem estava em
+ * `/en/...` caía no site em português. Com `hydrateFromWorkspace` a ferramenta
+ * reage à sessão, então trocar o arquivo por baixo já basta.
  */
 test.describe('Undo', () => {
   test.setTimeout(180_000);
@@ -16,16 +23,17 @@ test.describe('Undo', () => {
     await openApp(page, '/compress');
     await upload(page);
 
-    // Two steps into the chain: compress, then resize.
+    // Comprimir, e seguir para redimensionar pelo chip — que leva o resultado
+    // junto sem passar pela home.
     await page.getByRole('button', { name: 'Comprimir', exact: true }).click();
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
+    await page.getByRole('button', { name: 'Redimensionar' }).click();
 
-    // From the home, which is where Keep editing lands: the grid, not the rail.
-    await pickFromHome(page, 'Redimensionar');
+    await page.getByRole('button', { name: '400', exact: true }).click();
     await page.getByRole('button', { name: 'Redimensionar', exact: true }).click();
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
+    // "Editar o resultado" transforma o resultado no arquivo de trabalho SEM sair da ferramenta.
+    await page.getByRole('button', { name: 'Editar o resultado' }).click();
 
-    const bar = page.locator('app-current-file-bar');
+    const bar = page.locator('app-file-bar');
     await expect(bar).toContainText('Comprimir  →  Redimensionar');
     await expect(bar).toContainText('photo-resized.png');
 
@@ -47,21 +55,19 @@ test.describe('Undo', () => {
     await expect(page.getByRole('button', { name: 'Limpar' })).toBeVisible();
   });
 
-  test('undoing from inside a tool lands you home, on the restored file', async ({ page }) => {
-    await openApp(page, '/compress');
+  test('undoing from inside a tool keeps you in it, on the restored file', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
     await upload(page);
     await page.getByRole('button', { name: 'Comprimir', exact: true }).click();
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    // A tool reads its source once, when constructed. Undoing while one is open
-    // would otherwise leave it rendering the old file forever.
-    await pickFromHome(page, 'Cortar');
+    // Pelo chip: a compressão é commitada e o corte abre com ela.
+    await page.getByRole('button', { name: 'Cortar' }).click();
     await expect(page).toHaveURL(/\/cortar$/);
 
     await page.getByRole('button', { name: 'Desfazer Comprimir' }).click();
 
-    // `/` redirects to the language root, so the home is `/pt`, never a bare `/`.
-    await expect(page).toHaveURL(/\/pt$/);
-    await expect(page.locator('app-current-file-bar')).toContainText('photo.png');
+    // A ferramenta continua aberta — a hidratação troca o arquivo por baixo dela.
+    await expect(page).toHaveURL(/\/cortar$/);
+    await expect(page.locator('app-file-bar')).toContainText('photo.png');
   });
 });

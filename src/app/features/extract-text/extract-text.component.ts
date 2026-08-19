@@ -5,7 +5,9 @@ import { saveBlob } from '../../core/image/download';
 import { suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { toMessageKey } from '../../core/errors';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -38,6 +40,12 @@ export class ExtractTextComponent {
   private readonly urls = inject(ObjectUrlScope);
   protected readonly tool = toolById('extract-text');
   private readonly ocr = inject(OcrService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+
+  constructor() {
+    hydrateFromWorkspace('extract-text', (file) => this.openFile(file));
+  }
 
   protected readonly i18n = inject(TranslationService);
 
@@ -64,15 +72,29 @@ export class ExtractTextComponent {
 
   protected onFile(file: File): void {
     this.errorKey.set(null);
+
     try {
-      this.currentFile.set(file);
-      this.sourceUrl.set(this.urls.create(file));
-      this.extractedText.set('');
-      this.confidence.set(0);
-      void this.runOcr();
+      this.workspace.load(file, 'extract-text');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
+  }
+
+  private openFile(file: File | null): void {
+    this.extractedText.set('');
+    this.confidence.set(0);
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.urls.revoke(this.sourceUrl());
+      this.sourceUrl.set(null);
+      this.currentFile.set(null);
+      return;
+    }
+
+    this.currentFile.set(file);
+    this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
+    void this.runOcr();
   }
 
   protected async runOcr(): Promise<void> {
@@ -115,6 +137,16 @@ export class ExtractTextComponent {
       }
 
       this.progress.set(100);
+
+      // O texto extraído é um arquivo como outro qualquer, e entrar na sessão é
+      // o que liga esta ferramenta ao comparador de textos e ao criptografar
+      // texto — até aqui ela terminava num botão de copiar.
+      this.pendingTransition.registerResult(
+        'extract-text',
+        new Blob([res.fullText], { type: 'text/plain;charset=utf-8' }),
+        this.tool.suffix,
+        'txt',
+      );
     } catch (err) {
       console.error('[ExtractTextComponent] OCR Error:', err);
       this.errorKey.set(toMessageKey(err));
@@ -142,6 +174,8 @@ export class ExtractTextComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.extractedText.set('');
     this.confidence.set(0);
     this.sourceUrl.set(null);

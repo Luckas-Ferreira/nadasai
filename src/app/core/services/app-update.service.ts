@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { ImageStateService } from './image-state.service';
+import { WorkspaceService } from './workspace.service';
 
 /**
  * Detects new deploys and downloads them 100% silently in the background.
@@ -17,7 +17,7 @@ const CHECK_INTERVAL_MS = 60 * 60 * 1000;
 @Injectable({ providedIn: 'root' })
 export class AppUpdateService {
   private readonly swUpdate = inject(SwUpdate, { optional: true });
-  private readonly imageState = inject(ImageStateService);
+  private readonly imageState = inject(WorkspaceService);
 
   readonly state = signal<UpdateState>('idle');
   readonly updateReady = signal<boolean>(false);

@@ -13,7 +13,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -193,6 +193,8 @@
 
       <!-- Standard Action Bar -->
       <app-action-bar
+        [toolId]="'pdf-to-img'"
+        [resultKind]="resultKind()"
         [primaryLabel]="stale() ? i18n.t()['pdf2img.btn'] : null"
         [primaryDisabled]="selectedCount() === 0"
         [busy]="busy()"

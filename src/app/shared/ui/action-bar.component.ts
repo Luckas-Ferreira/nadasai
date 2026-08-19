@@ -1,6 +1,25 @@
-import { ChangeDetectionStrategy, Component, booleanAttribute, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  booleanAttribute,
+  computed,
+  inject,
+  input,
+  output,
+} from '@angular/core';
+import { Router } from '@angular/router';
+import type { FileKind } from '../../core/files/kind';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
-import { type ToolDef } from '../../core/tools/tools';
+import {
+  MAX_NEXT_TOOL_CHIPS,
+  MULTI_SOURCE_TOOLS,
+  type ToolDef,
+  type ToolId,
+  nextToolsFor,
+  toolById,
+  toolPath,
+} from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
 import { IconComponent } from './icon/icon.component';
 
@@ -18,9 +37,23 @@ import { IconComponent } from './icon/icon.component';
  * `*ngIf="!result()"`, so trying a different quality or format meant starting
  * over and re-uploading the file.
  *
- * When `nextTools` is provided (image module only), the generic "keep editing"
- * button is replaced by labelled chips — one per chainable tool — so the user
- * can go directly to the next step without passing through the home launcher.
+ * **Toda a parte de encadeamento é resolvida aqui, a partir de `toolId`.** A
+ * versão anterior fazia cada ferramenta montar `nextTools`, decidir `canContinue`
+ * e escrever seu próprio `goToTool()` com `apply` + `clear` + `navigate` — seis
+ * cópias no módulo de imagem e nenhuma nos outros três, que por isso não tinham
+ * chip nenhum. Sobraram três coisas, e todas são deriváveis:
+ *
+ * - **Os destinos** saem de `accepts`/`produces` via `nextToolsFor`.
+ * - **A navegação** é feita aqui mesmo, porque o commit do resultado pendente
+ *   acontece no `NavigationStart` (ver `PendingTransitionService`): quem clica
+ *   num chip não precisa aplicar nada antes, basta navegar.
+ * - **Se há o que continuar** é exatamente `hasPending()`. Era um booleano que o
+ *   template passava, o que permitia oferecer "continuar" para um resultado que
+ *   ninguém tinha registrado — chips que não levavam nada junto.
+ *
+ * `resultKind` existe para as duas saídas que não são fixas: split-pdf e
+ * pdf-to-img devolvem um zip quando geram vários arquivos, e oferecer "assinar
+ * PDF" para um zip é pior do que não oferecer nada.
  */
 @Component({
   selector: 'app-action-bar',
@@ -57,21 +90,27 @@ import { IconComponent } from './icon/icon.component';
             {{ i18n.t()['common.download'] }}
           </button>
 
-          <!-- Legacy fallback: audio/PDF tools pass canContinue but no nextTools. -->
-          @if (canContinue() && nextTools().length === 0) {
+          <!-- "Editar o resultado" torna o resultado o arquivo de trabalho e
+               recarrega a ferramenta em cima dele — é a única forma de encadear
+               uma ferramenta na própria saída (cortar de novo o corte, carimbar
+               duas marcas). O rótulo era "Continuar editando", ao lado de um
+               painel chamado "Continuar com" que faz o OPOSTO (sai daqui): duas
+               ações contrárias com quase as mesmas palavras. Só aparece quando a
+               ferramenta come o que ela mesma produz; numa que não come —
+               img-to-pdf, pdf-to-word — prometia uma continuação inexistente. -->
+          @if (canContinue() && selfChainable()) {
             <button
               appButton
               variant="secondary"
               size="lg"
               class="flex-1 whitespace-nowrap"
-              (click)="continueEdit.emit()"
+              (click)="continueHere()"
             >
               {{ i18n.t()['common.continue'] }}
             </button>
           }
         </div>
 
-        <!-- Tool chips: shown when the caller provides a list of peer tools. -->
         @if (canContinue() && nextTools().length > 0) {
           <div class="rounded-lg border border-line bg-raised px-3 py-2.5">
             <p class="mb-2 text-2xs font-medium uppercase tracking-wider text-faint">
@@ -86,7 +125,7 @@ import { IconComponent } from './icon/icon.component';
                   class="group gap-1.5 transition-all duration-150 hover:border-[color:var(--tone-fg)] hover:bg-[color:var(--tone-bg)]"
                   [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
                   [style.--tone-bg]="'var(--tone-' + tool.tone + '-bg)'"
-                  (click)="continueToTool.emit(tool)"
+                  (click)="go(tool)"
                 >
                   <span class="shrink-0 text-[color:var(--tone-fg)]">
                     <app-icon [name]="tool.icon" [size]="13" />
@@ -106,10 +145,8 @@ import { IconComponent } from './icon/icon.component';
 
       <!-- Getting out of trouble: one quiet row, away from the doing.
            Undo is deliberately NOT here — it lives in the file bar, which is on
-           screen everywhere. A tool reads its source once, on construction, so
-           undoing from inside one would swap the file underneath a view that
-           never re-reads it; and the moment you actually want undo, you are back
-           on the home page, where no action bar exists. -->
+           screen everywhere, and the moment you actually want undo you may well
+           be looking at a tool that never produced a result at all. -->
       <div class="mt-1 flex justify-center border-t border-line pt-2">
         <button appButton variant="ghost" size="sm" (click)="reset.emit()">
           {{ i18n.t()['common.reset'] }}
@@ -120,22 +157,65 @@ import { IconComponent } from './icon/icon.component';
 })
 export class ActionBarComponent {
   protected readonly i18n = inject(TranslationService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly router = inject(Router);
+
+  /** Quem está pedindo. É daqui que saem os chips e o "continuar editando". */
+  readonly toolId = input.required<ToolId>();
+  /**
+   * O tipo REAL do resultado, quando ele difere do `produces` declarado.
+   * `undefined` (o padrão) usa o declarado; `null` desliga os chips.
+   */
+  readonly resultKind = input<FileKind | null | undefined>(undefined);
 
   readonly primaryLabel = input<string | null>(null);
   readonly primaryDisabled = input(false, { transform: booleanAttribute });
   readonly busy = input(false, { transform: booleanAttribute });
   readonly canDownload = input(false, { transform: booleanAttribute });
-  readonly canContinue = input(false, { transform: booleanAttribute });
-  /** Chainable peer tools to display as chips. Empty for audio/PDF tools. */
-  readonly nextTools = input<readonly ToolDef[]>([]);
 
   readonly primary = output<void>();
   readonly download = output<void>();
-  /** Legacy: emitted when canContinue is true but nextTools is empty. */
-  readonly continueEdit = output<void>();
-  /** Emitted when the user picks a specific next tool from the chips. */
-  readonly continueToTool = output<ToolDef>();
   readonly reset = output<void>();
+
+  private readonly tool = computed(() => toolById(this.toolId()));
+
+  /**
+   * Há um resultado registrado que qualquer navegação levaria junto.
+   *
+   * É exatamente `hasPending()`, e a tentação de aceitar também "a sessão já é
+   * do tipo que eu produzo" foi testada e está errada: o conversor produz
+   * `image` e trabalha sobre uma sessão `image`, então com aquela regra ele
+   * oferecia continuar mesmo tendo acabado de gerar um PDF ou um ICO, que ele
+   * deliberadamente NÃO registra. A pergunta certa é "há o que levar", e só o
+   * registro responde isso.
+   */
+  protected readonly canContinue = this.pendingTransition.hasPending;
+
+  private readonly kind = computed<FileKind | null>(() => {
+    const override = this.resultKind();
+    return override === undefined ? this.tool().produces : override;
+  });
+
+  protected readonly nextTools = computed<readonly ToolDef[]>(() =>
+    nextToolsFor(this.kind(), this.toolId(), MAX_NEXT_TOOL_CHIPS),
+  );
+
+  /** Come o que produz — é isso que dá sentido a "continuar editando". */
+  protected readonly selfChainable = computed(() => {
+    const tool = this.tool();
+    if (MULTI_SOURCE_TOOLS.includes(tool.id)) return false;
+
+    const kind = this.kind();
+    return kind !== null && tool.accepts.includes(kind);
+  });
+
+  /** Aceita o resultado sem sair: a ferramenta se re-hidrata em cima dele. */
+  protected continueHere(): void {
+    this.pendingTransition.tryCommit();
+  }
+
+  protected go(tool: ToolDef): void {
+    const lang = this.i18n.currentLang();
+    void this.router.navigateByUrl(`/${lang}/${toolPath(tool, lang)}`);
+  }
 }
-
-

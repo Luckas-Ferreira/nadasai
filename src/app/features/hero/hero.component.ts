@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ImageStateService } from '../../core/services/image-state.service';
+import type { FileKind } from '../../core/files/kind';
+import { WorkspaceService } from '../../core/services/workspace.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { MODULES, type ModuleId, type ToolDef, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
@@ -39,7 +40,33 @@ const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: Tr
 })
 export class HeroComponent {
   protected readonly i18n = inject(TranslationService);
-  protected readonly state = inject(ImageStateService);
+  protected readonly state = inject(WorkspaceService);
+
+  /**
+   * O título segue o TIPO do arquivo que está na sessão.
+   *
+   * Era `hero.loaded`, fixo em "Imagem pronta", de quando a sessão só sabia
+   * guardar imagem. Depois do `WorkspaceService` ela guarda PDF, áudio e vídeo
+   * também, e a home anunciava "Imagem pronta" para um PDF — e perguntava "o que
+   * você quer fazer com ELA". O mapa é tipado pelo mesmo motivo de sempre: uma
+   * chave faltando vira erro de compilação, não um título vazio.
+   */
+  private readonly headings: Record<FileKind, TranslationKey> = {
+    image: 'hero.loaded_image',
+    pdf: 'hero.loaded_pdf',
+    audio: 'hero.loaded_audio',
+    video: 'hero.loaded_video',
+    svg: 'hero.loaded_image',
+    text: 'hero.loaded_file',
+    docx: 'hero.loaded_file',
+    zip: 'hero.loaded_file',
+    binary: 'hero.loaded_file',
+    any: 'hero.loaded_file',
+  };
+
+  protected readonly loadedHeading = computed(
+    () => this.i18n.t()[this.headings[this.state.kind() ?? 'any']],
+  );
   protected readonly modules = MODULES;
   protected readonly soon = SOON;
 

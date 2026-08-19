@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
 import { toMessageKey } from '../../../core/errors';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
 import { entropyBits, strengthOf } from '../../../core/password/entropy';
 import { saveBlob } from '../../../core/image/download';
 import { formatBytes } from '../../../core/image/image-file.util';
@@ -104,12 +105,35 @@ export class EncryptFileComponent {
     }
   });
 
+  private readonly workspace = inject(WorkspaceService);
+
+  constructor() {
+    // `accepts: ['any']` é o que faz esta ferramenta ser o fim natural de
+    // QUALQUER cadeia: o PDF que acabou de ser assinado, o áudio normalizado, o
+    // .enc que ela mesma produziu. Um .enc não tem tipo que a cadeia reconheça,
+    // e é para isso que existe o tipo `binary` — sem ele a sessão recusaria
+    // exatamente o arquivo que esta tela existe para abrir.
+    hydrateFromWorkspace('encrypt-file', (file) => this.openFile(file));
+  }
+
   protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'encrypt-file');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private openFile(file: File | null): void {
     this.file.set(file);
+    this.clearResult();
+    if (!file) return;
+
     // A .enc file is almost certainly here to be opened, not encrypted again.
     if (/\.enc$/i.test(file.name)) this.mode.set('decrypt');
     else this.mode.set('encrypt');
-    this.clearResult();
   }
 
   protected setMode(mode: Mode): void {
@@ -166,6 +190,7 @@ export class EncryptFileComponent {
   }
 
   protected reset(): void {
+    this.workspace.clear();
     this.file.set(null);
     this.password.set('');
     this.mode.set('encrypt');

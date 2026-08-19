@@ -6,10 +6,10 @@ import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, flatten, loadImage, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { BackgroundRemovalService } from '../../core/services/background-removal.service';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
-import { chainableImageTools, toolById, toolPath, type ToolDef } from '../../core/tools/tools';
+import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
 import { ButtonDirective } from '../../shared/ui/button.directive';
@@ -58,28 +58,43 @@ export class RemoveBgComponent {
       this.stopTrickle();
       this.pendingTransition.clear();
     });
-    const file = this.sourceFile();
-    if (!file) return;
+    hydrateFromWorkspace('remove-bg', (file) => {
+      this.clearResult();
+      this.backdrop.set(TRANSPARENT);
 
-    this.sourceUrl.set(this.urls.create(file));
+      if (!file) {
+        this.urls.revoke(this.sourceUrl());
+        this.sourceUrl.set(null);
+        return;
+      }
 
-    // Picking this tool with a file already in the chain says what you want as
-    // plainly as dropping one does, so run: the button press was pure ceremony.
-    //
-    // This used to auto-run unconditionally and was turned off for two reasons,
-    // and the chain's own history answers both. A file that has already been
-    // through here is a finished cutout — re-running spends seconds of inference
-    // chewing on its own transparent output, which is the "already-transparent
-    // PNG" case, since that is the only way one reaches this tool without being
-    // dropped on it. It is equally the "navigated back" case: once you keep a
-    // cutout, remove-bg is in the history, so returning shows the file and waits.
-    if (!this.state.history().includes('remove-bg')) void this.run();
+      this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
+      void this.autoRun();
+    });
   }
 
-  protected readonly state = inject(ImageStateService);
-  protected readonly i18n = inject(TranslationService);
+  /**
+   * Picking this tool with a file already in the chain says what you want as
+   * plainly as dropping one does, so run: the button press was pure ceremony.
+   *
+   * This used to auto-run unconditionally and was turned off for two reasons,
+   * and the chain's own history answers both. A file that has already been
+   * through here is a finished cutout — re-running spends seconds of inference
+   * chewing on its own transparent output, which is the "already-transparent
+   * PNG" case, since that is the only way one reaches this tool without being
+   * dropped on it. It is equally the "navigated back" case: once you keep a
+   * cutout, remove-bg is in the history, so returning shows the file and waits.
+   *
+   * Agora ele também é o guarda do desfazer: a hidratação reage à sessão, então
+   * sem a checagem do histórico um Ctrl+Z aqui dispararia outra inferência.
+   */
+  private async autoRun(): Promise<void> {
+    if (this.state.history().includes('remove-bg')) return;
+    await this.run();
+  }
 
-  protected readonly nextTools = computed<readonly ToolDef[]>(() => chainableImageTools('remove-bg'));
+  protected readonly state = inject(WorkspaceService);
+  protected readonly i18n = inject(TranslationService);
 
   protected readonly backdrops = BACKDROPS;
   protected readonly transparent = TRANSPARENT;
@@ -92,7 +107,17 @@ export class RemoveBgComponent {
   protected readonly errorKey = signal<TranslationKey | null>(null);
   protected readonly backdrop = signal<string>(TRANSPARENT);
 
-  protected readonly sourceFile = this.state.currentFile;
+  /**
+   * A porta de hidratação. `currentFile()` devolve a sessão seja ela qual for —
+   * e desde que a sessão é uma só, ela pode estar segurando um PDF (img-to-pdf)
+   * ou um vídeo. `fileFor` só entrega quando o `accepts` da ferramenta cobre o
+   * tipo, que é a mesma garantia que o serviço antigo dava recusando o `apply`,
+   * só que do lado certo: quem não abre o arquivo é quem tem de recusá-lo.
+   *
+   * Sendo um `computed` sobre a sessão, ele também reage ao desfazer — que é o
+   * que permitiu tirar o `navigate(['/'])` da barra de arquivo.
+   */
+  protected readonly sourceFile = computed(() => this.state.fileFor('remove-bg'));
   protected readonly isTransparent = computed(() => this.backdrop() === TRANSPARENT);
 
   /**
@@ -130,18 +155,14 @@ export class RemoveBgComponent {
     this.errorKey.set(null);
 
     try {
-      this.state.load(file);
+      // Só carrega. A prévia, a limpeza do recorte anterior e a inferência saem
+      // de `hydrateFromWorkspace`, que roda para o arquivo solto aqui, para o que
+      // chegou pela cadeia e para o que voltou por um desfazer — os três eram
+      // três caminhos, e o último não existia.
+      this.state.load(file, 'remove-bg');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
-      return;
     }
-
-    this.sourceUrl.set(this.urls.replace(this.sourceUrl(), file));
-    this.clearResult();
-    this.backdrop.set(TRANSPARENT);
-
-    // A fresh drop is an explicit request, so run straight away.
-    void this.run();
   }
 
   protected async run(): Promise<void> {
@@ -165,14 +186,7 @@ export class RemoveBgComponent {
 
       // Register pending commit: the cutout PNG is always available synchronously;
       // the backdrop is only visual and is not committed into the chain.
-      this.pendingTransition.register(() => {
-        try {
-          this.state.apply('remove-bg', blob, this.tool.suffix, 'png');
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      this.pendingTransition.registerResult('remove-bg', blob, this.tool.suffix, 'png');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
       this.stopTrickle();
@@ -272,34 +286,6 @@ export class RemoveBgComponent {
       saveBlob(result.blob, suffixedName(session.originalName, this.tool.suffix, result.ext));
     } catch (err) {
       console.error('Export failed:', err);
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  protected async continueEdit(): Promise<void> {
-    try {
-      const result = await this.compose();
-      if (!result) return;
-
-      this.state.apply('remove-bg', result.blob, this.tool.suffix, result.ext);
-      this.pendingTransition.clear();
-      this.router.navigate(['/' + this.i18n.currentLang()]);
-    } catch (err) {
-      this.errorKey.set(toMessageKey(err));
-    }
-  }
-
-  /** Navigate directly to a peer tool after compositing the result into the chain. */
-  protected async goToTool(tool: ToolDef): Promise<void> {
-    try {
-      const result = await this.compose();
-      if (!result) return;
-
-      this.state.apply('remove-bg', result.blob, this.tool.suffix, result.ext);
-      this.pendingTransition.clear();
-      const lang = this.i18n.currentLang();
-      void this.router.navigate([`/${lang}/${toolPath(tool, lang)}`]);
-    } catch (err) {
       this.errorKey.set(toMessageKey(err));
     }
   }

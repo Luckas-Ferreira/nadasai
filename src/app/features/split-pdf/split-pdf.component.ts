@@ -5,7 +5,10 @@ import { saveBlob } from '../../core/image/download';
 import { formatBytes } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../core/pdf/pdfjs';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
+import type { FileKind } from '../../core/files/kind';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
 import { AlertComponent } from '../../shared/ui/alert.component';
@@ -56,6 +59,18 @@ export class SplitPdfComponent {
   private readonly pdfSplitterService = inject(PdfSplitterService);
   private readonly urls = inject(ObjectUrlScope);
   protected readonly tool = toolById('split-pdf');
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+
+  constructor() {
+    // A sessão é a fonte: um PDF que veio de img-to-pdf, de outra ferramenta de
+    // PDF ou de um desfazer chega por aqui exatamente como o que a pessoa soltou
+    // no dropzone. A senha vem junto — antes cada ferramenta guardava a sua, e
+    // encadear três num arquivo protegido pedia a mesma senha três vezes.
+    hydrateFromWorkspace('split-pdf', (file) =>
+      void this.openFile(file, this.workspace.pdfPassword() ?? undefined),
+    );
+  }
   protected readonly i18n = inject(TranslationService);
 
   // File & document state
@@ -102,6 +117,23 @@ export class SplitPdfComponent {
   ]);
 
   protected readonly resultBlob = computed(() => this.result()?.blob ?? null);
+
+  /**
+   * O tipo REAL da saída. Um zip com vários arquivos não é um PDF,
+   * e oferecê-lo às ferramentas que abrem PDF seria prometer algo
+   * que a próxima tela ia recusar. `produces` no ToolDef declara o caso de saída
+   * única; isto corrige quando não é ele.
+   */
+  protected readonly resultKind = computed<FileKind | null>(() => {
+    const res = this.result();
+    if (!res) return null;
+    return res.isZip ? 'zip' : 'pdf';
+  });
+
+  private resultExt(): string {
+    return this.result()?.isZip ? 'zip' : 'pdf';
+  }
+
   protected readonly stale = computed(() => !this.result());
 
   protected readonly originalSize = computed(() => {
@@ -135,7 +167,34 @@ export class SplitPdfComponent {
     }
   });
 
-  protected async onFile(file: File, password?: string): Promise<void> {
+  /**
+   * O upload. Só entra na sessão — abrir o documento é do `openFile()`, que a
+   * hidratação chama. Antes este método fazia as duas coisas, e por isso o
+   * caminho "o arquivo já estava na sessão" simplesmente não existia no módulo
+   * de PDF: cada ferramenta começava do zero, com um novo upload.
+   */
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'split-pdf');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  /** A senha do prompt: guardada na sessão, para o resto da cadeia não repetir. */
+  protected onUnlock(password: string): void {
+    this.workspace.setPdfPassword(password);
+    void this.openFile(this.pendingFile(), password);
+  }
+
+  private async openFile(file: File | null, password?: string): Promise<void> {
+    if (!file) {
+      this.reset();
+      return;
+    }
+
     this.errorKey.set(null);
     this.result.set(null);
     this.passwordError.set(null);
@@ -308,6 +367,9 @@ export class SplitPdfComponent {
       });
 
       this.result.set(res);
+      // Um zip quando saiu mais de um arquivo: `resultKind` conta isso para a
+      // barra de ações, que senão ofereceria "assinar PDF" para um zip.
+      this.pendingTransition.registerResult('split-pdf', res.blob, this.tool.suffix, this.resultExt());
     } catch (err: any) {
       console.error('[SplitPdf] Split failed:', err);
       this.errorKey.set(toMessageKey(err));
@@ -324,6 +386,8 @@ export class SplitPdfComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.urls.releaseAll();
     this.file.set(null);
     this.pendingFile.set(null);

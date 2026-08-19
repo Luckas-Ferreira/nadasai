@@ -6,7 +6,10 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { PendingTransitionService } from '../../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
+import { toolById } from '../../../core/tools/tools';
 import { toMessageKey } from '../../../core/errors';
 import {
   closePdf,
@@ -91,6 +94,20 @@ export function clampZoom(value: number): number {
 export class RedactPdfComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   private readonly redactor = inject(PdfRedactorService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly tool = toolById('redact-pdf');
+
+  constructor() {
+    hydrateFromWorkspace('redact-pdf', (file) => {
+      this.password = this.workspace.pdfPassword() ?? undefined;
+      if (!file) {
+        this.reset();
+        return;
+      }
+      void this.open(file);
+    });
+  }
   private readonly urls = inject(ObjectUrlScope);
 
   protected readonly file = signal<File | null>(null);
@@ -155,16 +172,21 @@ export class RedactPdfComponent implements OnDestroy {
     return `calc(min(${fitPx}px, ${FIT_VH}vh) * ${this.zoom()})`;
   });
 
-  protected async onFileSelected(file: File): Promise<void> {
-    this.password = undefined;
-    this.passwordError.set(null);
-    await this.open(file);
+  protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'redact-pdf');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
   }
 
   protected async unlock(password: string): Promise<void> {
     const pending = this.pendingFile();
     if (!pending) return;
     this.password = password;
+    this.workspace.setPdfPassword(password);
     await this.open(pending);
   }
 
@@ -377,6 +399,7 @@ export class RedactPdfComponent implements OnDestroy {
       });
       this.result.set(result);
       this.ranRegions.set(regions);
+      this.pendingTransition.registerResult('redact-pdf', result.blob, this.tool.suffix, 'pdf');
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     } finally {
@@ -399,6 +422,8 @@ export class RedactPdfComponent implements OnDestroy {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     if (this.rerenderTimer !== null) clearTimeout(this.rerenderTimer);
     this.rerenderTimer = null;
     this.pinchStartDistance = null;

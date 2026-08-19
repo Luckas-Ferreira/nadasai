@@ -156,12 +156,23 @@ test.describe('Extrair áudio de vídeo', () => {
     await expect(page.getByAltText('Trilha de áudio extraída')).toBeVisible(READY);
 
     await primary(page, 'Extrair áudio').click();
-    await expect(page.getByRole('button', { name: 'Continuar editando' })).toBeVisible(READY);
-    await page.getByRole('button', { name: 'Continuar editando' }).click();
 
-    // Through the grid, never `page.goto`: the audio chain is a signal in memory,
-    // so a real page load would wipe the very hand-off being asserted — and the
-    // test would then blame the tool for the reload.
+    // Sem "Continuar editando": a extração entrega o áudio à sessão sozinha (o
+    // `handOff` chama `apply`), então não há resultado pendente para aceitar — e
+    // esta ferramenta come vídeo, não áudio, de modo que "continuar AQUI" nunca
+    // foi o que ela oferece. O botão de baixar é o sinal de que já terminou.
+    await expect(page.locator('app-action-bar').getByRole('button', { name: 'Baixar' })).toBeVisible(
+      READY,
+    );
+
+    // Pela home, e nunca por `page.goto`: a cadeia é um signal em memória, então
+    // um carregamento de verdade apagaria justamente a entrega que se quer
+    // provar — e o teste culparia a ferramenta pelo reload.
+    //
+    // A ida até a home é obrigatória: extrair áudio mora no módulo VÍDEO (o
+    // módulo é o que a ferramenta recebe, não o que ela devolve), então o trilho
+    // ao lado lista vídeo e o cortador não está a um clique dali.
+    await page.getByRole('link', { name: 'Nada Sai' }).first().click();
     await pickFromHome(page, 'Cortar áudio');
 
     // The cutter reads the chain on construction: the waveform appearing with no

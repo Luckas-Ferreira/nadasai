@@ -104,9 +104,9 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'extract-text'"
         [busy]="busy()"
         [canDownload]="!!extractedText()"
-        [canContinue]="false"
         (primary)="runOcr()"
         (download)="downloadTxt()"
         (reset)="reset()"

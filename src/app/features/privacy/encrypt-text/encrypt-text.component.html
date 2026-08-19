@@ -70,6 +70,7 @@
     </app-panel>
 
     <app-action-bar
+        [toolId]="'encrypt-text'"
       [primaryLabel]="stale() ? (mode() === 'encrypt' ? i18n.t()['enctext.btn_encrypt'] : i18n.t()['enctext.btn_decrypt']) : null"
       [primaryDisabled]="!canRun()"
       [busy]="busy()"

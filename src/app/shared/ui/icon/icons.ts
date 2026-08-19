@@ -63,6 +63,9 @@ export const ICONS = {
   video: 'M15 10l4.55-2.28A1 1 0 0 1 21 8.62v6.76a1 1 0 0 1-1.45.89L15 14M5 18h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2Z',
   palette: 'M12 21a9 9 0 1 1 0-18 9 9 0 0 1 9 9c0 1.5-1 2.5-2.5 2.5H16a2 2 0 0 0-2 2v.5c0 1.5-1 2.5-2 2.5Z M7.5 10.5h.01 M10.5 7.5h.01 M13.5 7.5h.01 M16.5 10.5h.01',
   zap: 'M13 2 3 14h9l-1 8 10-12h-9l1-8Z',
+  /** Monitor com o ponto de gravação: a tela é o que entra, não uma câmera. */
+  screenRecord: 'M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Zm5 15h6m-3-5v5m0-11.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
+  stop: 'M8 8h8v8H8z',
 } as const;
 
 export type IconName = keyof typeof ICONS;

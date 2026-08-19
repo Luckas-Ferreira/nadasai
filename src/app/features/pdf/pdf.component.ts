@@ -11,11 +11,16 @@ import {
   computed,
   HostListener,
 } from '@angular/core';
+import { saveBlob } from '../../core/image/download';
+import { suffixedName } from '../../core/image/image-file.util';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
+import { toolById } from '../../core/tools/tools';
 import { ButtonDirective } from '../../shared/ui/button.directive';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { PdfLoaderService, isLightColor, type LoadedPdf, type PdfPageInfo } from './services/pdf-loader.service';
-import { OcrService, type OcrBlock, type OcrLang } from './services/ocr.service';
+import { OcrService, type OcrBlock } from './services/ocr.service';
 import { PdfExporterService } from './services/pdf-exporter.service';
 import { InpaintingService } from './services/inpainting.service';
 import { baseFontSize, fitFontSizeToWidth, measureTextWidth } from './services/font-metrics';
@@ -535,6 +540,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
           }
 
           <app-action-bar
+            [toolId]="'edit-pdf'"
             [busy]="status() === 'exporting'"
             [primaryLabel]="status() === 'exporting' ? i18n.t()['pdf.exporting'] : i18n.t()['pdf.export_btn']"
             (primary)="exportPdf()"
@@ -555,6 +561,22 @@ export class PdfComponent implements OnDestroy {
 
   protected readonly i18n = inject(TranslationService);
   private readonly loader = inject(PdfLoaderService);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly tool = toolById('edit-pdf');
+
+  constructor() {
+    // O editor entra na cadeia como qualquer outra: um PDF que veio do juntar,
+    // do organizar ou do img-to-pdf abre aqui sem passar pelo disco. A senha vem
+    // da sessão pelo mesmo motivo.
+    hydrateFromWorkspace('edit-pdf', (file) => {
+      if (!file) {
+        this.reset();
+        return;
+      }
+      void this.loadFile(file, this.workspace.pdfPassword() ?? undefined);
+    });
+  }
   private readonly ocr = inject(OcrService);
   private readonly exporter = inject(PdfExporterService);
   private readonly inpainting = inject(InpaintingService);
@@ -880,7 +902,13 @@ export class PdfComponent implements OnDestroy {
   }
 
   protected onFileDropzone(file: File): void {
-    void this.loadFile(file);
+    this.errorMessage.set('');
+
+    try {
+      this.workspace.load(file, 'edit-pdf');
+    } catch {
+      this.errorMessage.set(this.i18n.t()['error.pdf_unsupported']);
+    }
   }
 
   /** Forces OCR on the current page regardless of its classification. */
@@ -1907,14 +1935,14 @@ export class PdfComponent implements OnDestroy {
 
       const blob = await this.exporter.export(pdf.doc, editsByPage, ocrByPage);
 
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'nadasai-edited.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // `saveBlob` e o nome derivado do original, como todas as outras
+      // ferramentas. O download era um <a> montado à mão com o nome fixo
+      // `nadasai-edited.pdf`, então editar três documentos numa sessão dava três
+      // arquivos com o mesmo nome na pasta de downloads.
+      const originalName = this.workspace.session()?.originalName ?? 'documento.pdf';
+      saveBlob(blob, suffixedName(originalName, this.tool.suffix, 'pdf'));
+
+      this.pendingTransition.registerResult('edit-pdf', blob, this.tool.suffix, 'pdf');
     } catch {
       this.errorMessage.set(this.i18n.t()['error.pdf_export_failed']);
       this.status.set('error');

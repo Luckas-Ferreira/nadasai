@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PendingTransitionService } from '../../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../../core/services/translation.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../../core/services/workspace.service';
+import { toolById } from '../../../core/tools/tools';
 import { toMessageKey } from '../../../core/errors';
 import { saveBlob } from '../../../core/image/download';
 import { formatBytes } from '../../../core/image/image-file.util';
@@ -102,11 +105,36 @@ export class CleanPdfMetadataComponent {
     return out;
   });
 
-  protected async onFileSelected(file: File): Promise<void> {
-    this.file.set(file);
+  private readonly workspace = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
+  private readonly tool = toolById('clean-pdf-metadata');
+
+  constructor() {
+    hydrateFromWorkspace('clean-pdf-metadata', (file) => void this.openFile(file));
+  }
+
+  protected onFileSelected(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'clean-pdf-metadata');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File | null): Promise<void> {
     this.report.set(null);
     this.result.set(null);
     this.errorKey.set(null);
+    this.pendingTransition.clear();
+
+    if (!file) {
+      this.file.set(null);
+      return;
+    }
+
+    this.file.set(file);
 
     try {
       this.report.set(await this.metadata.read(file));
@@ -133,6 +161,11 @@ export class CleanPdfMetadataComponent {
       );
       this.ranFile.set(file);
       this.ranFlags.set(this.flagKey());
+
+      const outcome = this.result();
+      if (outcome) {
+        this.pendingTransition.registerResult('clean-pdf-metadata', outcome.blob, this.tool.suffix, 'pdf');
+      }
     } catch (err) {
       this.errorKey.set(toMessageKey(err));
     } finally {
@@ -146,6 +179,8 @@ export class CleanPdfMetadataComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
+    this.workspace.clear();
     this.file.set(null);
     this.report.set(null);
     this.result.set(null);

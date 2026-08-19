@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ActiveToolService } from '../../core/services/active-tool.service';
-import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { type ToolDef, moduleById, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -16,9 +15,10 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 /**
  * The rail: the tools of the module you are in, and nothing else.
  *
- * Navigation is handled programmatically so that a pending result from the current
- * tool is committed to the chain before the route change — eliminating the detour
- * through the home page.
+ * Plain `routerLink`s. Carrying the current tool's pending result forward is
+ * `PendingTransitionService`'s job, and it does it on `NavigationStart` — the rail
+ * used to intercept its own clicks for that, which worked here and left every other
+ * way out of a module (palette, module switcher, Back) dropping the file.
  *
  * Active state is resolved in TS rather than with an arbitrary [&.is-active]:
  * Tailwind variant — the CSS parser silently DROPS those rules, which would leave
@@ -46,7 +46,6 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
             #rla="routerLinkActive"
             [attr.aria-current]="rla.isActive ? 'page' : null"
             [class]="rla.isActive ? active : idle"
-            (click)="onToolClick(tool)"
           >
             @if (rla.isActive) {
               <span
@@ -77,8 +76,6 @@ const IDLE = `${LINK} text-rail-muted hover:bg-rail-hover hover:text-rail-text`;
 export class ToolNavComponent {
   protected readonly i18n = inject(TranslationService);
   private readonly activeTool = inject(ActiveToolService);
-  private readonly pendingTransition = inject(PendingTransitionService);
-  private readonly router = inject(Router);
 
   protected readonly active = ACTIVE;
   protected readonly idle = IDLE;
@@ -96,17 +93,5 @@ export class ToolNavComponent {
   protected path(tool: ToolDef): string {
     const lang = this.i18n.currentLang();
     return `/${lang}/${toolPath(tool, lang)}`;
-  }
-
-  /**
-   * Commit any pending result before letting RouterLink complete the navigation.
-   * This is what makes clicking a rail item from inside a tool skip the home page:
-   * the result is written into the chain here, synchronously, and the new tool's
-   * constructor then reads the updated `state.currentFile()`.
-   */
-  protected onToolClick(tool: ToolDef): void {
-    if (!this.pendingTransition.hasPending()) return;
-    // Commit is synchronous; RouterLink handles the actual URL change.
-    this.pendingTransition.tryCommit();
   }
 }

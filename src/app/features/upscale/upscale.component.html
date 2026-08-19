@@ -127,13 +127,11 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'upscale'"
         [busy]="busy()"
         [canDownload]="!!resultUrl()"
-        [canContinue]="!!resultUrl()"
-        [nextTools]="nextTools()"
         (primary)="runUpscale()"
         (download)="download()"
-        (continueToTool)="goToTool($event)"
         (reset)="reset()"
       />
     }

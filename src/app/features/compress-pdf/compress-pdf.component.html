@@ -21,7 +21,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -116,6 +116,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'compress-pdf'"
         [primaryLabel]="stale() ? i18n.t()['cpdf.btn'] : null"
         [busy]="busy()"
         [canDownload]="!!resultBlob()"

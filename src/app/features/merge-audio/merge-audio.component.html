@@ -230,6 +230,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'merge-audio'"
         [primaryLabel]="stale() ? i18n.t()['mergeaudio.btn'] : null"
         [primaryDisabled]="!canRun() || reading()"
         [busy]="busy()"

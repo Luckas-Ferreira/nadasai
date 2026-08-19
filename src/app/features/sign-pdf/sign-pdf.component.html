@@ -13,7 +13,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -355,6 +355,7 @@
 
       <!-- Action Bar -->
       <app-action-bar
+        [toolId]="'sign-pdf'"
         [primaryLabel]="stale() ? i18n.t()['signpdf.btn'] : null"
         [primaryDisabled]="placedSignatures().length === 0 && !signatureDataUrl()"
         [busy]="busy()"

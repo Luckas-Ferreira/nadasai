@@ -13,7 +13,7 @@ import { computePeaks, renderPeaksToCanvas } from '../../core/audio/waveform';
 import { saveBlob } from '../../core/image/download';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
-import { AudioStateService } from '../../core/services/audio-state.service';
+import { WorkspaceService, hydrateFromWorkspace } from '../../core/services/workspace.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ACCEPT_VIDEO_ATTR, type VideoProbe } from '../../core/video/video-file.util';
@@ -65,7 +65,29 @@ interface RunSettings {
 export class VideoToAudioComponent implements OnDestroy {
   protected readonly tool = toolById('video-to-audio');
   private readonly service = inject(VideoAudioService);
-  private readonly audioState = inject(AudioStateService);
+  private readonly workspace = inject(WorkspaceService);
+
+  constructor() {
+    // Desde que a sessão sabe segurar um vídeo, o gravador de tela entrega
+    // direto aqui: gravar e tirar o áudio deixaram de ser dois arquivos e dois
+    // uploads. `accepts: ['video']` é o que faz este ser o único lugar do
+    // produto onde uma gravação chega sem passar pelo disco.
+    hydrateFromWorkspace('video-to-audio', (file) => {
+      if (!file) {
+        // `null` aqui nem sempre quer dizer "a sessão esvaziou". A extração
+        // entrega o áudio para a própria sessão (ver `handOff`), e a partir daí
+        // ela guarda um ÁUDIO — que esta ferramenta, `accepts: ['video']`, não
+        // recebe. A hidratação avisa com `null` e limpar nesse caso apagava o
+        // vídeo, o resultado e o botão de baixar no instante seguinte ao da
+        // extração. Se o último passo do histórico foi meu, o `null` é a minha
+        // própria entrega e não há nada a limpar.
+        if (this.workspace.history().at(-1) === 'video-to-audio') return;
+        this.clearSource();
+        return;
+      }
+      void this.openFile(file);
+    });
+  }
   private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
   protected readonly i18n = inject(TranslationService);
@@ -205,7 +227,17 @@ export class VideoToAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- extração
 
-  protected async onFile(file: File): Promise<void> {
+  protected onFile(file: File): void {
+    this.errorKey.set(null);
+
+    try {
+      this.workspace.load(file, 'video-to-audio');
+    } catch (err) {
+      this.errorKey.set(toMessageKey(err));
+    }
+  }
+
+  private async openFile(file: File): Promise<void> {
     this.clearSource();
     this.errorKey.set(null);
     this.extracting.set(true);
@@ -307,7 +339,7 @@ export class VideoToAudioComponent implements OnDestroy {
    *
    * `load()` é usado em vez de `apply()` porque a sessão começa AQUI: `apply()`
    * deriva o nome do arquivo de uma sessão anterior, e não há nenhuma — a fonte
-   * era um vídeo, que `AudioStateService` não aceita guardar (e nem deveria).
+   * era um vídeo, que `WorkspaceService` não aceita guardar (e nem deveria).
    *
    * Um WAV longo passa dos 100 MB que o módulo de áudio aceita e é recusado. Não
    * é erro: o download continua valendo, só o "continuar editando" não aparece.
@@ -315,7 +347,16 @@ export class VideoToAudioComponent implements OnDestroy {
   private handOff(blob: Blob, filename: string): boolean {
     if (blob.size > MAX_AUDIO_BYTES) return false;
     try {
-      this.audioState.load(new File([blob], filename, { type: blob.type }));
+      // `apply()` agora, não `load()`: a sessão existe — é o vídeo de origem, que
+      // pode ter vindo do gravador de tela. Aplicar mantém o breadcrumb (a
+      // gravação → o áudio) e o desfazer, que voltaria para o vídeo; `load()`
+      // zerava os dois e reescrevia o nome a partir do resultado.
+      this.workspace.apply(
+        'video-to-audio',
+        blob,
+        this.tool.suffix,
+        filename.split('.').pop() ?? 'wav',
+      );
       return true;
     } catch {
       return false;
@@ -327,16 +368,11 @@ export class VideoToAudioComponent implements OnDestroy {
     if (result) saveBlob(result.blob, result.filename);
   }
 
-  protected continueEdit(): void {
-    if (!this.chained()) return;
-    void this.router.navigate(['/']);
-  }
-
   protected reset(): void {
     this.abort?.abort();
     this.clearSource();
     this.errorKey.set(null);
-    this.audioState.clear();
+    this.workspace.clear();
   }
 
   private clearSource(): void {

@@ -13,6 +13,7 @@ import { AppError, toMessageKey } from '../../core/errors';
 import { saveBlob } from '../../core/image/download';
 import { canvasToBlob, formatBytes } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -71,6 +72,7 @@ interface Track {
 export class MergeAudioComponent implements OnDestroy {
   protected readonly i18n = inject(TranslationService);
   protected readonly tool = toolById('merge-audio');
+  private readonly pendingTransition = inject(PendingTransitionService);
   private readonly merger = inject(AudioMergerService);
   private readonly urls = inject(ObjectUrlScope);
 
@@ -325,6 +327,9 @@ export class MergeAudioComponent implements OnDestroy {
       });
 
       this.result.set(res);
+      // Mesma regra do merge-pdf: a lista de faixas é local, o resultado é da
+      // cadeia — daqui ele segue para normalizar ou comprimir direto.
+      this.pendingTransition.registerResult('merge-audio', res.blob, this.tool.suffix, 'wav');
       this.ranSignature.set(this.signature());
     } catch (err) {
       console.error('[MergeAudio] merge failed:', err);
@@ -341,6 +346,7 @@ export class MergeAudioComponent implements OnDestroy {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
     this.stopPlayback();
     this.urls.releaseAll();
     this.tracks.set([]);

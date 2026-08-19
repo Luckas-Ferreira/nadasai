@@ -11,7 +11,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -95,6 +95,7 @@
       </app-panel>
 
       <app-action-bar
+        [toolId]="'organize-pdf'"
         [primaryLabel]="stale() ? i18n.t()['orgpdf.btn'] : null"
         [primaryDisabled]="reading() || items().length === 0"
         [busy]="busy()"

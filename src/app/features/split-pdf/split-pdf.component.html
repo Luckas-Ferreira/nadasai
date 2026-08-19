@@ -13,7 +13,7 @@
         <app-pdf-password-prompt
           [fileName]="pendingFile()?.name ?? ''"
           [errorMsg]="passwordError()"
-          (unlock)="onFile(pendingFile()!, $event)"
+          (unlock)="onUnlock($event)"
           (cancel)="reset()"
         />
       } @else {
@@ -307,6 +307,8 @@
 
       <!-- Standard Action Bar (Includes Primary Action, Download, and Reset / Clear) -->
       <app-action-bar
+        [toolId]="'split-pdf'"
+        [resultKind]="resultKind()"
         [primaryLabel]="stale() ? i18n.t()['splitpdf.btn'] : null"
         [primaryDisabled]="estimatedPdfCount() === 0"
         [busy]="busy()"

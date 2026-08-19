@@ -171,6 +171,7 @@
       }
 
       <app-action-bar
+        [toolId]="'redact-pdf'"
         [primaryLabel]="stale() ? i18n.t()['redactpdf.btn_redact'] : null"
         [primaryDisabled]="regions().length === 0"
         [busy]="busy()"

@@ -18,7 +18,7 @@
   <div class="mb-10 flex flex-col items-center text-center">
     @if (state.session()) {
       <header class="max-w-2xl">
-        <h1 class="text-2xl">{{ i18n.t()['hero.loaded'] }}</h1>
+        <h1 class="text-2xl">{{ loadedHeading() }}</h1>
         <p class="mt-1 text-base text-muted">{{ i18n.t()['hero.next_step'] }}</p>
       </header>
     } @else {

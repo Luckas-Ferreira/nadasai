@@ -122,6 +122,7 @@
     </app-panel>
 
     <app-action-bar
+        [toolId]="'file-hash'"
       [primaryLabel]="stale() ? i18n.t()['hash.calculate'] : null"
       [primaryDisabled]="!canRun()"
       [busy]="busy()"

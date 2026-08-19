@@ -102,7 +102,7 @@ test.describe('Offline', () => {
     // Navigating here is the exact thing that used to hang: a lazy chunk.
     await pickFromHome(page, 'Comprimir');
     await primary(page, 'Comprimir').click();
-    await expectDownload(page, /^photo-min\.webp$/);
+    await expectDownload(page, /^photo-min\.png$/);
   });
 
   /**

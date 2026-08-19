@@ -4,7 +4,8 @@ import { PDF_MAX_LONG_SIDE, type PdfPageMode, encodePdfFromImages } from '../../
 import { saveBlob } from '../../core/image/download';
 import { assertUsableImage, formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
-import { ImageStateService } from '../../core/services/image-state.service';
+import { PendingTransitionService } from '../../core/services/pending-transition.service';
+import { WorkspaceService } from '../../core/services/workspace.service';
 import { TranslationService, type TranslationKey } from '../../core/services/translation.service';
 import { toolById } from '../../core/tools/tools';
 import { ActionBarComponent } from '../../shared/ui/action-bar.component';
@@ -30,7 +31,7 @@ const MAX_PAGES = 30;
 /**
  * The only multi-file tool in the app.
  *
- * It deliberately does NOT push its list through ImageStateService: that service
+ * It deliberately does NOT push its list through WorkspaceService: that service
  * holds exactly one file per session, which is what makes the other tools
  * chainable, and a page list is not a chain. It still *reads* the chain on
  * construction, so a crop can flow straight into page one, and it never calls
@@ -56,7 +57,8 @@ const MAX_PAGES = 30;
 export class ImgToPdfComponent {
   private readonly urls = inject(ObjectUrlScope);
   private readonly tool = toolById('img-to-pdf');
-  private readonly state = inject(ImageStateService);
+  private readonly state = inject(WorkspaceService);
+  private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly i18n = inject(TranslationService);
 
@@ -106,8 +108,14 @@ export class ImgToPdfComponent {
   private nextId = 0;
 
   constructor() {
+    // Lê a sessão UMA vez, no construtor, e não por `hydrateFromWorkspace`: uma
+    // lista reordenável não é uma cadeia, e reagir à sessão jogaria fora a ordem
+    // que a pessoa acabou de montar toda vez que o arquivo mudasse. `fileFor` em
+    // vez de `session.file` porque a sessão agora pode estar segurando um PDF ou
+    // um áudio, e nenhum dos dois vira página aqui.
+    const file = this.state.fileFor('img-to-pdf');
     const session = this.state.session();
-    if (session) this.items.set([this.toItem(session.file, session.originalName)]);
+    if (file && session) this.items.set([this.toItem(file, session.originalName)]);
   }
 
   protected addFiles(files: File[]): void {
@@ -192,6 +200,12 @@ export class ImgToPdfComponent {
       );
 
       this.resultBlob.set(blob);
+
+      // O PDF entra na sessão, e é isto que liga o módulo de imagem ao de PDF:
+      // até aqui, montar um PDF a partir de fotos terminava num botão de baixar,
+      // porque `ImageStateService` recusava qualquer coisa que não fosse imagem
+      // — a ferramenta que produz PDF era proibida de entregá-lo.
+      this.pendingTransition.registerResult('img-to-pdf', blob, this.tool.suffix, 'pdf');
       this.ranSettings.set(settings);
     } catch (err) {
       console.error('Images to PDF failed:', err);
@@ -212,6 +226,7 @@ export class ImgToPdfComponent {
   }
 
   protected reset(): void {
+    this.pendingTransition.clear();
     this.urls.releaseAll();
     this.items.set([]);
     this.resultBlob.set(null);

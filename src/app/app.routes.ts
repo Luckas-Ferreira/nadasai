@@ -123,6 +123,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'video/gravar-tela',
+        title: 'Gravador de Tela Online Grátis (com áudio) — Nada Sai',
+        loadComponent: () => import('./features/screen-recorder/screen-recorder.component').then((m) => m.ScreenRecorderComponent),
+        data: {
+          metaDescription: 'Grave a tela, uma janela ou uma aba do navegador, com som do sistema e microfone. O vídeo é escrito dentro da própria aba e não sai do seu dispositivo.',
+          metaKeywords: 'gravar tela, gravador de tela, gravar tela com audio, screencast, gravar reuniao, gravar aula'
+        }
+      },
+      {
         path: 'audio/extrair-de-video',
         title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
@@ -441,6 +450,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/normalize-audio/normalize-audio.component').then((m) => m.NormalizeAudioComponent),
         data: {
           metaDescription: 'Bring a quiet recording up to a proper level: loudness (LUFS) or peak normalization, with a limiter so nothing clips. Up to 100 MB, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'video/screen-record',
+        title: 'Free Online Screen Recorder (with audio) — Nada Sai',
+        loadComponent: () => import('./features/screen-recorder/screen-recorder.component').then((m) => m.ScreenRecorderComponent),
+        data: {
+          metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
+          metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
         }
       },
       {

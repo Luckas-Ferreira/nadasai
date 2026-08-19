@@ -11,7 +11,6 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ActiveToolService } from '../../core/services/active-tool.service';
-import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { type ToolDef, toolPath, toolsOfModule } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
@@ -32,8 +31,9 @@ import { IconComponent } from './icon/icon.component';
  * Hidden outside a module, like the rail: on the home page the grid IS the
  * navigation, and a bar repeating part of it would just cover it.
  *
- * Like the rail, clicks are intercepted to commit any pending result before the
- * route change — so navigating from this bar also skips the home detour.
+ * Like the rail, plain `routerLink`s: carrying a pending result forward happens in
+ * `PendingTransitionService` on `NavigationStart`, so every way out of a tool does
+ * it, not just the two surfaces that used to intercept their own clicks.
  */
 @Component({
   selector: 'app-mobile-tool-bar',
@@ -57,7 +57,6 @@ import { IconComponent } from './icon/icon.component';
               #rla="routerLinkActive"
               [attr.aria-current]="rla.isActive ? 'page' : null"
               [class]="rla.isActive ? itemActive : itemIdle"
-              (click)="onToolClick(tool)"
             >
               <span
                 [style.--tone-fg]="'var(--tone-' + tool.tone + '-fg)'"
@@ -76,7 +75,6 @@ import { IconComponent } from './icon/icon.component';
 export class MobileToolBarComponent {
   protected readonly i18n = inject(TranslationService);
   private readonly activeTool = inject(ActiveToolService);
-  private readonly pendingTransition = inject(PendingTransitionService);
   private readonly strip = viewChild<ElementRef<HTMLElement>>('strip');
 
   private readonly ITEM =
@@ -112,14 +110,5 @@ export class MobileToolBarComponent {
   protected path(tool: ToolDef): string {
     const lang = this.i18n.currentLang();
     return `/${lang}/${toolPath(tool, lang)}`;
-  }
-
-  /**
-   * Commit any pending result before letting RouterLink complete the navigation,
-   * mirroring the rail behaviour so the mobile bar also skips the home detour.
-   */
-  protected onToolClick(tool: ToolDef): void {
-    if (!this.pendingTransition.hasPending()) return;
-    this.pendingTransition.tryCommit();
   }
 }

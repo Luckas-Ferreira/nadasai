@@ -35,10 +35,10 @@ test.describe('Cortar áudio', () => {
     await expect(page.getByText('0:02.000').first()).toBeVisible();
 
     await primary(page, 'Cortar áudio').click();
-    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
+    await expect(page.locator('app-action-bar').getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
 
     // WAV, not .wav-named-mp3: the browser can only encode this one.
-    await expectDownload(page, /^clip-cut\.wav$/);
+    await expectDownload(page, /^clip-cut\.wav$/, 'app-action-bar');
   });
 
   test('re-offers the run only when a setting changes', async ({ page }) => {
@@ -76,8 +76,8 @@ test.describe('Cortar áudio', () => {
     await expect(page.getByText('0:02.000').first()).toBeVisible();
 
     await primary(page, 'Cortar áudio').click();
-    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
-    await expectDownload(page, /^clip-cut\.wav$/);
+    await expect(page.locator('app-action-bar').getByRole('button', { name: 'Baixar' })).toBeVisible(READY);
+    await expectDownload(page, /^clip-cut\.wav$/, 'app-action-bar');
   });
 
   test('zooms into the waveform and scrolls the timeline', async ({ page }) => {
