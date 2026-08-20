@@ -1670,6 +1670,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'video-to-gif': {
+    pt: {
+      features: [
+        'Recorte de até 30 segundos',
+        'Paleta escolhida em CIELAB',
+        'Sem marca dágua',
+        'Processamento 100% no navegador',
+      ],
+      faq: [
+        {
+          q: 'Como transformar um vídeo em GIF sem marca dágua?',
+          a: 'Solte o arquivo de vídeo na área de upload, arraste os dois controles para marcar o trecho que interessa (até 30 segundos), ajuste largura, quadros por segundo e número de cores, e gere. O GIF sai limpo, sem nenhuma marca sobreposta e sem cadastro, porque a conversão inteira acontece dentro da aba do seu navegador — não existe servidor para cobrar por ela nem para carimbar o resultado. O arquivo aparece na tela antes de você baixar, então dá para conferir o resultado e refazer com outros ajustes quantas vezes quiser.',
+        },
+        {
+          q: 'Por que o GIF fica tão pesado, e o que fazer para diminuir?',
+          a: 'O formato GIF não tem compressão entre quadros: cada quadro é guardado como uma imagem inteira, então o tamanho é basicamente a contagem de quadros multiplicada pela contagem de pixels. Três controles resolvem isso, em ordem de eficácia: encurtar o trecho, baixar a largura e reduzir os quadros por segundo. Doze quadros por segundo já dão movimento fluido para captura de tela, e 480 pixels de largura é o suficiente para a maioria dos usos em ticket, chat e documentação. Reduzir as cores de 256 para 128 também ajuda, principalmente em interface chapada.',
+        },
+        {
+          q: 'A qualidade de cor do GIF é melhor que a dos conversores comuns?',
+          a: 'A paleta é escolhida por agrupamento em CIELAB, que é um espaço de cor onde a distância entre dois valores corresponde à diferença que o olho percebe — diferente do RGB, usado pela maioria dos conversores, onde a mesma distância numérica significa coisas diferentes em cada faixa. Na prática isso reduz o banding em degradês e evita aquela cor lavada típica de GIF antigo. E quando o vídeo realmente tem menos de 256 cores distintas, a paleta é a lista exata delas e a conversão não perde nenhuma cor — a ferramenta avisa na tela quando foi o caso.',
+        },
+        {
+          q: 'O vídeo é enviado para algum servidor durante a conversão?',
+          a: 'Não. O vídeo é lido pelo próprio navegador, os quadros são desenhados numa tela em memória e o arquivo GIF é escrito na mesma aba, byte a byte, por código que roda no seu dispositivo. Nenhuma parte do processo envolve upload, e o medidor de rede no alto da página mostra isso em tempo real durante toda a conversão. Depois da primeira visita a ferramenta continua funcionando com a internet desligada, o que é a forma mais simples de verificar a afirmação.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Up to 30 seconds per clip',
+        'Palette chosen in CIELAB',
+        'No watermark',
+        'Runs 100% in the browser',
+      ],
+      faq: [
+        {
+          q: 'How do I turn a video into a GIF with no watermark?',
+          a: 'Drop the video file on the upload area, drag the two controls to mark the stretch you want (up to 30 seconds), set the width, the frames per second and the number of colours, and generate. The GIF comes out clean, with no overlaid mark and no signup, because the whole conversion happens inside your browser tab — there is no server to charge for it or to stamp the result. The file appears on screen before you download it, so you can check the result and redo it with different settings as often as you like.',
+        },
+        {
+          q: 'Why is the GIF so heavy, and how do I make it smaller?',
+          a: 'The GIF format has no compression between frames: every frame is stored as a whole image, so the size is essentially the frame count multiplied by the pixel count. Three controls address that, in order of effectiveness: shorten the stretch, lower the width, and reduce the frames per second. Twelve frames per second already looks fluid for screen captures, and 480 pixels wide is enough for most uses in tickets, chat and documentation. Dropping the colours from 256 to 128 helps too, especially with flat interface content.',
+        },
+        {
+          q: 'Is the colour quality better than in ordinary converters?',
+          a: 'The palette is chosen by clustering in CIELAB, a colour space where the distance between two values matches the difference the eye perceives — unlike RGB, used by most converters, where the same numeric distance means different things in different ranges. In practice that reduces banding in gradients and avoids the washed-out look of old GIFs. And when the video really does have fewer than 256 distinct colours, the palette is the exact list of them and the conversion loses no colour at all — the tool says on screen when that was the case.',
+        },
+        {
+          q: 'Is the video uploaded to a server during the conversion?',
+          a: 'No. The video is read by the browser itself, the frames are drawn onto an in-memory canvas, and the GIF file is written in that same tab, byte by byte, by code running on your device. No part of the process involves an upload, and the network meter at the top of the page shows that live throughout the conversion. After the first visit the tool keeps working with the internet switched off, which is the simplest way to verify the claim.',
+        },
+      ],
+    },
+  },
 };
 
 /**

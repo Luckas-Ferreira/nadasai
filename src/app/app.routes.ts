@@ -132,6 +132,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'video/para-gif',
+        title: 'Vídeo para GIF Online (sem marca dágua) — Nada Sai',
+        loadComponent: () => import('./features/video-to-gif/video-to-gif.component').then((m) => m.VideoToGifComponent),
+        data: {
+          metaDescription: 'Transforme um trecho de MP4, WebM, MOV ou MKV em GIF animado com paleta escolhida em CIELAB. O vídeo não sai do seu dispositivo e o GIF não leva marca dágua.',
+          metaKeywords: 'video para gif, mp4 para gif, converter video em gif, criar gif, gif animado, gravacao de tela para gif'
+        }
+      },
+      {
         path: 'audio/extrair-de-video',
         title: 'Extrair Áudio de Vídeo (MP4 para MP3) — Nada Sai',
         loadComponent: () => import('./features/video-to-audio/video-to-audio.component').then((m) => m.VideoToAudioComponent),
@@ -486,6 +495,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
           metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
+        }
+      },
+      {
+        path: 'video/to-gif',
+        title: 'Video to GIF Online (no watermark) — Nada Sai',
+        loadComponent: () => import('./features/video-to-gif/video-to-gif.component').then((m) => m.VideoToGifComponent),
+        data: {
+          metaDescription: 'Turn a stretch of MP4, WebM, MOV or MKV into an animated GIF with a palette chosen in CIELAB. The video never leaves your device and the GIF carries no watermark.',
+          metaKeywords: 'video to gif, mp4 to gif, convert video to gif, gif maker, animated gif, screen recording to gif'
         }
       },
       {

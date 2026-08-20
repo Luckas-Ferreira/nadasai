@@ -57,6 +57,12 @@ export type ErrorCode =
   // cripto acima documenta. Uma chave só, e o `console.error` do worker fica
   // para quem estiver depurando.
   | 'vector_failed'
+  // O GIF não tem compressão temporal, então o recorte é o controle de tamanho —
+  // e um recorte vazio ou longo demais é escolha do usuário, não falha de
+  // arquivo. Duas chaves porque as respostas são opostas: uma pede que ele marque
+  // um trecho, a outra que ele marque um trecho MENOR.
+  | 'gif_empty_range'
+  | 'gif_range_too_long'
   | 'generic';
 
 /**
@@ -111,6 +117,8 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   pdf_no_pages: 'error.pdf_no_pages',
   pdf_no_regions: 'error.pdf_no_regions',
   vector_failed: 'error.vector_failed',
+  gif_empty_range: 'error.gif_empty_range',
+  gif_range_too_long: 'error.gif_range_too_long',
   generic: 'error.generic',
 };
 

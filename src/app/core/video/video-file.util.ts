@@ -151,14 +151,35 @@ export function probeVideo(file: File, timeoutMs = 30_000): Promise<VideoProbe> 
         finish(() => reject(new AppError('video_too_long')));
         return;
       }
-      finish(() =>
-        resolve({
-          duration,
-          width: video.videoWidth,
-          height: video.videoHeight,
-          hasAudio: readAudioHint(video),
-        }),
-      );
+      const done = () =>
+        finish(() =>
+          resolve({
+            duration,
+            width: video.videoWidth,
+            height: video.videoHeight,
+            hasAudio: readAudioHint(video),
+          }),
+        );
+
+      // DIMENSÃO ZERO NÃO É "vídeo sem imagem": é metadado que ainda não chegou.
+      //
+      // Com `preload="metadata"`, um WebM de MediaRecorder — gravação de tela,
+      // câmera, reunião — costuma disparar `loadedmetadata` antes de o elemento
+      // saber o tamanho do quadro. Quem só queria a duração (extrair áudio) não
+      // notava; o vídeo para GIF usa a proporção para calcular a altura, e um
+      // zero aqui fazia o GIF sair em 16:9 sobre um vídeo 4:3. Esperar o
+      // primeiro quadro custa nada e devolve o número certo.
+      if (video.videoWidth > 0) {
+        done();
+        return;
+      }
+
+      video.onloadeddata = () => {
+        video.onloadeddata = null;
+        done();
+      };
+      video.preload = 'auto';
+      video.load();
     };
 
     video.onloadedmetadata = () => {

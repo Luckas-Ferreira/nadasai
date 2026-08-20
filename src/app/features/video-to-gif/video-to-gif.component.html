@@ -1,0 +1,239 @@
+<app-tool-page [toolId]="'video-to-gif'" [forceLoaded]="!!videoUrl()">
+  <div banner [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
+
+  <div stage>
+    @if (!videoUrl()) {
+      <app-dropzone
+        [accept]="acceptAttr"
+        [titleKey]="'video_gif.drag'"
+        [hintKey]="'video_gif.drag_hint'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="relative flex flex-col gap-3">
+        <!-- Fonte e resultado no palco escuro: os dois são imagem em movimento,
+             e a letterbox só some contra o preto. -->
+        <div class="flex items-center justify-center rounded-xl bg-stage p-4 sm:p-5">
+          @if (resultUrl(); as gif) {
+            <img
+              class="max-h-[420px] w-auto max-w-full rounded-md"
+              [src]="gif"
+              [alt]="i18n.t()['video_gif.result']"
+            />
+          } @else {
+            <video
+              class="max-h-[420px] w-auto max-w-full rounded-md"
+              [src]="videoUrl()"
+              controls
+              playsinline
+              preload="metadata"
+            ></video>
+          }
+        </div>
+
+        @if (result(); as output) {
+          <div class="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 px-1">
+            <p class="text-xs text-muted">
+              {{ i18n.t()['video_gif.result'] }}
+              <span class="font-mono tabular text-faint">
+                · {{ output.width }}×{{ output.height }} ·
+                {{ output.frames }} {{ i18n.t()['video_gif.result_frames'] }}
+              </span>
+            </p>
+            <p class="font-mono text-xs tabular text-muted">{{ resultSize() }}</p>
+          </div>
+
+          @if (output.exact) {
+            <p class="px-1 text-2xs leading-relaxed text-faint">
+              {{ i18n.t()['video_gif.result_exact'] }}
+            </p>
+          }
+        }
+
+        @if (busy()) {
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-stage/85 backdrop-blur-[3px]"
+          >
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+
+            <p class="text-sm font-medium text-white">
+              @switch (stage()) {
+                @case ('palette') {
+                  {{ i18n.t()['video_gif.stage_palette'] }}
+                }
+                @case ('encode') {
+                  {{ i18n.t()['video_gif.stage_encode'] }}
+                }
+                @default {
+                  {{ i18n.t()['video_gif.stage_frames'] }}
+                }
+              }
+            </p>
+
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/25">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress()"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs tabular text-white/80" aria-live="polite">
+                {{ progress() }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (videoUrl()) {
+      <app-panel [heading]="i18n.t()['video_gif.trim']">
+        <div class="flex flex-col gap-4">
+          <!-- Dois controles de tempo em vez de um scrubber: o trecho tem duas
+               bordas e as duas precisam ser ajustáveis com o dedo. O `max` do
+               início já é o fim, então nenhum dos dois passa do outro. -->
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-medium text-text" for="gif-start">
+                {{ i18n.t()['video_gif.start'] }}
+              </label>
+              <span class="font-mono text-xs tabular text-muted">{{ clock(startSec()) }}</span>
+            </div>
+            <input
+              id="gif-start"
+              type="range"
+              class="w-full cursor-pointer accent-accent"
+              min="0"
+              [max]="duration()"
+              step="0.1"
+              [value]="startSec()"
+              (input)="onStartChange(+$any($event.target).value)"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-medium text-text" for="gif-end">
+                {{ i18n.t()['video_gif.end'] }}
+              </label>
+              <span class="font-mono text-xs tabular text-muted">{{ clock(endSec()) }}</span>
+            </div>
+            <input
+              id="gif-end"
+              type="range"
+              class="w-full cursor-pointer accent-accent"
+              min="0"
+              [max]="duration()"
+              step="0.1"
+              [value]="endSec()"
+              (input)="onEndChange(+$any($event.target).value)"
+            />
+          </div>
+
+          <div class="flex items-center justify-between border-t border-line pt-3 text-sm">
+            <span class="text-muted">{{ i18n.t()['video_gif.selected'] }}</span>
+            <span class="font-mono tabular text-text">{{ span().toFixed(1) }}s</span>
+          </div>
+
+          <p class="text-2xs leading-relaxed text-faint">{{ i18n.t()['video_gif.max_hint'] }}</p>
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['video_gif.title']">
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">{{ i18n.t()['video_gif.width'] }}</label>
+            <app-segmented
+              [options]="widthOptions()"
+              [value]="width()"
+              (valueChange)="width.set($event)"
+              [columns]="4"
+              [ariaLabel]="i18n.t()['video_gif.width']"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">{{ i18n.t()['video_gif.fps'] }}</label>
+            <app-segmented
+              [options]="fpsOptions()"
+              [value]="fps()"
+              (valueChange)="fps.set($event)"
+              [columns]="5"
+              [ariaLabel]="i18n.t()['video_gif.fps']"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">{{ i18n.t()['video_gif.colors'] }}</label>
+            <app-segmented
+              [options]="colorOptions()"
+              [value]="colors()"
+              (valueChange)="colors.set($event)"
+              [columns]="3"
+              [ariaLabel]="i18n.t()['video_gif.colors']"
+            />
+          </div>
+
+          <label class="flex cursor-pointer items-start gap-2.5">
+            <input
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 cursor-pointer accent-accent"
+              [checked]="dither()"
+              (change)="dither.set($any($event.target).checked)"
+            />
+            <span class="min-w-0">
+              <span class="block text-xs font-medium text-text">
+                {{ i18n.t()['video_gif.dither'] }}
+              </span>
+              <span class="mt-0.5 block text-2xs leading-relaxed text-faint">
+                {{ i18n.t()['video_gif.dither_hint'] }}
+              </span>
+            </span>
+          </label>
+
+          @if (plan(); as grid) {
+            <div class="flex items-center justify-between border-t border-line pt-3 text-sm">
+              <span class="text-muted">{{ i18n.t()['video_gif.frames_to_write'] }}</span>
+              <span class="font-mono tabular text-text">
+                {{ grid.count }} · {{ grid.width }}×{{ grid.height }}
+              </span>
+            </div>
+
+            @if (sizeWarning()) {
+              <p class="text-2xs leading-relaxed text-warning">
+                {{ i18n.t()['video_gif.size_warning'] }}
+              </p>
+            }
+          }
+
+          @if (result(); as output) {
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">{{ i18n.t()['video_gif.result_colors'] }}</span>
+              <span class="font-mono tabular text-text">{{ output.colors }}</span>
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">{{ i18n.t()['video_gif.result_size'] }}</span>
+              <span class="font-mono tabular text-text">{{ resultSize() }}</span>
+            </div>
+          }
+        </div>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'video-to-gif'"
+        [primaryLabel]="stale() ? i18n.t()['video_gif.btn'] : null"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+      />
+    }
+  </div>
+</app-tool-page>

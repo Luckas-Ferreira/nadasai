@@ -14,6 +14,7 @@ export type ToolId =
   | 'compress-audio'
   | 'normalize-audio'
   | 'video-to-audio'
+  | 'video-to-gif'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -363,6 +364,36 @@ export const TOOLS: readonly ToolDef[] = [
       'normalize mp3 volume', 'loudness normalization', 'lufs normalization', 'audio too quiet',
       'level audio volume', 'boost mp3 volume', 'normalize podcast audio', 'peak normalization',
       'adjust audio volume', 'audio gain'
+    ],
+  },
+  {
+    id: 'video-to-gif',
+    pathPt: 'video/para-gif',
+    pathEn: 'video/to-gif',
+    icon: 'images',
+    category: 'video',
+    accepts: ['video'],
+    // GIF é `image` para o `kindOf`, e isso não é detalhe: o resultado cai
+    // inteiro na cadeia do módulo de imagem — comprimir, redimensionar,
+    // converter — sem nenhum código novo.
+    produces: 'image',
+    navKey: 'nav.video_to_gif',
+    shortKey: 'nav.short.video_to_gif',
+    titleKey: 'video_gif.title',
+    descKey: 'video_gif.subtitle',
+    suffix: 'gif',
+    tone: 'fuchsia',
+    keywordsPt: [
+      'video para gif', 'converter video em gif', 'mp4 para gif', 'transformar video em gif',
+      'criar gif', 'fazer gif de video', 'gif animado', 'webm para gif', 'mov para gif',
+      'gravacao de tela para gif', 'gif sem marca dagua', 'gerador de gif',
+      'video em gif online', 'cortar video e fazer gif', 'gif de tela'
+    ],
+    keywordsEn: [
+      'video to gif', 'convert video to gif', 'mp4 to gif', 'make a gif', 'gif maker',
+      'animated gif', 'webm to gif', 'mov to gif', 'screen recording to gif',
+      'gif without watermark', 'video gif converter', 'create gif from video',
+      'trim video to gif', 'screen capture to gif'
     ],
   },
   {
