@@ -220,6 +220,45 @@ for (const tool of TOOLS) {
 // 3. Logo quadrado para Organization.logo.
 await shoot(logoHtml(), 'logo-512.png', { width: 512, height: 512 });
 
+/**
+ * 4. Ícones do PWA, na RAIZ de public/ e não em og/.
+ *
+ * O manifesto declarava um único ícone SVG com `sizes: "any"`. O Chrome no
+ * Android exige ao menos um PNG de 192 e um de 512 para considerar o app
+ * instalável — com só SVG, o prompt de instalação simplesmente não aparece, e
+ * não há erro em lugar nenhum que diga isso.
+ *
+ * O `maskable` é um arquivo separado, e não o mesmo com outro `purpose`: o
+ * sistema operacional RECORTA um maskable na forma dele (círculo, squircle,
+ * gota), então o desenho precisa caber na zona segura de 80%. Declarar o ícone
+ * normal como maskable é o erro que corta as bordas do logo em metade dos
+ * aparelhos Android.
+ *
+ * Na raiz porque o grupo `assets` do `ngsw-config.json` casa `/*.png` — é o que
+ * os deixa disponíveis offline, que é justamente quando o ícone importa.
+ */
+async function shootTo(html, path, size) {
+  await page.setViewportSize(size);
+  await page.setContent(html, { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path, type: 'png' });
+  written++;
+}
+
+/** `scale` < 1 deixa a margem que o recorte do sistema pode comer. */
+function iconHtml(px, scale = 1) {
+  const inner = Math.round(px * scale);
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+*{margin:0;padding:0}body{width:${px}px;height:${px}px;background:#fff;display:flex;
+align-items:center;justify-content:center}img{width:${inner}px;height:${inner}px}
+</style></head><body><img src="${LOGO_DATA}" alt=""></body></html>`;
+}
+
+const PUBLIC = join(ROOT, 'public');
+await shootTo(iconHtml(192), join(PUBLIC, 'icon-192.png'), { width: 192, height: 192 });
+await shootTo(iconHtml(512), join(PUBLIC, 'icon-512.png'), { width: 512, height: 512 });
+await shootTo(iconHtml(512, 0.6), join(PUBLIC, 'icon-maskable-512.png'), { width: 512, height: 512 });
+
 await browser.close();
 
 console.log(`[og] ${written} imagens escritas em public/og/ (${TOOLS.length} ferramentas x 2 línguas + 2 padrão + logo).`);

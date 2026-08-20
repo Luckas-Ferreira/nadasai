@@ -45,7 +45,7 @@
           <!-- Extracted Text Area -->
           <div class="flex flex-col gap-1.5">
             <div class="flex items-center justify-between">
-              <label class="text-xs font-medium text-text">Texto Extraído</label>
+              <label class="text-xs font-medium text-text">{{ i18n.t()['extract_text.result_label'] }}</label>
               @if (copied()) {
                 <span class="text-2xs font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse">
                   {{ i18n.t()['extract_text.copied'] }}
@@ -56,7 +56,7 @@
               [value]="extractedText()"
               (input)="extractedText.set($any($event.target).value)"
               rows="8"
-              placeholder="O texto lido da foto aparecerá aqui..."
+              [placeholder]="i18n.t()['extract_text.placeholder']"
               class="w-full rounded-lg border border-line bg-surface p-3 font-mono text-xs text-text placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             ></textarea>
           </div>
@@ -65,15 +65,15 @@
           @if (extractedText()) {
             <div class="grid grid-cols-3 gap-2 rounded-lg border border-line bg-raised p-2.5 text-center text-2xs">
               <div class="flex flex-col">
-                <span class="font-bold text-text">{{ charCount() }}</span>
+                <span class="font-semibold text-text">{{ charCount() }}</span>
                 <span class="text-muted">{{ i18n.t()['extract_text.chars'] }}</span>
               </div>
               <div class="flex flex-col border-x border-line">
-                <span class="font-bold text-text">{{ wordCount() }}</span>
+                <span class="font-semibold text-text">{{ wordCount() }}</span>
                 <span class="text-muted">{{ i18n.t()['extract_text.words'] }}</span>
               </div>
               <div class="flex flex-col">
-                <span class="font-bold text-accent">{{ confidence() }}%</span>
+                <span class="font-semibold text-accent">{{ confidence() }}%</span>
                 <span class="text-muted">{{ i18n.t()['extract_text.confidence'] }}</span>
               </div>
             </div>

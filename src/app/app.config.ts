@@ -1,16 +1,56 @@
-import { ApplicationConfig, inject, isDevMode, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  Injector,
+  afterNextRender,
+  inject,
+  isDevMode,
+  provideAppInitializer,
+  provideExperimentalZonelessChangeDetection,
+} from '@angular/core';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
+import { AppErrorHandler } from './core/errors/global-error-handler';
 import { AppUpdateService } from './core/services/app-update.service';
 import { ModelPrefetchService } from './core/services/model-prefetch.service';
 import { NetworkProbeService } from './core/services/network-probe.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    /**
+     * SEM ZONE.JS.
+     *
+     * O zone.js monkey-patcha todo callback assíncrono do navegador — timers,
+     * eventos, promises, XHR — para disparar uma detecção de mudança GLOBAL a
+     * cada um deles. Num app que já é `OnPush` + signals do começo ao fim, esse
+     * trabalho é inteiramente redundante: quem avisa o Angular do que mudou é o
+     * signal, não o callback que o escreveu.
+     *
+     * O que isso compra, na ordem em que se mede: ~14 kB gz a menos no bundle
+     * inicial, e uma mordida no TBT (825–1349 ms medidos), que é o eixo que
+     * segura a nota de performance e vira INP ruim no campo — cada rAF do
+     * desenho da waveform, cada progresso de OCR e cada chunk do pdf.js
+     * deixavam de custar uma varredura da árvore inteira.
+     *
+     * O PRÉ-REQUISITO ESTAVA PAGO ANTES DA MUDANÇA, e é o que a torna segura:
+     * `NgZone` não aparece em lugar nenhum do código, `fakeAsync`/`tick` não
+     * aparecem em nenhum dos 560 specs, e todo componente é OnPush com estado em
+     * signal. O que continua marcando para checagem sem zone: os bindings de
+     * evento do template, o `async` pipe, os signals e `markForCheck` explícito.
+     *
+     * O que quebra em zoneless, se algum dia voltar: estado guardado em campo
+     * comum (não signal) escrito dentro de `setTimeout`, `requestAnimationFrame`
+     * ou callback de biblioteca de terceiro. A tela simplesmente não atualiza —
+     * sem erro, como quase tudo que dói neste repositório.
+     *
+     * `zone.js` continua nos polyfills de TESTE (`angular.json`), de propósito:
+     * o TestBed sem zone exige provider próprio em cada spec, e trocar isso é
+     * uma mudança independente desta.
+     */
+    provideExperimentalZonelessChangeDetection(),
     /**
      * Sem isto o Angular não toca no scroll — o padrão de
      * `scrollPositionRestoration` é 'disabled', e o navegador simplesmente
@@ -64,6 +104,13 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(NetworkProbeService).install()),
 
     /**
+     * O par no navegador do handler que `app.config.server.ts` instala para o
+     * prerender: sem ele, uma exceção fora de qualquer `try/catch` de ferramenta
+     * era uma linha no console e nada na tela. Ver o arquivo.
+     */
+    { provide: ErrorHandler, useClass: AppErrorHandler },
+
+    /**
      * The offline claim, made true.
      *
      * Every tool is a lazy route and the AI model is fetched at runtime, so
@@ -77,8 +124,14 @@ export const appConfig: ApplicationConfig = {
      *
      * Only in production builds: ng serve does not emit ngsw-worker.js, and a
      * service worker caching a dev server is a debugging nightmare.
+     *
+     * O arquivo registrado é `nadasai-sw.js`, e não o `ngsw-worker.js` direto:
+     * ele importa o worker do Angular inteiro e acrescenta uma única coisa que o
+     * ngsw não faz e não se estende para fazer — atender o POST do Web Share
+     * Target, que é como um arquivo compartilhado no Android entra no app. Tudo
+     * o mais (precache, atualização, offline) continua sendo o ngsw.
      */
-    provideServiceWorker('ngsw-worker.js', {
+    provideServiceWorker('nadasai-sw.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
@@ -86,8 +139,20 @@ export const appConfig: ApplicationConfig = {
     /**
      * Watches for a new deploy and swaps to it behind a blocking overlay. No-op
      * without a service worker, so ng serve is unaffected.
+     *
+     * DEPOIS DA PRIMEIRA RENDERIZAÇÃO, e não durante a inicialização. Como
+     * `provideAppInitializer` puro, isto disputava a thread principal exatamente
+     * na janela em que o TBT é medido — 825 a 1349 ms de main thread bloqueada,
+     * o eixo que segura a nota de performance e vira INP ruim no campo. Nada
+     * aqui é urgente: uma versão nova que aparece 200 ms depois é a mesma versão
+     * nova. O initializer continua existindo só para abrir o contexto de
+     * injeção; quem espera é o `afterNextRender`, que não roda no prerender.
      */
-    provideAppInitializer(() => inject(AppUpdateService).start()),
+    provideAppInitializer(() => {
+      const injector = inject(Injector);
+      const updates = inject(AppUpdateService);
+      afterNextRender(() => void updates.start(), { injector });
+    }),
 
     /**
      * Pulls the model down once the browser goes idle, so the first background
@@ -95,6 +160,10 @@ export const appConfig: ApplicationConfig = {
      * 42 MB must never race the first paint, and never a lazy chunk someone is
      * actually waiting on. Skips itself entirely on a metered or slow link.
      */
-    provideAppInitializer(() => inject(ModelPrefetchService).start()),
+    provideAppInitializer(() => {
+      const injector = inject(Injector);
+      const prefetch = inject(ModelPrefetchService);
+      afterNextRender(() => void prefetch.start(), { injector });
+    }),
   ],
 };

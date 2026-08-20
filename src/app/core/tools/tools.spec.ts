@@ -4,6 +4,7 @@ import {
   TOOLS,
   moduleById,
   nextToolsFor,
+  relatedTools,
   toolFromUrl,
   toolPath,
   toolsOfModule,
@@ -162,5 +163,69 @@ describe('tools registry', () => {
 
   it('honours the chip limit', () => {
     expect(nextToolsFor('image', 'crop', 3).length).toBe(3);
+  });
+});
+
+/**
+ * A seção "relacionadas" existe por um número medido: uma página de ferramenta
+ * servia 13 links internos, todos do rail (o próprio módulo) ou do rodapé. Estes
+ * testes travam as duas propriedades que fazem dela outra coisa que não uma
+ * segunda cópia do rail.
+ */
+describe('relatedTools', () => {
+  it('gives every tool something to link to, and never itself', () => {
+    for (const tool of TOOLS) {
+      const related = relatedTools(tool.id);
+      expect(related.length).withContext(tool.id).toBeGreaterThan(0);
+      expect(related.length).withContext(tool.id).toBeLessThanOrEqual(4);
+      expect(related.some((t) => t.id === tool.id)).withContext(tool.id).toBe(false);
+    }
+  });
+
+  it('has no duplicates', () => {
+    for (const tool of TOOLS) {
+      const ids = relatedTools(tool.id).map((t) => t.id);
+      expect(new Set(ids).size).withContext(tool.id).toBe(ids.length);
+    }
+  });
+
+  /**
+   * A vaga reservada para outro módulo é a razão de ser da seção: sem ela o
+   * item 1 (a cadeia, que ordena o próprio módulo primeiro) preenche as quatro
+   * vagas com links que o rail já dá, e a página continua sem nenhum link
+   * atravessando módulo.
+   */
+  it('crosses modules whenever crossing is possible', () => {
+    for (const tool of TOOLS) {
+      if (tool.id === 'remove-exif') continue; // destinos restritos, testado abaixo
+      const related = relatedTools(tool.id);
+      const crossable = TOOLS.some(
+        (t) =>
+          t.category !== tool.category &&
+          (t.accepts.includes('any') ||
+            (tool.produces !== null && t.accepts.includes(tool.produces)) ||
+            (t.produces !== null && tool.accepts.includes(t.produces))),
+      );
+      if (!crossable) continue;
+      expect(related.some((t) => t.category !== tool.category))
+        .withContext(`${tool.id} -> ${related.map((t) => t.id).join(', ')}`)
+        .toBe(true);
+    }
+  });
+
+  /** Mesmo motivo do `nextToolsFor`: clicar num card commita o arquivo. */
+  it('never recommends a raster editor from the lossless stripper', () => {
+    expect(relatedTools('remove-exif').map((t) => t.id).sort()).toEqual([
+      'encrypt-file',
+      'file-hash',
+    ]);
+  });
+
+  it('falls back to module siblings for a tool with no chain at all', () => {
+    // O gerador de senha não aceita nem produz arquivo: sem os vizinhos, a
+    // seção sairia vazia justamente na página mais isolada do produto.
+    const related = relatedTools('password-generator');
+    expect(related.length).toBeGreaterThan(0);
+    expect(related.every((t) => t.category === 'privacy')).toBe(true);
   });
 });

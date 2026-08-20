@@ -1,0 +1,152 @@
+# CI — o portão que não existia.
+#
+# O repositório tem 560 specs unitários e 26 suítes de e2e, e até aqui todos eles
+# só rodavam quando alguém lembrava de rodar. Não há linter: o `tsc` sob `strict`
+# + `strictTemplates` e estes testes são o único gate do projeto inteiro, o que
+# torna a ausência de CI o buraco mais barato de fechar que existia na lista.
+#
+# Duas coisas neste arquivo não são detalhe de configuração:
+#
+#   * `public/model` e `public/tessdata` são CACHEADOS antes do `npm ci`. Os dois
+#     scripts de download rodam no `postinstall` e são no-op quando os arquivos
+#     já estão no disco — sem o cache, cada execução baixa 46 MB (42 do IS-Net,
+#     4 do tessdata) para nada. A chave inclui o conteúdo dos scripts, então
+#     trocar a fonte do modelo invalida o cache sozinho.
+#   * O e2e roda `--headed` na máquina de quem desenvolve, de propósito (o ponto
+#     da suíte é ASSISTIR as ferramentas rodarem). Em CI não há tela, então o
+#     `playwright.config.ts` cai para headless quando `CI` está definido — que é
+#     o padrão do próprio Actions.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo cancela a execução anterior do mesmo branch: o que interessa é o
+# veredito do último commit, e não a fila inteira.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: tsc + unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cache dos assets de runtime baixados no postinstall
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/model
+            public/tessdata
+          key: runtime-assets-${{ hashFiles('scripts/fetch-model.mjs', 'scripts/fetch-tessdata.mjs') }}
+
+      - run: npm ci
+
+      # O compilador é o linter deste projeto. `tsconfig.app.json` cobre o app;
+      # `tsconfig.spec.json` cobre os specs, que de outro modo só quebrariam
+      # dentro do Karma, depois de dois minutos de bundle; e `tsconfig.e2e.json`
+      # cobre a suíte do Playwright, que ele transpila SEM checar tipo — ali um
+      # erro de tipo só aparecia como falha de execução, com dois servidores no ar.
+      - name: Type-check
+        run: |
+          npx tsc -p tsconfig.app.json --noEmit
+          npx tsc -p tsconfig.spec.json --noEmit
+          npx tsc -p tsconfig.e2e.json --noEmit
+
+      - name: Unit tests
+        run: npm test -- --watch=false --browsers=ChromeHeadless
+
+  build:
+    name: build + prerender
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            public/model
+            public/tessdata
+          key: runtime-assets-${{ hashFiles('scripts/fetch-model.mjs', 'scripts/fetch-tessdata.mjs') }}
+
+      - run: npm ci
+
+      # O prerender roda o app 80 vezes dentro do Node, e é onde código que
+      # depende de `window`/`localStorage` quebra. O build é a única checagem que
+      # enxerga isso — e o `postbuild` (achatamento, fallback de SPA, ngsw) só
+      # existe no build de produção.
+      - run: npm run build
+
+      # `sitemap.xml` e `llms.txt` são gerados no prebuild a partir de TOOLS, e
+      # ficam commitados porque `sitemap.spec.ts` lê o arquivo do disco — num
+      # watch de teste nenhum build rodou, e é assim que ele pega um commit
+      # velho. Se o build de agora produziu algo diferente do que está commitado,
+      # o arquivo do repositório está desatualizado.
+      #
+      # O `<lastmod>` sai de `git log` e portanto muda a cada commit em src/ ou
+      # public/ — cobrá-lo aqui reprovaria todo PR por um campo que o build do
+      # deploy regenera de qualquer jeito. A comparação ignora essa linha e vale
+      # sobre o resto, que é onde uma ferramenta faltando apareceria.
+      - name: Sitemap e llms.txt commitados batem com os gerados
+        run: |
+          diff <(git show HEAD:public/sitemap.xml | grep -v '<lastmod>') \
+               <(grep -v '<lastmod>' public/sitemap.xml)
+          git diff --exit-code -- public/llms.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/nadasai/browser
+          retention-days: 5
+
+  e2e:
+    name: e2e (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            public/model
+            public/tessdata
+          key: runtime-assets-${{ hashFiles('scripts/fetch-model.mjs', 'scripts/fetch-tessdata.mjs') }}
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run e2e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

@@ -193,7 +193,7 @@ test.describe('Extrair áudio de vídeo', () => {
     await page.addInitScript(() => {
       const original = AudioContext.prototype.decodeAudioData;
       let refused = false;
-      AudioContext.prototype.decodeAudioData = function (...args: unknown[]) {
+      AudioContext.prototype.decodeAudioData = function (this: AudioContext, ...args: unknown[]) {
         if (!refused) {
           refused = true;
           return Promise.reject(new Error('forced: container refused'));

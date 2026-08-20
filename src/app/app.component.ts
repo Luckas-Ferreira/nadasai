@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { ActiveToolService } from './core/services/active-tool.service';
+import { GlobalErrorService } from './core/errors/global-error-handler';
 import { WorkspaceService } from './core/services/workspace.service';
 import { SeoService } from './core/services/seo.service';
 import { TranslationService } from './core/services/translation.service';
+import { AlertComponent } from './shared/ui/alert.component';
 import { CommandPaletteComponent } from './shared/ui/command-palette.component';
 import { FileBarComponent } from './shared/ui/file-bar.component';
 import { MobileToolBarComponent } from './shared/ui/mobile-tool-bar.component';
@@ -36,6 +38,7 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
     UpdateOverlayComponent,
     ModelDownloadBarComponent,
     SplashScreenComponent,
+    AlertComponent,
   ],
   templateUrl: './app.component.html',
 })
@@ -45,6 +48,7 @@ export class AppComponent {
   protected readonly i18n = inject(TranslationService);
   protected readonly activeTool = inject(ActiveToolService);
   protected readonly workspace = inject(WorkspaceService);
+  protected readonly globalError = inject(GlobalErrorService);
 
   /** Global Ctrl+Z / Cmd+Z shortcut to trigger undo on the active state session. */
   @HostListener('window:keydown', ['$event'])

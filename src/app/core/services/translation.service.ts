@@ -164,6 +164,16 @@ const EN = {
   'faq.badge': 'FAQ & Security',
   'faq.about': 'Questions about',
   'faq.subtitle': 'Everything you need to know about 100% local, browser-based file processing.',
+
+  'open.title': 'Open a file',
+  'open.subtitle': 'Pick what to do with it. Nothing is uploaded, here or anywhere else.',
+  'open.pick_tool': 'What do you want to do with this file?',
+  'open.no_tool': 'No tool here takes a file of this type yet.',
+  'open.drag': 'Drop any file here',
+  'open.drag_hint': 'Image, PDF, audio or video — the tools that fit appear next',
+
+  'related.title': 'Related tools',
+  'related.subtitle': 'Everything below runs in this same tab, with no upload and no account.',
   'faq.q1': 'How does Nada Sai edit PDFs and remove backgrounds without server uploads?',
   'faq.a1':
     'Nada Sai executes all file processing directly client-side using advanced modern web standards: high-performance WebAssembly (Wasm), multi-threaded Web Workers to keep the UI smooth and responsive, Web Audio API for lossless signal processing, and local neural network models (ONNX Runtime and WebGPU) for AI background removal. When you open a PDF document, photo, or audio recording, the file resides strictly in your local browser tab’s memory. Zero bytes of your content are ever transmitted across the network or stored in external clouds, eliminating data interception and server leaks entirely.',
@@ -1019,6 +1029,49 @@ const EN = {
   'qrcode.scan_copy_pix': 'Copy Pix Payload',
   'qrcode.scan_save_vcard': 'Download Contact (.vcf)',
   'qrcode.scan_edit_generator': 'Edit in Generator',
+
+  /**
+   * TEXTO QUE ESTAVA CRAVADO NO TEMPLATE, em português, nas duas línguas.
+   *
+   * O dicionário é a regra da casa e a tipagem a torna verificável — mas ela só
+   * pega chave FALTANDO, não texto que nunca virou chave. Estas 25 estavam
+   * escritas direto no HTML de sete ferramentas, então a página em inglês
+   * mostrava "Texto Extraído", "Cor da Caneta" e "Gerando miniaturas das
+   * páginas…" no meio da interface em inglês. É a mesma classe do `alt` em
+   * português que a auditoria achou, um nível mais fundo.
+   */
+  'audio.rate_original': 'Original (automatic)',
+  'audio.rate_48k': '48,000 Hz (studio / TV)',
+  'audio.rate_44k': '44,100 Hz (audio CD)',
+  'audio.rate_22k': '22,050 Hz (voice / radio)',
+
+  'extract_text.result_label': 'Extracted text',
+  'extract_text.placeholder': 'The text read from the image will appear here…',
+
+  'pdf2img.thumbs_working': 'Rendering page thumbnails…',
+  'protpdf.preview_working': 'Rendering preview…',
+  'protpdf.note': 'The document will be encrypted with an open password. Anyone opening the file will have to type it.',
+
+  'signpdf.page_loading': 'Loading page…',
+  'signpdf.adjust': 'Adjust position and size',
+  'signpdf.pos_x': 'Horizontal position (X)',
+  'signpdf.pos_y': 'Vertical position (Y)',
+  'signpdf.pen_color': 'Pen colour',
+  'signpdf.type_name_label': 'Type your full name',
+  'signpdf.type_name_placeholder': 'e.g. Jane Doe',
+
+  'qrcode.data_type': 'Data type',
+  'qrcode.wifi_ssid_placeholder': 'MyNetwork',
+  'qrcode.wifi_pass_placeholder': 'Wi-Fi password',
+  'qrcode.pix_key_placeholder': 'CPF, CNPJ, e-mail or phone',
+  'qrcode.pix_name_placeholder': 'NAME',
+  'qrcode.pix_city_placeholder': 'CITY',
+
+  'upscale.ai_strength': 'AI intensity',
+  'upscale.ai_min': 'Natural (50%)',
+  'upscale.ai_max': 'Ultra HD (250%)',
+
+  'pdf.text_placeholder': 'Type text…',
 } as const;
 
 export type TranslationKey = keyof typeof EN;
@@ -1171,6 +1224,16 @@ const PT: Record<TranslationKey, string> = {
   'faq.badge': 'FAQ & Segurança',
   'faq.about': 'Perguntas sobre',
   'faq.subtitle': 'Tudo o que você precisa saber sobre o processamento de arquivos 100% local no seu navegador.',
+
+  'open.title': 'Abrir um arquivo',
+  'open.subtitle': 'Escolha o que fazer com ele. Nada é enviado, aqui nem em lugar nenhum.',
+  'open.pick_tool': 'O que você quer fazer com este arquivo?',
+  'open.no_tool': 'Nenhuma ferramenta daqui recebe um arquivo deste tipo ainda.',
+  'open.drag': 'Solte qualquer arquivo aqui',
+  'open.drag_hint': 'Imagem, PDF, áudio ou vídeo — as ferramentas que servem aparecem em seguida',
+
+  'related.title': 'Ferramentas relacionadas',
+  'related.subtitle': 'Tudo aqui embaixo roda nesta mesma aba, sem upload e sem cadastro.',
   'faq.q1': 'Como o Nada Sai edita PDFs e remove fundo sem enviar arquivos para servidores?',
   'faq.a1':
     'O Nada Sai executa todas as operações diretamente no cliente utilizando as APIs web mais avançadas: WebAssembly (Wasm) compilado para alto desempenho, Web Workers em threads paralelas para manter a interface ágil e fluida, Web Audio API para manipulação acústica sem perdas e redes neurais locais (ONNX Runtime e WebGPU) para segmentação inteligente de imagens. Quando você abre um PDF, foto ou gravação de áudio, o arquivo é manipulado estritamente na memória RAM da aba do seu navegador. Zero bytes de dados são transmitidos para servidores externos ou nuvem, eliminando totalmente qualquer risco de interceptação de dados ou vazamento na rede.',
@@ -2021,6 +2084,40 @@ const PT: Record<TranslationKey, string> = {
   'qrcode.scan_copy_pix': 'Copiar Payload Pix',
   'qrcode.scan_save_vcard': 'Baixar Contato (.vcf)',
   'qrcode.scan_edit_generator': 'Editar no Gerador',
+
+  /** As 25 que estavam cravadas no template; ver o comentário no dicionário EN. */
+  'audio.rate_original': 'Original (Automático)',
+  'audio.rate_48k': '48,000 Hz (Estúdio / TV)',
+  'audio.rate_44k': '44,100 Hz (CD de Áudio)',
+  'audio.rate_22k': '22,050 Hz (Voz / Rádio)',
+
+  'extract_text.result_label': 'Texto Extraído',
+  'extract_text.placeholder': 'O texto lido da foto aparecerá aqui…',
+
+  'pdf2img.thumbs_working': 'Gerando miniaturas das páginas…',
+  'protpdf.preview_working': 'Gerando pré-visualização…',
+  'protpdf.note': 'O documento será criptografado com senha de abertura. Quem tentar abrir o arquivo precisará digitar esta senha.',
+
+  'signpdf.page_loading': 'Carregando página…',
+  'signpdf.adjust': 'Ajustar Posição e Tamanho',
+  'signpdf.pos_x': 'Posição Horizontal (X)',
+  'signpdf.pos_y': 'Posição Vertical (Y)',
+  'signpdf.pen_color': 'Cor da Caneta',
+  'signpdf.type_name_label': 'Digite seu nome completo',
+  'signpdf.type_name_placeholder': 'Ex: João da Silva',
+
+  'qrcode.data_type': 'Tipo de Dado',
+  'qrcode.wifi_ssid_placeholder': 'MinhaRede',
+  'qrcode.wifi_pass_placeholder': 'Senha do Wi-Fi',
+  'qrcode.pix_key_placeholder': 'CPF, CNPJ, E-mail ou Telefone',
+  'qrcode.pix_name_placeholder': 'NOME',
+  'qrcode.pix_city_placeholder': 'CIDADE',
+
+  'upscale.ai_strength': 'Intensidade da IA',
+  'upscale.ai_min': 'Natural (50%)',
+  'upscale.ai_max': 'Ultra HD (250%)',
+
+  'pdf.text_placeholder': 'Digite o texto…',
 };
 
 const DICTIONARY: Record<Language, Record<TranslationKey, string>> = { en: EN, pt: PT };

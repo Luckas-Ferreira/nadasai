@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { PREVIEW_URL } from './ports';
 
 /**
  * O HTML que o crawler recebe, medido SEM executar JavaScript.
@@ -19,7 +20,7 @@ import { expect, test } from '@playwright/test';
  * Roda contra o build de produção na :4300, como o 09-offline, porque é o único
  * lugar onde o artefato real existe.
  */
-test.use({ baseURL: 'http://localhost:4300' });
+test.use({ baseURL: PREVIEW_URL });
 
 /** Uma por módulo, mais os dois idiomas e uma página institucional. */
 const ROUTES = [

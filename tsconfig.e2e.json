@@ -1,0 +1,15 @@
+/* A suíte de e2e não era coberta por nenhum tsconfig: o Playwright transpila os
+   specs sem checar tipo, então um erro de tipo ali só aparecia como falha de
+   execução, depois de subir dois servidores. Este arquivo existe para que o
+   `tsc --noEmit` do CI enxergue `e2e/` e a própria playwright.config.ts. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/e2e",
+    "types": ["node"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "playwright.debug.config.ts"]
+}

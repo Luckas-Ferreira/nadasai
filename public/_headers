@@ -2,9 +2,57 @@
 #
 # Sem COOP/COEP não há SharedArrayBuffer, e a inferência da remoção de fundo cai
 # para single-threaded (~6x mais lenta) sem erro nenhum — falha silenciosa.
+#
+# A CSP É A TESE DO PRODUTO ESCRITA DE UM JEITO QUE O NAVEGADOR OBRIGA.
+#
+# `NetworkProbeService` MEDE a saída de arquivos: ele instrumenta fetch, XHR,
+# sendBeacon e WebSocket e conta bytes. Isso prova o comportamento de quem está
+# olhando o medidor, e não impede nada — uma linha de código nova, uma
+# dependência com telemetria ou um script injetado por antivírus corporativo
+# continuariam podendo mandar o arquivo embora. `connect-src 'self'` transforma
+# a promessa em regra: qualquer destino que não seja esta origem é BLOQUEADO
+# pelo navegador, não contado depois.
+#
+# As diretivas menos óbvias, e por que cada uma é o que é:
+#
+#   * `'wasm-unsafe-eval'` em script-src — sem ela, `WebAssembly.instantiate`
+#     é bloqueado, e com ela some a remoção de fundo (onnxruntime), o OCR
+#     (tesseract) e a leitura de PDF (pdf.js wasm). É a permissão MÍNIMA para
+#     Wasm: não habilita `eval` de JavaScript, ao contrário de 'unsafe-eval'.
+#   * `worker-src 'self' blob:` — o worklet do extrator de áudio e os workers
+#     do tesseract nascem de Blob URL. Sem `blob:` aqui eles não sobem, e a
+#     falha aparece como "a ferramenta não faz nada".
+#   * `style-src 'unsafe-inline'` — o Angular injeta os estilos de componente
+#     como <style> em tempo de execução, e os bindings [style.x] são atributos
+#     de estilo. Resolver isso direito exige nonce por resposta, que um host
+#     estático não tem como emitir. É a única frouxidão da lista, e ela não
+#     abre caminho para exfiltração: `connect-src` continua fechado.
+#   * `script-src-attr 'unsafe-hashes' 'sha256-Mht…'` — o Angular embute o CSS
+#     crítico e carrega o resto com o truque do `media="print"` mais um
+#     `onload="this.media='all'"`. Esse handler é atributo inline, que a CSP
+#     bloqueia por padrão — e o efeito não é um erro visível: a folha de estilo
+#     fica em `media="print"` para sempre e o site aparece SEM CSS NENHUM. O
+#     hash libera exatamente aquele texto e nada mais; `'unsafe-inline'` aqui
+#     liberaria qualquer handler injetado. Se o Angular mudar a string, a CSP
+#     volta a bloquear — e `36-csp.spec.ts` falha, que é o ponto.
+#   * `img-src`/`media-src` com `data:` e `blob:` — TODA prévia do produto é um
+#     object URL do arquivo do próprio usuário. Sem eles, nenhuma imagem, nenhum
+#     áudio e nenhuma página de PDF aparece na tela.
+#   * `form-action 'none'` e `frame-ancestors 'none'` — não existe formulário
+#     que submeta para lugar nenhum, e a página não deve poder ser embutida em
+#     iframe de terceiro (clickjacking sobre uma ferramenta que manipula
+#     documento é uma superfície real).
+#
+# `e2e/36-csp.spec.ts` roda as ferramentas com estes headers aplicados e falha se
+# qualquer violação for disparada — uma diretiva apertada demais quebra em
+# silêncio, que é exatamente o que a suíte existe para não deixar acontecer.
 /*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: geolocation=(), payment=(), usb=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; script-src-attr 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' data: blob:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
 
 # ---------------------------------------------------------------------------
 # Cache: eterno é só o que tem hash no nome. O resto revalida.
@@ -37,6 +85,11 @@
 /ngsw.json
   Cache-Control: no-cache
 /ngsw-worker.js
+  Cache-Control: no-cache
+# O worker registrado de fato: importa o do Angular e soma o alvo de
+# compartilhamento. Mesma regra e pelo mesmo motivo — um service worker preso em
+# cache é a versão mais cara deste erro.
+/nadasai-sw.js
   Cache-Control: no-cache
 /safety-worker.js
   Cache-Control: no-cache

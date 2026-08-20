@@ -167,10 +167,10 @@
           (change)="sampleRate.set(+$any($event.target).value)"
           class="w-full rounded-xl border border-line bg-raised px-3.5 py-2 text-xs font-medium text-text outline-none focus:border-accent"
         >
-          <option [value]="0">Original (Automático)</option>
-          <option [value]="48000">48,000 Hz (Estúdio / TV)</option>
-          <option [value]="44100">44,100 Hz (CD de Áudio)</option>
-          <option [value]="22050">22,050 Hz (Voz / Rádio)</option>
+          <option [value]="0">{{ i18n.t()['audio.rate_original'] }}</option>
+          <option [value]="48000">{{ i18n.t()['audio.rate_48k'] }}</option>
+          <option [value]="44100">{{ i18n.t()['audio.rate_44k'] }}</option>
+          <option [value]="22050">{{ i18n.t()['audio.rate_22k'] }}</option>
         </select>
       </app-panel>
 
