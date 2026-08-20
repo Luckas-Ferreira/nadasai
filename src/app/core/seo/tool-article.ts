@@ -2803,4 +2803,102 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'video-to-gif': {
+    pt: [
+      {
+        h: 'Como transformar um vídeo em GIF',
+        p: [
+          'Você marca um trecho do vídeo, escolhe largura, quadros por segundo e número de cores, e recebe um GIF animado — sem marca dágua, sem cadastro e sem que o arquivo saia do seu aparelho. O resultado aparece na tela antes do download, então dá para ajustar e refazer.',
+        ],
+        steps: [
+          'Solte o vídeo (MP4, WebM, MOV ou MKV).',
+          'Arraste os controles de início e fim para marcar o trecho, de até 30 segundos.',
+          'Escolha a largura e os quadros por segundo — são os dois controles que mais mexem no tamanho.',
+          'Ajuste as cores e, se o vídeo tiver degradê, experimente ligar o dithering.',
+          'Gere, confira o GIF na tela e baixe.',
+        ],
+      },
+      {
+        h: 'Por que GIF pesa tanto, e o que realmente diminui',
+        p: [
+          'O GIF não tem compressão entre quadros. Cada quadro é uma imagem inteira comprimida sozinha, então dois quadros idênticos ocupam o dobro de um. É por isso que esta ferramenta não tem um controle de "qualidade": no GIF, tamanho é contagem de quadros vezes contagem de pixels, e é isso que os controles ajustam.',
+          'Em ordem de eficácia: encurtar o trecho, reduzir a largura e baixar os quadros por segundo. Doze por segundo já dão movimento fluido em captura de tela; vinte só valem para movimento rápido de câmera. Reduzir de 256 para 128 cores ajuda, sobretudo em interface chapada, e costuma ser invisível.',
+          'O painel mostra quantos quadros vão ser escritos e em que resolução, e NÃO promete um tamanho em megabytes antes de gerar. O motivo é honesto: o peso final depende do conteúdo, porque a compressão do formato lida muito melhor com uma tela chapada do que com uma cena de câmera. Quadros e pixels são exatos; bytes, só depois de escrever.',
+        ],
+      },
+      {
+        h: 'A paleta é o que separa um GIF bom de um GIF de 2005',
+        p: [
+          'O formato guarda no máximo 256 cores por arquivo, então converter um vídeo é, antes de tudo, escolher quais 256. A maioria dos conversores agrupa cores em RGB, onde a mesma distância numérica significa coisas diferentes em cada faixa — o resultado é aquela cor lavada e o degradê em faixas.',
+          'Aqui o agrupamento acontece em CIELAB, um espaço em que distância corresponde à diferença que o olho enxerga. É a mesma base de cor que o vetorizador do produto usa. As cores são escolhidas a partir de quadros espalhados pelo trecho inteiro, e não só do primeiro — uma paleta tirada do começo erra inteira quando a cena muda.',
+          'E há o caso em que não há perda nenhuma: quando o vídeo tem menos de 256 cores distintas, a paleta é a lista exata delas e a ferramenta diz isso na tela. Vale menos vezes do que parece, e o motivo é o próprio vídeo — a compressão que o gerou espalha variação em volta de cada cor chapada, então uma captura de tela que "tem quatro cores" costuma chegar aqui com milhares. Interface chapada continua sendo o material que melhor se agrupa, mesmo quando a paleta não sai exata.',
+          'O dithering é uma troca, não uma melhoria. Ele quebra a faixa do degradê espalhando o erro entre pixels vizinhos, e ao mesmo tempo enche a imagem de ruído fino — que é justamente o que a compressão do GIF não consegue reduzir, e que ainda muda de lugar a cada quadro. Ligado, o arquivo pode mais que dobrar. Vale para vídeo de câmera com céu, pele e sombra; não vale para captura de tela.',
+        ],
+      },
+      {
+        h: 'Quando GIF não é o formato certo',
+        p: [
+          'Para qualquer coisa acima de meio minuto, ou com som, o formato certo continua sendo o vídeo. Um MP4 de trinta segundos pesa uma fração de um GIF equivalente e toca em todo lugar. GIF ganha em três situações específicas: onde vídeo não é aceito, onde ele precisa tocar sozinho em repetição sem controles, e onde a imagem precisa aparecer inteira dentro de um comentário — ticket, pull request, chat, documentação.',
+          'Se o objetivo é só mostrar um erro para o time, considere também mandar o vídeo direto: a ferramenta de gravar tela do produto entrega um arquivo pronto, e a conversão para GIF é um passo a mais que só existe por causa do destino.',
+          'E se o que você quer é um quadro parado, não precisa de GIF: use PDF para imagem se for documento, ou tire a foto da tela mesmo.',
+        ],
+      },
+      {
+        h: 'Por que fazer isso no navegador',
+        p: [
+          'Praticamente todo conversor de vídeo para GIF é um serviço pago disfarçado: ou impõe marca dágua, ou limita a duração, ou pede cadastro — e os três existem pelo mesmo motivo, que é o vídeo estar sendo processado no servidor de alguém. Você entrega o arquivo inteiro para receber de volta uma versão carimbada.',
+          'Aqui o vídeo é lido pelo próprio navegador, os quadros são desenhados numa tela em memória e o GIF é escrito byte a byte na mesma aba. O medidor no alto da página conta bytes de arquivo saindo e fica em zero do começo ao fim, e depois da primeira visita tudo funciona com a internet desligada.',
+          'Isso importa mais do que parece nesta ferramenta em particular: o vídeo que mais vira GIF é gravação de tela — com sistema interno, dados de cliente, nome de arquivo e aba aberta à vista. É exatamente o material que não deveria subir para um site gratuito em troca de uma animação.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'How to turn a video into a GIF',
+        p: [
+          'You mark a stretch of the video, choose the width, the frames per second and the number of colours, and get an animated GIF — with no watermark, no signup and without the file leaving your device. The result appears on screen before the download, so you can adjust and redo it.',
+        ],
+        steps: [
+          'Drop the video (MP4, WebM, MOV or MKV).',
+          'Drag the start and end controls to mark the stretch, up to 30 seconds.',
+          'Choose the width and the frames per second — the two controls that most affect size.',
+          'Adjust the colours and, if the video has gradients, try turning dithering on.',
+          'Generate, check the GIF on screen and download it.',
+        ],
+      },
+      {
+        h: 'Why GIFs are so heavy, and what actually shrinks them',
+        p: [
+          'GIF has no compression between frames. Each frame is a whole image compressed on its own, so two identical frames take twice the space of one. That is why this tool has no "quality" control: in GIF, size is frame count times pixel count, and that is what the controls adjust.',
+          'In order of effectiveness: shorten the stretch, lower the width, reduce the frames per second. Twelve per second already looks fluid for screen capture; twenty is only worth it for fast camera motion. Dropping from 256 to 128 colours helps as well, especially on flat interface content, and is usually invisible.',
+          'The panel shows how many frames will be written and at what resolution, and does NOT promise a size in megabytes beforehand. The reason is honest: the final weight depends on the content, because the compression in the format handles a flat screen far better than a camera scene. Frames and pixels are exact; bytes, only after writing.',
+        ],
+      },
+      {
+        h: 'The palette is what separates a good GIF from a 2005 one',
+        p: [
+          'The format holds at most 256 colours per file, so converting a video is first of all choosing which 256. Most converters cluster colours in RGB, where the same numeric distance means different things in different ranges — the result is that washed-out look and banded gradients.',
+          'Here the clustering happens in CIELAB, a space where distance matches the difference the eye sees. It is the same colour foundation the product vectoriser uses. Colours are chosen from frames spread across the whole stretch, not just the first one — a palette taken from the beginning is completely wrong once the scene changes.',
+          'And there is the case with no loss at all: when the video has fewer than 256 distinct colours, the palette is the exact list of them and the tool says so on screen. It happens less often than it sounds, and the reason is the video itself — the compression that produced it scatters variation around every flat colour, so a screen capture that "has four colours" usually arrives here with thousands. Flat interface content is still the material that clusters best, even when the palette does not come out exact.',
+          'Dithering is a trade, not an improvement. It breaks gradient banding by spreading the error between neighbouring pixels, and at the same time fills the image with fine noise — precisely what GIF compression cannot reduce, and which moves around from frame to frame. Turned on, the file can more than double. It is worth it for camera footage with sky, skin and shadow; it is not for screen capture.',
+        ],
+      },
+      {
+        h: 'When GIF is the wrong format',
+        p: [
+          'For anything over half a minute, or with sound, the right format is still video. A thirty-second MP4 weighs a fraction of an equivalent GIF and plays everywhere. GIF wins in three specific situations: where video is not accepted, where it has to loop on its own without controls, and where the image has to appear inline inside a comment — a ticket, a pull request, a chat, documentation.',
+          'If the goal is only to show a bug to your team, consider sending the video instead: the screen recorder in this product hands back a ready file, and converting to GIF is an extra step that only exists because of the destination.',
+          'And if what you want is a still frame, you do not need a GIF: use PDF to image for a document, or simply take a screenshot.',
+        ],
+      },
+      {
+        h: 'Why do this in the browser',
+        p: [
+          'Practically every video-to-GIF converter is a paid service in disguise: it either stamps a watermark, or caps the duration, or asks for a signup — and all three exist for the same reason, which is that the video is being processed on somebody server. You hand over the whole file to get back a branded version.',
+          'Here the video is read by the browser itself, the frames are drawn onto an in-memory canvas, and the GIF is written byte by byte in the same tab. The meter at the top of the page counts file bytes leaving and stays at zero from beginning to end, and after the first visit everything works with the internet switched off.',
+          'That matters more than usual in this particular tool: the video most often turned into a GIF is a screen recording — with internal systems, client data, filenames and open tabs in view. It is exactly the material that should not be uploaded to a free website in exchange for an animation.',
+        ],
+      },
+    ],
+  },
 };
