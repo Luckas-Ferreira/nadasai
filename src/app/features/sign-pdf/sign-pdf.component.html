@@ -80,7 +80,7 @@
           @if (renderingPreview()) {
             <div class="flex flex-col items-center justify-center gap-3 py-16">
               <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
-              <p class="text-sm font-medium text-muted">Carregando página…</p>
+              <p class="text-sm font-medium text-muted">{{ i18n.t()['signpdf.page_loading'] }}</p>
             </div>
           } @else if (previewUrl()) {
             <div class="relative max-h-[52vh] overflow-hidden rounded-md bg-white shadow-page">
@@ -137,7 +137,7 @@
           @if (activeTab() === 'draw') {
             <div class="flex flex-col gap-2">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-medium text-muted">Cor da Caneta</span>
+                <span class="text-xs font-medium text-muted">{{ i18n.t()['signpdf.pen_color'] }}</span>
                 <div class="flex gap-2">
                   <button
                     type="button"
@@ -217,12 +217,12 @@
           <!-- TAB 3: TYPE NAME -->
           @if (activeTab() === 'type') {
             <div class="flex flex-col gap-2">
-              <label class="text-xs font-medium text-muted">Digite seu nome completo</label>
+              <label class="text-xs font-medium text-muted">{{ i18n.t()['signpdf.type_name_label'] }}</label>
               <input
                 type="text"
                 [value]="typedName()"
                 (input)="updateTypedName($any($event.target).value)"
-                placeholder="Ex: João da Silva"
+                [placeholder]="i18n.t()['signpdf.type_name_placeholder']"
                 class="w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
               />
             </div>
@@ -299,12 +299,12 @@
             <div class="my-2 border-t border-line"></div>
 
             <div class="flex flex-col gap-3">
-              <span class="text-xs font-semibold text-text">Ajustar Posição e Tamanho</span>
+              <span class="text-xs font-semibold text-text">{{ i18n.t()['signpdf.adjust'] }}</span>
 
               <!-- Pos X -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs text-muted">
-                  <span>Posição Horizontal (X)</span>
+                  <span>{{ i18n.t()['signpdf.pos_x'] }}</span>
                   <span class="font-mono tabular">{{ xPercent() }}%</span>
                 </div>
                 <input
@@ -320,7 +320,7 @@
               <!-- Pos Y -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs text-muted">
-                  <span>Posição Vertical (Y)</span>
+                  <span>{{ i18n.t()['signpdf.pos_y'] }}</span>
                   <span class="font-mono tabular">{{ yPercent() }}%</span>
                 </div>
                 <input

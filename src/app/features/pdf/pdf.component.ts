@@ -164,7 +164,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                       </div>
                     </div>
                     @if (ocrProgress() >= 0) {
-                      <span class="text-xs font-mono font-bold text-accent shrink-0">{{ ocrProgress() }}%</span>
+                      <span class="text-xs font-mono font-semibold text-accent shrink-0">{{ ocrProgress() }}%</span>
                     }
                   </div>
                   @if (ocrProgress() >= 0) {
@@ -303,7 +303,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                         [style.top.px]="addTextPos().y * scale()"
                         [style.min-width.px]="150 * scale()"
                         rows="3"
-                        placeholder="Digite o texto…"
+                        [placeholder]="i18n.t()['pdf.text_placeholder']"
                         (blur)="commitAddText($event)"
                         (keydown.escape)="addingText.set(false)"
                       ></textarea>
@@ -386,7 +386,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   </div>
 
                   <button
-                    class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-bold font-serif transition-all shrink-0"
+                    class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-semibold font-serif transition-all shrink-0"
                     [class]="isBlockBold(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
                     title="Negrito"
                     (mousedown)="$event.preventDefault()"
@@ -907,7 +907,12 @@ export class PdfComponent implements OnDestroy {
     try {
       this.workspace.load(file, 'edit-pdf');
     } catch {
+      // O `status` vai junto porque o banner é `status() === 'error' &&
+      // errorMessage()`: sem ele a mensagem era escrita e nunca renderizada, e
+      // soltar um .txt aqui não produzia reação NENHUMA — nem alerta, nem
+      // console. Achado escrevendo o e2e desta ferramenta.
       this.errorMessage.set(this.i18n.t()['error.pdf_unsupported']);
+      this.status.set('error');
     }
   }
 

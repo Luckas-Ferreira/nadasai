@@ -371,6 +371,25 @@ export const routes: Routes = [
           metaDescription: 'Respostas para todas as suas dúvidas sobre segurança, privacidade, edição de PDF e remoção de fundo 100% offline no Nada Sai.',
           metaKeywords: 'faq nada sai, duvidas nada sai, seguranca pdf offline, privacidade de imagem'
         }
+      },
+      /**
+       * O destino do "Abrir com" do sistema e da folha de compartilhamento do
+       * Android — as duas portas que o `manifest.webmanifest` declara.
+       *
+       * Fica FORA do sitemap e fora do `static-pages.ts` de propósito: é uma
+       * página de chegada de arquivo, não conteúdo que alguém procure. Sem
+       * entrada no `route-map`, `alternatesFor()` devolve null e o SeoService
+       * REMOVE as tags de hreflang em vez de inventar um par — que é exatamente o
+       * comportamento pelo qual aquele arquivo foi escrito.
+       */
+      {
+        path: 'abrir',
+        title: 'Abrir arquivo — Nada Sai',
+        loadComponent: () =>
+          import('./features/open-with/open-with.component').then((m) => m.OpenWithComponent),
+        data: {
+          metaDescription: 'Escolha o que fazer com um arquivo aberto pelo sistema ou compartilhado com o Nada Sai. Tudo continua no seu dispositivo.',
+        }
       }
     ]
   },
@@ -708,6 +727,16 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Answers to all your questions about security, privacy, PDF editing, and background removal 100% offline with Nada Sai.',
           metaKeywords: 'faq nada sai, questions offline pdf, privacy image editing'
+        }
+      },
+      /** O par em inglês de `pt/abrir`; ver o comentário lá. */
+      {
+        path: 'open',
+        title: 'Open a file — Nada Sai',
+        loadComponent: () =>
+          import('./features/open-with/open-with.component').then((m) => m.OpenWithComponent),
+        data: {
+          metaDescription: 'Choose what to do with a file opened by your system or shared into Nada Sai. Everything stays on your device.',
         }
       }
     ]

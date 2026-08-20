@@ -1119,3 +1119,114 @@ export function nextToolsFor(
   return limit === undefined ? ordered : ordered.slice(0, limit);
 }
 
+
+/**
+ * As três ou quatro ferramentas que ficam no CORPO da página, sob "relacionadas".
+ *
+ * Existe por um buraco que a auditoria mediu: uma página de ferramenta tinha 13
+ * links internos e todos eram o rail (o próprio módulo) ou o rodapé — nenhum
+ * link saía do módulo, e nenhum link nascia do texto. Para quem lê, isso é uma
+ * página sem saída óbvia; para um crawler, é um site em que a autoridade não
+ * circula entre os módulos.
+ *
+ * A afinidade não é uma lista nova: sai de `accepts`/`produces`, as mesmas duas
+ * declarações que já desenham a cadeia. Três fontes, nesta ordem de qualidade:
+ *
+ *   1. PARA ONDE o resultado pode ir (`nextToolsFor`) — a relação mais forte que
+ *      existe, porque é a que o produto de fato executa com o arquivo na mão.
+ *   2. DE ONDE ele pode ter vindo: quem produz o que esta ferramenta aceita.
+ *      É o que liga `cortar` a `pdf-para-imagem`, uma relação real que a cadeia
+ *      só enxerga na direção contrária.
+ *   3. Vizinhas de módulo, que só entram para as ferramentas sem cadeia nenhuma
+ *      (o gerador de senha não aceita nem produz arquivo).
+ *
+ * A última vaga é RESERVADA para uma ferramenta de outro módulo, quando existe
+ * uma. Sem essa regra o item 1 preenche as quatro vagas com o próprio módulo —
+ * `nextToolsFor` ordena assim de propósito — e a seção repetiria exatamente os
+ * links que o rail já dá, que é o problema que ela veio resolver.
+ */
+export function relatedTools(id: ToolId, limit = 4): readonly ToolDef[] {
+  const from = toolById(id);
+
+  const downstream = nextToolsFor(from.produces, id);
+
+  // `any` aceita tudo, e "tudo" não é afinidade nenhuma: criptografar-arquivo
+  // listaria as 35 outras ferramentas em ordem de declaração.
+  const upstream = from.accepts.includes('any')
+    ? []
+    : TOOLS.filter(
+        (t) => t.id !== id && t.produces !== null && from.accepts.includes(t.produces),
+      );
+
+  const siblings = toolsOfModule(from.category).filter((t) => t.id !== id);
+
+  // A MESMA restrição do `nextToolsFor`, e pelo mesmo motivo: clicar num card
+  // daqui navega, e navegar COMMITA o resultado pendente na sessão. Sem esta
+  // linha a página do remove-exif recomendaria um editor raster, que decodifica
+  // e reencoda — desfazendo em silêncio o strip byte a byte que a pessoa veio
+  // fazer. A seção é conteúdo, mas o clique dela é a cadeia.
+  const allow = id === 'remove-exif' ? LOSSLESS_SINKS : null;
+
+  const pool: ToolDef[] = [];
+  for (const t of [...downstream, ...upstream, ...siblings]) {
+    if (allow && !allow.includes(t.id)) continue;
+    if (!pool.some((x) => x.id === t.id)) pool.push(t);
+  }
+
+  const cross = pool.filter((t) => t.category !== from.category);
+
+  /**
+   * Dentro do módulo, a ordem é a DISTÂNCIA no próprio módulo, e não a ordem de
+   * declaração. As duas são a mesma lista, mas lidas de jeitos diferentes: a de
+   * declaração é a ordem do rail, então ela já agrupa por afinidade (cortar,
+   * comprimir, redimensionar, converter ficam juntos porque foi assim que
+   * alguém escolheu apresentá-los). Ler pela distância transforma essa curadoria
+   * que já existe em vizinhança — `redimensionar` passa a sugerir `comprimir` e
+   * `converter` em vez de `remover fundo` e `melhorar qualidade`, que só vinham
+   * na frente por estarem declarados primeiro.
+   *
+   * `nextToolsFor` continua com a ordem dele: lá a lista é o que fazer com o
+   * arquivo que está na mão, e a resposta certa é a mais usada primeiro.
+   */
+  const order = toolsOfModule(from.category);
+  const distance = (t: ToolDef): number =>
+    Math.abs(order.findIndex((x) => x.id === t.id) - order.findIndex((x) => x.id === from.id));
+  const own = pool
+    .filter((t) => t.category === from.category)
+    .sort((a, b) => distance(a) - distance(b));
+
+  // DUAS vagas para fora do módulo, e o número saiu de uma medição. Com uma só,
+  // `/pt/imagem/cortar` passou de 13 para 14 links internos únicos: as outras
+  // três vagas caíram em ferramentas que o rail já linkava, então a seção
+  // inteira acrescentava um link. Com duas, acrescenta dois — e o leitor
+  // continua vendo duas vizinhas óbvias do próprio módulo antes delas.
+  const CROSS_SLOTS = 2;
+
+  /**
+   * As vagas de fora do módulo GIRAM com a posição da ferramenta no módulo.
+   *
+   * Sem isso, as nove páginas de imagem apontavam para as MESMAS duas privadas,
+   * porque a lista de candidatos é idêntica para todas elas (qualquer tool que
+   * aceite imagem serve) e o corte pegava sempre as duas primeiras. Nove páginas
+   * mandando todo mundo para os mesmos dois destinos é pior distribuição do que
+   * nove páginas cobrindo o módulo inteiro — e a escolha entre candidatos
+   * igualmente válidos não tem outro critério a respeitar.
+   *
+   * Gira pelo ÍNDICE, não por sorteio: o valor precisa ser o mesmo no prerender
+   * e na hidratação, ou o Angular descarta a subárvore e re-renderiza.
+   */
+  const spin = Math.max(order.findIndex((x) => x.id === from.id), 0);
+  const crossPicked = cross.length
+    ? Array.from({ length: Math.min(CROSS_SLOTS, cross.length) }, (_, k) => cross[(spin + k) % cross.length])
+    : [];
+  const picked = [...own.slice(0, Math.max(limit - crossPicked.length, 0)), ...crossPicked];
+
+  // Completa com o que sobrou quando o próprio módulo não tinha vagas para dar
+  // (privacidade tem 10 ferramentas, vídeo tem 2).
+  for (const t of pool) {
+    if (picked.length >= limit) break;
+    if (!picked.some((x) => x.id === t.id)) picked.push(t);
+  }
+
+  return picked.slice(0, limit);
+}

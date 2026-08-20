@@ -43,6 +43,16 @@
            o navegador rola até a âncora e deixa o foco onde estava, então o
            próximo Tab volta para a navegação que a pessoa acabou de pular. -->
       <main id="main" tabindex="-1" class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+        <!-- O que escapou de todo try/catch de ferramenta. Fica AQUI, e não
+             dentro da ferramenta, porque a exceção pode vir de onde não há
+             ferramenta nenhuma — um effect da casca, uma promise rejeitada, uma
+             biblioteca de terceiro. Ver core/errors/global-error-handler.ts. -->
+        @if (globalError.message(); as message) {
+          <div class="mb-5">
+            <app-alert [message]="message" dismissible (dismiss)="globalError.dismiss()" />
+          </div>
+        }
+
         <router-outlet />
       </main>
 

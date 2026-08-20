@@ -11,7 +11,7 @@
  *
  *   node e2e/preview-server.mjs [port]
  */
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -41,6 +41,45 @@ if (!existsSync(ROOT)) {
   console.error(`No build at ${ROOT}. Run: npm run build`);
   process.exit(1);
 }
+
+/**
+ * Os headers globais saem do `public/_headers` DE VERDADE, e não de uma cópia.
+ *
+ * O arquivo que o Cloudflare Pages lê é o mesmo que este servidor aplica, então
+ * a suíte testa a configuração de produção em vez de testar um servidor de teste
+ * que por acaso concorda com ela. Foi escrito quando a CSP entrou: uma CSP
+ * apertada demais quebra a ferramenta em silêncio, e uma CSP que só existe no
+ * arquivo de deploy não é exercitada por teste nenhum.
+ *
+ * Só o bloco `/*` interessa aqui — as outras faixas são regras de cache por
+ * caminho, que nada nesta suíte observa.
+ */
+function globalHeaders() {
+  const file = resolve('public/_headers');
+  if (!existsSync(file)) return {};
+
+  const out = {};
+  let inGlobal = false;
+
+  for (const raw of readFileSync(file, 'utf8').split('\n')) {
+    const line = raw.replace(/\r$/, '');
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+
+    // Uma linha sem indentação abre uma faixa nova; indentada, é um header dela.
+    if (!/^\s/.test(line)) {
+      inGlobal = line.trim() === '/*';
+      continue;
+    }
+
+    if (!inGlobal) continue;
+    const at = line.indexOf(':');
+    if (at > 0) out[line.slice(0, at).trim()] = line.slice(at + 1).trim();
+  }
+
+  return out;
+}
+
+const GLOBAL_HEADERS = globalHeaders();
 
 createServer((req, res) => {
   const path = decodeURIComponent(new URL(req.url ?? '/', 'http://localhost').pathname);
@@ -95,12 +134,10 @@ createServer((req, res) => {
     'Cache-Control': 'no-cache',
     // Required for ngsw-worker.js to control the whole scope.
     'Service-Worker-Allowed': '/',
-    // Cross-origin isolation, so onnxruntime can use SharedArrayBuffer and spread
-    // inference across CPU cores. A real production host must send these too, or
-    // background removal falls back to a single (much slower) thread. Safe here
-    // because the app loads only same-origin assets — the privacy thesis pays off.
-    'Cross-Origin-Opener-Policy': 'same-origin',
-    'Cross-Origin-Embedder-Policy': 'require-corp',
+    // Cross-origin isolation (COOP/COEP), a CSP e o resto vêm do `_headers` de
+    // produção. Ficavam escritos aqui à mão, e a cópia só concordava com o
+    // original enquanto ninguém mexesse em nenhum dos dois.
+    ...GLOBAL_HEADERS,
   });
 
   createReadStream(file).pipe(res);

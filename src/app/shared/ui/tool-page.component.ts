@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, booleanAttribute, computed, inject } from '@angular/core';
 import { input } from '@angular/core';
 import { FaqComponent } from './faq.component';
+import { RelatedToolsComponent } from './related-tools.component';
+import { ToolArticleComponent } from './tool-article.component';
 import { WorkspaceService } from '../../core/services/workspace.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToolId, toolById } from '../../core/tools/tools';
@@ -25,7 +27,7 @@ import { IconComponent } from './icon/icon.component';
   selector: 'app-tool-page',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [IconComponent, FaqComponent],
+  imports: [IconComponent, FaqComponent, ToolArticleComponent, RelatedToolsComponent],
   template: `
     <section class="mx-auto w-full max-w-[1240px]">
       <header class="mb-5 flex items-start gap-3">
@@ -66,10 +68,23 @@ import { IconComponent } from './icon/icon.component';
            width either way.
 
            Placed here rather than in 31 templates — the component already knows
-           its toolId, so every tool gains the section (and its FAQ markup) from
-           this one line. -->
+           its toolId, so every tool gains the sections (and its FAQ markup) from
+           these three lines.
+
+           A ORDEM É LEITURA, não SEO: o texto longo explica a ferramenta que a
+           pessoa acabou de usar, o FAQ responde o que sobrou, e as relacionadas
+           são a saída. Juntas elas dão à página a hierarquia que ela não tinha —
+           h1 no cabeçalho, h2 por seção do texto, h3 nas perguntas. Medido no
+           build: /pt/imagem/cortar saiu de 223 para 891 palavras visíveis, de um
+           h2 para seis, e de zero h3 para três.
+
+           O texto longo cobre as ferramentas de maior volume de busca primeiro e
+           NÃO renderiza nada onde ainda não existe — 36 páginas de texto ruim de
+           uma vez seria pior do que oito boas. -->
       @if (showFaq()) {
+        <app-tool-article [toolId]="toolId()" />
         <app-faq [toolId]="toolId()" />
+        <app-related-tools [toolId]="toolId()" />
       }
     </section>
   `,

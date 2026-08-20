@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectDownload, openApp, pickFromHome, primary, upload } from './helpers';
+import { PREVIEW_URL } from './ports';
 
 /**
  * The pitch, as a test: pull the plug and keep working.
@@ -15,7 +16,7 @@ import { expectDownload, openApp, pickFromHome, primary, upload } from './helper
  * server emits no service worker, so under `ng serve` these tests would be
  * asserting against the absence of the thing they exist to prove.
  */
-test.use({ baseURL: 'http://localhost:4300' });
+test.use({ baseURL: PREVIEW_URL });
 
 /**
  * The worker registers with registerWhenStable, then prefetches every asset

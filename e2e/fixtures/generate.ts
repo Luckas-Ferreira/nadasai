@@ -25,6 +25,14 @@ export const NOT_AN_IMAGE = join(DIR, 'notes.txt');
 /** Two text PDFs, two pages each — the merge spec needs distinguishable sources. */
 export const DOC_A = join(DIR, 'doc-a.pdf');
 export const DOC_B = join(DIR, 'doc-b.pdf');
+/**
+ * Seis páginas numeradas, para as ferramentas cujo comportamento só aparece com
+ * mais de duas: dividir em blocos de tamanho fixo, reordenar e apagar página no
+ * organizar, e a exportação em zip do PDF para imagens. Com um documento de duas
+ * páginas, "dividir a cada 2" e "dividir tudo" produzem o mesmo arquivo, e o
+ * teste passaria sem distinguir os dois modos.
+ */
+export const DOC_LONG = join(DIR, 'doc-long.pdf');
 /** Same reason as PHOTO_META: clean-pdf-metadata needs a document that has some. */
 export const DOC_META = join(DIR, 'doc-meta.pdf');
 /** One page of full-bleed photographic raster: the case compression actually helps. */
@@ -349,6 +357,17 @@ export default function globalSetup(): void {
       { width: 420, height: 595, text: 'Documento B - pagina 1' },
       { width: 420, height: 595, text: 'Documento B - pagina 2' },
     ]),
+  );
+
+  writeFileSync(
+    DOC_LONG,
+    makePdf(
+      Array.from({ length: 6 }, (_, i) => ({
+        width: 420,
+        height: 595,
+        text: `Pagina ${i + 1} de 6`,
+      })),
+    ),
   );
 
   writeFileSync(

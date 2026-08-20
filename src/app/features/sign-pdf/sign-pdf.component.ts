@@ -107,10 +107,17 @@ export class SignPdfComponent {
   protected isDrawing = false;
   private sigCounter = 0;
 
+  /**
+   * Os rótulos saem do dicionário, e é aí que eles sempre deveriam ter estado:
+   * as três chaves (`signpdf.tab_draw`, `tab_upload`, `tab_type`) existem nos
+   * dois idiomas desde que a ferramenta foi escrita, e o componente as ignorava
+   * — então na página em inglês as abas apareciam em português. É o `computed`
+   * que faz a troca de idioma alcançá-las sem recriar o componente.
+   */
   protected readonly tabOptions = computed<SegmentOption<SignTab>[]>(() => [
-    { value: 'draw', label: 'Desenhar' },
-    { value: 'upload', label: 'Carregar' },
-    { value: 'type', label: 'Digitar' },
+    { value: 'draw', label: this.i18n.t()['signpdf.tab_draw'] },
+    { value: 'upload', label: this.i18n.t()['signpdf.tab_upload'] },
+    { value: 'type', label: this.i18n.t()['signpdf.tab_type'] },
   ]);
 
   protected readonly originalSize = computed(() => {

@@ -1,8 +1,8 @@
-// Mesmo polyfill do main.ts, e pela mesma razão: o zone.js troca o Promise
-// global por um que não carrega Promise.try. Aqui ele importa menos (nada
-// rasteriza PDF durante a geração estática), mas o bootstrap é o mesmo app, e
-// deixar os dois pontos de entrada diferentes é como se descobre tarde que um
-// deles não passa pelo mesmo caminho.
+// Mesmo polyfill do main.ts, e pela mesma razão de sempre: manter os dois
+// pontos de entrada idênticos é como se evita descobrir tarde que um deles não
+// passa pelo mesmo caminho. Aqui ele importa menos — nada rasteriza PDF durante
+// a geração estática — e desde a saída do zone.js ele é no-op em Node moderno,
+// que já traz Promise.try.
 import './app/core/pdf/promise-try';
 
 import { type BootstrapContext, bootstrapApplication } from '@angular/platform-browser';

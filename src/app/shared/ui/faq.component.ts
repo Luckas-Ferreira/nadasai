@@ -61,8 +61,26 @@ import { IconComponent } from './icon/icon.component';
             <details
               class="group rounded-xl border border-line-strong bg-surface p-5 shadow-sm transition-all duration-200 hover:border-accent [&[open]]:border-accent [&[open]]:border-l-4 [&[open]]:border-l-accent [&[open]]:bg-raised/60"
             >
+              <!--
+                A pergunta é CABEÇALHO, não um span.
+
+                Medido nas 74 páginas geradas: uma página de ferramenta tinha
+                h1 (o nome da ferramenta), um h2 (o título desta seção) e mais
+                nada abaixo — as perguntas, que são justamente o texto que casa
+                com busca em forma de pergunta, não existiam na estrutura do
+                documento. Um nível abaixo do cabeçalho da seção: h3 dentro de
+                uma ferramenta, h2 na rota /faq, onde o cabeçalho acima é h1.
+
+                O elemento summary aceita conteúdo de cabeçalho pelo HTML
+                Standard, e o heading tem que ficar DENTRO dele: fora, o clique
+                que abre o details deixaria de alcançar o texto da pergunta.
+              -->
               <summary class="flex cursor-pointer select-none list-none items-center justify-between text-text [&::-webkit-details-marker]:hidden">
-                <span class="pr-4 text-base font-semibold leading-snug text-text">{{ item.q }}</span>
+                @if (isPage) {
+                  <h2 class="pr-4 text-base font-semibold leading-snug text-text">{{ item.q }}</h2>
+                } @else {
+                  <h3 class="pr-4 text-base font-semibold leading-snug text-text">{{ item.q }}</h3>
+                }
                 <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-raised text-accent transition-transform duration-200 group-open:rotate-180 group-open:bg-accent-soft">
                   <app-icon name="chevronDown" [size]="18" />
                 </span>

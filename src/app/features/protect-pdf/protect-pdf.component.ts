@@ -197,7 +197,18 @@ export class ProtectPdfComponent {
     const pwd = this.password().trim();
     const confirm = this.confirmPassword().trim();
 
-    if (!pwd || pwd !== confirm) {
+    // Sem senha, ou com as duas divergindo, o botão não faz NADA — e não fazer
+    // nada é indistinguível de estar quebrado. As duas frases já existiam nos
+    // dois dicionários desde que a ferramenta foi escrita; o que faltava era
+    // alguém dizê-las. Achado escrevendo o e2e: o teste esperava um botão
+    // desabilitado, encontrou um botão ativo que engolia o clique.
+    if (!pwd) {
+      this.errorKey.set('protpdf.error_empty');
+      return;
+    }
+
+    if (pwd !== confirm) {
+      this.errorKey.set('protpdf.error_mismatch');
       return;
     }
 

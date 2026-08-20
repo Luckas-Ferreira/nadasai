@@ -7,6 +7,7 @@ export const PHOTO_META = join(__dirname, 'fixtures', 'assets', 'photo-meta.png'
 export const NOT_AN_IMAGE = join(__dirname, 'fixtures', 'assets', 'notes.txt');
 
 export const DOC_A = join(__dirname, 'fixtures', 'assets', 'doc-a.pdf');
+export const DOC_LONG = join(__dirname, 'fixtures', 'assets', 'doc-long.pdf');
 export const DOC_B = join(__dirname, 'fixtures', 'assets', 'doc-b.pdf');
 export const DOC_META = join(__dirname, 'fixtures', 'assets', 'doc-meta.pdf');
 export const SCAN = join(__dirname, 'fixtures', 'assets', 'scan.pdf');
@@ -77,6 +78,43 @@ export async function uploadJpeg(page: Page, name = 'photo.jpg'): Promise<void> 
 }
 
 /**
+ * Uma imagem com TEXTO DE VERDADE, para o OCR ter o que ler.
+ *
+ * As fixtures do repositório são ruído determinístico — ótimo para provar que a
+ * compressão comprime, inútil para provar que o reconhecimento reconhece: o
+ * Tesseract devolveria a string vazia e o teste passaria sem ter exercido nada.
+ * Desenhada na página em vez de commitada, pelo mesmo motivo que `uploadJpeg`
+ * existe: nada de binário no repositório, e o navegador sob teste já tem um
+ * rasterizador de fonte.
+ *
+ * Preto sobre branco, corpo grande e uma fonte comum: o objetivo é medir a
+ * ferramenta, não a tolerância do Tesseract a scan ruim.
+ */
+export async function uploadTextImage(page: Page, text = 'NADA SAI', name = 'documento.png'): Promise<void> {
+  const bytes = await page.evaluate(async (phrase) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 900;
+    canvas.height = 300;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000000';
+    ctx.font = '120px Arial, sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(phrase, 40, canvas.height / 2);
+
+    const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/png'));
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  }, text);
+
+  await page
+    .locator('input[type=file]')
+    .first()
+    .setInputFiles({ name, mimeType: 'image/png', buffer: Buffer.from(bytes) });
+}
+
+/**
  * Pick the next tool from the home grid — how the chain continues.
  *
  * `continueEdit()` routes to the home, and the home belongs to no module, so it
@@ -107,9 +145,13 @@ export async function expectDownload(
 ): Promise<string> {
   const root = within ? page.locator(within) : page;
 
+  // `exact`, e não por substring: "Baixar áudio convertido" e "Baixar Imagem
+  // Censurada" também contêm "Baixar", então a consulta solta acha dois botões
+  // em qualquer ferramenta cujo primário ainda esteja na tela — e falha por
+  // ambiguidade de seletor, que é a falha que não diz nada sobre o produto.
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    root.getByRole('button', { name: 'Baixar' }).click(),
+    root.getByRole('button', { name: 'Baixar', exact: true }).click(),
   ]);
 
   const name = download.suggestedFilename();
