@@ -165,15 +165,20 @@ const EN = {
   'faq.about': 'Questions about',
   'faq.subtitle': 'Everything you need to know about 100% local, browser-based file processing.',
   'faq.q1': 'How does Nada Sai edit PDFs and remove backgrounds without server uploads?',
-  'faq.a1': 'Nada Sai leverages modern browser APIs, WebAssembly, Web Workers, and local WebGPU/TensorFlow models. All processing for your images and PDF documents executes directly inside your device memory and CPU — zero bytes of your content are ever sent over the internet.',
+  'faq.a1':
+    'Nada Sai executes all file processing directly client-side using advanced modern web standards: high-performance WebAssembly (Wasm), multi-threaded Web Workers to keep the UI smooth and responsive, Web Audio API for lossless signal processing, and local neural network models (ONNX Runtime and WebGPU) for AI background removal. When you open a PDF document, photo, or audio recording, the file resides strictly in your local browser tab’s memory. Zero bytes of your content are ever transmitted across the network or stored in external clouds, eliminating data interception and server leaks entirely.',
   'faq.q2': 'Is it safe to process confidential business documents or personal photos?',
-  'faq.a2': 'Yes, 100% secure. Because no file data is ever transmitted across the network to external servers, your sensitive files never leave your device. You can even disconnect your Wi-Fi and continue editing offline.',
+  'faq.a2':
+    'Yes, 100% secure and fully compliant with strict privacy frameworks including GDPR, LGPD, and HIPAA data standards. Traditional online converters upload your sensitive contracts, tax records, financial sheets, medical reports, and personal images to remote servers where they may linger indefinitely in server logs. In Nada Sai, everything is processed inside your local hardware. You can verify this yourself at any time: load any tool, turn off your Wi-Fi or enable airplane mode, and continue editing, converting, and exporting your files completely offline without any internet connection.',
   'faq.q3': 'Are all image and PDF tools free to use?',
-  'faq.a3': 'Yes! All PDF editing tools (merge, split, compress, sign, watermark, edit text) and image tools (background removal, crop, convert, resize) are completely free with no daily caps or mandatory accounts.',
+  'faq.a3':
+    'Yes! All 36 privacy, PDF, image, audio, and video tools in Nada Sai are completely free with zero restrictions. There are no mandatory user accounts, paywalls, email capture forms, or subscription tiers. We never impose artificial daily quotas or slap unwanted promotional watermarks onto your exported documents and media. Because processing leverages your device’s own CPU and GPU rather than costly remote cloud servers, we can offer an unrestricted, privacy-first productivity suite to everyone permanently.',
   'faq.q4': 'How do I merge or compress PDFs without losing quality?',
-  'faq.a4': 'Our native vector PDF engine merges pages while retaining exact original fonts, vector curves, and raster layers, optimizing file size without blurring text.',
+  'faq.a4':
+    'Our native client-side PDF engine (built on pdf-lib and pdfjs) operates directly on the raw PDF object tree and vector syntax. When merging, splitting, or reordering pages, original embedded typography, vector line art, interactive forms, and image streams are copied verbatim without destructive rasterization. When compressing, we offer selectable optimization tiers — from lossless stream deflating that reorganizes internal tables to smart image resampling for heavy scanned document archives.',
   'faq.q5': 'Can I use Nada Sai offline without an internet connection?',
-  'faq.a5': 'Yes! Once loaded in your browser, the application assets and local AI models are cached locally. You can turn off your internet connection and keep using all tools.',
+  'faq.a5':
+    'Yes! Nada Sai is engineered as a modern Progressive Web Application (PWA) backed by intelligent Service Workers. After your initial visit, all core application assets, fonts, stylesheets, and local AI neural models are securely cached in your browser. You can install Nada Sai to your desktop or mobile device and continue using all tools seamlessly in airplane mode, remote locations, or air-gapped corporate environments without any internet connectivity.',
 
   'common.drag': 'Drop an image here',
   'common.or': 'or',
@@ -1167,15 +1172,20 @@ const PT: Record<TranslationKey, string> = {
   'faq.about': 'Perguntas sobre',
   'faq.subtitle': 'Tudo o que você precisa saber sobre o processamento de arquivos 100% local no seu navegador.',
   'faq.q1': 'Como o Nada Sai edita PDFs e remove fundo sem enviar arquivos para servidores?',
-  'faq.a1': 'O Nada Sai utiliza recursos modernos do navegador, como WebAssembly, Web Workers e modelos locais de IA (WebGPU/TensorFlow). Todo o processamento dos seus documentos e imagens roda diretamente na memória e no processador do seu próprio dispositivo — nenhum byte é enviado para a internet.',
+  'faq.a1':
+    'O Nada Sai executa todas as operações diretamente no cliente utilizando as APIs web mais avançadas: WebAssembly (Wasm) compilado para alto desempenho, Web Workers em threads paralelas para manter a interface ágil e fluida, Web Audio API para manipulação acústica sem perdas e redes neurais locais (ONNX Runtime e WebGPU) para segmentação inteligente de imagens. Quando você abre um PDF, foto ou gravação de áudio, o arquivo é manipulado estritamente na memória RAM da aba do seu navegador. Zero bytes de dados são transmitidos para servidores externos ou nuvem, eliminando totalmente qualquer risco de interceptação de dados ou vazamento na rede.',
   'faq.q2': 'É seguro editar documentos confidenciais ou fotos pessoais no Nada Sai?',
-  'faq.a2': 'Sim, 100% seguro. Como nenhum dado de arquivo é transmitido para servidores externos, seus arquivos sigilosos nunca saem do seu dispositivo. Você pode inclusive usar as ferramentas com o Wi-Fi desligado.',
+  'faq.a2':
+    'Sim, 100% seguro e em total conformidade com regulamentações rigorosas de proteção de dados, como LGPD, GDPR e normas de confidencialidade corporativa. Ferramentas online convencionais enviam seus contratos, faturas fiscais, relatórios médicos, folhas de pagamento e fotos para servidores remotos de terceiros, onde permanecem salvos em logs e discos temporários. No Nada Sai, o processamento nunca sai do seu computador ou celular. Para comprovar na prática, você pode carregar a aplicação, desligar seu Wi-Fi ou ativar o modo avião e continuar editando, comprimindo e exportando seus arquivos normalmente sem nenhuma conexão.',
   'faq.q3': 'As ferramentas do Nada Sai são totalmente gratuitas?',
-  'faq.a3': 'Sim! Todas as ferramentas de edição de PDF (juntar, dividir, comprimir, assinar, marca d\'água, editar texto) e ferramentas de imagem (remover fundo, cortar, converter) são gratuitas, sem limite diário e sem cadastro.',
+  'faq.a3':
+    'Sim! Todas as 36 ferramentas de privacidade, PDF, imagem, áudio e vídeo do Nada Sai são 100% gratuitas e de acesso irrestrito. Não exigimos cadastro, criação de conta, e-mail, cartão de crédito nem assinatura mensal. Além disso, não impomos limites artificiais como "apenas 2 arquivos por dia" ou marcas d’água promocionais forçadas em seus documentos exportados. Como a infraestrutura de processamento utiliza o poder computacional do seu próprio dispositivo e não depende de clusters de servidores caros na nuvem, podemos oferecer uma plataforma completa, ilimitada e focada em privacidade para todos.',
   'faq.q4': 'Como juntar ou comprimir PDFs mantendo a qualidade original?',
-  'faq.a4': 'Nosso motor vetorial nativo combina as páginas preservando fontes originais, curvas e imagens, otimizando o tamanho do arquivo sem embaçar os textos.',
+  'faq.a4':
+    'Nossos motores nativos de manipulação de PDF (baseados em pdf-lib e pdfjs) operam diretamente sobre a árvore de objetos e comandos vetoriais do padrão PDF. Ao mesclar, dividir ou reorganizar páginas, todas as fontes embutidas, curvas vetoriais, formulários interativos e camadas de imagens originais são transferidos integralmente sem qualquer recompressão destrutiva. Na compressão, você conta com diferentes níveis ajustáveis — desde otimização sem perdas que reorganiza os fluxos internos de dados até reamostragem equilibrada para documentos escaneados volumosos.',
   'faq.q5': 'Posso usar o Nada Sai offline sem conexão com a internet?',
-  'faq.a5': 'Sim! Após carregar a página pela primeira vez, a aplicação e os modelos locais de IA ficam salvos no seu navegador. Você pode desligar a internet e continuar utilizando todas as ferramentas normalmente.',
+  'faq.a5':
+    'Sim! O Nada Sai é construído como uma Progressive Web Application (PWA) de última geração equipada com Service Workers inteligentes. Após o primeiro acesso no navegador, todos os scripts, fontes, estilos e modelos de inteligência artificial ficam salvos no cache local do seu dispositivo. Você pode abrir o site, instalar como aplicativo no computador ou celular e trabalhar em viagens de avião, locais remotos ou redes corporativas isoladas sem depender de conexão com a internet.',
 
   'common.drag': 'Solte uma imagem aqui',
   'common.or': 'ou',

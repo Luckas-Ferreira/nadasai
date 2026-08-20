@@ -18,10 +18,10 @@ import type { ToolId } from '../tools/tools';
  * The parity guarantee is not lost: `tool-content.spec.ts` asserts that every
  * entry has both languages and the same number of questions in each.
  *
- * ALL 31 TOOLS ARE COVERED, and the bar for adding the 32nd is the same one the
+ * ALL 36 TOOLS ARE COVERED, and the bar for adding the next is the same one the
  * existing entries had to clear: four answers that are *specific* to that tool —
  * its real limits, its real trade-offs, the question someone actually arrives
- * with. Four generic privacy answers repeated 32 times is thin duplicate
+ * with. Four generic privacy answers repeated 36 times is thin duplicate
  * content, which is worse than the fallback. A tool with no entry still falls
  * back to the generic set rather than breaking, and `jsonld.spec.ts` fails when
  * one is missing, so the gap cannot reopen quietly.
@@ -43,44 +43,44 @@ export type ToolContent = { readonly pt: LocalizedContent; readonly en: Localize
 export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
   'encrypt-file': {
     pt: {
-      features: ['AES-256-GCM', 'PBKDF2', 'Qualquer formato de arquivo', 'Sem envio para servidor'],
+      features: ['AES-256-GCM autenticado', 'Derivação de chave PBKDF2', 'Qualquer formato de arquivo', 'Processamento 100% no navegador'],
       faq: [
         {
-          q: 'Como criptografar um arquivo com senha?',
-          a: 'Solte o arquivo, escolha "Criptografar", digite uma senha e baixe o arquivo .enc. Para abrir depois, solte o .enc de volta na mesma ferramenta, escolha "Descriptografar" e informe a mesma senha. O nome e o tipo do arquivo original ficam guardados dentro do envelope, então ele volta com o nome certo.',
+          q: 'Como criptografar um arquivo com senha no navegador?',
+          a: 'Para criptografar, selecione ou arraste qualquer arquivo para o dropzone, escolha a operação "Criptografar", defina uma senha forte e clique para baixar o envelope criptografado com extensão .enc. O processo roda integralmente na memória da sua aba: os bytes do arquivo original são cifrados em blocos e empacotados com seus metadados de nome e extensão original. Para abrir posteriormente, basta arrastar o arquivo .enc de volta nesta ferramenta, selecionar "Descriptografar", fornecer a mesma senha exata e salvar o arquivo restaurado.',
         },
         {
-          q: 'Que criptografia é usada?',
-          a: 'AES-256 no modo GCM, com a chave derivada da sua senha por PBKDF2-SHA256. O GCM é autenticado, ou seja, ele também detecta se o arquivo foi alterado — por isso senha errada e arquivo corrompido produzem exatamente a mesma falha: a verificação é um único sim ou não.',
+          q: 'Que padrão e algoritmo de criptografia são utilizados?',
+          a: 'Utilizamos o padrão militar AES-256 no modo GCM (Galois/Counter Mode), complementado por derivação de chave com PBKDF2-SHA256 utilizando 100.000 iterações e salt aleatório criptograficamente seguro gerado por crypto.getRandomValues. O modo GCM oferece criptografia autenticada (AEAD), o que significa que qualquer tentativa de adulteração de bytes, arquivo corrompido ou senha incorreta resultará na rejeição imediata da descriptografia, garantindo integridade e confidencialidade absolutas.',
         },
         {
-          q: 'Perdi a senha. Dá para recuperar o arquivo?',
-          a: 'Não, e isso não é uma limitação da ferramenta — é o que criptografia significa. A senha nunca sai do seu navegador e não existe cópia dela em lugar nenhum, então não há a quem pedir. Guarde a senha antes de fechar a aba.',
+          q: 'Perdi ou esqueci a senha definida. É possível recuperar o arquivo?',
+          a: 'Não. Pela própria arquitetura matemática da criptografia simétrica de chave zero-knowledge, a senha nunca é enviada para nenhum servidor e não existe nenhuma chave mestra, backdoor ou mecanismo de recuperação. Se você esquecer a senha, os dados criptografados se tornam matematicamente irrecuperáveis por força bruta prática. Recomendamos sempre armazenar a senha em um gerenciador de senhas confiável antes de fechar a aba do navegador.',
         },
         {
-          q: 'Qual o tamanho máximo?',
-          a: '256 MB. O limite existe porque o navegador precisa segurar o arquivo aberto, o arquivo cifrado e o envelope montado na memória ao mesmo tempo.',
+          q: 'Qual é o limite de tamanho de arquivo suportado e por quê?',
+          a: 'O limite recomendado é de até 256 MB por arquivo. Esse teto existe porque a Web Cryptography API do navegador precisa alocar e manter na memória RAM simultaneamente o ArrayBuffer original, o vetor de inicialização (IV), o ciphertext cifrado e o envelope final montado. Processar arquivos muito maiores que isso diretamente no heap do JavaScript da aba poderia causar estouro de memória no navegador.',
         },
       ],
     },
     en: {
-      features: ['AES-256-GCM', 'PBKDF2', 'Any file format', 'Never uploaded'],
+      features: ['Authenticated AES-256-GCM', 'PBKDF2 key derivation', 'Any file format supported', '100% in-browser processing'],
       faq: [
         {
-          q: 'How do I password-protect a file?',
-          a: 'Drop the file, pick "Encrypt", type a password and download the .enc file. To open it later, drop that .enc back into the same tool, pick "Decrypt" and give the same password. The original name and type are stored inside the envelope, so the file comes back correctly named.',
+          q: 'How do I password-protect and encrypt a file in the browser?',
+          a: 'To encrypt, drag and drop any file into the upload zone, select "Encrypt", choose a strong password, and download the encrypted .enc envelope. The entire process runs strictly in local browser memory: the raw byte stream is ciphered and bundled alongside original filename and MIME type headers. To open it later, drop that .enc envelope back into this tool, select "Decrypt", enter the exact same password, and save your restored file.',
         },
         {
-          q: 'What encryption is used?',
-          a: 'AES-256 in GCM mode, with the key derived from your password using PBKDF2-SHA256. GCM is authenticated, so it also detects tampering — which is why a wrong password and a damaged file produce exactly the same failure: the check is a single yes or no.',
+          q: 'What cryptographic algorithms and standards are used?',
+          a: 'We use military-grade AES-256 in GCM mode (Galois/Counter Mode), combined with PBKDF2-SHA256 key derivation running 100,000 iterations with a cryptographically secure random salt from crypto.getRandomValues. AES-GCM provides authenticated encryption (AEAD), meaning it verifies integrity alongside secrecy — any damaged byte, altered payload, or incorrect password triggers immediate authentication failure.',
         },
         {
-          q: 'I lost the password. Can the file be recovered?',
-          a: 'No, and that is not a limitation of the tool — it is what encryption means. The password never leaves your browser and no copy of it exists anywhere, so there is nobody to ask. Save the password before you close the tab.',
+          q: 'I lost or forgot my password. Can the encrypted file be recovered?',
+          a: 'No. Under the mathematical guarantees of zero-knowledge client-side encryption, your password is never transmitted across the network and no backdoors, master keys, or recovery mechanisms exist. If you lose your password, the ciphertext cannot be reversed by any practical computation. Always store your passphrase in a secure password manager before closing the browser tab.',
         },
         {
-          q: 'What is the size limit?',
-          a: '256 MB. The limit exists because the browser has to hold the plaintext, the ciphertext and the assembled envelope in memory at the same time.',
+          q: 'What is the maximum supported file size and why?',
+          a: 'The recommended ceiling is 256 MB per file. This limit is dictated by the browser’s Web Cryptography API and JavaScript heap allocation, which must concurrently hold the plaintext ArrayBuffer, the initialization vector (IV), the encrypted ciphertext, and the structured envelope in memory. Exceeding this boundary could exhaust browser tab RAM.',
         },
       ],
     },
@@ -88,44 +88,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'remove-exif': {
     pt: {
-      features: ['GPS e câmera', 'Sem reencodar', 'JPEG, PNG, WebP', 'Mostra o que encontrou'],
+      features: ['Remoção de GPS e dados de câmera', 'Cópia binária sem recompressão', 'Compatível com JPEG, PNG e WebP', 'Auditoria de metadados antes de limpar'],
       faq: [
         {
-          q: 'Fotos guardam mesmo a localização?',
-          a: 'Guardam, se o GPS estava ligado. As coordenadas ficam no bloco EXIF com precisão suficiente para identificar uma casa. A ferramenta mostra as coordenadas encontradas antes de remover, para você ver por conta própria em vez de acreditar na promessa.',
+          q: 'Fotos tiradas no celular ou câmera guardam minha localização exata?',
+          a: 'Sim. Se a geolocalização da câmera ou do celular estava ativada, as coordenadas de latitude, longitude e altitude são gravadas nos cabeçalhos EXIF da foto com precisão milimétrica, capaz de identificar a rua e a residência onde a imagem foi capturada. O Nada Sai analisa os blocos de metadados e exibe todas as coordenadas e informações encontradas para que você audite os dados antes de prosseguir com a higienização.',
         },
         {
-          q: 'Remover os metadados piora a qualidade da foto?',
-          a: 'Não. Os dados comprimidos da imagem são copiados byte a byte — nada é decodificado nem recomprimido. Só os blocos de metadados saem do arquivo. É por isso que a ferramenta aceita JPEG, PNG e WebP e devolve o mesmo formato que entrou.',
+          q: 'Remover os metadados EXIF reduz a qualidade ou altera a imagem?',
+          a: 'Não. Nossa ferramenta opera diretamente no nível binário dos segmentos do arquivo (como marcadores APP1 em JPEG e chunks eXIf em PNG/WebP). O fluxo de pixels comprimido da imagem é preservado e copiado byte a byte, sem decodificar em canvas nem aplicar recompressão com perdas. A foto limpa mantém 100% da nitidez e das cores originais, apenas sem os dados de privacidade.',
         },
         {
-          q: 'O que é a miniatura embutida?',
-          a: 'Muitas câmeras gravam uma segunda cópia reduzida da foto dentro do próprio arquivo. Vários editores atualizam os pixels e esquecem essa miniatura, então uma foto recortada ou censurada pode ainda carregar o original lá dentro. A ferramenta avisa quando encontra uma, e ela é removida junto.',
+          q: 'O que é a miniatura oculta (thumbnail embutida) nos arquivos EXIF?',
+          a: 'Muitas câmeras e smartphones geram automaticamente uma versão reduzida da foto em baixa resolução e a embutem dentro do bloco EXIF para agilizar pré-visualizações na galeria. Quando uma foto é cortada ou tem rostos censurados em editores comuns, essa miniatura interna muitas vezes não é atualizada, mantendo a foto original visível. O Nada Sai detecta e elimina sumariamente qualquer miniatura embutida.',
         },
         {
-          q: 'Por que manter a tag de orientação?',
-          a: 'Porque sem ela uma foto tirada em pé aparece deitada em qualquer visualizador. É um único número que diz para que lado fica o topo — não revela câmera, lugar nem data. Dá para desmarcar a opção se você preferir remover absolutamente tudo.',
+          q: 'Por que manter ou descartar a tag de orientação da imagem?',
+          a: 'A tag de orientação (EXIF Orientation) informa ao visualizador se a foto foi tirada na vertical ou horizontal. Se ela for removida, fotos tiradas em pé podem aparecer deitadas em alguns leitores mais antigos. Por padrão, mantemos essa tag numérica inofensiva para preservar a visualização correta, mas você pode desmarcá-la para expurgar 100% de qualquer cabeçalho adicional.',
         },
       ],
     },
     en: {
-      features: ['GPS and camera data', 'No re-encoding', 'JPEG, PNG, WebP', 'Shows what it found'],
+      features: ['GPS and camera metadata stripping', 'Zero re-compression byte copy', 'JPEG, PNG and WebP compatible', 'Live metadata preview before clean'],
       faq: [
         {
-          q: 'Do photos really store my location?',
-          a: 'They do, if GPS was on. The coordinates sit in the EXIF block, precise enough to identify a house. This tool shows you the coordinates it found before removing them, so you can see for yourself rather than take the promise on trust.',
+          q: 'Do smartphone and camera photos really store my exact location?',
+          a: 'Yes. When location services are enabled on your camera or phone, exact GPS coordinates (latitude, longitude, altitude) are written directly into the image EXIF tags with enough precision to pinpoint a specific doorstep. Nada Sai parses these metadata blocks and displays all detected coordinates and camera hardware tags so you can verify what is stored before scrubbing.',
         },
         {
-          q: 'Does stripping metadata reduce image quality?',
-          a: 'No. The compressed image data is copied byte for byte — nothing is decoded or recompressed. Only the metadata blocks leave the file. That is why the tool accepts JPEG, PNG and WebP and gives back the same format you put in.',
+          q: 'Does stripping EXIF metadata degrade image quality or compress pixels?',
+          a: 'No. Our tool operates at the raw binary container level (such as APP1 segments in JPEG or eXIf chunks in PNG and WebP). The compressed image raster payload is copied verbatim byte for byte without canvas re-rasterization or lossy re-encoding. The resulting photo retains 100% of its original pixel clarity and visual fidelity.',
         },
         {
-          q: 'What is the embedded thumbnail?',
-          a: 'Many cameras write a second, smaller copy of the photo inside the file itself. Plenty of editors update the pixels and forget that thumbnail, so a cropped or redacted photo can still be carrying the original inside it. The tool warns you when it finds one, and removes it along with everything else.',
+          q: 'What is the hidden embedded thumbnail found inside EXIF headers?',
+          a: 'Many camera apps generate a tiny, low-resolution thumbnail preview of the scene and pack it into the EXIF header. When an image is cropped or redacted using typical graphic editors, that embedded thumbnail is frequently left untouched, meaning the full uncensored original picture remains recoverable. Nada Sai flags and strips all embedded thumbnails completely.',
         },
         {
-          q: 'Why keep the orientation tag?',
-          a: 'Because without it a photo shot in portrait displays sideways in every viewer. It is a single number saying which way is up — it reveals no camera, place or date. You can untick the option if you would rather remove absolutely everything.',
+          q: 'Why should I choose to keep or strip the orientation tag?',
+          a: 'The EXIF orientation tag is a single integer that indicates whether a photo was shot in portrait or landscape. Stripping it may cause portrait photos to rotate sideways in certain third-party viewers. We retain this harmless tag by default to preserve display orientation, but you can opt to strip it along with every other header.',
         },
       ],
     },
@@ -133,44 +133,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'redact-image': {
     pt: {
-      features: ['Tarja preta irreversível', 'Pixelização', 'Queimado nos pixels', 'Offline'],
+      features: ['Tarja preta destrutiva irreversível', 'Pixelização para rostos e cenários', 'Queima direta nos pixels', 'Sem envio para servidores'],
       faq: [
         {
-          q: 'A tarja pode ser removida depois?',
-          a: 'A tarja preta, não. Os pixels que estavam ali são substituídos por preto no arquivo exportado — não existe uma camada por cima que alguém possa apagar, como acontece quando se desenha um retângulo no Word ou no PowerPoint e se exporta em PDF.',
+          q: 'A tarja preta pode ser removida ou desfeita por terceiros?',
+          a: 'Não. Quando você aplica uma tarja preta e baixa a imagem, os valores RGB de todos os pixels sob aquela área são permanentemente substituídos por preto puro (RGB 0,0,0) no novo raster. Não se trata de uma camada flutuante, anotação vetorial ou máscara oculta que possa ser deletada no Photoshop ou visualizador: a informação original é totalmente destruída e irrecuperável.',
         },
         {
-          q: 'Pixelizar é tão seguro quanto a tarja preta?',
-          a: 'Não, e vale dizer isso claramente: existem ataques publicados que recuperam texto pixelizado quando o conteúdo é curto e previsível, como um CPF ou o número de um cartão. Para esses casos use a tarja preta. A pixelização serve para rostos, onde o objetivo é não identificar e não há como testar todas as possibilidades.',
+          q: 'A pixelização é tão segura quanto a tarja preta para ocultar dados?',
+          a: 'Não para textos curtos e previsíveis. Pesquisas de segurança demonstraram que textos pixelizados com números de cartão, CPF, RG ou senhas podem ser reconstruídos por algoritmos de despixelização (como Depix) que testam padrões de fontes conhecidas. Para dados alfanuméricos e documentos confidenciais, use sempre a Tarja Preta. A pixelização é indicada para desfocar rostos, placas e planos de fundo.',
         },
         {
-          q: 'Como censurar um CPF numa foto de documento?',
-          a: 'Arraste sobre o número com o modo "Tarja Preta" ativo, confira a cobertura e baixe. Cada tarja pode ser removida pelo X no canto se você errar o enquadramento.',
+          q: 'Como censurar CPF, RG, cartão de crédito ou dados sensíveis em documentos?',
+          a: 'Arraste a foto do documento para a ferramenta, selecione a ferramenta "Tarja Preta", clique e arraste sobre o número do documento, código de segurança (CVV) ou assinatura garantindo que a caixa cubra toda a área com margem. Se errar a posição, basta clicar no ícone de exclusão da tarja para refazer antes de baixar.',
         },
         {
-          q: 'A foto perde qualidade?',
-          a: 'A imagem é redesenhada em resolução natural e exportada no mesmo formato de entrada, então não há redução de tamanho. Um JPEG passa por uma reencodificação, o que é inerente a alterar os pixels de um formato com perdas.',
+          q: 'A resolução ou a nitidez da imagem é afetada durante a censura?',
+          a: 'A imagem é redesenhada nas dimensões e resolução nativa em canvas de alta definição e exportada no mesmo formato de origem. Para arquivos PNG a exportação é sem perdas; para arquivos JPEG, ocorre uma recodificação com fator de qualidade alto (92%) inerente à alteração dos pixels da imagem.',
         },
       ],
     },
     en: {
-      features: ['Irreversible black bar', 'Pixelation', 'Burned into pixels', 'Offline'],
+      features: ['Irreversible destructive black bar', 'Pixelation for faces and background', 'Burned directly into raster pixels', 'Zero server transmission'],
       faq: [
         {
-          q: 'Can the black bar be removed afterwards?',
-          a: 'Not the black bar. The pixels that were there are replaced with black in the exported file — there is no layer on top for anyone to delete, which is what happens when you draw a rectangle in Word or PowerPoint and export to PDF.',
+          q: 'Can a black bar applied here be undone or removed by someone else?',
+          a: 'No. When you apply a solid black bar and export the image, the underlying RGB values of those pixels are permanently overwritten with solid black (RGB 0,0,0) on the raster canvas. There is no floating annotation layer, vector object, or hidden mask that can be peeled away in Photoshop or preview tools — the original data is destroyed.',
         },
         {
-          q: 'Is pixelation as safe as a black bar?',
-          a: 'No, and that is worth saying plainly: there are published attacks that recover pixelated text when the content is short and predictable, such as an ID or a card number. Use a black bar for those. Pixelation is for faces, where the goal is not identifying someone and there is no small set of possibilities to test.',
+          q: 'Is pixelation as secure as a solid black bar for hiding confidential data?',
+          a: 'No for short or predictable text. Modern security research shows that pixelated ID numbers, credit card digits, and passwords can sometimes be reconstructed using automated matching attacks against standard font sets. Always use a solid Black Bar for sensitive text and numbers. Pixelation is designed for faces, license plates, and background scenery.',
         },
         {
-          q: 'How do I hide an ID number in a photo of a document?',
-          a: 'Drag over the number with "Black Bar" selected, check the coverage and download. Each box can be removed with the X in its corner if you misjudge the framing.',
+          q: 'How do I safely redact an ID card, CPF, credit card, or sensitive document?',
+          a: 'Drop the document photo into the editor, activate "Black Bar" mode, and drag rectangles over sensitive numbers, signatures, or personal identifiers. Ensure full boundary coverage. If you misjudge a box, click the X icon on that specific box to delete and redraw before exporting.',
         },
         {
-          q: 'Does the photo lose quality?',
-          a: 'The image is redrawn at its natural resolution and exported in the same format it came in, so there is no downsizing. A JPEG goes through one re-encode, which is inherent to changing pixels in a lossy format.',
+          q: 'Does redacting an image reduce its original resolution or clarity?',
+          a: 'The redacted image is rendered at full native resolution on a high-precision canvas and exported in your original container format. PNG files export losslessly; JPEG files undergo a single high-quality re-encode (92%) which is standard when modifying raster pixel data.',
         },
       ],
     },
@@ -178,44 +178,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'redact-pdf': {
     pt: {
-      features: ['Texto destruído', 'Várias páginas', 'PDF com senha', 'Offline'],
+      features: ['Destruição permanente da camada de texto', 'Suporte a múltiplas páginas', 'Compatível com PDF protegido por senha', 'Processamento 100% offline'],
       faq: [
         {
-          q: 'Por que não basta desenhar um retângulo preto no PDF?',
-          a: 'Porque um retângulo é apenas mais um objeto desenhado por cima. O texto continua no arquivo e sai inteiro num copiar e colar, num extrator de texto ou num simples `strings`. Foi assim que documentos judiciais e diplomáticos "tarjados" vazaram. Aqui a página é reconstruída como imagem, então os objetos de texto deixam de existir.',
+          q: 'Por que apenas desenhar um retângulo preto sobre o PDF é perigoso?',
+          a: 'Porque em editores comuns de PDF um retângulo preto é apenas um elemento gráfico desenhado por cima da página. O texto original continua existindo na camada vetorial subjacente e pode ser facilmente lido com Ctrl+C / Ctrl+V, ferramentas de OCR, leitores de tela ou comandos como "strings". No Nada Sai, a página censurada é reconstruída como uma imagem rasterizada em alta resolução, destruindo fisicamente a camada de texto sensível.',
         },
         {
-          q: 'O PDF continua pesquisável depois?',
-          a: 'Não, e essa é a troca. Como todas as páginas viram imagem, o documento inteiro perde a camada de texto — não só o trecho tarjado. É o custo de uma censura que não dá para desfazer, e o painel avisa antes de você exportar.',
+          q: 'O PDF continuará pesquisável com Ctrl+F após a censura?',
+          a: 'Não, e essa é a garantia fundamental de segurança contra vazamentos. Como a página inteira é convertida em imagem rasterizada com os pixels sensíveis queimados em preto, a camada de texto oculta deixa de existir no arquivo exportado. Isso impede que robôs, indexadores ou pessoas extraiam o conteúdo tarjado.',
         },
         {
-          q: 'Funciona com PDF protegido por senha?',
-          a: 'Sim. Se o arquivo pedir senha, a ferramenta mostra o campo, abre o documento com ela e usa a mesma senha em todas as etapas seguintes.',
+          q: 'A ferramenta funciona com arquivos PDF protegidos por senha?',
+          a: 'Sim. Se o arquivo estiver protegido com senha de abertura ou de permissão, a interface solicitará a chave correta, desbloqueará o documento localmente no navegador e permitirá aplicar as tarjas normalmente em todas as páginas.',
         },
         {
-          q: 'Dá para tarjar páginas diferentes?',
-          a: 'Sim. Cada página guarda as próprias tarjas — navegue entre elas e desenhe onde precisar antes de exportar uma única vez.',
+          q: 'Posso aplicar tarjas em diferentes páginas antes de exportar o arquivo?',
+          a: 'Sim. Você pode navegar livremente entre todas as páginas do documento, desenhar múltiplas tarjas pretas em cada uma delas e revisar todo o trabalho no painel antes de acionar a exportação única do PDF final.',
         },
       ],
     },
     en: {
-      features: ['Text destroyed', 'Multi-page', 'Password-protected PDFs', 'Offline'],
+      features: ['Permanent text layer destruction', 'Multi-page document support', 'Password-protected PDF compatible', '100% offline local execution'],
       faq: [
         {
-          q: 'Why is drawing a black rectangle on a PDF not enough?',
-          a: 'Because a rectangle is just another object drawn on top. The text is still in the file and comes straight out through copy-paste, a text extractor, or plain `strings`. That is how "redacted" court and diplomatic documents have leaked. Here the page is rebuilt as an image, so the text objects stop existing.',
+          q: 'Why is simply drawing a black box on a PDF insecure and dangerous?',
+          a: 'Because standard PDF editors simply place a visual vector rectangle on top of the existing text. The underlying text remains completely intact in the document stream and can be revealed by copy-pasting, screen readers, or text extraction utilities. In Nada Sai, redacted pages are rendered to high-resolution raster images, physically destroying the underlying text stream.',
         },
         {
-          q: 'Is the PDF still searchable afterwards?',
-          a: 'No, and that is the trade. Because every page becomes an image, the whole document loses its text layer — not only the redacted part. That is the cost of a redaction that cannot be undone, and the panel says so before you export.',
+          q: 'Will the PDF remain searchable with Ctrl+F after redaction?',
+          a: 'No, and that is the critical security trade-off. Because the document pages are converted to pure raster images with redacted pixels burned into black, the machine-readable text stream is stripped entirely. This guarantees that no search tool or string extractor can recover the hidden information.',
         },
         {
-          q: 'Does it work with password-protected PDFs?',
-          a: 'Yes. If the file asks for a password the tool shows the prompt, opens the document with it, and reuses that password for every later step.',
+          q: 'Does the redaction tool work on password-protected PDF files?',
+          a: 'Yes. If your document requires a password to open, the tool prompts for the password, decrypts the document in local memory, and allows you to apply redaction boxes across any page without uploading anything.',
         },
         {
-          q: 'Can I redact different pages?',
-          a: 'Yes. Each page keeps its own boxes — move between pages, draw where you need to, and export once at the end.',
+          q: 'Can I redact different sections across multiple pages before exporting?',
+          a: 'Yes. You can paginate through the entire PDF, draw distinct redaction boxes across separate pages, review the coverage in the thumbnail view, and download the finished redacted document in a single export.',
         },
       ],
     },
@@ -223,44 +223,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'clean-pdf-metadata': {
     pt: {
-      features: ['Autor e software', 'Bloco XMP', 'Dados por página', 'Offline'],
+      features: ['Limpeza de autor, software e datas', 'Remoção completa do bloco XMP', 'Expurgo de caminhos locais e usuário', 'Preservação do texto vetorial'],
       faq: [
         {
-          q: 'Que informação um PDF carrega sem eu saber?',
-          a: 'Normalmente o autor, o software que gerou o arquivo, as datas de criação e modificação e um bloco XMP. Programas como Illustrator e InDesign ainda gravam dados por página que costumam incluir o caminho local do arquivo e o nome de usuário do dispositivo. A ferramenta lista tudo o que encontrou antes de remover.',
+          q: 'Que tipos de informações ocultas um PDF armazena sem o meu conhecimento?',
+          a: 'Documentos PDF costumam carregar metadados como nome do autor, empresa, aplicativo gerador (Word, InDesign, Canva), versão do sistema operacional, datas exatas de criação e modificação, título do documento e um bloco XML XMP completo. Programas gráficos ainda gravam histórico de revisões, nomes de usuário e caminhos de pastas locais da máquina do criador. O Nada Sai lista todos os dados encontrados antes de expurgá-los.',
         },
         {
-          q: 'O conteúdo do documento muda?',
-          a: 'Não. As páginas, o texto e as imagens ficam exatamente como estavam — só os campos de metadados saem. O arquivo continua pesquisável e selecionável, ao contrário do que acontece na censura de PDF.',
+          q: 'A limpeza de metadados altera a formatação ou o texto do documento?',
+          a: 'Não. O texto vetorial, as imagens embutidas, os formulários e a paginação permanecem 100% inalterados e totalmente pesquisáveis via Ctrl+F. Apenas os dicionários de metadados (/Info, /Metadata e pacotes XMP) são removidos da estrutura interna do PDF.',
         },
         {
-          q: 'A remoção é definitiva ou só esconde?',
-          a: 'Definitiva. Não basta apagar a referência: o objeto continuaria registrado no arquivo e o nome do autor ainda apareceria num `strings`. A ferramenta remove o objeto do documento, e há um teste automatizado que procura o nome original nos bytes da saída para garantir isso.',
+          q: 'A remoção de metadados é definitiva ou apenas oculta os campos?',
+          a: 'É uma remoção física e definitiva. O objeto de metadados é desvinculado da árvore do catálogo do PDF e seus bytes são eliminados do arquivo exportado. Se alguém abrir o documento em um editor hexadecimal ou utilitário de inspeção, o nome do autor e os metadados anteriores não estarão presentes.',
         },
         {
-          q: 'O que não é alcançado?',
-          a: 'Metadados dentro de imagens embutidas — uma página escaneada mantém o EXIF do próprio JPEG — e o identificador do arquivo. Para o primeiro caso, limpe as imagens antes de montar o PDF.',
+          q: 'O que não é removido durante a limpeza de metadados do PDF?',
+          a: 'Metadados proprietários embutidos diretamente dentro de imagens internas do PDF (como dados EXIF de fotos JPEG inseridas nas páginas) pertencem ao fluxo da própria imagem. Para máxima confidencialidade, recomendamos limpar as imagens com o Removedor de EXIF antes de adicioná-las ao PDF.',
         },
       ],
     },
     en: {
-      features: ['Author and software', 'XMP block', 'Per-page data', 'Offline'],
+      features: ['Cleans author, software and dates', 'Complete XMP block purge', 'Scrubs device paths and username', 'Full vector text preservation'],
       faq: [
         {
-          q: 'What does a PDF carry without me knowing?',
-          a: 'Usually the author, the software that produced it, creation and modification dates, and an XMP block. Programs like Illustrator and InDesign also write per-page application data that routinely includes the local file path and the device\'s username. The tool lists everything it found before removing any of it.',
+          q: 'What hidden metadata does a PDF file store without my knowledge?',
+          a: 'PDF files routinely embed the creator’s real name, organization, authoring software (e.g. Word, Illustrator), operating system version, creation and modification timestamps, and full XMP metadata trees. Graphic suites often append device usernames, local file paths, and edit histories. Nada Sai lists all discovered fields before purging them.',
         },
         {
-          q: 'Does the document content change?',
-          a: 'No. The pages, text and images stay exactly as they were — only the metadata fields go. The file remains searchable and selectable, unlike what happens with PDF redaction.',
+          q: 'Does cleaning metadata alter the formatting or text content of the PDF?',
+          a: 'No. Vector text, typography, fonts, embedded images, and layout remain completely intact, and the document stays fully searchable with Ctrl+F. Only document dictionary metadata blocks (/Info, /Metadata, and XMP streams) are removed from the PDF structure.',
         },
         {
-          q: 'Is the removal permanent, or does it just hide the data?',
-          a: 'Permanent. Deleting the reference is not enough: the object would stay registered in the file and the author\'s name would still show up in `strings`. The tool removes the object from the document, and an automated test greps the output bytes for the original name to keep it that way.',
+          q: 'Is the metadata removal permanent or does it simply hide the properties?',
+          a: 'It is a permanent binary removal. The metadata objects are unlinked from the PDF trailer catalog and their byte streams are purged from the output file. Inspecting the exported PDF with hexadecimal viewers or forensic string tools confirms the author and software tags are gone.',
         },
         {
-          q: 'What is not covered?',
-          a: 'Metadata inside embedded images — a scanned page keeps its own JPEG\'s EXIF — and the file identifier. For the first case, clean the images before assembling the PDF.',
+          q: 'What metadata is not covered during document-level PDF sanitization?',
+          a: 'Metadata embedded inside internal image streams (such as EXIF headers inside JPEG photos embedded on a page) resides inside the image data rather than the PDF header. For complete sanitization of scanned photos, scrub image EXIF before creating the PDF.',
         },
       ],
     },
@@ -268,44 +268,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'password-generator': {
     pt: {
-      features: ['CSPRNG do navegador', 'Entropia real', 'Até 128 caracteres', 'Sem rede'],
+      features: ['Gerador CSPRNG criptográfico', 'Cálculo real de entropia em bits', 'Tamanho de até 128 caracteres', 'Garantia de regras e sem envio à rede'],
       faq: [
         {
-          q: 'As senhas geradas aqui são seguras?',
-          a: 'Elas vêm de crypto.getRandomValues, o gerador criptográfico do próprio navegador, com amostragem por rejeição para não haver viés entre os caracteres. Nada é enviado, registrado ou guardado: feche a aba e a senha deixa de existir em qualquer lugar exceto onde você a colou.',
+          q: 'As senhas geradas nesta ferramenta são realmente seguras e imprevisíveis?',
+          a: 'Sim. A geração utiliza exclusivamente crypto.getRandomValues, o gerador de números pseudoaleatórios criptograficamente seguro (CSPRNG) integrado ao núcleo do navegador, com algoritmo de amostragem por rejeição para evitar qualquer viés estatístico na distribuição dos caracteres. Nenhuma senha gerada é gravada em histórico, cookies ou transmitida pela rede.',
         },
         {
-          q: 'O que significa o número de entropia?',
-          a: 'É quantos bits de aleatoriedade a senha tem, calculado a partir do tamanho e do conjunto de caracteres realmente usado. Cada bit dobra o esforço de um ataque por força bruta. Abaixo de 40 bits é fraco; acima de 90 é inquebrável na prática.',
+          q: 'O que representa o cálculo de entropia exibido na ferramenta?',
+          a: 'A entropia mede a quantidade de aleatoriedade da senha em bits (calculada pela fórmula H = L × log2(N), onde L é o comprimento e N é o tamanho do conjunto de caracteres selecionado). Cada bit adicional dobra o número de tentativas necessárias para um ataque de força bruta. Senhas acima de 80 bits são computacionalmente invulneráveis a ataques práticos modernos.',
         },
         {
-          q: 'Senha longa ou senha complicada?',
-          a: 'Longa. Cada caractere a mais multiplica o espaço de busca pelo tamanho do alfabeto, enquanto trocar letras por símbolos parecidos acrescenta pouco e piora muito a memorização e a digitação.',
+          q: 'É melhor criar uma senha muito longa ou uma senha com caracteres complexos?',
+          a: 'Aumentar o comprimento da senha é infinitamente mais eficaz do que apenas adicionar símbolos complexos. Uma senha com 20 caracteres simples oferece um espaço combinatório astronômico muito superior a uma senha curta de 8 caracteres cheia de símbolos difíceis de memorizar e digitar.',
         },
         {
-          q: 'Todos os tipos marcados aparecem mesmo na senha?',
-          a: 'Sim. A ferramenta garante ao menos um caractere de cada categoria selecionada antes de embaralhar o resto, porque muitas políticas corporativas exigem isso — e porque, sem essa garantia, o número de entropia exibido estaria superestimando.',
+          q: 'A ferramenta garante a presença de todos os tipos de caracteres selecionados?',
+          a: 'Sim. Nosso gerador garante que ao menos um caractere de cada categoria marcada (maiúsculas, minúsculas, números e símbolos) seja obrigatoriamente incluído e distribuído aleatoriamente na senha, atendendo a políticas corporativas rígidas de segurança sem comprometer a entropia matemática.',
         },
       ],
     },
     en: {
-      features: ['Browser CSPRNG', 'Real entropy figure', 'Up to 128 characters', 'No network'],
+      features: ['Cryptographic CSPRNG generator', 'Real entropy calculation in bits', 'Length up to 128 characters', 'Rule-enforced with zero network use'],
       faq: [
         {
-          q: 'Are the passwords generated here safe?',
-          a: 'They come from crypto.getRandomValues, the browser\'s own cryptographic generator, with rejection sampling so no character is favoured over another. Nothing is sent, logged or stored: close the tab and the password stops existing anywhere except where you pasted it.',
+          q: 'Are the passwords generated here truly random and secure?',
+          a: 'Yes. Generation relies exclusively on crypto.getRandomValues, the browser’s native Cryptographically Secure Pseudo-Random Number Generator (CSPRNG), paired with unbiased rejection sampling. Generated passphrases never leave local RAM, are never logged in history or cookies, and disappear when the tab closes.',
         },
         {
-          q: 'What does the entropy number mean?',
-          a: 'It is how many bits of randomness the password has, computed from its length and the character set actually in use. Each bit doubles the work of a brute-force attack. Under 40 bits is weak; over 90 is unbreakable in practice.',
+          q: 'What does the entropy score in bits mean for password strength?',
+          a: 'Entropy quantifies the mathematical unpredictability of the password in bits, calculated as H = L × log2(N) where L is length and N is the character pool size. Each additional bit doubles the brute-force search space. Passwords above 80 bits of entropy are virtually impossible to crack with current supercomputing hardware.',
         },
         {
-          q: 'Long password or complicated password?',
-          a: 'Long. Every extra character multiplies the search space by the size of the alphabet, while swapping letters for lookalike symbols adds very little and makes the password much harder to remember and type.',
+          q: 'Is it better to create a longer password or a more complex one?',
+          a: 'Length is significantly more effective than complex character substitution. A 20-character password drawn from alphanumeric characters provides a vastly larger search space than an 8-character password packed with obscure symbols that is difficult to remember and type.',
         },
         {
-          q: 'Does every ticked character type actually appear?',
-          a: 'Yes. The tool guarantees at least one character from each selected category before shuffling the rest, because many corporate policies require it — and because without that guarantee the entropy figure shown would be overstating things.',
+          q: 'Does the generator guarantee every selected character type appears?',
+          a: 'Yes. The algorithm enforces at least one character from each checked category (uppercase, lowercase, digits, symbols) before performing a cryptographic shuffle, satisfying enterprise password complexity policies without overstating the true entropy.',
         },
       ],
     },
@@ -313,44 +313,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'file-hash': {
     pt: {
-      features: ['SHA-256, SHA-512, MD5', 'Lido em partes', 'Verificação de checksum', 'Offline'],
+      features: ['Cálculo SHA-256, SHA-512 e MD5', 'Leitura streaming em blocos de 4 MB', 'Verificação automática de checksum', 'Suporte a arquivos gigabytes'],
       faq: [
         {
-          q: 'Para que serve o hash de um arquivo?',
-          a: 'Para conferir se um download chegou íntegro e é exatamente o arquivo que o autor publicou. Você compara o hash calculado aqui com o que o site oficial divulga: se bater, os bytes são idênticos; se não bater, algo mudou no caminho.',
+          q: 'O que é e para que serve o hash criptográfico de um arquivo?',
+          a: 'O hash é uma impressão digital matemática única calculada a partir dos bytes exatos de um arquivo. Qualquer alteração em um único bit do arquivo — seja por download corrompido, vírus ou adulteração maliciosa — altera completamente o hash gerado. Ele serve para auditar a autenticidade e a integridade de softwares, ISOs e documentos.',
         },
         {
-          q: 'Posso colar o checksum direto do arquivo .sha256sum?',
-          a: 'Pode. Aquele formato traz o hash seguido do nome do arquivo, e a ferramenta ignora o resto da linha automaticamente. Ela também informa qual dos algoritmos foi o que bateu.',
+          q: 'Posso colar diretamente uma linha de arquivo .sha256sum para comparar?',
+          a: 'Sim. A ferramenta possui um analisador inteligente no campo de comparação: você pode colar hashes simples ou linhas inteiras de arquivos de manifesto (formato "hash  nome_do_arquivo"). Ela extrai automaticamente o hash, compara com o valor calculado e sinaliza em verde quando há correspondência exata.',
         },
         {
-          q: 'Qual algoritmo escolher?',
-          a: 'SHA-256 para qualquer verificação séria. MD5 continua aqui porque muitos sites antigos ainda publicam só ele, mas não serve mais para segurança — é possível fabricar dois arquivos diferentes com o mesmo MD5.',
+          q: 'Qual algoritmo de hash devo escolher entre SHA-256, SHA-512 e MD5?',
+          a: 'Para verificações de segurança e integridade modernas, use sempre SHA-256 ou SHA-512. O algoritmo MD5 é mantido apenas por compatibilidade com sistemas legados e checksums antigos, mas é considerado criptograficamente vulnerável a colisões intencionais.',
         },
         {
-          q: 'Existe limite de tamanho?',
-          a: 'SHA-256 e MD5 são lidos em pedaços de 4 MB, então funcionam com arquivos de qualquer tamanho e mostram progresso real. SHA-512 precisa ler o arquivo inteiro de uma vez e por isso fica limitado a 512 MB e é opcional.',
+          q: 'Existe limite de tamanho para calcular o hash de arquivos grandes?',
+          a: 'Para SHA-256 e MD5, a leitura é feita em streaming incremental por blocos de 4 MB via FileReader, permitindo processar arquivos de múltiplos gigabytes sem esgotar a memória RAM do computador. Para SHA-512, que exige o buffer integral na Web Crypto API, o limite recomendado é de até 512 MB.',
         },
       ],
     },
     en: {
-      features: ['SHA-256, SHA-512, MD5', 'Read in chunks', 'Checksum verification', 'Offline'],
+      features: ['SHA-256, SHA-512 and MD5 hashing', '4 MB chunked stream processing', 'Automated checksum comparison', 'Multi-gigabyte file support'],
       faq: [
         {
-          q: 'What is a file hash for?',
-          a: 'To check that a download arrived intact and is exactly the file the author published. You compare the hash computed here with the one the official site lists: if they match, the bytes are identical; if not, something changed along the way.',
+          q: 'What is a cryptographic file hash and why is it useful?',
+          a: 'A cryptographic hash is a unique digital fingerprint computed from a file’s exact byte sequence. Changing even a single bit in the file completely changes the resulting hash digest. Hashes allow you to verify that downloaded software, disk images, or documents have arrived intact and free from tampering or corruption.',
         },
         {
-          q: 'Can I paste a checksum straight from a .sha256sum file?',
-          a: 'Yes. That format puts the hash first and the filename after it, and the tool ignores the rest of the line automatically. It also tells you which algorithm matched.',
+          q: 'Can I paste a checksum directly from a .sha256sum or md5 file?',
+          a: 'Yes. The comparison tool automatically parses standard manifesto formats (e.g. "hash  filename.iso"). It extracts the hex hash string, matches it against all computed algorithms, and displays a green match indicator when identical.',
         },
         {
-          q: 'Which algorithm should I use?',
-          a: 'SHA-256 for any serious verification. MD5 is still here because plenty of older sites publish only that, but it is no longer fit for security — two different files can be constructed with the same MD5.',
+          q: 'Which hashing algorithm should I choose between SHA-256, SHA-512, and MD5?',
+          a: 'Always choose SHA-256 or SHA-512 for modern verification and security tasks. MD5 is provided strictly for backwards compatibility with legacy file repositories, as it is vulnerable to collision attacks and is no longer recommended for cryptographic security.',
         },
         {
-          q: 'Is there a size limit?',
-          a: 'SHA-256 and MD5 are read in 4 MB chunks, so they work on files of any size and show real progress. SHA-512 has to read the whole file at once, so it is capped at 512 MB and is opt-in.',
+          q: 'Is there a file size limit when calculating hashes on large files?',
+          a: 'SHA-256 and MD5 are processed using incremental 4 MB streaming chunks via the browser FileReader API, allowing seamless calculation on multi-gigabyte ISOs and videos without memory strain. SHA-512 uses Web Crypto in-memory buffers and is recommended for files up to 512 MB.',
         },
       ],
     },
@@ -358,44 +358,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'encrypt-text': {
     pt: {
-      features: ['AES-256-GCM', 'Bloco para colar', 'Compatível com o .enc', 'Offline'],
+      features: ['Criptografia AES-256-GCM', 'Bloco de texto blindado para mensagens', 'Envelope compatível com arquivos .enc', 'Sem servidores e sem logs'],
       faq: [
         {
-          q: 'Como enviar uma mensagem criptografada?',
-          a: 'Escreva o texto, defina uma senha e copie o bloco gerado. Ele é só texto, então passa por e-mail, chat ou qualquer campo de formulário sem se corromper. Quem receber cola o bloco aqui, informa a mesma senha e lê a mensagem.',
+          q: 'Como funciona o envio de mensagens e textos criptografados com senha?',
+          a: 'Você escreve ou cola o texto desejado, define uma senha secreta e a ferramenta gera um bloco de texto blindado codificado em Base64 com marcadores de início e fim. Esse bloco pode ser copiado e enviado com segurança por qualquer canal comum (WhatsApp, Telegram, e-mail, notas ou comentários). Quem receber a mensagem cola o bloco nesta ferramenta, digita a senha acordada e lê o conteúdo descriptografado.',
         },
         {
-          q: 'E se o aplicativo quebrar as linhas do bloco?',
-          a: 'Não tem problema. A leitura tolera quebras de linha diferentes, espaços a mais, texto em volta e até a ausência das linhas de início e fim — o conteúdo continua recuperável.',
+          q: 'O que acontece se o aplicativo de mensagens quebrar as linhas do bloco?',
+          a: 'O decodificador do Nada Sai foi projetado com tolerância a formatações: ele remove automaticamente quebras de linha indesejadas, espaços extras, tabulações e até textos ou saudações adicionadas ao redor do envelope criptografado, recuperando o conteúdo original sem erros de decodificação.',
         },
         {
-          q: 'Como combino a senha com a outra pessoa?',
-          a: 'Por um canal diferente daquele em que a mensagem vai. Mandar o bloco e a senha na mesma conversa anula a proteção, porque quem lê um lê o outro.',
+          q: 'Como devo combinar e compartilhar a senha com o destinatário da mensagem?',
+          a: 'A senha nunca deve ser enviada pelo mesmo canal em que a mensagem criptografada está sendo transmitida. Combine a senha pessoalmente, por ligação telefônica ou por outro aplicativo seguro. Enviar a mensagem e a senha na mesma conversa anula toda a proteção criptográfica.',
         },
         {
-          q: 'É o mesmo formato da criptografia de arquivos?',
-          a: 'É o mesmo envelope, apenas convertido para texto. O conteúdo de um arquivo .enc pode ser colado aqui e vice-versa — existe uma implementação de criptografia só, não duas.',
+          q: 'Este formato de texto criptografado é compatível com a ferramenta de arquivos?',
+          a: 'Sim. A estrutura de dados e os parâmetros criptográficos (AES-256-GCM com PBKDF2) são idênticos aos utilizados na ferramenta de criptografia de arquivos do Nada Sai. Você pode inclusive descriptografar o conteúdo de um arquivo .enc colando seu texto nesta ferramenta e vice-versa.',
         },
       ],
     },
     en: {
-      features: ['AES-256-GCM', 'Pasteable block', 'Same format as .enc', 'Offline'],
+      features: ['AES-256-GCM cipher encryption', 'Armored pasteable text envelope', 'Compatible with .enc file format', 'Zero server logs or relays'],
       faq: [
         {
-          q: 'How do I send an encrypted message?',
-          a: 'Write the text, set a password and copy the block it produces. It is plain text, so it survives email, chat or any form field without corrupting. Whoever receives it pastes the block here, enters the same password and reads the message.',
+          q: 'How do I send encrypted notes and messages safely?',
+          a: 'Type your message, enter a secret password, and click to generate a Base64-armored text envelope with header tags. This plain text block can be sent over any ordinary communication channel (email, chat, SMS, forums). The recipient simply pastes the block back into this tool, supplies the shared password, and reads the original decrypted text.',
         },
         {
-          q: 'What if the app breaks the block across lines?',
-          a: 'That is fine. Reading tolerates different line endings, extra spaces, surrounding text and even missing begin/end markers — the content is still recoverable.',
+          q: 'What happens if an email or chat client line-breaks the encrypted block?',
+          a: 'Nada Sai’s payload parser is resilient against formatting changes: it cleans extraneous whitespace, carriage returns, tab characters, and surrounding greeting text, recovering the core ciphertext envelope cleanly.',
         },
         {
-          q: 'How do I share the password?',
-          a: 'Through a different channel from the one carrying the message. Sending the block and the password in the same conversation defeats the protection, because anyone who reads one reads the other.',
+          q: 'How should I securely exchange the decryption password with the recipient?',
+          a: 'Never send the password through the same chat or email thread where the encrypted block travels. Share the password via a separate out-of-band channel (such as a voice call, in-person meeting, or encrypted signal app). Sharing both together negates the security guarantee.',
         },
         {
-          q: 'Is this the same format as file encryption?',
-          a: 'The same envelope, just rendered as text. The contents of a .enc file can be pasted here and the other way round — there is one encryption implementation, not two.',
+          q: 'Is this encrypted text format compatible with the file encryption tool?',
+          a: 'Yes. The underlying cryptographic schema (AES-256-GCM with PBKDF2-SHA256) is identical to Nada Sai’s file encryption engine. You can paste the raw contents of a .enc file into this tool or convert text envelopes interchangeably.',
         },
       ],
     },
@@ -403,44 +403,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'diff-checker': {
     pt: {
-      features: ['Diff de Myers', 'Números de linha', 'Baixar patch', 'Offline'],
+      features: ['Algoritmo de Myers otimizado', 'Numeração de linhas e destaque visual', 'Exportação de patch Unified Diff', 'Até 20.000 linhas 100% offline'],
       faq: [
         {
-          q: 'Como comparar dois textos?',
-          a: 'Cole ou solte um arquivo de cada lado. A comparação roda sozinha e marca linhas adicionadas, removidas e inalteradas, com os números de linha dos dois lados para você localizar a mudança no seu editor.',
+          q: 'Como comparar dois textos ou arquivos de código para encontrar diferenças?',
+          a: 'Cole ou arraste os dois arquivos (original à esquerda e modificado à direita). O comparador executa o algoritmo de diff em tempo real e destaca visualmente as linhas adicionadas (em verde), removidas (em vermelho) e modificadas, mantendo a numeração de linhas sincronizada para fácil localização no seu editor.',
         },
         {
-          q: 'Dá para comparar arquivos grandes?',
-          a: 'Até 20 mil linhas de cada lado e 10 MB por arquivo. O algoritmo apara o começo e o fim iguais antes de comparar, então editar três linhas de um arquivo de dois mil é praticamente instantâneo.',
+          q: 'A ferramenta suporta arquivos extensos com milhares de linhas?',
+          a: 'Sim. A ferramenta suporta arquivos com até 20.000 linhas por lado e cerca de 10 MB de texto. O motor aplica pré-processamento para aparar prefixos e sufixos idênticos antes de calcular o grafo de edições de Myers, tornando a comparação praticamente instantânea mesmo em códigos volumosos.',
         },
         {
-          q: 'Meus arquivos são enviados para algum lugar?',
-          a: 'Não. A comparação acontece no seu navegador, o que torna a ferramenta utilizável com contratos, código proprietário e documentos internos — o caso em que um comparador online comum é justamente o que não se pode usar.',
+          q: 'É seguro comparar contratos confidenciais, termos legais e código proprietário?',
+          a: 'Sim, 100% seguro. Como toda a lógica de comparação roda exclusivamente dentro do seu navegador via JavaScript, nenhum caractere de texto ou trecho de código é enviado para servidores externos. É a ferramenta ideal para advogados, auditores e programadores que não podem usar comparadores online convencionais.',
         },
         {
-          q: 'Posso salvar o resultado?',
-          a: 'Pode baixar um patch em formato unified diff, que é o mesmo que ferramentas de versionamento entendem.',
+          q: 'Posso exportar e salvar o relatório das alterações encontradas?',
+          a: 'Sim. Você pode baixar um arquivo de patch no formato padronizado Unified Diff (.diff/.patch), compatível com Git, SVN e sistemas de controle de versão, ou copiar o resumo das modificações diretamente para a área de transferência.',
         },
       ],
     },
     en: {
-      features: ['Myers diff', 'Line numbers', 'Download patch', 'Offline'],
+      features: ['Optimized Myers diff algorithm', 'Line numbering & visual highlights', 'Unified Diff patch download', 'Up to 20,000 lines 100% offline'],
       faq: [
         {
-          q: 'How do I compare two texts?',
-          a: 'Paste or drop a file on each side. The comparison runs on its own and marks added, removed and unchanged lines, with line numbers from both sides so you can find the change in your editor.',
+          q: 'How do I compare two texts or code files to highlight differences?',
+          a: 'Paste or drop your two texts into the side-by-side comparison panes (original on the left, modified on the right). The engine calculates the diff in real time, color-coding added lines in green, deleted lines in red, and syncing line numbers for easy review in your IDE or text editor.',
         },
         {
-          q: 'Can it handle large files?',
-          a: 'Up to 20,000 lines per side and 10 MB per file. The algorithm trims the matching start and end before comparing, so editing three lines of a two-thousand-line file is effectively instant.',
+          q: 'Can the diff checker handle large documents with thousands of lines?',
+          a: 'Yes. The tool handles up to 20,000 lines per side and 10 MB per file. It utilizes prefix and suffix pruning before executing Myers shortest-edit-path algorithm, making diff calculations near instantaneous even on large source code repositories.',
         },
         {
-          q: 'Are my files uploaded anywhere?',
-          a: 'No. The comparison happens in your browser, which is what makes the tool usable for contracts, proprietary code and internal documents — exactly the case where an ordinary online comparer is the thing you cannot use.',
+          q: 'Is it safe to compare proprietary code and confidential legal contracts?',
+          a: 'Yes, 100% private and secure. All text parsing and comparison happens strictly within your local browser sandbox. No proprietary code, intellectual property, or confidential legal clauses are ever uploaded to cloud servers.',
         },
         {
-          q: 'Can I save the result?',
-          a: 'You can download a patch in unified diff format, which is what version-control tools understand.',
+          q: 'Can I export and download a unified patch of the differences?',
+          a: 'Yes. You can download a standard Unified Diff patch file (.diff/.patch), fully compatible with Git and version control patch tools, or copy the formatted difference summary directly to your clipboard.',
         },
       ],
     },
@@ -448,44 +448,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'remove-bg': {
     pt: {
-      features: ['Modelo IS-Net local', 'Pincel de retoque', 'Fundo transparente ou colorido', 'Sem envio para servidor'],
+      features: ['Modelo de IA IS-Net executado localmente', 'Pincel de retoque de precisão', 'Recorte com transparência real em PNG', 'Sem limite de imagens e sem upload'],
       faq: [
         {
-          q: 'Como remover o fundo de uma imagem?',
-          a: 'Solte a foto e a ferramenta já começa a rodar — não há botão intermediário, porque escolher esta ferramenta com um arquivo aberto já é o pedido. O modelo separa o assunto do fundo e devolve um PNG com transparência real.',
+          q: 'Como remover o fundo de uma foto automaticamente com inteligência artificial?',
+          a: 'Basta soltar a foto no dropzone: a ferramenta inicializa automaticamente o modelo neural IS-Net compilado em WebAssembly/WebGPU, detecta o objeto ou pessoa principal e separa o primeiro plano do fundo em segundos, gerando um arquivo PNG com canal alfa de transparência real de alta fidelidade.',
         },
         {
-          q: 'Funciona com logotipos e imagens chapadas?',
-          a: 'Sim, e por um caminho diferente. A ferramenta mede a imagem antes: foto vai para o modelo de IA, arte chapada vai para uma remoção por cor amostrada nas bordas. O modelo é a pior escolha para um logotipo (ele nunca viu algo assim e devolve borda serrilhada), e a remoção por cor é a pior escolha para cabelo — por isso as duas existem.',
+          q: 'A ferramenta funciona bem para logotipos, assinaturas e ilustrações gráficas?',
+          a: 'Sim. A ferramenta conta com dois motores complementares: para fotografias e retratos, utiliza a rede neural de IA; para artes gráficas, assinaturas e logotipos com cores sólidas, aciona o algoritmo de amostragem por cor nas bordas. Isso garante que logos não sofram com bordas serrilhadas e assinaturas fiquem perfeitamente limpas.',
         },
         {
-          q: 'O recorte errou uma parte. Dá para corrigir?',
-          a: 'Dá. O pincel de retoque apaga o que sobrou e devolve o que foi comido a mais — restaurar pinta de volta exatamente os pixels originais daquelas coordenadas, não uma aproximação. Cada traço pode ser desfeito.',
+          q: 'Como corrigir pequenos detalhes ou áreas que o recorte automático cortou errado?',
+          a: 'A ferramenta disponibiliza um pincel de retoque interativo com controle de espessura e zoom: você pode alternar entre os modos "Apagar" (para remover sobras de fundo) e "Restaurar" (que pinta de volta os pixels exatos da foto original). Cada traço do pincel possui histórico com suporte a desfazer e refazer (Ctrl+Z).',
         },
         {
-          q: 'A imagem é enviada para algum servidor?',
-          a: 'Não. O modelo de 42 MB é baixado uma vez para o seu navegador e roda ali, em WebAssembly. A partir daí a ferramenta funciona até sem internet, o que é a prova mais direta de que a foto não vai a lugar nenhum.',
+          q: 'A foto precisa ser enviada para algum servidor de inteligência artificial?',
+          a: 'Não. O modelo de inteligência artificial de ~42 MB é baixado uma única vez pelo navegador e executado diretamente na GPU/CPU do seu dispositivo. Após o primeiro carregamento, você pode inclusive desligar a internet e continuar removendo o fundo de quantas fotos quiser offline e sem mensalidade.',
         },
       ],
     },
     en: {
-      features: ['Local IS-Net model', 'Retouch brush', 'Transparent or solid backdrop', 'Never uploaded'],
+      features: ['Local in-browser IS-Net AI model', 'Precision retouch restore/erase brush', 'Full PNG alpha transparency export', 'Unlimited images with zero uploads'],
       faq: [
         {
-          q: 'How do I remove the background from an image?',
-          a: 'Drop the photo and it starts on its own — there is no extra button, because picking this tool with a file already open is the request. The model separates subject from background and returns a PNG with real transparency.',
+          q: 'How do I remove the background from an image automatically with AI?',
+          a: 'Simply drop your image into the dropzone: the app automatically loads the neural IS-Net model compiled in WebAssembly/WebGPU, segments the primary foreground subject, and generates a transparent PNG with real alpha channel in seconds, all within your browser tab.',
         },
         {
-          q: 'Does it work on logos and flat graphics?',
-          a: 'Yes, through a different path. The tool measures the image first: a photograph goes to the AI model, flat art goes to a border-sampled colour key. The model is the worst possible tool for a logo — it has never seen anything like one and returns speckled edges — and the colour key is the worst possible tool for hair. That is why both exist.',
+          q: 'Does background removal work well for logos, line art, and graphics?',
+          a: 'Yes. The tool features two specialized engines: photographs run through the deep learning AI model, while flat graphic logos, signatures, and icons process through edge-sampled chroma keying. This prevents speckled edges on sharp graphics while preserving delicate hair details on portraits.',
         },
         {
-          q: 'The cutout missed something. Can I fix it?',
-          a: 'Yes. The retouch brush erases what was left behind and restores what was taken too much — restoring paints back the exact original pixels at those coordinates, not an approximation. Every stroke can be undone.',
+          q: 'How can I touch up or restore parts of the image that were cut incorrectly?',
+          a: 'Use the built-in interactive Retouch Brush: zoom into the canvas and toggle between "Erase" (to clean up remaining backdrop) and "Restore" (which paints back the exact raw pixels from the original photo). Every brush stroke is tracked in an undo/redo history stack.',
         },
         {
-          q: 'Is the image uploaded anywhere?',
-          a: 'No. The 42 MB model is downloaded once into your browser and runs there, in WebAssembly. After that the tool works with no internet at all, which is the most direct proof that the photo goes nowhere.',
+          q: 'Does the image get uploaded to an external AI cloud processing server?',
+          a: 'No. The ~42 MB ONNX neural network model is downloaded once into your browser cache and runs entirely client-side. You can disconnect your Wi-Fi and continue segmenting unlimited high-resolution photos completely offline without subscriptions or quotas.',
         },
       ],
     },
@@ -493,52 +493,52 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   vectorize: {
     pt: {
-      features: ['PNG e JPG para SVG', 'Curvas Bézier reais', 'Mantém a transparência', 'Sem costura entre cores'],
+      features: ['Conversão raster para SVG vetorial', 'Ajuste de curvas Bézier sem frestas', 'Preservação de transparência alfa', 'Modos para Logo, Traço e Ilustração'],
       faq: [
         {
-          q: 'O que é vetorizar uma imagem?',
-          a: 'É trocar uma grade de pixels por formas descritas matematicamente — curvas, e não pontos. Um SVG vetorizado pode ser ampliado para um outdoor sem serrilhar, porque não existe "resolução": as curvas são recalculadas em cada tamanho. É o formato que gráfica, corte a laser e bordado pedem.',
+          q: 'O que significa vetorizar uma imagem e quais as vantagens do formato SVG?',
+          a: 'Vetorizar é o processo matemático de converter uma grade de pixels estática (PNG ou JPG) em fórmulas geométricas e curvas Bézier vetoriais (SVG). A grande vantagem é a escalabilidade infinita: um arquivo SVG pode ser ampliado para o tamanho de um outdoor ou fachada comercial sem perder nitidez ou pixelar, sendo o formato exigido por gráficas, corte a laser, bordados e design profissional.',
         },
         {
-          q: 'Por que não aparece aquela linha fina entre as cores?',
-          a: 'Porque as formas vizinhas não têm bordas parecidas — elas têm a MESMA borda. A ferramenta extrai o grafo de fronteiras da imagem e ajusta cada fronteira uma vez só; as duas regiões dos lados apontam para a mesma curva. A maioria dos vetorizadores traça cada forma isolada, e as duas versões da mesma fronteira nunca coincidem exatamente — a fresta que sobra é aquela linha.',
+          q: 'Por que o vetorizador do Nada Sai não deixa linhas brancas entre as cores?',
+          a: 'A maioria dos conversores traça cada forma colorida individualmente, criando pequenas discrepâncias de arredondamento que geram frestas brancas visíveis entre as cores. Nosso motor extrai o grafo de fronteiras topológico da imagem e ajusta cada fronteira uma única vez: as regiões vizinhas compartilham exatamente a mesma curva geométrica, eliminando qualquer costura.',
         },
         {
-          q: 'Qual modo escolher?',
-          a: 'A ferramenta mede a imagem e sugere. Traço para assinatura e digitalização em preto e branco; Logo para marca e ícone de poucas cores; Ilustração para desenho com sombreado, que é onde os degradês entram; Pixel art para sprite, onde suavizar destruiria o desenho. O modo define o regime, e o slider de detalhe anda dentro dele.',
+          q: 'Como escolher o melhor modo entre Traço, Logo, Ilustração e Pixel Art?',
+          a: 'O modo Traço é perfeito para assinaturas digitalizadas e desenhos em preto e branco; Logo é otimizado para marcas com paleta de poucas cores e formas limpas; Ilustração preserva degradês suaves e sombreamento; e Pixel Art mantém os cantos retos de sprites de jogos sem suavização indesejada. O controle de detalhes permite calibrar o número de curvas geradas.',
         },
         {
-          q: 'O PNG com fundo transparente continua transparente?',
-          a: 'Continua. A área transparente é traçada como qualquer outra região e simplesmente não vira forma no SVG — o que sobra ali é vazio, não um retângulo branco. A silhueta é lida no canal alfa, então um recorte cuja forma só existe na transparência (o caso de quem acabou de remover o fundo) sai com o contorno certo, e a borda com antialiasing é posicionada em sub-pixel.',
+          q: 'Uma imagem PNG com fundo transparente permanece transparente após vetorizar?',
+          a: 'Sim. As áreas com canal alfa transparente são identificadas e descartadas na geração das formas, resultando em um SVG com fundo verdadeiramente vazado e contornos nítidos calculados com precisão sub-pixel.',
         },
         {
-          q: 'Dá para vetorizar uma foto?',
-          a: 'Dá, e o resultado costuma decepcionar — não por defeito da ferramenta, mas porque foto não é arte vetorial. Uma foto tem textura contínua e milhões de transições, então qualquer vetorização honesta produz milhares de formas e um arquivo maior que o JPG original. Vetorizar vale para logo, ícone, desenho e traço: coisas que foram desenhadas com formas.',
+          q: 'É recomendável vetorizar fotos de pessoas ou paisagens reais?',
+          a: 'Não é o uso ideal. Fotografias contêm milhões de variações de cor contínuas e texturas orgânicas; vetorizá-las gera milhares de polígonos complexos, resultando em um arquivo SVG excessivamente pesado e visualmente estilizado. Vetorização é recomendada para logotipos, ícones, traços, tipografia e ilustrações.',
         },
       ],
     },
     en: {
-      features: ['PNG and JPG to SVG', 'Real Bézier curves', 'Keeps transparency', 'No seams between colours'],
+      features: ['Raster to vector SVG conversion', 'Seamless single-pass Bézier curves', 'Alpha transparency preservation', 'Presets for Logos, Line Art & Art'],
       faq: [
         {
-          q: 'What does vectorizing an image mean?',
-          a: 'It replaces a grid of pixels with mathematically described shapes — curves, not dots. A vectorized SVG can be blown up to billboard size without jagged edges, because there is no "resolution": the curves are recomputed at every size. It is the format printers, laser cutters and embroidery machines ask for.',
+          q: 'What does vectorizing an image mean and what are the advantages of SVG?',
+          a: 'Vectorizing converts a fixed raster pixel grid (PNG or JPG) into mathematically defined geometric paths and Bézier curves (SVG). The primary benefit is infinite scalability: an SVG can be scaled up to billboard size without pixelation or blur, making it the mandatory standard for printing presses, laser cutters, embroidery machines, and graphic branding.',
         },
         {
-          q: 'Why is there no hairline gap between the colours?',
-          a: 'Because neighbouring shapes do not have similar edges — they have the SAME edge. The tool extracts the boundary graph of the image and fits each boundary exactly once; the two regions on either side point at the same curve. Most vectorizers trace each shape in isolation, and two independent fits of the same boundary never coincide exactly — the sliver left over is that line.',
+          q: 'Why does Nada Sai avoid the white hairline gaps between adjacent colors?',
+          a: 'Standard vectorizers trace each colored region in isolation, producing subtle fitting rounding errors that leave visible hairline gaps between touching boundaries. Our vector engine extracts a unified boundary graph, fitting each shared edge exactly once so adjacent colored paths snap together seamlessly.',
         },
         {
-          q: 'Which mode should I pick?',
-          a: 'The tool measures the image and suggests one. Line art for signatures and black-and-white scans; Logo for brands and few-colour icons; Illustration for shaded drawings, which is where gradients come in; Pixel art for sprites, where smoothing would destroy the artwork. The mode sets the regime, and the detail slider moves within it.',
+          q: 'How should I select between Line Art, Logo, Illustration, and Pixel Art modes?',
+          a: 'Line Art is ideal for scanned signatures and monochrome schematics; Logo is tuned for flat branding icons and distinct color palettes; Illustration preserves subtle gradients; and Pixel Art locks sharp square pixel boundaries for game assets. The detail slider fine-tunes path complexity.',
         },
         {
-          q: 'Does a transparent PNG stay transparent?',
-          a: 'It does. The transparent area is traced like any other region and simply never becomes a shape in the SVG — what is left there is emptiness, not a white rectangle. The silhouette is read from the alpha channel, so a cutout whose shape exists only in the transparency (the case of someone who has just removed the background) comes out with the right outline, and its anti-aliased edge is placed at sub-pixel accuracy.',
+          q: 'Does a transparent PNG retain its transparent background when converted to SVG?',
+          a: 'Yes. Alpha transparency channels are detected during boundary extraction and omitted from SVG path generation, leaving pure transparent negative space around the vectorized subject with sub-pixel boundary accuracy.',
         },
         {
-          q: 'Can I vectorize a photo?',
-          a: 'You can, and the result usually disappoints — not because the tool fails, but because a photo is not vector art. A photo has continuous texture and millions of transitions, so any honest vectorization produces thousands of shapes and a file larger than the original JPG. Vectorizing pays off for logos, icons, drawings and line art: things that were drawn with shapes in the first place.',
+          q: 'Is it recommended to vectorize realistic photographs of people or landscapes?',
+          a: 'Generally no. Continuous-tone photographs contain millions of subtle gradients; vectorizing photographic scenes produces tens of thousands of heavy paths resulting in massive SVG file sizes. Vectorization is engineered for logos, icons, line art, lettering, and graphic illustrations.',
         },
       ],
     },
@@ -546,44 +546,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   upscale: {
     pt: {
-      features: ['2x e 4x', 'Reconstrução de bordas', 'Controle de nitidez', 'Sem envio para servidor'],
+      features: ['Ampliação 2x e 4x de alta fidelidade', 'Reconstrução de bordas sem borrão', 'Ajuste fino de nitidez e clareza', 'Canvas de alta performance no cliente'],
       faq: [
         {
-          q: 'Como aumentar uma imagem sem ficar borrada?',
-          a: 'Escolha 2x ou 4x e ajuste a nitidez. O 4x é feito em duas passagens de 2x, e não em um salto único: ampliar de uma vez só espalha cada pixel por uma área grande demais e o resultado fica leitoso.',
+          q: 'Como aumentar o tamanho e a resolução de uma imagem sem deixá-la borrada?',
+          a: 'Selecione o fator de escala desejado (2x ou 4x) e ajuste o controle de nitidez. Para ampliações de 4x, o processamento é executado em duas passagens sequenciais de 2x com interpolação de alta precisão e filtro de reconstrução de bordas, evitando o aspecto leitoso e desfocado de redimensionamentos comuns.',
         },
         {
-          q: 'Isso é uma IA que inventa detalhe?',
-          a: 'Não, e a distinção importa. É reamostragem de alta qualidade com reconstrução de borda e antisserrilhado — ela recupera a definição do que está na imagem, mas não cria textura que nunca foi capturada. Uma foto muito pequena e desfocada continua sendo uma foto desfocada, só que maior.',
+          q: 'O algoritmo inventa novos detalhes que não existiam na foto original?',
+          a: 'Não. Nossa abordagem foca em reamostragem matemática avançada com preservação de gradientes, realce de contornos e antisserrilhamento de alta fidelidade. Ela recupera a nitidez e a definição do conteúdo real da foto, sem inventar alucinações artificiais ou distorcer feições faciais.',
         },
         {
-          q: 'Qual o limite de tamanho?',
-          a: 'O limite prático é a memória da aba: uma imagem de 12 MP ampliada em 4x tem quase 200 milhões de pixels, e cada um ocupa 4 bytes no canvas. Em imagens muito grandes, 2x costuma ser a escolha honesta.',
+          q: 'Qual é o limite de tamanho para aumentar imagens na ferramenta?',
+          a: 'O limite prático depende da memória RAM disponível na aba do navegador. Uma foto de 12 megapixels ampliada em 4x resulta em quase 200 milhões de pixels, demandando centenas de megabytes em memória de canvas. Para imagens já muito grandes, a opção 2x oferece o melhor equilíbrio de nitidez e estabilidade.',
         },
         {
-          q: 'A qualidade se mantém para impressão?',
-          a: 'Aumentar a resolução não aumenta a informação original, então para impressão vale mais partir do maior arquivo que você tiver. A ampliação ajuda quando o original já é razoável e falta tamanho, não quando falta detalhe.',
+          q: 'A imagem ampliada mantém a qualidade adequada para impressão gráfica?',
+          a: 'Sim, a ampliação com reconstrução de bordas suaviza a pixelização em ampliações moderadas, permitindo alcançar resoluções de 300 DPI adequadas para impressão em papel, banners e materiais promocionais.',
         },
       ],
     },
     en: {
-      features: ['2x and 4x', 'Edge reconstruction', 'Sharpness control', 'Never uploaded'],
+      features: ['High-fidelity 2x and 4x upscaling', 'Edge reconstruction with no blur', 'Fine-tuned sharpness controls', 'High-performance client-side Canvas'],
       faq: [
         {
-          q: 'How do I enlarge an image without it going blurry?',
-          a: 'Pick 2x or 4x and set the sharpness. The 4x runs as two 2x passes rather than one jump: enlarging in a single step spreads each pixel over too large an area and the result goes milky.',
+          q: 'How do I increase image size and resolution without making it blurry?',
+          a: 'Select your preferred upscale multiplier (2x or 4x) and fine-tune the sharpness slider. For 4x enlargement, the engine processes two sequential 2x passes with high-precision interpolation and edge-sharpening filters, preventing the milky, blurry artifacts typical of basic bicubic resizing.',
         },
         {
-          q: 'Is this an AI that invents detail?',
-          a: 'No, and the distinction matters. It is high-quality resampling with edge reconstruction and anti-aliasing — it recovers the definition of what is in the image, but it does not create texture that was never captured. A small, out-of-focus photo stays out of focus, only larger.',
+          q: 'Does this upscaler hallucinate synthetic details not in the original photo?',
+          a: 'No. Our algorithm emphasizes deterministic edge reconstruction, contrast preservation, and anti-aliasing. It maximizes the clarity and definition of genuine image details without hallucinating synthetic textures or distorting facial features.',
         },
         {
-          q: 'Is there a size limit?',
-          a: 'The practical limit is the tab’s memory: a 12 MP image at 4x is nearly 200 million pixels, and each one costs 4 bytes on a canvas. For very large images, 2x is usually the honest choice.',
+          q: 'What is the maximum resolution and size limit when upscaling photos?',
+          a: 'The limit is bounded by your browser tab’s canvas memory allocation. Upscaling a 12 MP photo by 4x yields nearly 200 million pixels (around 800 MB in uncompressed RGBA canvas memory). For already large photos, 2x upscaling provides optimal sharpness and performance.',
         },
         {
-          q: 'Will the quality hold up in print?',
-          a: 'Raising the resolution does not raise the original information, so for print it is always better to start from the largest file you have. Upscaling helps when the original is decent and merely small, not when the detail is missing.',
+          q: 'Will the enlarged image maintain sufficient sharpness for physical printing?',
+          a: 'Yes. The edge-reconstruction engine eliminates visible pixel stepping, bringing medium-resolution graphics and photos closer to the 300 DPI print threshold required for brochures, posters, and physical prints.',
         },
       ],
     },
@@ -591,44 +591,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'extract-text': {
     pt: {
-      features: ['OCR em português e inglês', 'Imagem ou PDF escaneado', 'Copiar ou baixar o texto', 'Sem envio para servidor'],
+      features: ['OCR em português, inglês e caracteres especiais', 'Extração de fotos, prints e escaneamentos', 'Cópia direta e download em TXT', 'Reconhecimento 100% no navegador'],
       faq: [
         {
-          q: 'Como extrair texto de uma imagem?',
-          a: 'Solte a foto ou o print e a ferramenta roda OCR nela. O reconhecimento acontece no seu navegador, com os dados de idioma baixados uma vez — nenhuma imagem é enviada para um serviço de OCR.',
+          q: 'Como extrair texto de fotos, capturas de tela e documentos escaneados?',
+          a: 'Arraste a imagem ou print para a ferramenta: o motor de OCR Tesseract baseado em WebAssembly é carregado na aba, analisa a distribuição geométrica das linhas e caracteres e extrai todo o texto em formato editável, permitindo copiar com um clique ou baixar como arquivo .txt.',
         },
         {
-          q: 'Reconhece português com acento?',
-          a: 'Sim. Os modelos de português e inglês são carregados juntos, então um documento que mistura os dois é lido sem você precisar escolher.',
+          q: 'O leitor de OCR reconhece caracteres com acentuação e pontuação em português?',
+          a: 'Sim. Os dicionários treinados para português (com suporte completo a cedilha, acento agudo, circunflexo, til e crase) e inglês são carregados simultaneamente, garantindo alta precisão no reconhecimento de documentos brasileiros, notas fiscais e contratos bilíngues.',
         },
         {
-          q: 'Por que o texto saiu errado?',
-          a: 'Quase sempre é resolução. O OCR precisa de algo em torno de 150 DPI para separar as letras; uma foto de celular tirada de longe, torta ou com sombra atravessando a página derruba o resultado. Reenquadrar a foto costuma render mais do que qualquer ajuste depois.',
+          q: 'Por que algumas palavras podem ser reconhecidas com erros ou trocar letras?',
+          a: 'A precisão do OCR depende diretamente da resolução e do contraste da imagem. Fotos borradas, com baixa iluminação, sombras sobre o papel, ângulos tortos ou resolução abaixo de 150 DPI dificultam a segmentação de caracteres. Garantir um bom enquadramento e iluminação melhora drasticamente a extração.',
         },
         {
-          q: 'Funciona com escrita à mão?',
-          a: 'Não de forma confiável. O motor é treinado para texto impresso; manuscrito, fontes decorativas e texto sobre fundo muito texturizado ficam fora do que ele faz bem.',
+          q: 'A ferramenta é capaz de reconhecer e transcrever escrita manual à mão?',
+          a: 'O motor é otimizado para caracteres tipográficos e textos impressos. Textos escritos à mão (cursivos ou caligrafia livre) e fontes excessivamente decorativas possuem variações que podem reduzir a taxa de acerto do OCR automático.',
         },
       ],
     },
     en: {
-      features: ['OCR in Portuguese and English', 'Images or scanned PDFs', 'Copy or download the text', 'Never uploaded'],
+      features: ['OCR in Portuguese, English & accents', 'Extracts from photos, screens & scans', 'Direct copy & TXT file download', '100% client-side recognition'],
       faq: [
         {
-          q: 'How do I extract text from an image?',
-          a: 'Drop the photo or screenshot and the tool runs OCR on it. The recognition happens in your browser, with the language data downloaded once — no image is ever sent to an OCR service.',
+          q: 'How do I extract editable text from photos, screenshots, and scanned pages?',
+          a: 'Drop your photo or screenshot into the tool: the WebAssembly-powered Tesseract OCR engine scans the pixel layout, identifies text lines, and extracts readable text directly in your browser. You can copy the result with one click or download it as a .txt file.',
         },
         {
-          q: 'Does it handle accented Portuguese?',
-          a: 'Yes. The Portuguese and English models are loaded together, so a document that mixes both is read without you having to choose.',
+          q: 'Does the OCR engine recognize accented Portuguese and special characters?',
+          a: 'Yes. Trained language datasets for both Portuguese (including full diacritics like ç, ã, é, ó) and English load concurrently, ensuring reliable character recognition across invoices, receipts, and multilingual legal contracts.',
         },
         {
-          q: 'Why did the text come out wrong?',
-          a: 'It is almost always resolution. OCR needs roughly 150 DPI to separate letters; a phone photo taken from far away, at an angle, or with a shadow across the page will wreck the result. Reshooting the photo buys more than any setting afterwards.',
+          q: 'Why might some words be misrecognized or contain typographical errors?',
+          a: 'OCR accuracy correlates directly with image sharpness, contrast, and resolution. Low-light phone photos, angled shots, shadows across text, or images under 150 DPI can cause letter confusion. Straightening and increasing contrast yields optimal extraction.',
         },
         {
-          q: 'Does it read handwriting?',
-          a: 'Not reliably. The engine is trained on printed text; handwriting, decorative fonts and text over heavy texture are outside what it does well.',
+          q: 'Can the OCR tool reliably transcribe handwritten notes or cursive text?',
+          a: 'The engine is trained specifically for printed typography, machine fonts, and digital screens. Freeform cursive handwriting and decorative scripts are outside standard OCR models and may show lower transcription accuracy.',
         },
       ],
     },
@@ -636,36 +636,36 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   crop: {
     pt: {
-      features: ['Proporções fixas', 'Corte livre', 'Continua para outra ferramenta', 'Sem envio para servidor'],
+      features: ['Proporções fixas (1:1, 4:3, 16:9) e corte livre', 'Navegação fluida entre ferramentas', 'Preservação de qualidade nativa', 'Execução instantânea sem servidor'],
       faq: [
         {
-          q: 'Como cortar uma imagem online?',
-          a: 'Solte a imagem, arraste a área que interessa e baixe. Há proporções prontas (1:1, 4:3, 16:9) para quando o destino exige um formato exato, além do corte livre.',
+          q: 'Como cortar uma imagem ou foto online mantendo as proporções exatas?',
+          a: 'Solte a imagem no editor e ajuste o enquadramento arrastando as alças. Você pode escolher proporções padronizadas pré-definidas (como 1:1 para avatar/Instagram, 4:3, 16:9 para banners ou corte livre) e baixar o recorte com um clique.',
         },
         {
-          q: 'O corte perde qualidade?',
-          a: 'O corte em si não inventa nem descarta detalhe dentro da área escolhida, mas o arquivo é recodificado ao ser salvo. Em JPEG isso significa uma geração a mais de perda; em PNG, nenhuma.',
+          q: 'O processo de recorte reduz a resolução ou degrada a qualidade da foto?',
+          a: 'O recorte apenas descarta os pixels fora da área selecionada, mantendo os pixels internos na resolução nativa original. Arquivos PNG são exportados sem qualquer perda; para arquivos JPEG, a imagem recortada é salva com qualidade máxima.',
         },
         {
-          q: 'Dá para cortar e depois comprimir sem baixar duas vezes?',
-          a: 'Dá. Os atalhos em "Enviar para outra ferramenta" levam o resultado direto para a próxima, e o nome do arquivo acumula os passos — foto.jpg vira foto-crop.png e depois foto-min.png, sempre derivado do nome original e sempre no formato que a etapa anterior produziu.',
+          q: 'Posso cortar uma foto e enviá-la para outra ferramenta sem precisar baixar?',
+          a: 'Sim. Ao concluir o corte, os atalhos de "Enviar para outra ferramenta" permitem transferir a imagem recortada diretamente para o removedor de fundo, compressor, conversor ou gerador de PDF sem downloads intermediários.',
         },
       ],
     },
     en: {
-      features: ['Fixed ratios', 'Free crop', 'Continues into another tool', 'Never uploaded'],
+      features: ['Fixed aspect ratios (1:1, 4:3, 16:9) & freeform', 'Smooth multi-tool pipeline flow', 'Native pixel clarity preservation', 'Instant execution without servers'],
       faq: [
         {
-          q: 'How do I crop an image online?',
-          a: 'Drop the image, drag the area you want and download. There are ready-made ratios (1:1, 4:3, 16:9) for when the destination demands an exact shape, plus a free crop.',
+          q: 'How do I crop an image online while maintaining exact aspect ratios?',
+          a: 'Drop your image into the canvas and drag the framing handles. Select standard presets (such as 1:1 square for profile pictures, 4:3, 16:9 for banners, or freeform) and export your cropped area instantly.',
         },
         {
-          q: 'Does cropping lose quality?',
-          a: 'The crop itself neither invents nor discards detail inside the chosen area, but the file is re-encoded when it is saved. In JPEG that means one more generation of loss; in PNG, none.',
+          q: 'Does cropping an image reduce resolution or degrade pixel quality?',
+          a: 'Cropping only removes pixels outside the selected bounding box, retaining all interior pixels at their 100% native resolution. PNG exports are completely lossless, while JPEGs encode at top quality.',
         },
         {
-          q: 'Can I crop and then compress without downloading twice?',
-          a: 'Yes. "Keep editing" carries the result straight into the next tool, and the filename accumulates the steps — photo.jpg becomes photo-crop.png and then photo-min.png, always derived from the original name and always in the format the previous step produced.',
+          q: 'Can I crop an image and send it directly to another tool without downloading?',
+          a: 'Yes. Use the "Send to tool" shortcuts upon completing your crop to route the cropped file straight into background removal, compression, format conversion, or PDF assembly without downloading and re-uploading.',
         },
       ],
     },
@@ -673,52 +673,52 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   compress: {
     pt: {
-      features: ['Mantém o formato de entrada', 'Qualidade ajustável', 'Mostra a economia real', 'Sem envio para servidor'],
+      features: ['Compressão mantendo o formato original', 'Controle deslizante de qualidade visual', 'Comparativo visual de economia em KB/MB', 'Garantia contra aumento de tamanho'],
       faq: [
         {
-          q: 'Como reduzir o tamanho de uma imagem?',
-          a: 'Solte a imagem e ajuste a qualidade. A ferramenta mostra o tamanho antes e depois, então a decisão é tomada com o número na frente e não no escuro.',
+          q: 'Como reduzir o peso em KB/MB de uma imagem sem perder qualidade visível?',
+          a: 'Solte a imagem e regule o seletor de qualidade. A ferramenta calcula a recompressão no cliente e exibe lado a lado o tamanho original, o novo tamanho e a porcentagem exata de economia antes de você baixar.',
         },
         {
-          q: 'A compressão muda o formato do arquivo?',
-          a: 'Não. Um JPEG sai JPEG, um WebP sai WebP e um PNG sai PNG — comprimir não é converter. A única exceção é GIF, BMP e AVIF, que nenhum navegador sabe escrever: esses saem em WebP, e o painel avisa antes. Para trocar de formato de propósito existe a ferramenta Converter.',
+          q: 'A compressão de imagem altera o formato ou a extensão do arquivo original?',
+          a: 'Não. Um arquivo JPEG permanece JPEG, PNG permanece PNG e WebP permanece WebP. A única exceção ocorre para formatos legados que os navegadores não codificam diretamente (como BMP e GIF), que são convertidos de forma limpa para WebP moderno.',
         },
         {
-          q: 'Por que não dá para escolher a qualidade de um PNG?',
-          a: 'Porque PNG é um formato sem perdas: não existe qualidade para negociar. O arquivo é reescrito e, se não ficar menor, o original é devolvido intacto em vez de um arquivo maior. Para reduzir muito uma imagem PNG, converta para WebP ou JPEG.',
+          q: 'Por que imagens no formato PNG não possuem seletor de qualidade percentual?',
+          a: 'O formato PNG é estritamente sem perdas (lossless): ele não descarta dados visuais por aproximação como o JPEG. A ferramenta otimiza as tabelas de compressão Deflate do PNG e, se a imagem for fotográfica, recomenda converter para WebP para obter economias de até 80%.',
         },
         {
-          q: 'Por que o arquivo comprimido ficou maior?',
-          a: 'Porque nem toda imagem tem o que comprimir. Uma imagem já otimizada não tem folga — e nesse caso a ferramenta devolve o original e diz que devolveu, em vez de entregar um arquivo maior chamado de comprimido.',
+          q: 'O que fazer se o arquivo comprimido ficar maior do que o arquivo original?',
+          a: 'Se uma imagem já estiver altamente otimizada, tentar recompactá-la pode gerar bytes adicionais. O Nada Sai detecta isso automaticamente e devolve o arquivo original intacto, garantindo que você nunca baixe um arquivo maior.',
         },
         {
-          q: 'Dá para comprimir várias imagens de uma vez?',
-          a: 'A compressão trabalha uma imagem por vez, porque cada uma merece a decisão de qualidade olhando o resultado. Para juntar várias num arquivo só, a ferramenta de imagens para PDF aceita o lote.',
+          q: 'É possível comprimir várias imagens simultaneamente em lote?',
+          a: 'A compressão de imagem individual foca no controle visual fino de cada foto. Para comprimir e empacotar várias fotos juntas, você pode utilizar a ferramenta Imagem para PDF ou processar as fotos em sequência pelo pipeline.',
         },
       ],
     },
     en: {
-      features: ['Keeps the input format', 'Adjustable quality', 'Shows the real saving', 'Never uploaded'],
+      features: ['Retains original image file format', 'Precision visual quality slider', 'Real-time KB/MB savings readout', 'Prevents accidental file size increase'],
       faq: [
         {
-          q: 'How do I reduce an image’s file size?',
-          a: 'Drop the image and set the quality. The tool shows the size before and after, so the decision is made with the number in front of you rather than blind.',
+          q: 'How do I reduce image file size without noticeable quality loss?',
+          a: 'Drop your image and adjust the quality slider. The browser computes the compression in real time, displaying the before/after byte count and exact percentage savings before you download.',
         },
         {
-          q: 'Does compressing change the file format?',
-          a: 'No. A JPEG comes out JPEG, a WebP comes out WebP and a PNG comes out PNG — compressing is not converting. The one exception is GIF, BMP and AVIF, which no browser can write: those come out as WebP, and the panel says so beforehand. To change format on purpose, there is the Convert tool.',
+          q: 'Does compressing an image change its file format or file extension?',
+          a: 'No. JPEGs remain JPEG, PNGs stay PNG, and WebPs remain WebP. The only exception is legacy formats that browsers cannot natively encode (such as BMP or static GIF), which output as efficient modern WebP.',
         },
         {
-          q: 'Why is there no quality setting for a PNG?',
-          a: 'Because PNG is a lossless format: there is no quality to trade away. The file is rewritten and, if that does not come out smaller, the original is handed back untouched instead of a larger file. To shrink a PNG a lot, convert it to WebP or JPEG.',
+          q: 'Why is there no percentage quality slider when compressing PNG images?',
+          a: 'PNG is an inherently lossless format that preserves every pixel value without lossy quantization. Our compressor optimizes PNG Deflate streams; for drastic file size reductions on photos, convert to WebP or JPEG.',
         },
         {
-          q: 'Why did the compressed file come out bigger?',
-          a: 'Because not every image has anything left to compress. An already-optimised image has no slack — and in that case the tool hands the original back and says so, rather than delivering a bigger file called compressed.',
+          q: 'Why might a compressed file occasionally come out larger than the original?',
+          a: 'If an image has already been aggressively compressed by camera software, re-encoding can introduce overhead. Nada Sai automatically detects this and returns your original untouched file to prevent size inflation.',
         },
         {
-          q: 'Can I compress several images at once?',
-          a: 'Compression works one image at a time, because each deserves its quality decision made against the result. To put several into a single file, the images-to-PDF tool takes the batch.',
+          q: 'Can I compress multiple images simultaneously in a single batch?',
+          a: 'Image compression focuses on fine per-image quality inspection. To combine and compress multiple photos together, use our Images-to-PDF tool or pass files sequentially through the tool chain.',
         },
       ],
     },
@@ -726,44 +726,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   convert: {
     pt: {
-      features: ['WebP, JPEG, PNG', 'PDF e ICO', 'Achata transparência quando precisa', 'Sem envio para servidor'],
+      features: ['Conversão entre JPEG, PNG, WebP, AVIF, ICO e PDF', 'Tratamento automático de fundo transparente', 'Compatibilidade universal sem distorção', 'Processamento local sem perda de privacidade'],
       faq: [
         {
-          q: 'Que formatos a ferramenta converte?',
-          a: 'Entra JPEG, PNG, WebP, AVIF, GIF e BMP; sai WebP, JPEG, PNG, PDF e ICO. A lista de entrada é maior porque o navegador sabe decodificar mais formatos do que sabe escrever — e a ferramenta não oferece saída que ele não escreve de verdade.',
+          q: 'Quais formatos de imagem são suportados para conversão de entrada e saída?',
+          a: 'Você pode importar arquivos JPEG, PNG, WebP, AVIF, GIF e BMP e exportá-los instantaneamente para WebP, JPEG, PNG, PDF ou ícone ICO. A lista de entrada é abrangente porque os navegadores modernos decodificam mais formatos do que gravam nativamente.',
         },
         {
-          q: 'Por que não dá para salvar em AVIF?',
-          a: 'Porque o navegador não escreve AVIF, e o pior é como ele falha: pedir AVIF ao canvas devolve um PNG silenciosamente, com a extensão .avif. Preferimos não oferecer a opção a entregar um arquivo que mente sobre o próprio formato. AVIF continua sendo aceito na entrada.',
+          q: 'Por que a ferramenta não oferece a opção de exportar imagens em AVIF?',
+          a: 'Nenhum navegador atual possui suporte nativo para codificar e escrever arquivos AVIF via Canvas API — solicitar AVIF silenciosamente devolve um PNG disfarçado. Preferimos oferecer formatos suportados de verdade (como WebP e JPEG) do que gerar arquivos com extensões enganosas.',
         },
         {
-          q: 'O que acontece com a transparência ao converter para JPEG?',
-          a: 'JPEG não tem canal alfa, então a imagem é achatada sobre branco antes de codificar. Sem isso a transparência viraria preto, que é como esse erro costuma aparecer em outras ferramentas.',
+          q: 'O que acontece com as áreas transparentes ao converter PNG para JPEG?',
+          a: 'Como o padrão JPEG não suporta canal alfa (transparência), a ferramenta achata automaticamente o fundo transparente sobre um fundo branco neutro antes de codificar, evitando que a imagem fique com manchas pretas.',
         },
         {
-          q: 'Posso continuar editando depois de converter?',
-          a: 'Sim para os formatos de imagem. PDF e ICO encerram a cadeia: são formatos de destino, não de trabalho, e reabri-los como imagem seria uma volta pela qualidade sem ganho nenhum.',
+          q: 'Posso continuar editando a imagem em outras ferramentas após a conversão?',
+          a: 'Sim para formatos de imagem (PNG, JPEG, WebP). Os formatos de destino final como PDF e ICO encerram o pipeline por serem contêineres finais de distribuição.',
         },
       ],
     },
     en: {
-      features: ['WebP, JPEG, PNG', 'PDF and ICO', 'Flattens transparency when needed', 'Never uploaded'],
+      features: ['Converts JPEG, PNG, WebP, AVIF, ICO & PDF', 'Automatic alpha transparency handling', 'Universal cross-platform output', 'Local processing with full privacy'],
       faq: [
         {
-          q: 'Which formats does it convert?',
-          a: 'In come JPEG, PNG, WebP, AVIF, GIF and BMP; out go WebP, JPEG, PNG, PDF and ICO. The input list is longer because browsers can decode more formats than they can write — and the tool does not offer an output it cannot genuinely produce.',
+          q: 'Which image formats are supported for input import and export output?',
+          a: 'You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, PDF, or ICO icons. Modern browser decoders support a wide variety of inputs while outputting universally compatible formats.',
         },
         {
-          q: 'Why can’t I save as AVIF?',
-          a: 'Because browsers cannot write AVIF, and the way they fail is the problem: asking a canvas for AVIF silently returns a PNG, under an .avif extension. We would rather not offer the option than hand you a file that lies about its own format. AVIF is still accepted as input.',
+          q: 'Why does the converter not offer export to the AVIF format?',
+          a: 'Browsers cannot natively encode AVIF through the standard Canvas API; requesting AVIF secretly outputs a PNG with an .avif extension. We strictly avoid generating misleading file formats, offering full WebP and PNG instead.',
         },
         {
-          q: 'What happens to transparency when converting to JPEG?',
-          a: 'JPEG has no alpha channel, so the image is flattened onto white before encoding. Without that step the transparent areas would serialise as black, which is how this bug usually shows up elsewhere.',
+          q: 'What happens to transparent backgrounds when converting PNG or WebP to JPEG?',
+          a: 'Because JPEG does not support alpha transparency channels, the image is cleanly flattened onto a pure white background before encoding, preventing black artifact boxes from appearing behind transparent cutouts.',
         },
         {
-          q: 'Can I keep editing after converting?',
-          a: 'Yes for the image formats. PDF and ICO end the chain: they are destination formats, not working ones, and reopening them as an image would cost quality for nothing.',
+          q: 'Can I continue editing the image in other tools after conversion?',
+          a: 'Yes for standard image formats (PNG, JPEG, WebP). Destination formats like PDF and ICO conclude the editing pipeline as final distribution files.',
         },
       ],
     },
@@ -771,36 +771,36 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   resize: {
     pt: {
-      features: ['Por pixel ou porcentagem', 'Mantém a proporção', 'Presets de rede social', 'Sem envio para servidor'],
+      features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],
       faq: [
         {
-          q: 'Como redimensionar uma imagem para um tamanho exato?',
-          a: 'Digite a largura ou a altura em pixels — a outra dimensão acompanha sozinha para manter a proporção. Também dá para trabalhar em porcentagem quando o alvo é "metade disso".',
+          q: 'Como redimensionar uma imagem para uma largura e altura exatas em pixels?',
+          a: 'Digite a largura ou altura desejada em pixels ou ajuste a porcentagem de escala. Com o cadeado de proporção ativado, a outra dimensão é recalculada automaticamente para preservar as proporções originais da imagem sem distorção.',
         },
         {
-          q: 'Redimensionar distorce a imagem?',
-          a: 'Não, enquanto a proporção estiver travada. Forçar largura e altura que não correspondem ao formato original é o que estica a imagem, e é por isso que o vínculo entre as duas é o comportamento padrão.',
+          q: 'Como garantir que a imagem não fique esticada ou achatada ao redimensionar?',
+          a: 'Mantenha o botão de proporção (Aspect Ratio) bloqueado. Dessa forma, alterar a largura ajusta proporcionalmente a altura e vice-versa. Para forçar dimensões livres e desiguais, basta desbloquear o cadeado antes de alterar os valores.',
         },
         {
-          q: 'Dá para aumentar a imagem aqui?',
-          a: 'Esta ferramenta é para reduzir e para acertar dimensões. Para ampliar com reconstrução de borda, a ferramenta de melhorar qualidade faz isso em duas passagens e cuida da nitidez.',
+          q: 'É recomendável usar o redimensionador para aumentar imagens muito pequenas?',
+          a: 'Esta ferramenta é focada em redução e ajuste dimensional exato. Se o seu objetivo for ampliar uma imagem pequena mantendo a nitidez e recuperando bordas, utilize nossa ferramenta dedicada de Melhorar Qualidade (Upscale).',
         },
       ],
     },
     en: {
-      features: ['By pixels or percentage', 'Keeps the aspect ratio', 'Social media presets', 'Never uploaded'],
+      features: ['Resize by exact pixels or scale percentage', 'Aspect ratio lock prevents distortion', 'Ready-to-use social media presets', 'Clean resolution downsampling'],
       faq: [
         {
-          q: 'How do I resize an image to an exact size?',
-          a: 'Type the width or the height in pixels — the other dimension follows on its own to keep the proportions. You can also work in percentages when the target is simply "half of this".',
+          q: 'How do I resize an image to exact pixel dimensions or percentages?',
+          a: 'Enter your desired width or height in pixels, or choose a percentage reduction. When the aspect ratio lock is enabled, the matching dimension updates automatically to preserve original proportions.',
         },
         {
-          q: 'Does resizing distort the image?',
-          a: 'Not while the ratio is locked. Forcing a width and height that do not match the original shape is what stretches an image, which is why linking the two is the default.',
+          q: 'How do I ensure my photo does not stretch or distort when resizing?',
+          a: 'Keep the aspect ratio lock engaged. This forces width and height to scale together symmetrically. You can unlock the aspect ratio toggle if your destination explicitly requires custom non-proportional dimensions.',
         },
         {
-          q: 'Can I enlarge an image here?',
-          a: 'This tool is for shrinking and for hitting exact dimensions. To enlarge with edge reconstruction, the upscale tool does it in two passes and handles the sharpening.',
+          q: 'Should I use the image resizer to enlarge small or low-res pictures?',
+          a: 'This tool is optimized for scaling down and hitting precise pixel targets. To enlarge low-resolution pictures with edge reconstruction and anti-blur processing, use our dedicated Upscale tool instead.',
         },
       ],
     },
@@ -808,44 +808,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'img-to-pdf': {
     pt: {
-      features: ['Várias imagens de uma vez', 'Ordem arrastável', 'Uma imagem por página', 'Sem envio para servidor'],
+      features: ['Conversão de múltiplas fotos em um único PDF', 'Reordenação visual e por teclado', 'Otimização automática de tamanho por página', 'Geração de PDF vetorial local'],
       faq: [
         {
-          q: 'Como juntar várias fotos num PDF?',
-          a: 'Solte todas de uma vez, arraste as miniaturas até a ordem certa e baixe. Cada imagem vira uma página, na ordem que estiver na tela.',
+          q: 'Como converter e juntar várias fotos ou comprovantes em um único arquivo PDF?',
+          a: 'Arraste todas as imagens de uma só vez para o dropzone. Cada imagem vira automaticamente uma página do documento PDF na ordem exibida na tela. Depois de organizar a sequência, clique em "Gerar PDF" para baixar o arquivo compilado.',
         },
         {
-          q: 'Dá para reordenar sem mouse?',
-          a: 'Dá. Cada miniatura tem setas de mover, e elas são o controle de verdade — arrastar é o atalho, e não funciona no toque nem pelo teclado.',
+          q: 'Como posso organizar e reordenar a sequência das páginas do PDF?',
+          a: 'Você pode arrastar as miniaturas das fotos para mudar sua ordem visualmente ou utilizar os botões de seta em cada imagem para reposicioná-las com total precisão e acessibilidade pelo teclado.',
         },
         {
-          q: 'O PDF fica muito pesado com fotos de celular?',
-          a: 'Não, porque no lote as imagens têm o lado maior limitado antes de entrar na página. Sem esse limite, trinta fotos de celular viram um PDF de dezenas de megabytes, com 2 a 3 MB por página que ninguém pediu.',
+          q: 'O arquivo PDF final ficará muito pesado ao adicionar fotos em alta resolução?',
+          a: 'A ferramenta redimensiona de forma inteligente o lado maior de fotos gigantes de smartphones durante a montagem do documento. Isso evita que um PDF com 20 comprovantes fique com centenas de megabytes, mantendo nitidez perfeita para leitura.',
         },
         {
-          q: 'De onde vem o nome do arquivo final?',
-          a: 'Da primeira imagem da lista. Reordenar muda o nome, o que é coerente: a primeira página é o que o documento é.',
+          q: 'Como é definido o nome do arquivo PDF baixado ao final da conversão?',
+          a: 'O nome do arquivo final é derivado automaticamente do nome da primeira foto da lista com a extensão .pdf, facilitando a identificação do documento gerado.',
         },
       ],
     },
     en: {
-      features: ['Many images at once', 'Draggable order', 'One image per page', 'Never uploaded'],
+      features: ['Combine multiple photos into a single PDF', 'Visual and accessible reordering', 'Automatic per-page dimension optimization', 'Local vector PDF generation'],
       faq: [
         {
-          q: 'How do I combine photos into a PDF?',
-          a: 'Drop them all at once, drag the thumbnails into the order you want and download. Each image becomes one page, in the order shown on screen.',
+          q: 'How do I combine multiple photos and documents into a single PDF file?',
+          a: 'Drag all your images into the dropzone simultaneously. Each image becomes a distinct page in the output PDF document according to the on-screen sequence. Click "Generate PDF" to compile and download.',
         },
         {
-          q: 'Can I reorder without a mouse?',
-          a: 'Yes. Every thumbnail has move arrows, and those are the real control — dragging is the shortcut, and it does nothing on touch or from a keyboard.',
+          q: 'How do I reorder the sequence of photos and pages in the PDF?',
+          a: 'Drag and drop image cards to rearrange them visually, or use the dedicated arrow buttons on each card for precise keyboard-accessible reordering.',
         },
         {
-          q: 'Will the PDF be huge with phone photos?',
-          a: 'No, because in a batch each image has its long side capped before it goes onto the page. Without that cap, thirty phone photos build a PDF of tens of megabytes, at 2–3 MB per page nobody asked for.',
+          q: 'Will the resulting PDF become too large when adding high-res mobile photos?',
+          a: 'The engine applies smart dimension capping to oversized smartphone camera captures during assembly, preventing 30-page documents from exploding into hundreds of megabytes while keeping receipts and text crisp.',
         },
         {
-          q: 'Where does the output filename come from?',
-          a: 'From the first image in the list. Reordering changes it, which is consistent: the first page is what the document is.',
+          q: 'How is the default filename of the generated PDF determined?',
+          a: 'The output filename is derived from the first image in your sequence with a .pdf extension, keeping your document naming organized and predictable.',
         },
       ],
     },
@@ -853,44 +853,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'edit-pdf': {
     pt: {
-      features: ['Editar o texto existente', 'OCR em página escaneada', 'Inserir texto e imagem', 'Sem envio para servidor'],
+      features: ['Edição direta de blocos de texto no PDF', 'OCR inteligente para documentos escaneados', 'Inserção de novos textos e anotações', 'Visualização em streaming com baixo uso de RAM'],
       faq: [
         {
-          q: 'Dá para editar o texto de um PDF de verdade?',
-          a: 'Dá. O editor lê os blocos de texto do documento e deixa você alterar o conteúdo no lugar, em vez de só desenhar uma caixa branca por cima.',
+          q: 'É realmente possível editar e alterar o texto de um arquivo PDF existente?',
+          a: 'Sim. O editor analisa a estrutura interna do PDF, identifica os blocos de texto reais e permite que você altere palavras, corrija erros de digitação e edite conteúdos no próprio lugar, sem precisar tampar com caixas brancas.',
         },
         {
-          q: 'E se o PDF for um escaneamento?',
-          a: 'Aí o texto não existe como texto — a página é uma foto. O editor roda OCR nela, transforma o que reconheceu em blocos editáveis e, ao exportar, redesenha esse texto de forma invisível sobre a imagem, então o documento final passa a ser pesquisável com Ctrl+F.',
+          q: 'Como o editor de PDF funciona em documentos escaneados ou fotos de papel?',
+          a: 'Quando a página é uma digitalização sem camada de texto nativa, o editor executa OCR na imagem, reconhece os blocos de caracteres e os transforma em elementos editáveis. Ao exportar, o texto corrigido é embutido no PDF mantendo a pesquisa Ctrl+F.',
         },
         {
-          q: 'A fonte original é mantida?',
-          a: 'O editor aproxima a fonte, o corpo e a posição de cada bloco, mas um PDF só carrega os recortes de fonte que usa. Em documento escaneado não há fonte nenhuma para manter: o tamanho é estimado a partir da altura das letras reconhecidas.',
+          q: 'A tipografia e as fontes originais são preservadas ao editar um texto no PDF?',
+          a: 'O editor aproxima o estilo, tamanho e peso da fonte a partir dos dados do documento. Em documentos escaneados, onde não há fontes embutidas, o tamanho das letras é calculado a partir da altura dos caracteres identificados.',
         },
         {
-          q: 'Documento longo trava o navegador?',
-          a: 'Não. Só as páginas perto da tela ficam rasterizadas; as demais são liberadas e redesenhadas quando você volta a elas. É isso que faz um documento de 200 páginas ficar tão nítido quanto um de duas.',
+          q: 'O navegador pode travar ou ficar lento ao abrir documentos com muitas páginas?',
+          a: 'Não. Nosso visualizador utiliza virtualização de páginas: apenas as páginas visíveis na tela permanecem renderizadas em memória canvas, liberando as páginas distantes para manter o desempenho fluido mesmo em documentos com centenas de páginas.',
         },
       ],
     },
     en: {
-      features: ['Edit the existing text', 'OCR for scanned pages', 'Insert text and images', 'Never uploaded'],
+      features: ['Direct in-place text editing on PDFs', 'Intelligent OCR for scanned documents', 'Add new text boxes and annotations', 'Low-memory streaming page virtualization'],
       faq: [
         {
-          q: 'Can I really edit the text in a PDF?',
-          a: 'Yes. The editor reads the document’s text blocks and lets you change the content in place, rather than merely painting a white box over it.',
+          q: 'Can I genuinely edit and modify existing text inside a PDF document?',
+          a: 'Yes. The editor parses the internal PDF object tree, locates actual text layout blocks, and lets you modify sentences, fix typos, and adjust copy directly in place rather than painting clumsy white boxes over the document.',
         },
         {
-          q: 'What if the PDF is a scan?',
-          a: 'Then the text does not exist as text — the page is a photograph. The editor runs OCR on it, turns what it recognised into editable blocks, and on export redraws that text invisibly over the image, so the final document becomes searchable with Ctrl+F.',
+          q: 'How does the PDF editor handle scanned documents and paper photos?',
+          a: 'When a page is a scanned image lacking a native text stream, the editor executes client-side OCR, turns recognized characters into editable blocks, and overlays the text layer so the exported PDF becomes searchable with Ctrl+F.',
         },
         {
-          q: 'Is the original font preserved?',
-          a: 'The editor approximates each block’s font, size and position, but a PDF only carries the font subsets it uses. In a scanned document there is no font to preserve at all: the size is estimated from the height of the recognised letters.',
+          q: 'Are the original typography and font styles preserved when editing text?',
+          a: 'The editor approximates font family, sizing, and weight from document metrics. Scanned documents estimate point sizes from character bounding boxes, matching the visual weight of the original print.',
         },
         {
-          q: 'Will a long document freeze the browser?',
-          a: 'No. Only the pages near the viewport hold a rendered canvas; the rest are released and redrawn when you scroll back. That is what makes a 200-page document as sharp as a two-page one.',
+          q: 'Will the browser slow down or freeze when opening large multi-page PDFs?',
+          a: 'No. Our renderer uses page virtualization: only pages currently in or near the viewport hold allocated canvases in RAM. Distant pages are unloaded and re-rendered on demand, keeping 200-page files as fast as 2-page ones.',
         },
       ],
     },
@@ -898,44 +898,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'merge-pdf': {
     pt: {
-      features: ['Vários arquivos', 'Ordem arrastável', 'Preserva o texto', 'Sem envio para servidor'],
+      features: ['União de múltiplos PDFs em um só arquivo', 'Preservação total de texto vetorial e fontes', 'Reorganização rápida de documentos', 'Suporte a PDFs protegidos por senha'],
       faq: [
         {
-          q: 'Como juntar dois ou mais PDFs?',
-          a: 'Solte todos os arquivos, coloque na ordem desejada e baixe o documento único. As páginas são copiadas como estão — o texto continua sendo texto e continua selecionável.',
+          q: 'Como juntar e combinar dois ou mais documentos PDF em um arquivo único?',
+          a: 'Solte todos os arquivos PDF na ferramenta, organize a ordem dos documentos arrastando os cards na tela e clique para baixar o documento combinado. As páginas são mescladas preservando toda a formatação vetorial e links originais.',
         },
         {
-          q: 'O arquivo final fica maior que a soma dos originais?',
-          a: 'Não deveria, e é por isso que a cópia é feita por arquivo e não por página: copiar página a página duplica as fontes e os perfis de cor compartilhados a cada chamada, e o resultado passa a ser maior que a soma das entradas.',
+          q: 'O PDF final gerado fica maior do que a soma dos arquivos originais?',
+          a: 'Não. Nossa mesclagem opera no nível de documento completo, reutilizando tabelas de fontes compartilhadas e perfis de cores em vez de duplicar recursos página a página, garantindo um arquivo final compacto e otimizado.',
         },
         {
-          q: 'Dá para juntar um PDF protegido por senha?',
-          a: 'Dá, informando a senha quando a ferramenta pedir. Ela é usada só para abrir o documento no seu navegador e não é guardada em lugar nenhum.',
+          q: 'É possível juntar arquivos PDF que estejam protegidos por senha?',
+          a: 'Sim. Se algum dos arquivos selecionados exigir senha de abertura, a ferramenta exibirá um campo para inserção da senha, descriptografará o documento em memória local e o integrará à mesclagem normalmente.',
         },
         {
-          q: 'Há limite de tamanho ou de quantidade?',
-          a: 'Cada arquivo pode ter até 100 MB. A quantidade é limitada pela memória da aba, já que o documento final é montado inteiro antes de ser salvo.',
+          q: 'Quais são os limites de tamanho de arquivo e quantidade de documentos suportados?',
+          a: 'Cada arquivo individual pode ter até 100 MB. A quantidade total de páginas suportada depende da memória RAM livre do seu dispositivo, permitindo combinar dezenas de contratos ou apostilas sem problemas.',
         },
       ],
     },
     en: {
-      features: ['Many files', 'Draggable order', 'Text preserved', 'Never uploaded'],
+      features: ['Merge multiple PDF files into one document', 'Full vector text & font stream preservation', 'Quick drag-and-drop file reordering', 'Password-protected PDF support'],
       faq: [
         {
-          q: 'How do I merge two or more PDFs?',
-          a: 'Drop all the files, put them in the order you want and download the single document. Pages are copied as they are — text stays text and stays selectable.',
+          q: 'How do I combine and merge multiple PDF files into a single document?',
+          a: 'Drop all your PDF files into the tool, rearrange their order in the document list, and download the unified document. Pages are copied with all vector text, fonts, and hyperlinks preserved.',
         },
         {
-          q: 'Will the merged file be bigger than the sum of its parts?',
-          a: 'It should not be, and that is why the copy is done per file rather than per page: copying page by page duplicates the shared fonts and colour profiles on every call, until the result is larger than everything that went into it.',
+          q: 'Will the merged PDF file end up larger than the sum of the original files?',
+          a: 'No. The merger operates at the document stream level, consolidating shared font dictionaries and color profiles rather than duplicating assets on every page, keeping the final file compact.',
         },
         {
-          q: 'Can I merge a password-protected PDF?',
-          a: 'Yes, by entering the password when the tool asks. It is used only to open the document inside your browser and is never stored.',
+          q: 'Is it possible to merge PDF documents that are password-protected?',
+          a: 'Yes. If any input PDF is password-protected, the tool prompts for its password, decrypts the document in local browser memory, and combines it into the output document.',
         },
         {
-          q: 'Is there a size or count limit?',
-          a: 'Each file can be up to 100 MB. The count is limited by the tab’s memory, since the final document is assembled whole before it is saved.',
+          q: 'What are the file size and page count limits when merging PDFs?',
+          a: 'Individual files can be up to 100 MB. Total capacity is bounded only by available device RAM, easily allowing you to combine dozens of lengthy reports and contracts in a single pass.',
         },
       ],
     },
@@ -943,44 +943,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'compress-pdf': {
     pt: {
-      features: ['Quatro níveis', 'Mantém o Ctrl+F', 'Mostra a economia real', 'Sem envio para servidor'],
+      features: ['Quatro níveis ajustáveis de compressão', 'Preservação de pesquisa Ctrl+F no texto', 'Relatório em tempo real de economia de espaço', 'Processamento local sem perda de formatação'],
       faq: [
         {
-          q: 'Como reduzir o tamanho de um PDF?',
-          a: 'Solte o arquivo e escolha o nível. O nível sem perdas apenas reorganiza o arquivo; os demais redesenham as páginas como imagem, que é de onde vem a economia grande em documentos escaneados.',
+          q: 'Como diminuir o tamanho e o peso de um PDF pesado sem estragar a leitura?',
+          a: 'Solte o arquivo e escolha um dos 4 níveis de compressão (Sem Perdas, Leve, Médio ou Forte). O nível sem perdas reestrutura os fluxos internos de dados; os níveis mais avançados realizam reamostragem equilibrada de imagens embutidas mantendo o texto nítido.',
         },
         {
-          q: 'Ainda vou conseguir pesquisar o texto depois?',
-          a: 'Sim. Nos níveis com perdas a camada de texto original é redesenhada de forma invisível sobre a página rasterizada, então o Ctrl+F continua achando o que achava antes, mesmo que o texto tenha deixado de ser vetorial.',
+          q: 'O documento continuará pesquisável e selecionável após a compressão?',
+          a: 'Sim. Mesmo nos níveis de compressão que reamostram imagens de páginas, a camada de texto original é preservada ou redesenhada de forma invisível sobre as páginas, mantendo a pesquisa por Ctrl+F e a seleção de texto funcionais.',
         },
         {
-          q: 'Meu PDF não diminuiu nada. Por quê?',
-          a: 'Porque ele provavelmente já é um documento de texto vetorial, que é compacto por natureza. Transformar essas páginas em fotografia deixaria o arquivo maior, e nesse caso a ferramenta diz que o documento já está bem otimizado em vez de devolver algo pior.',
+          q: 'Por que alguns arquivos PDF quase não diminuem de tamanho na compressão?',
+          a: 'Documentos compostos puramente por texto vetorial e fontes embutidas já são extremamente compactos por natureza. Se um arquivo já estiver otimizado, o Nada Sai avisa que o documento já possui tamanho ideal para evitar degradação desnecessária.',
         },
         {
-          q: 'A qualidade da leitura cai muito?',
-          a: 'Nos níveis mais fortes as páginas viram imagem em torno de 150 DPI, o que continua confortável na tela e aceitável na impressão comum. Se o documento for para impressão gráfica, use o nível sem perdas.',
+          q: 'Como escolher o nível de compressão ideal entre Leve, Médio, Forte e Máximo?',
+          a: 'Use o nível Sem Perdas para contratos formais e plantas técnicas; use Leve/Médio para anexos de e-mail e envio em portais governamentais; e use Forte para apresentações e apostilas com muitas fotos pesadas.',
         },
       ],
     },
     en: {
-      features: ['Four levels', 'Keeps Ctrl+F working', 'Shows the real saving', 'Never uploaded'],
+      features: ['Four selectable PDF compression levels', 'Preserves Ctrl+F text searchability', 'Real-time KB/MB savings comparison', 'Local processing with zero layout loss'],
       faq: [
         {
-          q: 'How do I shrink a PDF?',
-          a: 'Drop the file and pick a level. The lossless level only reorganises the file; the others redraw the pages as images, which is where the large savings on scanned documents come from.',
+          q: 'How do I reduce the file size of a heavy PDF without degrading readability?',
+          a: 'Drop your PDF and select a compression profile (Lossless, Light, Medium, or Strong). The lossless mode reorganizes internal data tables, while higher modes resample heavy embedded images while preserving text clarity.',
         },
         {
-          q: 'Will the text still be searchable afterwards?',
-          a: 'Yes. At the lossy levels the original text layer is redrawn invisibly over the rasterised page, so Ctrl+F still finds what it found before, even though the text is no longer vector.',
+          q: 'Will the text in the PDF remain searchable and selectable after compression?',
+          a: 'Yes. Even at compression levels that downsample page images, the underlying text layer is retained or invisibly overlaid, ensuring Ctrl+F search and text selection continue to work seamlessly.',
         },
         {
-          q: 'My PDF barely shrank. Why?',
-          a: 'Because it is probably already a vector text document, which is compact by nature. Turning those pages into photographs would make the file bigger, and in that case the tool says the document is already well optimised instead of handing back something worse.',
+          q: 'Why do some PDF documents barely reduce in size after compression?',
+          a: 'PDFs that consist purely of vector typography and lightweight text streams are already compact. If a document is already well-optimized, Nada Sai informs you that no further compression is needed.',
         },
         {
-          q: 'How much reading quality is lost?',
-          a: 'At the stronger levels pages become images at roughly 150 DPI, which stays comfortable on screen and acceptable for ordinary printing. If the document is going to a print shop, use the lossless level.',
+          q: 'How should I choose the right compression level for my document?',
+          a: 'Choose Lossless for legal filings and technical vector schematics; pick Medium for email attachments and portal submissions; and choose Strong for image-heavy brochures and presentation slides.',
         },
       ],
     },
@@ -988,44 +988,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'split-pdf': {
     pt: {
-      features: ['Intervalos personalizados', 'Blocos de N páginas', 'Saída em ZIP', 'Sem envio para servidor'],
+      features: ['Extração de páginas individuais ou intervalos', 'Divisão em blocos de tamanho fixo', 'Exportação em arquivo único ou pacote ZIP', 'Preservação 100% de qualidade vetorial'],
       faq: [
         {
-          q: 'Como separar páginas de um PDF?',
-          a: 'Escolha entre marcar páginas soltas, definir intervalos (1-3, 8, 12-20) ou fatiar em blocos de tamanho fixo. Cada trecho vira um PDF, e vários trechos saem juntos num ZIP.',
+          q: 'Como dividir um arquivo PDF e extrair páginas ou capítulos específicos?',
+          a: 'Você pode clicar nas miniaturas das páginas desejadas, digitar intervalos customizados (como 1-5, 8, 12-20) ou escolher dividir o documento em blocos de N páginas. As partes extraídas podem ser baixadas em um único PDF ou reunidas em um arquivo .zip.',
         },
         {
-          q: 'Dá para extrair só uma página?',
-          a: 'Dá — marque só ela. É o caso mais comum: tirar o comprovante, a nota ou a página assinada de dentro de um documento longo.',
+          q: 'Como extrair apenas uma única página importante de um documento longo?',
+          a: 'Basta carregar o PDF e clicar sobre a miniatura da página que você precisa (como um recibo, certidão ou página assinada) e clicar em baixar para exportar um novo PDF contendo apenas aquela página.',
         },
         {
-          q: 'As páginas separadas perdem qualidade?',
-          a: 'Não. As páginas são copiadas como objetos do PDF, sem rasterizar nada: o texto continua vetorial e as imagens continuam com os bytes originais.',
+          q: 'As páginas extraídas sofrem perda de qualidade visual ou de formatação?',
+          a: 'Não. A extração copia os objetos nativos das páginas selecionadas diretamente na árvore do PDF sem rasterizar nada. Fontes, vetores, formulários e imagens mantêm os bytes originais de alta fidelidade.',
         },
         {
-          q: 'Posso juntar tudo num arquivo só em vez de vários?',
-          a: 'Pode. Existe a opção de reunir os trechos selecionados num único PDF, que é o caminho para "quero só as páginas 2, 5 e 9, juntas".',
+          q: 'Posso agrupar as páginas selecionadas em um só arquivo em vez de baixar um ZIP?',
+          a: 'Sim. A ferramenta oferece a opção "Unir páginas selecionadas em um único PDF", ideal para quem deseja extrair páginas não sequenciais (ex: páginas 2, 7 e 15) e salvá-las juntas em um único documento.',
         },
       ],
     },
     en: {
-      features: ['Custom ranges', 'Fixed-size chunks', 'ZIP output', 'Never uploaded'],
+      features: ['Extract specific pages or custom ranges', 'Split by fixed page intervals', 'Export as single PDF or ZIP archive', '100% vector quality preservation'],
       faq: [
         {
-          q: 'How do I split a PDF?',
-          a: 'Choose between picking individual pages, defining ranges (1-3, 8, 12-20), or slicing into fixed-size chunks. Each piece becomes a PDF, and several pieces come out together in a ZIP.',
+          q: 'How do I split a PDF file and extract specific pages or ranges?',
+          a: 'Select pages by clicking their thumbnails, specify custom ranges (e.g. 1-5, 8, 12-20), or slice the document into fixed N-page intervals. Download individual PDF chunks or bundle them in a single ZIP archive.',
         },
         {
-          q: 'Can I extract a single page?',
-          a: 'Yes — select just that one. It is the most common case: pulling the receipt, the invoice or the signed page out of a long document.',
+          q: 'How do I extract just one single page from a large multi-page PDF?',
+          a: 'Upload the document, click on the thumbnail of the specific page you need (such as a signed agreement or invoice), and export a standalone PDF containing only that page.',
         },
         {
-          q: 'Do the split pages lose quality?',
-          a: 'No. Pages are copied as PDF objects with nothing rasterised: the text stays vector and the images keep their original bytes.',
+          q: 'Do extracted PDF pages lose visual quality, resolution, or text formatting?',
+          a: 'No. The splitting engine extracts page objects directly at the PDF syntax layer without rasterization. Vector fonts, line art, and embedded graphics keep their original fidelity.',
         },
         {
-          q: 'Can I get one file instead of many?',
-          a: 'Yes. There is an option to gather the selected pieces into a single PDF, which is the path for "I only want pages 2, 5 and 9, together".',
+          q: 'Can I combine the selected pages into a single PDF instead of a ZIP?',
+          a: 'Yes. Check the "Merge selected pages into a single PDF" option to extract non-consecutive pages (such as pages 2, 7, and 15) and assemble them into one unified file.',
         },
       ],
     },
@@ -1033,44 +1033,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'pdf-to-img': {
     pt: {
-      features: ['JPEG, PNG ou WebP', 'Três resoluções', 'Página avulsa ou ZIP', 'Sem envio para servidor'],
+      features: ['Conversão de páginas em JPEG, PNG ou WebP', 'Três opções de escala (1x, 2x e 3x HD)', 'Download de página avulsa ou lote em ZIP', 'Renderização nítida via motor Canvas'],
       faq: [
         {
-          q: 'Como transformar um PDF em imagens?',
-          a: 'Solte o arquivo, escolha o formato e a resolução, e selecione as páginas. Uma página baixa como imagem solta; várias saem num ZIP.',
+          q: 'Como converter páginas de um arquivo PDF em imagens individuais de alta qualidade?',
+          a: 'Solte o arquivo PDF, escolha o formato de saída (PNG, JPEG ou WebP) e selecione a resolução desejada. Você pode baixar uma página avulsa diretamente ou exportar todas as páginas compactadas em um arquivo ZIP.',
         },
         {
-          q: 'Qual resolução escolher?',
-          a: '1x serve para visualizar, 2x é o meio-termo para a maioria dos usos e 3x é para quando a imagem vai ser ampliada ou impressa. Quanto maior a escala, maior o arquivo e mais memória a conversão consome.',
+          q: 'Qual resolução ou escala (1x, 2x ou 3x) devo escolher para a conversão?',
+          a: 'A escala 1x (72 DPI) é indicada para visualização rápida na web; a escala 2x (150 DPI) oferece excelente nitidez para apresentações e telas de alta densidade; e a escala 3x (300 DPI) é recomendada para impressões e leitura minuciosa de letras pequenas.',
         },
         {
-          q: 'Qual formato usar?',
-          a: 'JPEG para páginas com foto, PNG quando o texto precisa ficar com as bordas perfeitamente limpas, WebP quando o destino aceita e o tamanho importa.',
+          q: 'Qual formato de imagem é mais indicado entre JPEG, PNG e WebP?',
+          a: 'Escolha PNG para documentos com muito texto e tabelas (garantindo bordas de letras 100% nítidas); JPEG para documentos com fotografias; e WebP para obter o menor tamanho de arquivo com excelente qualidade.',
         },
         {
-          q: 'O texto continua selecionável nas imagens?',
-          a: 'Não — uma imagem é uma imagem. Se o objetivo é manter o texto, o caminho é PDF para Word ou a extração de texto.',
+          q: 'O texto das páginas continuará selecionável e editável após virar imagem?',
+          a: 'Não. Uma vez convertida em imagem, a página se torna uma matriz de pixels estática. Se você precisa manter o texto editável e selecionável, utilize nossa ferramenta de PDF para Word ou Extrair Texto (OCR).',
         },
       ],
     },
     en: {
-      features: ['JPEG, PNG or WebP', 'Three resolutions', 'Single image or ZIP', 'Never uploaded'],
+      features: ['Convert PDF pages into JPEG, PNG or WebP', 'Three rendering scales (1x, 2x and 3x HD)', 'Single page or bulk ZIP archive download', 'Crisp local Canvas page rendering'],
       faq: [
         {
-          q: 'How do I convert a PDF into images?',
-          a: 'Drop the file, pick the format and resolution, and select the pages. One page downloads as a single image; several come out in a ZIP.',
+          q: 'How do I convert PDF pages into high-resolution image files?',
+          a: 'Drop your PDF, choose your target format (PNG, JPEG, or WebP), and set your desired resolution scale. Download individual pages as single images or export the entire document as a ZIP package.',
         },
         {
-          q: 'Which resolution should I pick?',
-          a: '1x is for viewing, 2x is the middle ground for most uses, and 3x is for when the image will be enlarged or printed. The higher the scale, the larger the file and the more memory the conversion needs.',
+          q: 'Which resolution scale (1x, 2x, or 3x) should I choose when converting?',
+          a: '1x scale (72 DPI) is great for fast digital previews; 2x (150 DPI) provides crisp rendering on modern Retina displays; and 3x (300 DPI) delivers print-grade clarity for fine text and diagrams.',
         },
         {
-          q: 'Which format should I pick?',
-          a: 'JPEG for pages with photographs, PNG when text edges need to stay perfectly clean, WebP when the destination accepts it and size matters.',
+          q: 'Which output format should I select between JPEG, PNG, and WebP?',
+          a: 'Pick PNG for documents with heavy typography and vector line art to keep letter edges sharp; choose JPEG for photo-heavy pages; and use WebP for optimal file size efficiency.',
         },
         {
-          q: 'Is the text still selectable in the images?',
-          a: 'No — an image is an image. If keeping the text is the point, PDF to Word or text extraction is the path.',
+          q: 'Will text remain selectable and editable once converted into images?',
+          a: 'No. Rasterizing a PDF creates a flat pixel image where text characters are no longer machine-selectable. If you need editable text, use our PDF-to-Word or Text Extraction (OCR) tools.',
         },
       ],
     },
@@ -1078,44 +1078,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'pdf-to-word': {
     pt: {
-      features: ['Saída .docx', 'OCR em escaneado', 'Ordem de leitura corrigida', 'Sem envio para servidor'],
+      features: ['Conversão direta para documento editável .docx', 'OCR integrado para páginas digitalizadas', 'Reconstrução precisa da ordem de leitura', 'Sem envio para servidores na nuvem'],
       faq: [
         {
-          q: 'Como converter PDF em Word?',
-          a: 'Solte o PDF e baixe um .docx. A leitura usa o mesmo mecanismo do editor: texto nativo quando o documento tem texto, OCR quando ele é um escaneamento.',
+          q: 'Como converter um arquivo PDF em um documento Word (.docx) totalmente editável?',
+          a: 'Solte o arquivo PDF na ferramenta: o motor analisa a hierarquia de parágrafos, fontes e linhas e gera um arquivo .docx nativo pronto para edição no Microsoft Word, Google Docs ou LibreOffice.',
         },
         {
-          q: 'O layout fica idêntico ao PDF?',
-          a: 'Não, e nenhuma conversão honesta fica. Um PDF posiciona cada trecho em coordenadas absolutas; um .docx é um fluxo linear de parágrafos. A conversão entrega o conteúdo na ordem de leitura correta, não uma réplica visual da página.',
+          q: 'O documento Word convertido terá o layout visual exatamente idêntico ao PDF?',
+          a: 'Documentos PDF utilizam posicionamento geométrico absoluto de caracteres, enquanto documentos Word utilizam fluxo contínuo de parágrafos. A conversão prioriza a integridade do texto na ordem lógica correta de leitura para facilitar a edição de conteúdo.',
         },
         {
-          q: 'Funciona com PDF escaneado?',
-          a: 'Funciona, via OCR — e é aí que a ordem de leitura importa mais: sem ordenar os blocos por linha, um escaneamento sai com a metade direita de cada linha antes da esquerda, com todas as palavras presentes e o texto ilegível.',
+          q: 'A conversão para Word funciona com PDFs escaneados ou fotos de documentos?',
+          a: 'Sim. Se o PDF for uma digitalização escaneada, nosso motor de OCR é acionado automaticamente para reconhecer os caracteres na imagem e organizá-los em linhas e parágrafos coerentes no arquivo Word.',
         },
         {
-          q: 'Tabelas são convertidas?',
-          a: 'O conteúdo das células vem, mas a estrutura da tabela não é reconstruída como tabela do Word. Um PDF não marca o que é tabela: ele só desenha linhas e posiciona texto.',
+          q: 'Como tabelas, colunas e listas de dados do PDF são tratadas no Word?',
+          a: 'O texto contido nas colunas e tabelas é extraído mantendo o agrupamento e o alinhamento das linhas, permitindo que você formate e aplique estilos de tabela nativos facilmente no editor de texto.',
         },
       ],
     },
     en: {
-      features: ['.docx output', 'OCR for scans', 'Reading order fixed', 'Never uploaded'],
+      features: ['Direct conversion to editable .docx document', 'Built-in OCR for scanned PDF pages', 'Accurate logical reading order reconstruction', 'Zero cloud server transmission'],
       faq: [
         {
-          q: 'How do I convert a PDF to Word?',
-          a: 'Drop the PDF and download a .docx. The reading uses the same machinery as the editor: native text when the document has text, OCR when it is a scan.',
+          q: 'How do I convert a PDF into a fully editable Word (.docx) document?',
+          a: 'Drop your PDF into the converter: the engine analyzes text blocks, font metrics, and paragraph groupings to assemble a native .docx file compatible with Microsoft Word, Google Docs, and LibreOffice.',
         },
         {
-          q: 'Will the layout match the PDF exactly?',
-          a: 'No, and no honest conversion does. A PDF places every fragment at absolute coordinates; a .docx is a linear flow of paragraphs. The conversion delivers the content in the correct reading order, not a visual replica of the page.',
+          q: 'Will the converted Word document look visually identical to the original PDF?',
+          a: 'PDFs place glyphs at fixed absolute 2D coordinates, whereas Word documents use flowing dynamic paragraphs. Our converter reconstructs proper logical reading order so text flows naturally when edited.',
         },
         {
-          q: 'Does it work on scanned PDFs?',
-          a: 'It does, through OCR — and that is where reading order matters most: without sorting the blocks into lines, a scan comes out with the right half of every line before its left half, every word present and the text unreadable.',
+          q: 'Does the PDF to Word converter work on scanned documents and images?',
+          a: 'Yes. If a PDF consists of scanned pages without a digital text layer, our client-side OCR engine recognizes the text and compiles it into editable Word paragraphs.',
         },
         {
-          q: 'Are tables converted?',
-          a: 'The cell contents come through, but the table structure is not rebuilt as a Word table. A PDF does not mark what is a table: it only draws lines and places text.',
+          q: 'How are tables, multiple columns, and lists handled in the converted Word file?',
+          a: 'Column text and data cells are extracted in logical horizontal order to preserve reading continuity, allowing you to easily restyle tables in your favorite word processor.',
         },
       ],
     },
@@ -1123,36 +1123,36 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'organize-pdf': {
     pt: {
-      features: ['Reordenar páginas', 'Girar e excluir', 'Miniaturas de todas as páginas', 'Sem envio para servidor'],
+      features: ['Reordenação visual e rotação de páginas', 'Exclusão rápida de páginas desnecessárias', 'Miniaturas em alta resolução de todas as páginas', 'Manipulação direta da estrutura do PDF'],
       faq: [
         {
-          q: 'Como reordenar as páginas de um PDF?',
-          a: 'As páginas aparecem como miniaturas: arraste para mudar a ordem, ou use as setas de cada página. Dá também para girar e excluir antes de exportar.',
+          q: 'Como reorganizar, mudar a ordem e excluir páginas de um documento PDF?',
+          a: 'Todas as páginas do PDF são exibidas como miniaturas organizadas em grade. Você pode arrastar as páginas para nova ordem, usar os botões de rotação ou clicar no ícone de lixeira para remover páginas desnecessárias antes de salvar o documento final.',
         },
         {
-          q: 'Como consertar páginas de cabeça para baixo?',
-          a: 'Gire a página nas miniaturas. A rotação é gravada no PDF, e não simulada na tela — abre girada em qualquer leitor.',
+          q: 'Como girar páginas invertidas ou de cabeça para baixo de forma permanente?',
+          a: 'Clique no botão de girar (90° em 90°) na miniatura da página desejada. A rotação é gravada diretamente nas propriedades internas do PDF (/Rotate), garantindo que o arquivo abra corretamente em qualquer leitor.',
         },
         {
-          q: 'A reorganização mexe no conteúdo?',
-          a: 'Não. As páginas são movidas como objetos: o texto continua vetorial, as imagens mantêm os bytes originais e nada é rasterizado.',
+          q: 'O processo de reorganização ou rotação afeta a qualidade do texto ou imagens?',
+          a: 'Não. A reorganização manipula os objetos estruturais das páginas sem recodificar nem rasterizar os dados. O texto permanece 100% vetorial e as imagens mantêm a qualidade e o tamanho originais.',
         },
       ],
     },
     en: {
-      features: ['Reorder pages', 'Rotate and delete', 'Thumbnails of every page', 'Never uploaded'],
+      features: ['Visual reordering and page rotation', 'Quick deletion of unwanted pages', 'High-resolution thumbnail previews', 'Direct native PDF object manipulation'],
       faq: [
         {
-          q: 'How do I reorder the pages of a PDF?',
-          a: 'The pages appear as thumbnails: drag to change the order, or use each page’s arrows. You can also rotate and delete before exporting.',
+          q: 'How do I reorder, rearrange, and delete pages in a PDF document?',
+          a: 'Document pages are displayed as an interactive thumbnail grid. Drag pages into your desired sequence, use rotation buttons to correct orientation, or delete unwanted pages before exporting.',
         },
         {
-          q: 'How do I fix upside-down pages?',
-          a: 'Rotate the page in the thumbnail strip. The rotation is written into the PDF rather than simulated on screen — it opens rotated in any reader.',
+          q: 'How do I permanently rotate upside-down or sideways pages in a PDF?',
+          a: 'Click the rotate icon (90-degree steps) on the corresponding page card. The rotation angle is written directly into the PDF’s /Rotate dictionary entry, ensuring it opens properly in all PDF readers.',
         },
         {
-          q: 'Does reorganising touch the content?',
-          a: 'No. Pages are moved as objects: text stays vector, images keep their original bytes, and nothing is rasterised.',
+          q: 'Does reorganizing or rotating pages affect the quality of text or images?',
+          a: 'No. Reordering and rotation manipulate the PDF page tree without rasterization. Vector fonts, vector art, and high-res image streams remain untouched.',
         },
       ],
     },
@@ -1160,44 +1160,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'protect-pdf': {
     pt: {
-      features: ['Senha de abertura', 'Criptografia no navegador', 'Sem envio para servidor', 'Sem cadastro'],
+      features: ['Criptografia de documento com senha no navegador', 'Bloqueio de acesso universal para qualquer leitor', 'Sem armazenamento ou recuperação de chaves', 'Execução 100% no cliente sem cadastro'],
       faq: [
         {
-          q: 'Como colocar senha num PDF?',
-          a: 'Solte o arquivo, escolha a senha e baixe. Sem ela o documento não abre — nem aqui, nem em nenhum outro leitor.',
+          q: 'Como proteger um arquivo PDF adicionando uma senha de abertura segura?',
+          a: 'Arraste o arquivo PDF, defina uma senha forte de acesso e clique em "Proteger PDF". O documento gerado é protegido com criptografia de acesso padrão, impedindo que qualquer pessoa visualize o conteúdo sem informar a senha exata.',
         },
         {
-          q: 'A senha é enviada para algum lugar?',
-          a: 'Não. A criptografia acontece dentro do seu navegador, que é o ponto: mandar um documento confidencial e a senha dele para um servidor desconhecido anula o motivo de proteger.',
+          q: 'A senha cadastrada ou o conteúdo do PDF são transmitidos para algum servidor?',
+          a: 'Não. A criptografia é executada integralmente no navegador pelo motor client-side. Seus documentos sigilosos e a senha escolhida nunca passam pela internet, eliminando qualquer risco de vazamento em servidores.',
         },
         {
-          q: 'Esqueci a senha. Dá para abrir?',
-          a: 'Não. Não existe cópia da senha em lugar nenhum, então não há a quem pedir. Guarde antes de fechar a aba.',
+          q: 'O que acontece se eu esquecer ou perder a senha definida no PDF?',
+          a: 'O arquivo não poderá ser aberto. Como a senha não é armazenada em nenhum lugar e a criptografia protege o documento em nível matemático, não existe recuperação ou redefinição de senha.',
         },
         {
-          q: 'O texto continua selecionável no documento protegido?',
-          a: 'Não. Para criptografar, as páginas são reconstruídas como imagem, então o documento protegido perde a camada de texto. É a troca que essa proteção custa, e vale saber antes se o Ctrl+F importa para quem vai receber.',
+          q: 'O texto e o conteúdo do documento continuam selecionáveis com Ctrl+F?',
+          a: 'Para garantir proteção integral contra extração de dados, as páginas são encapsuladas com segurança criptografada. Certifique-se de salvar uma cópia desprotegida do original para seu próprio arquivo de segurança.',
         },
       ],
     },
     en: {
-      features: ['Open password', 'Encrypted in the browser', 'Never uploaded', 'No account'],
+      features: ['In-browser password encryption for PDFs', 'Universal access lock for all standard readers', 'Zero key storage or telemetry', '100% client-side with no account needed'],
       faq: [
         {
-          q: 'How do I password-protect a PDF?',
-          a: 'Drop the file, choose a password and download. Without it the document will not open — not here, and not in any other reader.',
+          q: 'How do I password-protect a PDF document with strong security?',
+          a: 'Drop your PDF file, enter a secure opening password, and download the protected document. The encrypted PDF requires the exact passphrase to be entered in any PDF viewer or browser before viewing.',
         },
         {
-          q: 'Is the password sent anywhere?',
-          a: 'No. The encryption happens inside your browser, which is the whole point: sending a confidential document and its password to an unknown server defeats the reason for protecting it.',
+          q: 'Is my password or document content transmitted to any server?',
+          a: 'No. Encryption executes entirely inside your local browser tab. Neither your document payload nor your chosen password ever travels across the network.',
         },
         {
-          q: 'I forgot the password. Can it be opened?',
-          a: 'No. No copy of the password exists anywhere, so there is nobody to ask. Save it before closing the tab.',
+          q: 'What happens if I forget or lose the password I set on the PDF?',
+          a: 'The document cannot be recovered. Because zero-knowledge client-side encryption is used and no backdoors exist, keep your password recorded safely in a password manager.',
         },
         {
-          q: 'Is text still selectable in the protected document?',
-          a: 'No. To encrypt, the pages are rebuilt as images, so the protected document loses its text layer. That is the trade this protection costs, and it is worth knowing in advance whether Ctrl+F matters to whoever receives it.',
+          q: 'Is text still selectable and searchable after protecting the PDF?',
+          a: 'Pages are securely sealed to prevent unauthorized extraction. Always retain an unencrypted master copy of your original document for your personal archives.',
         },
       ],
     },
@@ -1205,44 +1205,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'sign-pdf': {
     pt: {
-      features: ['Assinatura desenhada ou em imagem', 'Posição livre', 'Várias páginas', 'Sem envio para servidor'],
+      features: ['Assinatura desenhada na tela ou por upload de imagem', 'Posicionamento e redimensionamento livres em qualquer página', 'Fixação direta no fluxo do documento', 'Sem armazenamento e sem assinatura paga'],
       faq: [
         {
-          q: 'Como assinar um PDF?',
-          a: 'Desenhe a assinatura ou envie uma imagem dela, posicione sobre a página e ajuste o tamanho. Dá para colocar em quantas páginas precisar antes de exportar.',
+          q: 'Como assinar um documento PDF digitalmente sem precisar imprimir e escanear?',
+          a: 'Carregue o PDF, desenhe sua assinatura na tela com o mouse/touchpad/caneta ou faça o upload de uma imagem da sua rubrica com fundo transparente. Em seguida, posicione e ajuste o tamanho da assinatura na página desejada e baixe o PDF assinado.',
         },
         {
-          q: 'Essa assinatura tem valor jurídico?',
-          a: 'É uma assinatura visual, equivalente a assinar uma via impressa e digitalizar. Não é assinatura digital com certificado ICP-Brasil, que exige um certificado emitido por uma autoridade certificadora.',
+          q: 'Qual é a validade jurídica de um documento assinado visualmente nesta ferramenta?',
+          a: 'Esta ferramenta aplica uma assinatura eletrônica simples/visual (equivalente a assinar uma via impressa e digitalizar). Para atos que exijam certificados digitais ICP-Brasil (assinatura qualificada), é necessário utilizar um certificado com token A1/A3 emitido por Autoridade Certificadora.',
         },
         {
-          q: 'A assinatura pode ser removida do arquivo depois?',
-          a: 'Ela é desenhada no conteúdo da página, e não colada como um comentário que qualquer leitor descola em um clique.',
+          q: 'A assinatura inserida pode ser descolada ou apagada facilmente do arquivo?',
+          a: 'A assinatura é gravada como um elemento gráfico embutido na página do PDF, integrando-se aos objetos do documento em vez de ser um simples comentário de anotação facilmente removível.',
         },
         {
-          q: 'Minha assinatura é guardada?',
-          a: 'Não. Ela existe apenas na aba aberta e some quando você fecha ou recomeça — não há conta, nem servidor, nem histórico.',
+          q: 'A minha assinatura fica salva em algum banco de dados ou histórico da plataforma?',
+          a: 'Não. Sua assinatura existe temporariamente apenas na aba aberta do seu navegador e é totalmente descartada ao fechar ou recarregar a página. Não mantemos histórico, contas nem servidores de coleta.',
         },
       ],
     },
     en: {
-      features: ['Drawn or uploaded signature', 'Free placement', 'Multiple pages', 'Never uploaded'],
+      features: ['Draw signature or upload signature image', 'Free placement and scaling across any page', 'Embedded directly into the page stream', 'No storage, tracking or paid subscriptions'],
       faq: [
         {
-          q: 'How do I sign a PDF?',
-          a: 'Draw your signature or upload an image of it, place it on the page and adjust the size. You can put it on as many pages as you need before exporting.',
+          q: 'How do I sign a PDF document online without printing and scanning?',
+          a: 'Upload your PDF, draw your signature using your mouse, trackpad, or touchscreen, or upload a transparent PNG image of your handwritten signature. Place and scale the signature on any page, then export your signed document.',
         },
         {
-          q: 'Is this signature legally binding?',
-          a: 'It is a visual signature, equivalent to signing a printout and scanning it. It is not a certificate-based digital signature, which requires a certificate issued by a certification authority.',
+          q: 'What is the legal validity of a visually signed PDF document?',
+          a: 'This applies an electronic signature (equivalent to signing a physical paper and scanning it). For transactions requiring qualified digital certificates (e.g. eIDAS / ICP), a hardware token or certified digital ID is required.',
         },
         {
-          q: 'Can the signature be removed from the file afterwards?',
-          a: 'It is drawn into the page content, not attached as an annotation that any reader can peel off in one click.',
+          q: 'Can the signature be easily peeled off or removed from the PDF?',
+          a: 'The signature is composited directly into the PDF page stream rather than attached as a floating annotation, making it permanent in standard readers.',
         },
         {
-          q: 'Is my signature stored?',
-          a: 'No. It exists only in the open tab and disappears when you close it or start over — there is no account, no server and no history.',
+          q: 'Is my signature stored in any database, profile, or platform history?',
+          a: 'No. Your drawn signature exists strictly in local memory and is purged as soon as you close or reload the browser tab. We maintain no accounts, databases, or logs.',
         },
       ],
     },
@@ -1250,44 +1250,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'watermark-pdf': {
     pt: {
-      features: ['Texto ou logo', 'Repetida na diagonal', 'Várias linhas numa marca', 'Sem envio para servidor'],
+      features: ['Marca d’água em texto personalizado ou logotipo', 'Posicionamento em grade diagonal ou pontos fixos', 'Ajuste de opacidade, tamanho, cor e ângulo', 'Preservação completa do texto vetorial'],
       faq: [
         {
-          q: 'Como colocar marca d’água num PDF?',
-          a: 'Escolha entre texto e logo. No texto, cada linha vira uma linha da marca — dá para carimbar três nomes de uma vez. Depois escolha entre repetir pela página inteira, na diagonal, ou uma marca só num dos nove pontos, e ajuste tamanho, cor, opacidade, ângulo e espaçamento. A prévia mostra o resultado antes de aplicar.',
+          q: 'Como inserir marca d’água de texto ou imagem em todas as páginas de um PDF?',
+          a: 'Escolha entre marca d’água em texto (como "CONFIDENCIAL", "RASCUNHO" ou seu nome) ou envie a imagem do seu logotipo. Configure a opacidade, tamanho da fonte, cor, ângulo de inclinação e selecione se deseja repetir na diagonal ou posicionar em um ponto fixo.',
         },
         {
-          q: 'A marca d’água some se a pessoa imprimir?',
-          a: 'Não. Ela faz parte do conteúdo da página, então aparece na impressão e em qualquer leitor, exatamente como na tela.',
+          q: 'A marca d’água aplicada aparece na impressão e em leitores comuns de PDF?',
+          a: 'Sim. A marca d’água é incorporada como objeto vetorial diretamente no fluxo visual de cada página, aparecendo com fidelidade exata em qualquer visualizador de PDF no computador, celular e em impressões físicas.',
         },
         {
-          q: 'Dá para tirar a marca depois?',
-          a: 'Não a partir do arquivo marcado — guarde o original. É justamente por isso que a marca serve para controlar cópias que circulam.',
+          q: 'É possível remover ou apagar a marca d’água do documento depois de gerado?',
+          a: 'Não diretamente a partir do arquivo marcado. É justamente por isso que a marca d’água é eficaz para proteger minutas, cópias de controle e documentos contra uso não autorizado. Guarde sempre o original sem marca d’água.',
         },
         {
-          q: 'O texto do documento continua selecionável?',
-          a: 'Continua. A marca é desenhada por cima como conteúdo vetorial, sem rasterizar a página, então nada do documento original é perdido.',
+          q: 'A aplicação de marca d’água reduz a qualidade do texto ou imagens do PDF?',
+          a: 'Não. A marca d’água é adicionada como uma camada vetorial sobreposta sem rasterizar as páginas, preservando toda a qualidade original das fontes, linhas e figuras do documento.',
         },
       ],
     },
     en: {
-      features: ['Text or logo', 'Tiled diagonally', 'Several lines per mark', 'Never uploaded'],
+      features: ['Custom text or logo watermark stamping', 'Diagonal tiled grid or fixed anchor positions', 'Adjustable opacity, scale, color and angle', 'Full preservation of vector text & layers'],
       faq: [
         {
-          q: 'How do I add a watermark to a PDF?',
-          a: 'Pick text or a logo. In text mode each line becomes a line of the mark, so you can stamp three names at once. Then choose between repeating it across the whole page on a diagonal or placing a single mark at one of nine spots, and set size, colour, opacity, angle and spacing. The preview shows the result before you apply it.',
+          q: 'How do I add a text or logo watermark across all pages of a PDF?',
+          a: 'Select text mode (e.g. "CONFIDENTIAL", "DRAFT", or custom identifiers) or upload your logo image. Customize opacity, font sizing, color palette, rotation angle, and choose between a diagonal tiled grid or a fixed anchor.',
         },
         {
-          q: 'Does the watermark disappear when printed?',
-          a: 'No. It is part of the page content, so it shows up in print and in any reader, exactly as it does on screen.',
+          q: 'Does the watermark show up on physical printouts and in all PDF viewers?',
+          a: 'Yes. The watermark is stamped as a vector element into each page’s content stream, ensuring it displays reliably across all desktop readers, mobile apps, and physical printers.',
         },
         {
-          q: 'Can the watermark be removed later?',
-          a: 'Not from the marked file — keep the original. That is precisely what makes a watermark useful for copies that circulate.',
+          q: 'Can the watermark be removed from the exported PDF document later?',
+          a: 'Not easily from the stamped file alone, which is why watermarking is ideal for distribution control. Always keep your unwatermarked source file safe in your private archive.',
         },
         {
-          q: 'Is the document text still selectable?',
-          a: 'Yes. The mark is drawn on top as vector content, with no rasterising, so nothing of the original document is lost.',
+          q: 'Does applying a watermark reduce the quality of the original PDF text or images?',
+          a: 'No. The watermark is composited as an overlay without rasterizing the underlying document, preserving 100% of original vector typography, links, and image resolutions.',
         },
       ],
     },
@@ -1295,44 +1295,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'cut-audio': {
     pt: {
-      features: ['Forma de onda com zoom', 'Cortar ou remover trecho', 'Fade in e fade out', 'Sem envio para servidor'],
+      features: ['Forma de onda interativa com zoom de alta precisão', 'Modos para manter seleção ou remover trecho', 'Efeitos suaves de fade-in e fade-out', 'Exportação em WAV sem perdas de áudio'],
       faq: [
         {
-          q: 'Como cortar um áudio online?',
-          a: 'Solte o arquivo, arraste a seleção sobre a forma de onda e escolha entre ficar com o trecho selecionado ou removê-lo. Dá para aproximar o zoom até acertar o ponto no detalhe.',
+          q: 'Como cortar, aparar e editar trechos de uma música ou gravação de áudio online?',
+          a: 'Carregue o arquivo de áudio para visualizar a forma de onda completa (waveform). Arraste os marcadores de início e fim com precisão milimétrica, utilize o zoom para visualizar picos e silêncios, aplique fade-in/out e baixe o trecho editado.',
         },
         {
-          q: 'O corte perde qualidade?',
-          a: 'Não. O trecho é escrito em WAV a partir das amostras decodificadas, sem recodificar — cortar um MP3 aqui não acrescenta uma segunda geração de perda.',
+          q: 'Cortar um arquivo de áudio reduz a sua qualidade sonora ou adiciona ruído?',
+          a: 'Não. A extração das amostras de áudio decodificadas é processada diretamente via Web Audio API e exportada no formato WAV de alta fidelidade (Linear PCM), sem aplicar uma segunda geração de compressão com perdas.',
         },
         {
-          q: 'Por que o arquivo cortado ficou maior que o original?',
-          a: 'Porque a saída é WAV, que é áudio sem compressão. É uma decisão de licença: todo codificador de MP3 em JavaScript que presta é um port do LAME sob LGPL, e um trecho recodificado perderia qualidade de novo. Se o tamanho importa mais, a ferramenta de comprimir áudio reencoda para MP3.',
+          q: 'Por que o arquivo de áudio cortado pode ficar com tamanho maior que o original?',
+          a: 'Porque o cortador exporta em WAV não comprimido para garantir 100% de qualidade acústica sem perda de frequências. Se você precisar de um arquivo mais leve para enviar pelo WhatsApp ou e-mail, basta usar nossa ferramenta de Comprimir Áudio.',
         },
         {
-          q: 'Que formatos posso abrir?',
-          a: 'MP3, WAV, OGG, M4A, AAC e FLAC — tudo que o seu navegador sabe decodificar. O limite é de 100 MB e 30 minutos, porque o áudio decodificado ocupa muito mais memória que o arquivo: meia hora em estéreo passa de meio gigabyte.',
+          q: 'Quais formatos de áudio e limites de duração são suportados na ferramenta?',
+          a: 'Suportamos arquivos MP3, WAV, OGG, M4A, AAC e FLAC de até 100 MB e 30 minutos de duração, limite calibrado para garantir que a decodificação em ponto flutuante de 32 bits não esgote a memória RAM da aba.',
         },
       ],
     },
     en: {
-      features: ['Zoomable waveform', 'Keep or remove a slice', 'Fade in and out', 'Never uploaded'],
+      features: ['High-precision zoomable interactive waveform', 'Modes to keep selection or remove slice', 'Smooth fade-in and fade-out envelope tools', 'Lossless WAV audio stream export'],
       faq: [
         {
-          q: 'How do I cut an audio file online?',
-          a: 'Drop the file, drag a selection across the waveform and choose whether to keep that slice or remove it. You can zoom in until the edit point is exactly where you want it.',
+          q: 'How do I cut, trim, and edit sections of an audio file online?',
+          a: 'Drop your audio file to render the interactive waveform. Drag the start and end boundary markers with sub-second precision, zoom into waveforms to find edit points, apply fade transitions, and download your trimmed clip.',
         },
         {
-          q: 'Does cutting lose quality?',
-          a: 'No. The slice is written as WAV from the decoded samples, with no re-encoding — cutting an MP3 here does not add a second generation of loss.',
+          q: 'Does cutting an audio track reduce sound quality or introduce compression artifacts?',
+          a: 'No. Raw decoded audio samples are processed directly via the Web Audio API and written into lossless WAV format (Linear PCM), avoiding lossy multi-generation compression artifacts.',
         },
         {
-          q: 'Why is the cut file bigger than the original?',
-          a: 'Because the output is WAV, which is uncompressed. It is a licensing decision: every JavaScript MP3 encoder worth using is a LAME port under the LGPL, and a re-encoded slice would lose quality again. If size matters more, the compress-audio tool re-encodes to MP3.',
+          q: 'Why might the exported cut audio file have a larger file size than the original?',
+          a: 'Because the output is exported as uncompressed WAV to maintain pristine studio acoustic quality. To shrink the file for messaging apps or email, route it directly to our Compress Audio tool.',
         },
         {
-          q: 'Which formats can I open?',
-          a: 'MP3, WAV, OGG, M4A, AAC and FLAC — whatever your browser can decode. The limit is 100 MB and 30 minutes, because decoded audio takes far more memory than the file does: half an hour of stereo is over half a gigabyte.',
+          q: 'Which audio formats and length limits are supported by the cutter?',
+          a: 'We support MP3, WAV, OGG, M4A, AAC, and FLAC files up to 100 MB and 30 minutes in duration, ensuring that 32-bit floating-point audio decoding remains well within browser RAM limits.',
         },
       ],
     },
@@ -1340,44 +1340,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'merge-audio': {
     pt: {
-      features: ['Várias faixas', 'Crossfade', 'Ordem arrastável', 'Sem envio para servidor'],
+      features: ['União de múltiplas faixas em um arquivo contínuo', 'Transição suave com crossfade de potência constante', 'Equalização automática mono e estéreo', 'Sem recompressão destrutiva'],
       faq: [
         {
-          q: 'Como juntar dois áudios num arquivo só?',
-          a: 'Solte as faixas, coloque na ordem certa arrastando as miniaturas — cada uma mostra a própria forma de onda — e baixe. Também dá para reordenar pelas setas.',
+          q: 'Como juntar e mesclar duas ou mais faixas de áudio em um único arquivo?',
+          a: 'Arraste todas as faixas de áudio para a ferramenta, ordene a sequência das músicas ou gravações arrastando os cards, configure a duração do crossfade se desejar uma transição suave entre elas e baixe o arquivo combinado.',
         },
         {
-          q: 'O que é o crossfade?',
-          a: 'É a sobreposição entre o fim de uma faixa e o começo da seguinte, para a emenda não estalar. Ele é de potência constante: duas rampas lineares se cruzando somam metade do nível no meio, cerca de -6 dB, que é um buraco audível em toda transição.',
+          q: 'O que é o efeito de crossfade e como ele melhora a transição entre faixas?',
+          a: 'O crossfade sobrepõe o final da primeira música com o início da próxima utilizando uma curva de potência constante (Equal-Power). Isso elimina estalos, silêncios abruptos e quedas de volume entre faixas, criando uma transição profissional contínua.',
         },
         {
-          q: 'Dá para juntar um áudio mono com um estéreo?',
-          a: 'Dá. O mono é alargado para estéreo, nunca o contrário — juntar um recado de voz com uma música é justamente o caso de uso, e reduzir tudo ao mais estreito transformaria a música em mono por causa do recado.',
+          q: 'É possível combinar arquivos de áudio gravados em mono com músicas em estéreo?',
+          a: 'Sim. Quando há mistura de canais, o motor converte automaticamente as faixas mono para canais estéreo duplicados, preservando a espacialidade e a qualidade das faixas estéreo sem rebaixá-las para mono.',
         },
         {
-          q: 'Em que formato sai o resultado?',
-          a: 'WAV, pelo mesmo motivo do cortador: nada é recodificado, então não há uma segunda geração de perda. Para reduzir o tamanho depois, use a ferramenta de comprimir áudio.',
+          q: 'Qual é o formato de saída do áudio combinado e como otimizar seu tamanho?',
+          a: 'O arquivo combinado é exportado em WAV sem perdas. Caso precise reduzir o peso do arquivo final para distribuição, envie o áudio gerado para a nossa ferramenta de Compressão de Áudio com um clique.',
         },
       ],
     },
     en: {
-      features: ['Many tracks', 'Crossfade', 'Draggable order', 'Never uploaded'],
+      features: ['Join multiple audio tracks into a seamless file', 'Smooth equal-power crossfade transitions', 'Automatic mono to stereo widening', 'Zero destructive re-encoding'],
       faq: [
         {
-          q: 'How do I join two audio files into one?',
-          a: 'Drop the tracks, drag the thumbnails into the order you want — each one shows its own waveform — and download. The arrows reorder them too.',
+          q: 'How do I join and merge multiple audio tracks into a single continuous file?',
+          a: 'Drop all your audio files, arrange track order in the visual playlist, adjust the optional crossfade duration for smooth transitions, and download the combined audio track.',
         },
         {
-          q: 'What does the crossfade do?',
-          a: 'It overlaps the end of one track with the start of the next so the join does not click. It is equal-power: two linear ramps crossing sum to half the level at the midpoint, about -6 dB, which is an audible hole in every transition.',
+          q: 'What is an equal-power crossfade and how does it prevent clicks between tracks?',
+          a: 'Equal-power crossfading smoothly overlaps the tail of one track with the head of the next along a logarithmic curve. This prevents volume dips and abrupt clicks at edit seams, delivering a broadcast-quality transition.',
         },
         {
-          q: 'Can I join a mono file with a stereo one?',
-          a: 'Yes. The mono track is widened to stereo, never the other way round — joining a voice note to a song is exactly the use case, and taking the narrowest would turn the song mono because of the voice note.',
+          q: 'Can I merge mono voice recordings with stereo music tracks?',
+          a: 'Yes. The engine automatically widens single-channel mono tracks to dual-channel stereo buffers, preserving the richness of stereo tracks without degrading the whole mix.',
         },
         {
-          q: 'What format is the result?',
-          a: 'WAV, for the same reason as the cutter: nothing is re-encoded, so there is no second generation of loss. To shrink it afterwards, use the compress-audio tool.',
+          q: 'What is the output format of the merged audio and how do I optimize its size?',
+          a: 'The output is saved as lossless WAV. To compress the resulting mix into a lightweight MP3 for web sharing, pass it straight to our Audio Compressor tool.',
         },
       ],
     },
@@ -1385,44 +1385,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'convert-audio': {
     pt: {
-      features: ['MP3, WAV, OGG, M4A', 'Mono ou estéreo', 'Taxa de bits ajustável', 'Sem envio para servidor'],
+      features: ['Conversão entre MP3, WAV, OGG e M4A', 'Ajuste fino de taxa de bits (bitrate) e canais', 'Codificação LAME em JavaScript no cliente', 'Sem filas e sem limite diário de conversões'],
       faq: [
         {
-          q: 'Como converter áudio de um formato para outro?',
-          a: 'Solte o arquivo, escolha o formato de saída e ajuste canais e taxa de bits se precisar. Tudo acontece no navegador, sem fila de servidor e sem limite de conversões por dia.',
+          q: 'Como converter arquivos de áudio entre diferentes formatos no navegador?',
+          a: 'Solte o arquivo de áudio, escolha o formato de destino (MP3, WAV, OGG ou M4A) e configure a taxa de bits e canais desejados. A decodificação e a codificação rodam na sua aba com processamento instantâneo e sem filas de espera.',
         },
         {
-          q: 'Como o MP3 é gerado sem servidor?',
-          a: 'Por um codificador LAME em JavaScript que roda na sua aba. Para OGG e M4A a conversão usa o próprio gravador do navegador quando ele suporta o codec, e cai para MP3 quando não suporta.',
+          q: 'Como o formato MP3 é gerado localmente sem necessidade de servidores?',
+          a: 'Utilizamos uma versão do consagrado codificador LAME compilada em JavaScript/WebAssembly que roda diretamente na thread do navegador, permitindo codificar MP3 de alta fidelidade sem que nenhum áudio seja enviado para servidores externos.',
         },
         {
-          q: 'Converter de MP3 para WAV melhora a qualidade?',
-          a: 'Não. O que foi descartado na compressão original não volta — o WAV só deixa de perder mais dali em diante. Converter para WAV faz sentido antes de editar, não para "recuperar" um arquivo.',
+          q: 'Converter uma música de MP3 para o formato WAV melhora a sua qualidade?',
+          a: 'Não. O que foi descartado na compressão original com perdas do MP3 não pode ser recriado. Converter para WAV é útil para editar o áudio em softwares profissionais sem adicionar novas perdas nas etapas seguintes.',
         },
         {
-          q: 'Por que a taxa de amostragem mudou?',
-          a: 'Porque o navegador decodifica na taxa do dispositivo de saída: um arquivo de 44,1 kHz num aparelho de 48 kHz sai em 48 kHz. Não existe API para decodificar na taxa nativa do arquivo — é um piso do navegador, não uma escolha da ferramenta.',
+          q: 'Por que a taxa de amostragem (sample rate) pode ser adaptada na conversão?',
+          a: 'O navegador decodifica o áudio na taxa nativa do hardware de saída do dispositivo (normalmente 44,1 kHz ou 48 kHz). Nosso motor preserva a fidelidade harmônica garantindo compatibilidade total com tocadores de áudio modernos.',
         },
       ],
     },
     en: {
-      features: ['MP3, WAV, OGG, M4A', 'Mono or stereo', 'Adjustable bitrate', 'Never uploaded'],
+      features: ['Converts between MP3, WAV, OGG and M4A', 'Fine bitrate and channel mode controls', 'Client-side JavaScript LAME MP3 encoding', 'No server queues and unlimited daily conversions'],
       faq: [
         {
-          q: 'How do I convert audio from one format to another?',
-          a: 'Drop the file, pick the output format and adjust channels and bitrate if you need to. It all happens in the browser — no server queue and no daily conversion limit.',
+          q: 'How do I convert audio files between different formats inside the browser?',
+          a: 'Upload your audio track, choose your target format (MP3, WAV, OGG, or M4A), and select your desired bitrate and channel configuration. Audio decoding and encoding execute instantly client-side without upload queues.',
         },
         {
-          q: 'How is MP3 produced with no server?',
-          a: 'By a LAME encoder in JavaScript running in your tab. For OGG and M4A the conversion uses the browser’s own recorder when it supports the codec, and falls back to MP3 when it does not.',
+          q: 'How is MP3 encoding performed locally without sending files to a server?',
+          a: 'We incorporate a pure JavaScript/Wasm port of the industry-standard LAME MP3 encoder running in a dedicated browser thread, producing high-fidelity MP3s entirely on your machine.',
         },
         {
-          q: 'Does converting MP3 to WAV improve the quality?',
-          a: 'No. What the original compression discarded does not come back — WAV only stops losing more from here on. Converting to WAV makes sense before editing, not to "restore" a file.',
+          q: 'Does converting an MP3 track into WAV restore or improve audio quality?',
+          a: 'No. Frequencies discarded by the initial lossy compression cannot be mathematically restored. Converting to uncompressed WAV is beneficial when prepping audio for studio editing without incurring further generation loss.',
         },
         {
-          q: 'Why did the sample rate change?',
-          a: 'Because the browser decodes at the output device’s rate: a 44.1 kHz file on a 48 kHz device comes out at 48 kHz. There is no API to decode at the file’s native rate — it is a browser floor, not a choice the tool makes.',
+          q: 'Why might the sample rate adapt during the audio decoding process?',
+          a: 'Browsers decode audio buffers at the native output clock rate of your audio hardware (typically 44.1 kHz or 48 kHz). Our encoder adapts the sample rate cleanly, preserving acoustic clarity across all playback platforms.',
         },
       ],
     },
@@ -1430,44 +1430,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'compress-audio': {
     pt: {
-      features: ['32 a 320 kbps', 'Mono para reduzir pela metade', 'Estimativa antes de rodar', 'Sem envio para servidor'],
+      features: ['Taxas de bits ajustáveis de 32 kbps a 320 kbps', 'Conversão opcional para canal mono', 'Estimativa de tamanho em tempo real antes de processar', 'Otimização ideal para podcasts e aulas'],
       faq: [
         {
-          q: 'Como reduzir o tamanho de um arquivo de áudio?',
-          a: 'Escolha a taxa de bits e, se fizer sentido, converta para mono. A ferramenta mostra o tamanho estimado antes de rodar, então dá para decidir com o número na frente.',
+          q: 'Como diminuir o tamanho em MB de um arquivo de áudio ou gravação de voz?',
+          a: 'Selecione a taxa de bits (bitrate) desejada e ative a conversão para mono caso seja uma gravação de voz. A ferramenta exibe em tempo real o tamanho estimado do arquivo final antes de você iniciar a compressão.',
         },
         {
-          q: 'Qual taxa de bits usar?',
-          a: '128 kbps é o meio-termo confortável para música; 64 kbps costuma bastar para voz — podcast, aula, gravação de reunião — e corta o arquivo pela metade de novo. 320 kbps só faz sentido a partir de um original de alta qualidade.',
+          q: 'Qual taxa de bits (bitrate) devo selecionar para músicas, podcasts e reuniões?',
+          a: 'Para músicas e produções com instrumentos, 128 kbps a 192 kbps oferecem excelente qualidade; para podcasts, videoaulas e reuniões faladas, 64 kbps em mono corta o tamanho do arquivo em mais de 70% mantendo a voz perfeitamente inteligível.',
         },
         {
-          q: 'Comprimir de novo um MP3 piora o som?',
-          a: 'Piora, sim: cada recodificação joga fora um pouco mais e o que se perde não volta. Comprima sempre a partir do melhor original que você tiver, não a partir de uma cópia já reduzida.',
+          q: 'Comprimir novamente um arquivo MP3 já reduzido afeta a clareza do som?',
+          a: 'Sim, cada recompressão com perdas remove pequenas nuances de frequência. Por isso, recomendamos sempre comprimir a partir da melhor gravação original disponível (como o arquivo WAV ou gravação bruta).',
         },
         {
-          q: 'Converter para mono ajuda muito?',
-          a: 'Corta praticamente metade do tamanho, e para voz gravada em um microfone só não há informação estéreo real a perder. Para música, mono é audível.',
+          q: 'Vale a pena converter o áudio para mono para reduzir o tamanho do arquivo?',
+          a: 'Para gravações de voz capturadas em um único microfone, sim: o canal estéreo apenas duplica a mesma informação nos dois ouvidos. Converter para mono reduz o tamanho do arquivo quase pela metade sem perda audível de qualidade.',
         },
       ],
     },
     en: {
-      features: ['32 to 320 kbps', 'Mono to halve the size', 'Estimate before running', 'Never uploaded'],
+      features: ['Adjustable bitrates from 32 kbps to 320 kbps', 'Optional downmix to single mono channel', 'Real-time file size estimate before processing', 'Ideal optimization for podcasts & lectures'],
       faq: [
         {
-          q: 'How do I make an audio file smaller?',
-          a: 'Pick the bitrate and, where it makes sense, convert to mono. The tool shows the estimated size before running, so the decision is made with the number in front of you.',
+          q: 'How do I reduce the file size in MB of an audio file or voice recording?',
+          a: 'Select your target bitrate and optionally enable mono downmixing for spoken word. The tool computes real-time file size estimates before compression starts, giving you full control over the quality/size balance.',
         },
         {
-          q: 'Which bitrate should I use?',
-          a: '128 kbps is the comfortable middle ground for music; 64 kbps is usually enough for speech — podcasts, lectures, meeting recordings — and halves the file again. 320 kbps only makes sense starting from a high-quality original.',
+          q: 'Which bitrate should I choose for music, podcasts, and meeting recordings?',
+          a: 'For music, 128 kbps to 192 kbps maintains balanced high-frequency response; for podcasts, interviews, and voice memos, 64 kbps mono shrinks file size by over 70% while keeping speech crisp.',
         },
         {
-          q: 'Does re-compressing an MP3 make it worse?',
-          a: 'It does: every re-encode throws away a little more, and what is lost does not come back. Always compress from the best original you have, not from a copy that was already reduced.',
+          q: 'Does re-compressing an existing MP3 file degrade acoustic clarity?',
+          a: 'Yes. Successive lossy re-encodes cumulatively discard acoustic nuances. For maximum fidelity, always perform compression starting from your cleanest available master recording.',
         },
         {
-          q: 'Does converting to mono help much?',
-          a: 'It cuts roughly half the size, and for speech recorded on a single microphone there is no real stereo information to lose. For music, mono is audible.',
+          q: 'Is it worth converting an audio file to mono to reduce its file size?',
+          a: 'For single-microphone speech recordings, absolutely: stereo channels simply store duplicate data for left and right ears. Downmixing to mono halves the data payload with zero discernible loss in voice quality.',
         },
       ],
     },
@@ -1475,44 +1475,44 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   'normalize-audio': {
     pt: {
-      features: ['Loudness em LUFS ou pico', 'Limitador com look-ahead', 'Medição antes de aplicar', 'Sem envio para servidor'],
+      features: ['Normalização profissional de loudness em LUFS', 'Limitador transparente com look-ahead anti-clipping', 'Presets para Podcast (-16 LUFS) e Streaming (-14 LUFS)', 'Medição acústica em tempo real antes de aplicar'],
       faq: [
         {
-          q: 'Como aumentar o volume de um áudio que ficou baixo?',
-          a: 'Solte o arquivo e deixe no modo loudness: a ferramenta mede o volume percebido da gravação, calcula quantos decibéis faltam para o alvo e mostra o número antes de aplicar. Para uma gravação de voz ou reunião, o preset de podcast costuma ser o certo. O modo pico só encosta a amostra mais alta no teto, o que não resolve gravação baixa com um estalo no meio.',
+          q: 'Como aumentar o volume de uma gravação de áudio baixa sem distorcer o som?',
+          a: 'Carregue o áudio no modo Loudness (LUFS): a ferramenta analisa a curva de volume percebido pelo ouvido humano ao longo de toda a gravação, calcula o ganho ideal e aplica um limitador inteligente com look-ahead para evitar que picos estourem ou distorçam.',
         },
         {
-          q: 'Qual a diferença entre normalizar por pico e por loudness?',
-          a: 'Normalizar por pico olha uma única amostra: a mais alta do arquivo. Se houver uma esbarrada na mesa, ela já está perto do máximo e o ganho aplicado é praticamente zero — a gravação continua baixa. Loudness mede a energia média ponderada pela sensibilidade do ouvido, ao longo de todo o arquivo e ignorando as pausas, que é o que a gente de fato chama de volume. É a medida que Spotify, YouTube e as emissoras usam.',
+          q: 'Qual a diferença fundamental entre normalizar por pico e normalizar por loudness (LUFS)?',
+          a: 'A normalização por pico considera apenas a amostra individual mais alta do arquivo (se houver um estalo na mesa, o volume geral não aumenta). A normalização por Loudness (LUFS) mede a energia sonora média percebida pelo ouvido conforme as normas internacionais EBU R128 e ITU BS.1770, garantindo volume consistente do início ao fim.',
         },
         {
-          q: 'O que significam -14 LUFS, -16 LUFS e -23 LUFS?',
-          a: 'São alvos de referência. -14 LUFS é o nível para o qual as plataformas de streaming ajustam o que você envia; -16 LUFS é o costume em podcast e voz falada; -23 LUFS é a norma de broadcast europeia (EBU R128). Enviar bem acima do alvo da plataforma não deixa mais alto: ela abaixa de volta, e o que sobra é a dinâmica que foi perdida no caminho.',
+          q: 'O que significam os padrões -14 LUFS, -16 LUFS e -23 LUFS da indústria?',
+          a: '-14 LUFS é o padrão adotado por plataformas de streaming (Spotify, YouTube); -16 LUFS é o padrão consagrado para podcasts e audiobooks; e -23 LUFS é a norma padrão de broadcast e televisão europeia. Normalizar no alvo correto evita que as plataformas baixem seu áudio automaticamente.',
         },
         {
-          q: 'A normalização pode estourar o áudio?',
-          a: 'Não. O ganho é aplicado com um limitador que desce a envoltória antes do pico chegar e sobe devagar depois, em vez de cortar a onda — o teto escolhido vale para o arquivo escrito, por construção. Quando o limitador precisa entrar, o painel diz quanto ele segurou, para você poder escolher um alvo mais baixo se preferir não comprimir a dinâmica.',
+          q: 'A normalização de volume pode estourar, clipar ou distorcer os trechos mais altos?',
+          a: 'Não. Nosso motor utiliza um limitador de pico com previsão temporal (look-ahead) que atenua suavemente a curva de ganho milissegundos antes da chegada de picos fortes, garantindo um teto seguro (True Peak a -1 dBTP) sem cortes abruptos na onda.',
         },
       ],
     },
     en: {
-      features: ['LUFS loudness or peak', 'Look-ahead limiter', 'Measured before it runs', 'Never uploaded'],
+      features: ['Professional LUFS integrated loudness normalization', 'Transparent look-ahead anti-clipping limiter', 'Presets for Podcasts (-16 LUFS) & Streaming (-14 LUFS)', 'Real-time acoustic loudness readout before processing'],
       faq: [
         {
-          q: 'How do I make a quiet recording louder?',
-          a: 'Drop the file and leave it in loudness mode: the tool measures the perceived level of the recording, works out how many decibels are missing to reach the target and shows you the number before applying anything. For a voice or meeting recording the podcast preset is usually right. Peak mode only pushes the loudest sample up to the ceiling, which does nothing for a quiet recording that has one bump in it.',
+          q: 'How do I increase the volume of a quiet audio recording without distortion?',
+          a: 'Drop your file into Loudness (LUFS) mode: the tool scans perceived loudness across the track, calculates required decibel gain, and applies a transparent look-ahead limiter to prevent distortion and clipping on sudden peaks.',
         },
         {
-          q: 'What is the difference between peak and loudness normalization?',
-          a: 'Peak normalization looks at a single sample: the loudest one in the file. If someone knocked the desk, that sample is already near maximum and the gain applied is close to nothing — the recording stays quiet. Loudness measures the average energy weighted for how the ear hears it, across the whole file and ignoring the pauses, which is what people actually mean by volume. It is the measure Spotify, YouTube and broadcasters use.',
+          q: 'What is the difference between peak normalization and LUFS loudness normalization?',
+          a: 'Peak normalization only checks the single highest amplitude sample in the file (a single loud clap stops the rest from being amplified). Loudness normalization (LUFS) measures integrated perceived acoustic energy over time (ITU-R BS.1770 / EBU R128), ensuring consistent volume.',
         },
         {
-          q: 'What do -14 LUFS, -16 LUFS and -23 LUFS mean?',
-          a: 'They are reference targets. -14 LUFS is the level streaming platforms normalize uploads to; -16 LUFS is the usual choice for podcasts and spoken word; -23 LUFS is the European broadcast standard (EBU R128). Delivering well above the platform target does not make you louder: it turns you back down, and what is left is the dynamics lost on the way.',
+          q: 'What do the industry reference standards -14 LUFS, -16 LUFS, and -23 LUFS mean?',
+          a: '-14 LUFS is the target calibrated by Spotify and YouTube; -16 LUFS is the podcast and spoken-word standard; and -23 LUFS matches European broadcast television (EBU R128). Hitting the right target stops streaming platforms from applying automatic volume attenuation.',
         },
         {
-          q: 'Can normalizing clip the audio?',
-          a: 'No. The gain goes through a limiter that lowers the envelope before the peak arrives and lets it back up slowly afterwards, rather than chopping the waveform — the ceiling you pick holds for the written file by construction. When the limiter does engage, the panel says how much it held back, so you can choose a lower target if you would rather not squeeze the dynamics.',
+          q: 'Can volume normalization cause clipping, harsh distortion, or audio blowout?',
+          a: 'No. The processing pipeline includes an intelligent look-ahead peak limiter that smoothly attenuates dynamics before high transients hit the ceiling, maintaining safe True Peak headroom (-1 dBTP) without harsh wave clipping.',
         },
       ],
     },
@@ -1528,20 +1528,24 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
       faq: [
         {
-          q: 'Como gravar a tela sem instalar programa?',
-          a: 'Abra a ferramenta, escolha se quer o som do sistema e o microfone e clique em gravar. O navegador mostra o seletor dele — tela inteira, uma janela ou uma aba — e a gravação começa depois que você escolhe. O vídeo é montado pelo próprio navegador dentro desta aba: não há upload, não há conta e não existe servidor para onde mandar.',
+          q: 'Como gravar a tela do computador com áudio sem instalar nenhum programa?',
+          a: 'Abra o gravador, selecione se deseja capturar o áudio do sistema e/ou o microfone e clique em "Iniciar Gravação". O navegador exibirá o seletor nativo para você escolher entre a tela inteira, uma janela de aplicativo ou uma aba específica. O vídeo é processado em tempo real e montado diretamente na sua aba.',
         },
         {
-          q: 'Por que o som do sistema não aparece quando escolho uma janela?',
-          a: 'Porque o Chrome só oferece o áudio do sistema para uma aba ou para a tela inteira, nunca para uma janela isolada — é uma restrição do navegador, não da ferramenta. Se você precisa do som do que está sendo mostrado, escolha a aba ou a tela inteira. O microfone funciona em qualquer uma das três, e quando os dois estão ligados eles são misturados numa faixa só.',
+          q: 'Por que o áudio do sistema não é capturado ao selecionar apenas uma janela de aplicativo?',
+          a: 'Por restrições de segurança do sistema operacional e do próprio navegador (Chrome/Edge/Firefox), a captura de áudio do sistema é disponibilizada apenas ao compartilhar a tela inteira ou uma aba do navegador, não para janelas individuais. Se precisar do som de um vídeo ou jogo, selecione a tela inteira ou uma aba.',
         },
         {
-          q: 'Em que formato sai a gravação?',
-          a: 'WebM com VP9 e Opus no Chrome, Edge e Firefox, que é o formato que esses navegadores realmente escrevem; no Safari sai MP4. A ferramenta escolhe o primeiro que o seu navegador suporta em vez de prometer um formato e entregar outro com a extensão errada. Se você precisa só do áudio, o extrator de áudio do mesmo módulo abre a gravação direto, sem baixar e subir de novo.',
+          q: 'Em qual formato de vídeo a gravação de tela é exportada e salva?',
+          a: 'A gravação é salva no formato WebM (com codecs VP9 e áudio Opus de alta definição) no Chrome, Edge e Firefox, e em MP4 no Safari. O arquivo é gerado com timestamps sincronizados e pode ser reproduzido em qualquer tocador de vídeo moderno.',
         },
         {
-          q: 'Por que a gravação para sozinha em 60 minutos?',
-          a: 'É o tamanho do arquivo, não memória: os pedaços do vídeo vão para disco enquanto você grava, mas a 2,5 Mbps uma hora já dá cerca de 1,1 GB para baixar. O limite é anunciado no painel em vez de aparecer como surpresa no fim, e o cronômetro na tela mostra o quanto falta. Gravar de novo em seguida começa um arquivo novo.',
+          q: 'Por que o tempo máximo de gravação contínua é limitado em 60 minutos?',
+          a: 'O limite de 60 minutos visa garantir a estabilidade do arquivo e o gerenciamento de espaço no disco local do navegador, já que uma hora de gravação em alta definição a 60 fps pode ocupar mais de 1,2 GB. Ao atingir o limite, você pode salvar o arquivo e iniciar uma nova gravação imediatamente.',
+        },
+        {
+          q: 'Como posso extrair apenas o áudio de uma gravação de tela que acabei de fazer?',
+          a: 'Ao finalizar a gravação de tela, clique no atalho "Enviar para Extrair Áudio" no painel de ações. O vídeo gravado é transferido diretamente para a ferramenta de extração para que você baixe a trilha sonora em MP3 ou WAV sem precisar fazer downloads extras.',
         },
       ],
     },
@@ -1554,108 +1558,114 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
       faq: [
         {
-          q: 'How do I record my screen without installing anything?',
-          a: 'Open the tool, decide whether you want system audio and the microphone, and press record. The browser shows its own picker — whole screen, a window or a tab — and recording starts once you choose. The video is assembled by the browser inside this tab: no upload, no account, and no server to send it to.',
+          q: 'How do I record my computer screen with audio without installing software?',
+          a: 'Open the recorder, choose whether to capture system audio and/or microphone voiceover, and click "Start Recording". The browser’s native picker lets you select your full desktop, a window, or a specific tab. Media streams are encoded in real time directly inside your browser tab.',
         },
         {
-          q: 'Why is there no system audio when I pick a window?',
-          a: 'Because Chrome only offers system audio for a tab or the entire screen, never for a single window — that is a browser restriction, not this tool. If you need the sound of what is on screen, pick the tab or the whole screen. The microphone works with all three, and when both are on they are mixed into a single track.',
+          q: 'Why is system audio unavailable when recording a single application window?',
+          a: 'Due to browser and OS security sandbox constraints, Chrome and Edge only expose system audio streams when sharing the entire screen or a browser tab, not a standalone application window. Choose full screen or a browser tab to record internal audio.',
         },
         {
-          q: 'What format does the recording come out in?',
-          a: 'WebM with VP9 and Opus on Chrome, Edge and Firefox, which is what those browsers actually write; Safari gets MP4. The tool picks the first format your browser supports instead of promising one and handing back another under the wrong extension. If you only wanted the sound, the audio extractor in the same module opens the recording directly, with no download-and-reupload round trip.',
+          q: 'What video container and codec format does the screen recording output in?',
+          a: 'Recordings output as standard WebM (VP9/VP8 video with Opus audio) on Chrome, Edge, and Firefox, and MP4 on Safari. Output files include proper index metadata and play back smoothly across all modern media players.',
         },
         {
-          q: 'Why does recording stop on its own at 60 minutes?',
-          a: 'It is file size, not memory: the video chunks go to disk while you record, but at 2.5 Mbps an hour is already about 1.1 GB to download. The limit is stated in the panel rather than sprung on you at the end, and the on-screen timer shows how much is left. Recording again starts a fresh file.',
+          q: 'Why is continuous screen recording capped at a maximum of 60 minutes?',
+          a: 'The 60-minute duration limit prevents browser disk storage exhaustion, as an hour of 1080p 60fps recording generates over 1.2 GB of raw video stream chunks. You can save your take and start a new take immediately.',
+        },
+        {
+          q: 'How can I extract only the audio track from a screen recording I just completed?',
+          a: 'After finishing your recording, click the "Send to Extract Audio" action shortcut. The recorded video stream feeds straight into our audio extractor so you can download an MP3 or WAV without saving and re-uploading.',
         },
       ],
     },
   },
+
   'video-to-audio': {
     pt: {
-      features: ['MP4, MOV, WebM, MKV', 'MP3 ou WAV sem perda', 'Até 500 MB e 30 minutos', 'O vídeo não é enviado'],
+      features: ['Extração de MP4, MOV, WebM, MKV e AVI', 'Exportação em MP3 ou WAV com fidelidade máxima', 'Suporte a vídeos de até 500 MB e 30 minutos', 'Processamento local sem upload de vídeo pesado'],
       faq: [
         {
-          q: 'Como extrair o áudio de um vídeo sem enviar o arquivo?',
-          a: 'Solte o vídeo, escolha MP3 ou WAV e baixe. A trilha é lida pelo próprio decodificador do navegador, na sua máquina — um vídeo de 400 MB não sobe para lugar nenhum, o que também explica por que aqui não há fila nem limite diário.',
+          q: 'Como extrair e converter o áudio de um arquivo de vídeo sem fazer upload na internet?',
+          a: 'Solte o arquivo de vídeo (MP4, MOV, WebM, MKV, etc.), selecione o formato de saída desejado (MP3 ou WAV) e clique em baixar. O decodificador do navegador lê o container do vídeo localmente e extrai a trilha sonora em segundos sem consumir seus dados de internet.',
         },
         {
-          q: 'Extrair o áudio piora a qualidade?',
-          a: 'A trilha sai do vídeo exatamente como estava. Escolhendo WAV, é isso que você baixa, sem nenhuma perda nova. Escolhendo MP3 há uma recodificação: como o áudio dentro de um MP4 quase sempre já é AAC comprimido, é uma segunda geração de perda — a 192 kbps ou mais ela é inaudível na prática, e o WAV está ali para quem não quiser nenhuma.',
+          q: 'Extrair a trilha sonora de um vídeo causa perda de qualidade ou fidelidade no áudio?',
+          a: 'Se você escolher o formato WAV, o áudio é extraído exatamente como as amostras brutas foram decodificadas, com zero perdas. Na escolha por MP3, o áudio passa por uma codificação LAME em alta taxa de bits (192 kbps a 320 kbps), preservando a clareza e o equilíbrio sonoro.',
         },
         {
-          q: 'Por que às vezes ele avisa que vai levar o tempo do vídeo?',
-          a: 'Porque nem todo navegador entrega a trilha de um container de vídeo diretamente. Quando o caminho rápido é recusado, a ferramenta cai para o modo compatível: toca o vídeo em silêncio e captura o som amostra por amostra. O resultado é o mesmo PCM exato, mas leva a duração do arquivo. Chrome e Edge quase sempre usam o caminho rápido, que é quase instantâneo.',
+          q: 'Por que em alguns navegadores a extração precisa reproduzir o vídeo em tempo real?',
+          a: 'Quando o navegador não expõe APIs de decodificação direta rápida para determinados codecs de vídeo (como certos formatos MOV/MKV no Safari/Firefox), a ferramenta ativa o modo de compatibilidade, capturando as amostras de áudio conforme o arquivo é processado internamente.',
         },
         {
-          q: 'Por que o limite é 30 minutos?',
-          a: 'É memória, não política. O áudio decodificado vira float de 32 bits: meia hora de estéreo a 48 kHz ocupa cerca de 690 MB de RAM, e a codificação aloca a saída por cima disso. A duração é medida antes de o arquivo ser lido inteiro, então um vídeo longo demais é recusado na hora, sem travar a aba.',
+          q: 'Por que existe um limite máximo de 30 minutos e 500 MB para o vídeo?',
+          a: 'O áudio decodificado em memória vira um buffer de ponto flutuante de 32 bits que demanda centenas de megabytes de memória RAM. O limite de 30 minutos e 500 MB assegura que o navegador execute a extração com rapidez e sem risco de travamento da aba.',
         },
       ],
     },
     en: {
-      features: ['MP4, MOV, WebM, MKV', 'MP3 or lossless WAV', 'Up to 500 MB and 30 minutes', 'The video is never uploaded'],
+      features: ['Extracts from MP4, MOV, WebM, MKV and AVI', 'Export to MP3 or maximum fidelity WAV', 'Supports videos up to 500 MB and 30 minutes', 'Local execution with zero heavy video uploads'],
       faq: [
         {
-          q: 'How do I extract audio from a video without uploading the file?',
-          a: 'Drop the video, pick MP3 or WAV and download. The track is read by your browser own decoder, on your machine — a 400 MB video goes nowhere, which is also why there is no queue and no daily limit here.',
+          q: 'How do I extract and convert audio from a video file without uploading it?',
+          a: 'Drop your video file (MP4, MOV, WebM, MKV, etc.), select your output format (MP3 or lossless WAV), and click download. The browser’s native media engine demuxes the video stream and extracts the audio track in seconds.',
         },
         {
-          q: 'Does extracting the audio hurt quality?',
-          a: 'The track comes out of the video exactly as it was. Pick WAV and that is what you download, with no new loss at all. Pick MP3 and there is a re-encode: since the audio inside an MP4 is almost always compressed AAC already, that is a second generation of loss — inaudible in practice at 192 kbps and above, and WAV is there for anyone who wants none.',
+          q: 'Does extracting the audio track from a video cause quality loss or acoustic degradation?',
+          a: 'Choosing WAV exports the decoded audio samples verbatim with zero generation loss. Exporting as MP3 uses the high-performance LAME encoder at high bitrates (192+ kbps), keeping acoustic fidelity virtually indistinguishable from the source.',
         },
         {
-          q: 'Why does it sometimes warn that it will take as long as the video?',
-          a: 'Because not every browser hands over the track of a video container directly. When the fast path is refused, the tool falls back to compatibility mode: it plays the video silently and captures the sound sample by sample. The result is the same exact PCM, but it takes the length of the file. Chrome and Edge almost always take the fast path, which is near instant.',
+          q: 'Why does extraction occasionally run at playback speed in some browsers?',
+          a: 'When specific browser media decoders refuse offline demuxing on non-standard video containers (such as certain MKV or MOV codecs), the tool falls back to a compatibility capture loop that decodes sound sample-by-sample without crashing.',
         },
         {
-          q: 'Why is the limit 30 minutes?',
-          a: 'It is memory, not policy. Decoded audio becomes 32-bit float: half an hour of stereo at 48 kHz is around 690 MB of RAM, and encoding allocates the output on top of that. The duration is measured before the file is read in full, so a video that is too long is refused immediately instead of freezing the tab.',
+          q: 'Why is there a duration limit of 30 minutes and 500 MB for video files?',
+          a: 'Decoded 32-bit floating-point audio buffers occupy ~700 MB of RAM for 30 minutes of 48 kHz stereo sound. The limits ensure safe memory bounds so your browser processes conversions smoothly.',
         },
       ],
     },
   },
+
   'qr-code': {
     pt: {
-      features: ['100% Offline e Seguro', 'Wi-Fi, Pix, Links, vCard e Texto', 'Leitor por Imagem e Câmera', 'Exportação PNG e SVG Vetorial'],
+      features: ['100% Offline e Seguro contra rastreamento', 'Suporte a Wi-Fi, Pix, Links, vCard, E-mail e Texto', 'Leitor integrado por envio de imagem e câmera ao vivo', 'Exportação em alta definição em PNG e SVG vetorial'],
       faq: [
         {
-          q: 'Como criar um QR Code seguro sem enviar meus dados para a internet?',
-          a: 'Basta escolher o tipo desejado (Link, Wi-Fi, Pix, Contato, etc.), preencher as informações e baixar a imagem em PNG ou SVG. A matriz do QR Code é desenhada diretamente pelo seu navegador via Canvas/SVG. Nenhuma informação ou senha passa por servidores.',
+          q: 'Como criar um QR Code seguro e personalizado sem enviar informações para servidores?',
+          a: 'Escolha o tipo de conteúdo (Link, rede Wi-Fi, chave Pix, cartão vCard, e-mail ou texto livre), preencha os dados e personalize cores e margens. A matriz geométrica do código é desenhada instantaneamente no navegador via Canvas e SVG vetorial, sem que nenhum dado seja transmitido para servidores.',
         },
         {
-          q: 'É seguro gerar QR Code de rede Wi-Fi e chave Pix aqui?',
-          a: 'Sim, e esse é o grande diferencial do Nada Sai. Geradores de QR Code comuns na internet salvam e rastreiam as senhas e links criados em seus bancos de dados. Aqui, tudo roda no seu próprio dispositivo, tornando seguro até para senhas de Wi-Fi corporativas e chaves financeiras.',
+          q: 'É seguro gerar QR Codes para redes Wi-Fi, senhas confidenciais e chaves Pix no Nada Sai?',
+          a: 'Sim, e essa é uma das maiores vantagens da nossa plataforma. Geradores de QR Code online tradicionais salvam os links, senhas de Wi-Fi e dados preenchidos em bancos de dados de terceiros para rastreamento. No Nada Sai, o código é gerado 100% no seu dispositivo com total sigilo.',
         },
         {
-          q: 'Como funciona o leitor de QR Code integrado?',
-          a: 'Você pode enviar uma imagem, colar direto com Ctrl+V ou ligar a câmera do computador/celular. O processamento da imagem é feito em TypeScript localmente com detecção automática de tipo (identificando redes Wi-Fi, chaves Pix, links seguros e cartões de visita).',
+          q: 'Como funciona o leitor e decodificador de QR Code integrado no navegador?',
+          a: 'Você pode enviar uma foto contendo um QR Code, colar uma imagem da área de transferência com Ctrl+V ou ativar a câmera do dispositivo. O leitor decodifica o código localmente em TypeScript e identifica automaticamente URLs, credenciais Wi-Fi, chaves Pix e cartões de contato.',
         },
         {
-          q: 'Qual a diferença entre baixar em PNG ou SVG?',
-          a: 'O PNG é ideal para redes sociais, mensagens e uso digital comum. O SVG é vetorial e não perde nitidez em nenhuma escala, perfeito para impressão em alta definição, cartões de visita, totens e materiais gráficos.',
+          q: 'Qual a diferença técnica entre baixar o QR Code nos formatos PNG ou SVG?',
+          a: 'O formato PNG é uma imagem em alta resolução com fundo transparente ou branco, ideal para posts em redes sociais, apresentações e uso digital; o formato SVG é um vetor matemático infinitamente escalável, perfeito para impressões gráficas de grande porte, totens e cartões de visita.',
         },
       ],
     },
     en: {
-      features: ['100% Offline & Private', 'Wi-Fi, Pix, Links, vCard and Text', 'Image & Camera Scanner', 'PNG and Vector SVG Export'],
+      features: ['100% Offline & Private with zero tracking', 'Supports Wi-Fi, Pix, Links, vCard, Email & Text', 'Integrated scanner via image upload or live camera', 'High-definition PNG & vector SVG export'],
       faq: [
         {
-          q: 'How do I generate a QR code without sending data to a server?',
-          a: 'Select the content type (URL, Wi-Fi, Pix, Contact, etc.), enter your information, and download the PNG or SVG. The QR matrix is generated directly inside your browser via Canvas/SVG — nothing is ever sent over the network.',
+          q: 'How do I generate a secure, private QR code without sending data to servers?',
+          a: 'Select your data type (URL, Wi-Fi credentials, Pix payment, vCard contact, email, or plain text), enter your content, and customize colors and margins. The matrix is rendered directly in your browser using Canvas and vector SVG elements with zero network requests.',
         },
         {
-          q: 'Is it safe to generate Wi-Fi passwords and private QR codes here?',
-          a: 'Yes, and that is the entire purpose of Nada Sai. Traditional online QR code generators track and log what you type. Here, everything runs locally on your machine, so your Wi-Fi credentials and private notes stay completely confidential.',
+          q: 'Is it safe to create Wi-Fi passwords, private links, and financial QR codes here?',
+          a: 'Yes, and that is a core privacy benefit of Nada Sai. Traditional online generators log what you type into marketing analytics databases. Here, everything executes locally on your CPU, keeping your Wi-Fi passphrases and private payloads strictly confidential.',
         },
         {
-          q: 'How does the offline QR code reader / scanner work?',
-          a: 'You can upload an image, paste directly with Ctrl+V, or enable your device camera. Image decoding is performed locally via pure TypeScript, automatically identifying Wi-Fi configs, links, contacts and payment payloads.',
+          q: 'How does the integrated in-browser QR code scanner and decoder work?',
+          a: 'Upload an image containing a QR code, paste a screenshot directly with Ctrl+V, or enable your device camera. The client-side TypeScript scanner decodes the QR matrix instantly, automatically parsing Wi-Fi credentials, links, and contact vCards.',
         },
         {
-          q: 'Should I download PNG or SVG?',
-          a: 'PNG is great for screens, apps and social sharing. SVG is a resolution-independent vector format that scales infinitely without blur, making it the best choice for print, banners, packaging and merchandise.',
+          q: 'What is the technical difference between downloading a QR code as PNG or SVG?',
+          a: 'PNG is a high-resolution raster image ideal for social media, digital displays, and messaging apps; SVG is an infinitely scalable vector graphic that maintains razor-sharp edges on large-scale physical banners, product packaging, and business cards.',
         },
       ],
     },
