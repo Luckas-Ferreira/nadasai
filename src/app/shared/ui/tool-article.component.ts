@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { input } from '@angular/core';
 import { TranslationService } from '../../core/services/translation.service';
 import { TOOL_ARTICLE, type ArticleSection } from '../../core/seo/tool-article';
+import type { FormatPair } from '../../core/seo/format-pairs';
 import type { ToolId } from '../../core/tools/tools';
 
 /**
@@ -56,9 +57,22 @@ export class ToolArticleComponent {
 
   readonly toolId = input.required<ToolId>();
 
+  /**
+   * Numa página de par de formato o texto é o DO PAR, não o da ferramenta.
+   * Sem isto, /png-para-jpg renderizaria o artigo de "converter" — o mesmo
+   * texto em doze URLs, que é conteúdo duplicado fino e pior do que não ter
+   * seção nenhuma.
+   */
+  readonly pair = input<FormatPair | null>(null);
+
   protected readonly sections = computed<readonly ArticleSection[]>(() => {
+    const en = this.i18n.currentLang() === 'en';
+
+    const pair = this.pair();
+    if (pair) return (en ? pair.en : pair.pt).sections;
+
     const entry = TOOL_ARTICLE[this.toolId()];
     if (!entry) return [];
-    return this.i18n.currentLang() === 'en' ? entry.en : entry.pt;
+    return en ? entry.en : entry.pt;
   });
 }

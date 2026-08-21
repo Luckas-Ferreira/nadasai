@@ -5,6 +5,7 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs';
 import { type ToolDef, toolFromUrl } from '../tools/tools';
 import { alternatesFor, cleanPathOf } from '../seo/route-map';
+import { pairFromUrl } from '../seo/format-pairs';
 import { buildGraph } from '../seo/jsonld';
 import type { FaqEntry } from '../seo/tool-content';
 import { TranslationService } from './translation.service';
@@ -140,7 +141,13 @@ export class SeoService {
        * ficar sem imagem — o caminho é derivado do id, então o modo de falha de
        * um tool novo é herdar o card genérico, nunca voltar ao vazio.
        */
-      const ogImage = `${DOMAIN}/og/${tool ? tool.id : 'default'}-${lang}.png`;
+      // Uma página de par de formato usa o card da FERRAMENTA que ela abre.
+      // /png-para-jpg é o conversor apontado, então o card do conversor é o
+      // que descreve corretamente o que está do outro lado do link — e é
+      // melhor que o genérico, que não descreve nada. Gerar 24 cards próprios
+      // é possível, mas o texto deles seria o mesmo nome de ferramenta.
+      const cardId = tool?.id ?? pairFromUrl(url)?.tool ?? 'default';
+      const ogImage = `${DOMAIN}/og/${cardId}-${lang}.png`;
 
       // Open Graph Tags
       this.meta.updateTag({ property: 'og:site_name', content: 'Nada Sai' });

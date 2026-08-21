@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { pairById } from '../../core/seo/format-pairs';
 import { Router } from '@angular/router';
 import { toMessageKey } from '../../core/errors';
 import {
@@ -63,6 +65,24 @@ export class ConvertComponent {
   protected readonly errorKey = signal<TranslationKey | null>(null);
 
   protected readonly format = signal<TargetFormat>('WEBP');
+  /**
+   * A página de par de formato (/png-para-jpg e as outras) abre ESTA
+   * ferramenta, com o destino já escolhido. O par vem do `data` da rota, lido
+   * do snapshot: o componente é criado por ativação de rota, então o snapshot é
+   * o certo — e é o único caminho que também funciona dentro do prerender, onde
+   * não há navegação nenhuma.
+   *
+   * Chegar já com o formato marcado é metade do valor da página: quem buscou
+   * "png para jpg" não deveria ter de escolher JPG de novo ao chegar.
+   */
+  protected readonly pair = pairById(
+    (inject(ActivatedRoute).snapshot.data['pairId'] as string | undefined) ?? '',
+  );
+
+  private applyPairPreset(): void {
+    if (this.pair) this.format.set(this.pair.target as TargetFormat);
+  }
+
   protected readonly pdfBackground = signal('#ffffff');
 
   /**
@@ -109,6 +129,7 @@ export class ConvertComponent {
   protected readonly stale = computed(() => this.ranSettings() !== this.settings());
 
   constructor() {
+    this.applyPairPreset();
     hydrateFromWorkspace('convert', (file) => this.hydrate(file));
   }
 

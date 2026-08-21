@@ -1,4 +1,4 @@
-<app-tool-page [toolId]="'convert'">
+<app-tool-page [toolId]="'convert'" [pair]="pair">
   @if (errorKey(); as key) {
     <div banner class="mb-5">
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />

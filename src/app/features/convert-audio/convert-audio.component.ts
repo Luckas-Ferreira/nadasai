@@ -9,7 +9,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { pairById } from '../../core/seo/format-pairs';
 import { FormsModule } from '@angular/forms';
 import { AudioEngine } from '../../core/audio/audio-engine';
 import {
@@ -128,6 +129,24 @@ export class ConvertAudioComponent implements OnDestroy {
     'webm',
   ];
   protected readonly targetFormat = signal<TargetAudioFormat>('mp3');
+  /**
+   * A página de par de formato (/png-para-jpg e as outras) abre ESTA
+   * ferramenta, com o destino já escolhido. O par vem do `data` da rota, lido
+   * do snapshot: o componente é criado por ativação de rota, então o snapshot é
+   * o certo — e é o único caminho que também funciona dentro do prerender, onde
+   * não há navegação nenhuma.
+   *
+   * Chegar já com o formato marcado é metade do valor da página: quem buscou
+   * "png para jpg" não deveria ter de escolher JPG de novo ao chegar.
+   */
+  protected readonly pair = pairById(
+    (inject(ActivatedRoute).snapshot.data['pairId'] as string | undefined) ?? '',
+  );
+
+  private applyPairPreset(): void {
+    if (this.pair) this.targetFormat.set(this.pair.target as TargetAudioFormat);
+  }
+
   protected readonly channels = signal<AudioChannels>('original');
   protected readonly sampleRate = signal<number>(0); // 0 = original
   protected readonly bitrate = signal<AudioBitrate>('320');
@@ -167,6 +186,8 @@ export class ConvertAudioComponent implements OnDestroy {
   // ---------------------------------------------------------------- lifecycle
 
   constructor() {
+    this.applyPairPreset();
+
     // Wire ResizeObserver when the scroller appears/disappears.
     effect((onCleanup) => {
       const el = this.scrollerRef()?.nativeElement;

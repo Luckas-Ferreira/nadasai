@@ -60,6 +60,23 @@ Nada Sai provides 39 tools across 5 modules, all of which run entirely offline i
 - [Criptografar texto (AES-256) / Encrypt text (AES-256)](https://nadasai.com/pt/privacidade/criptografar-texto): Type your message, enter a secret password, and click to generate a Base64-armored text envelope with header tags.
 - [QR Code (Gerador & Leitor) / QR Code (Generator & Scanner)](https://nadasai.com/pt/privacidade/qr-code): Select your data type (URL, Wi-Fi credentials, Pix payment, vCard contact, email, or plain text), enter your content, and customize colors and margins.
 
+## Format Conversions
+
+These pages open the converter above with the destination format already selected. They exist because the question behind each pair is specific — whether transparency survives, whether the file grows, whether an animation is kept — and each page answers its own.
+
+- [PNG para JPG / PNG to JPG](https://nadasai.com/pt/imagem/png-para-jpg): Convert PNG to JPG right in the browser. Transparency is flattened onto white and the file usually drops to a fraction of its size. No signup, no upload.
+- [JPG para PNG / JPG to PNG](https://nadasai.com/pt/imagem/jpg-para-png): Convert JPG to PNG right in the browser. PNG is lossless, so nothing is discarded from here on — but the file grows and quality already lost does not come back.
+- [PNG para WebP / PNG to WebP](https://nadasai.com/pt/imagem/png-para-webp): Convert PNG to WebP right in the browser, transparency preserved. It is the trade that cuts the weight of site imagery without losing the cutout.
+- [WebP para PNG / WebP to PNG](https://nadasai.com/pt/imagem/webp-para-png): Convert WebP to PNG right in the browser, transparency preserved. It is the way out for software and forms that still refuse WebP.
+- [JPG para WebP / JPG to WebP](https://nadasai.com/pt/imagem/jpg-para-webp): Convert JPG to WebP right in the browser. WebP usually delivers the same look in a smaller file — no signup, no upload.
+- [WebP para JPG / WebP to JPG](https://nadasai.com/pt/imagem/webp-para-jpg): Convert WebP to JPG right in the browser. It is the way out for forms, printers and software that only accept JPEG.
+- [AVIF para JPG / AVIF to JPG](https://nadasai.com/pt/imagem/avif-para-jpg): Convert AVIF to JPG right in the browser. AVIF is read here but not written — and this page explains why.
+- [GIF para PNG / GIF to PNG](https://nadasai.com/pt/imagem/gif-para-png): Convert GIF to PNG right in the browser. From an animated GIF you get the first frame: PNG carries no sequence, and the page says so up front.
+- [M4A para MP3 / M4A to MP3](https://nadasai.com/pt/audio/m4a-para-mp3): Convert M4A to MP3 right in the browser. The audio is decoded and re-encoded on your machine, with no upload and no signup.
+- [WAV para MP3 / WAV to MP3](https://nadasai.com/pt/audio/wav-para-mp3): Convert WAV to MP3 right in the browser. It is the conversion that trades tens of megabytes for a few, with no upload and no signup.
+- [FLAC para MP3 / FLAC to MP3](https://nadasai.com/pt/audio/flac-para-mp3): Convert FLAC to MP3 right in the browser. FLAC is read here; writing FLAC is what no browser does, and this page explains why.
+- [MP3 para WAV / MP3 to WAV](https://nadasai.com/pt/audio/mp3-para-wav): Convert MP3 to WAV right in the browser. WAV is raw PCM: the file grows a lot, and nothing more is discarded from here on.
+
 ## Privacy Architecture
 
 The no-upload claim is instrumented rather than asserted: NetworkProbeService wraps fetch, XMLHttpRequest, sendBeacon and WebSocket at runtime and counts file egress specifically (any body carrying a File, Blob, ArrayBuffer, typed array, or FormData containing a File). The count is shown on every page, so a visitor can verify the claim in their own browser rather than taking it on trust.
