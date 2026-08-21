@@ -722,6 +722,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- compare-pdf -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/comparar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/compare</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- pdf-to-text -->
   <url>
     <loc>https://nadasai.com/pt/pdf/para-texto</loc>

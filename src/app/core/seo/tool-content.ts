@@ -1039,6 +1039,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'compare-pdf': {
+    pt: {
+      features: [
+        'Diferença linha a linha, com número de linha dos dois lados',
+        'Comparação por parágrafo, não por linha física',
+        'Ignorar espaçamento e caixa, opcionalmente',
+        'Diff unificado para baixar e anexar',
+      ],
+      faq: [
+        {
+          q: 'Compara o layout ou só o texto?',
+          a: 'Só o texto, e a página diz isso antes de você rodar. Duas versões com as mesmas palavras e layouts diferentes saem como idênticas; um logotipo trocado, uma cor mudada ou uma tabela reposicionada não aparecem. É a comparação certa para contrato, edital e política — e a errada para material gráfico.',
+        },
+        {
+          q: 'Por que a comparação é por parágrafo e não por linha?',
+          a: 'Porque um PDF quebra linha onde a margem manda, e não onde o texto termina. Comparar linhas físicas marcaria como diferente todo parágrafo cujo refluxo mudou por causa de uma palavra a mais no começo — o resultado ficaria vermelho inteiro e não diria nada. Agrupando por parágrafo, uma frase alterada aparece como uma linha alterada.',
+        },
+        {
+          q: 'E se o PDF for escaneado?',
+          a: 'Páginas sem camada de texto ficam de fora, e a ferramenta conta quantas foram. Rodar OCR dos dois lados foi considerado e recusado: o reconhecimento erra, e os erros de um lado não são os mesmos do outro — a comparação passaria a mostrar diferenças que são falha de OCR e não mudança de documento. Numa ferramenta usada para decidir se um contrato mudou, isso é pior do que não comparar.',
+        },
+        {
+          q: 'Os dois arquivos são enviados para algum servidor?',
+          a: 'Nenhum dos dois. A leitura é feita pelo pdf.js dentro da sua aba e a comparação é o algoritmo de Myers rodando em JavaScript na sua máquina. É o ponto da ferramenta: comparar duas versões de um contrato num comparador online normalmente significa enviar as duas para alguém.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Line-by-line difference, with line numbers on both sides',
+        'Compared by paragraph, not by physical line',
+        'Optionally ignore spacing and letter case',
+        'Unified diff to download and attach',
+      ],
+      faq: [
+        {
+          q: 'Does it compare layout or just text?',
+          a: 'Just text, and the page says so before you run it. Two versions with the same words and different layouts come out identical; a swapped logo, a changed colour or a repositioned table do not show. It is the right comparison for a contract, a tender or a policy — and the wrong one for artwork.',
+        },
+        {
+          q: 'Why compare by paragraph rather than by line?',
+          a: 'Because a PDF breaks lines where the margin says, not where the text ends. Comparing physical lines would mark every paragraph whose reflow shifted because of one extra word at the start — the result would be entirely red and would say nothing. Grouped by paragraph, one altered sentence shows as one altered line.',
+        },
+        {
+          q: 'What about scanned PDFs?',
+          a: 'Pages with no text layer are left out, and the tool counts how many. Running OCR on both sides was considered and rejected: recognition makes mistakes, and the mistakes on one side are not the same as on the other — the comparison would start showing differences that are OCR faults rather than document changes. In a tool used to decide whether a contract changed, that is worse than not comparing.',
+        },
+        {
+          q: 'Are the two files uploaded anywhere?',
+          a: 'Neither of them. The reading is done by pdf.js inside your tab and the comparison is Myers running in JavaScript on your machine. That is the point of the tool: comparing two versions of a contract in an online comparer normally means sending both of them to someone.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

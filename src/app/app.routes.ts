@@ -298,6 +298,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/comparar',
+        title: 'Comparar Dois PDFs Online (Ver o Que Mudou) — Nada Sai',
+        loadComponent: () => import('./features/compare-pdf/compare-pdf.component').then((m) => m.ComparePdfComponent),
+        data: {
+          metaDescription: 'Compare o texto de dois PDFs e veja linha a linha o que foi acrescentado e removido. Nenhum dos dois arquivos é enviado — 100% offline no navegador.',
+          metaKeywords: 'comparar pdf, diferenca entre pdf, comparar contratos, diff de pdf'
+        }
+      },
+      {
         path: 'pdf/para-texto',
         title: 'PDF para Texto e Markdown Online (com OCR) — Nada Sai',
         loadComponent: () => import('./features/pdf-to-text/pdf-to-text.component').then((m) => m.PdfToTextComponent),
@@ -716,6 +725,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
         data: {
           metaDescription: 'Draw or type your signature and place it anywhere on the page, in any PDF. Nothing is sent to a server, because it runs 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'pdf/compare',
+        title: 'Compare Two PDFs Online (See What Changed) — Nada Sai',
+        loadComponent: () => import('./features/compare-pdf/compare-pdf.component').then((m) => m.ComparePdfComponent),
+        data: {
+          metaDescription: 'Compare the text of two PDFs and see line by line what was added and removed. Neither file is uploaded — 100% offline in your browser.',
+          metaKeywords: 'compare pdf, pdf difference, compare contracts, pdf diff'
         }
       },
       {
