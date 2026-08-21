@@ -1201,6 +1201,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'trim-video': {
+    pt: {
+      features: [
+        'Marque o início e o fim no próprio player',
+        'A espera é a duração do trecho, não a do arquivo',
+        'O áudio da origem vai junto',
+        'Sem marca d’água, sem cadastro e sem enviar o vídeo',
+      ],
+      faq: [
+        {
+          q: 'Quanto tempo demora para cortar?',
+          a: 'A duração do TRECHO que você manteve, não a do arquivo inteiro. Cortar dez segundos de um vídeo de uma hora leva dez segundos. O corte posiciona o vídeo no início marcado, toca até o fim marcado e grava o que passa — então quanto menor o pedaço, mais rápido termina.',
+        },
+        {
+          q: 'O vídeo perde qualidade?',
+          a: 'Uma geração. O corte recodifica, porque o navegador não traz um demuxer que reescrevesse o contêiner mantendo os quadros originais — trazer um significaria 25 a 30 MB de WebAssembly sob GPL, que é o mesmo motivo pelo qual o ffmpeg está fora da conversão para GIF. Num vídeo bem produzido a diferença é discreta.',
+        },
+        {
+          q: 'Como escolho o ponto exato do corte?',
+          a: 'Tocando o vídeo e parando onde quer, e então clicando em marcar. Ninguém sabe dizer em que segundo está a cena que quer cortar, mas todo mundo sabe parar o vídeo nela — é a mesma decisão que a extração de quadros tomou. Os campos numéricos existem para o ajuste fino depois de marcar.',
+        },
+        {
+          q: 'Tem marca d’água ou limite de tamanho?',
+          a: 'Marca d’água nenhuma. Os limites são de memória, não de política: 500 MB de arquivo e 30 minutos de duração, porque o navegador precisa segurar o vídeo para decodificá-lo. E nada é enviado a lugar nenhum — o corte acontece na sua máquina, que é raro num cortador de vídeo online.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Mark the start and end in the player itself',
+        'The wait is the length of the clip, not of the file',
+        'The source audio comes along',
+        'No watermark, no signup, and no upload',
+      ],
+      faq: [
+        {
+          q: 'How long does trimming take?',
+          a: 'The length of the CLIP you kept, not of the whole file. Trimming ten seconds out of an hour-long video takes ten seconds. The trim seeks to the marked start, plays to the marked end and records what passes — so the smaller the piece, the sooner it finishes.',
+        },
+        {
+          q: 'Does the video lose quality?',
+          a: 'One generation. Trimming re-encodes, because the browser ships no demuxer that would rewrite the container while keeping the original frames — bringing one would mean 25 to 30 MB of GPL WebAssembly, which is the same reason ffmpeg stays out of the GIF converter. On a well-produced video the difference is subtle.',
+        },
+        {
+          q: 'How do I pick the exact cut point?',
+          a: 'By playing the video, stopping where you want it, and clicking mark. Nobody can say which second holds the scene they want to cut, but everybody can stop the video on it — the same decision the frame extractor made. The numeric fields are there for fine adjustment after marking.',
+        },
+        {
+          q: 'Is there a watermark or a size limit?',
+          a: 'No watermark at all. The limits are memory, not policy: 500 MB of file and 30 minutes of duration, because the browser has to hold the video to decode it. And nothing is uploaded anywhere — the trim happens on your machine, which is rare for an online video cutter.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

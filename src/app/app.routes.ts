@@ -151,6 +151,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'video/cortar',
+        title: 'Cortar Vídeo Online (Grátis, Sem Marca) — Nada Sai',
+        loadComponent: () => import('./features/trim-video/trim-video.component').then((m) => m.TrimVideoComponent),
+        data: {
+          metaDescription: 'Corte o começo, o fim ou um trecho de um vídeo marcando os pontos no próprio player. O áudio vai junto e nada é enviado — 100% offline no navegador.',
+          metaKeywords: 'cortar video, aparar video, encurtar video, cortar trecho, editor de video online'
+        }
+      },
+      {
         path: 'video/recortar',
         title: 'Recortar Vídeo Online (Quadrado, 9:16, 16:9) — Nada Sai',
         loadComponent: () => import('./features/crop-video/crop-video.component').then((m) => m.CropVideoComponent),
@@ -596,6 +605,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
           metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
+        }
+      },
+      {
+        path: 'video/trim',
+        title: 'Trim Video Online (Free, No Watermark) — Nada Sai',
+        loadComponent: () => import('./features/trim-video/trim-video.component').then((m) => m.TrimVideoComponent),
+        data: {
+          metaDescription: 'Trim the start, the end or a section out of a video by marking the points in the player itself. The audio comes along and nothing is uploaded — 100% offline.',
+          metaKeywords: 'trim video, cut video online, shorten video, video trimmer, online video cutter'
         }
       },
       {

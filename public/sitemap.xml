@@ -402,6 +402,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- trim-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/trim</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- crop-video -->
   <url>
     <loc>https://nadasai.com/pt/video/recortar</loc>

@@ -10,28 +10,47 @@ export interface CropRect {
   readonly h: number;
 }
 
-export interface CropVideoOptions {
+/** Um intervalo de tempo em segundos, meio aberto: [start, end). */
+export interface TimeRange {
+  readonly start: number;
+  readonly end: number;
+}
+
+export interface ReencodeOptions {
   readonly file: File;
-  readonly rect: CropRect;
+  /** A área que fica. Ausente = o quadro inteiro. */
+  readonly rect?: CropRect;
+  /** O trecho que fica. Ausente = o vídeo inteiro. */
+  readonly range?: TimeRange;
   readonly format?: RecordingFormat;
-  /** Bitrate de vídeo. O padrão acompanha a área recortada. */
+  /** Bitrate de vídeo. O padrão acompanha a área de saída. */
   readonly videoBitsPerSecond?: number;
   readonly onProgress?: (percent: number, secondsLeft: number) => void;
   readonly signal?: AbortSignal;
 }
 
-export interface CroppedVideo {
+export interface ReencodedVideo {
   readonly blob: Blob;
   readonly ext: string;
   readonly width: number;
   readonly height: number;
-  readonly durationMs: number;
+  /** Duração do resultado, em segundos. */
+  readonly duration: number;
   /** O vídeo de origem tinha trilha de áudio e ela foi para o resultado. */
   readonly hasAudio: boolean;
 }
 
+const WHOLE_FRAME: CropRect = { x: 0, y: 0, w: 1, h: 1 };
+
 /**
- * RECORTAR VÍDEO, sem demuxer e sem ffmpeg.
+ * RECODIFICAR VÍDEO — recorte de área, de tempo, ou os dois — sem demuxer e sem
+ * ffmpeg.
+ *
+ * Uma máquina só, dois consumidores: `crop-video` passa um retângulo,
+ * `trim-video` passa um intervalo, e nada impede que um dia alguém passe os
+ * dois. Escrever a segunda ferramenta como uma cópia desta seria a forma mais
+ * fácil de as duas discordarem sobre bitrate, sobre lados pares ou sobre o que
+ * fazer com o áudio.
  *
  * O caminho é o único que o navegador oferece hoje sem trazer 25-30 MB de WASM
  * sob GPL — o mesmo argumento que manteve o ffmpeg fora do vídeo-para-GIF:
@@ -62,8 +81,8 @@ export interface CroppedVideo {
  * registrada no `video-to-audio` — lá o problema era o `muted` zerar a captura,
  * aqui a captura é o único caminho que existe.
  */
-export async function cropVideo(options: CropVideoOptions): Promise<CroppedVideo> {
-  const { file, rect, onProgress, signal } = options;
+export async function reencodeVideo(options: ReencodeOptions): Promise<ReencodedVideo> {
+  const { file, onProgress, signal } = options;
 
   if (typeof MediaRecorder === 'undefined') throw new AppError('capture_unsupported');
 
@@ -73,8 +92,11 @@ export async function cropVideo(options: CropVideoOptions): Promise<CroppedVideo
   const probe = await probeVideo(file);
   if (probe.width === 0 || probe.height === 0) throw new AppError('video_decode_failed');
 
-  const box = pixelBox(rect, probe.width, probe.height);
+  const box = pixelBox(options.rect ?? WHOLE_FRAME, probe.width, probe.height);
   if (box.w < 2 || box.h < 2) throw new AppError('pdf_no_regions');
+
+  const range = clampRange(options.range, probe.duration);
+  if (range.end - range.start < 0.05) throw new AppError('audio_empty_selection');
 
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
@@ -130,18 +152,27 @@ export async function cropVideo(options: CropVideoOptions): Promise<CroppedVideo
       recorder.onerror = () => reject(new AppError('capture_no_video'));
     });
 
+    // Posiciona ANTES de começar a gravar. Buscar com o gravador em curso
+    // escreveria o salto no arquivo: os quadros que passam durante a busca
+    // entram, e o resultado começa com um borrão do lugar errado.
+    if (range.start > 0) {
+      video.currentTime = range.start;
+      await once(video, 'seeked', 30_000);
+    }
+
     stopDrawing = drawEveryFrame(video, ctx, box);
 
     recorder.start(1000);
     await video.play();
 
-    const startedAt = performance.now();
-
     await Promise.race([
-      once(video, 'ended', (probe.duration + 60) * 1000),
+      once(video, 'ended', (range.end - range.start + 60) * 1000),
+      stopAt(video, range.end),
       abortSignal(signal),
-      progressLoop(video, probe.duration, onProgress, signal),
+      progressLoop(video, range, onProgress, signal),
     ]);
+
+    video.pause();
 
     stopDrawing();
     stopDrawing = null;
@@ -159,7 +190,7 @@ export async function cropVideo(options: CropVideoOptions): Promise<CroppedVideo
       ext: target.ext,
       width: box.w,
       height: box.h,
-      durationMs: performance.now() - startedAt,
+      duration: range.end - range.start,
       hasAudio,
     };
   } finally {
@@ -265,25 +296,68 @@ function drawEveryFrame(
   };
 }
 
-/** Progresso pelo `currentTime`, que é a única medida honesta em tempo real. */
+/**
+ * Progresso pelo `currentTime`, relativo ao INTERVALO e não ao arquivo.
+ *
+ * Cortar os últimos dez segundos de um vídeo de dez minutos precisa mostrar uma
+ * barra que anda de 0 a 100 em dez segundos — e não uma que já começa em 98%.
+ */
 function progressLoop(
   video: HTMLVideoElement,
-  duration: number,
-  onProgress: CropVideoOptions['onProgress'],
+  range: TimeRange,
+  onProgress: ReencodeOptions['onProgress'],
   signal: AbortSignal | undefined,
 ): Promise<never> {
   return new Promise<never>(() => {
-    if (!onProgress || duration <= 0) return;
+    const span = range.end - range.start;
+    if (!onProgress || span <= 0) return;
 
     const timer = setInterval(() => {
-      if (signal?.aborted || video.ended) {
+      if (signal?.aborted || video.ended || video.paused) {
         clearInterval(timer);
         return;
       }
-      const done = Math.min(1, video.currentTime / duration);
-      onProgress(Math.round(done * 100), Math.max(0, duration - video.currentTime));
+      const done = Math.min(1, Math.max(0, (video.currentTime - range.start) / span));
+      onProgress(Math.round(done * 100), Math.max(0, range.end - video.currentTime));
     }, 250);
   });
+}
+
+/**
+ * Resolve quando a reprodução passa de `end`.
+ *
+ * `timeupdate` dispara a cada ~250 ms, o que basta: o gravador continua até a
+ * chamada de `stop`, então alguns quadros a mais no fim são melhores do que um
+ * corte antecipado. O evento é o mecanismo certo aqui porque um `setTimeout`
+ * mediria o relógio da máquina e não o do vídeo — e os dois divergem assim que
+ * a aba perde o foco ou a decodificação engasga.
+ */
+function stopAt(video: HTMLVideoElement, end: number): Promise<void> {
+  return new Promise((resolve) => {
+    const check = (): void => {
+      if (video.currentTime >= end) {
+        video.removeEventListener('timeupdate', check);
+        resolve();
+      }
+    };
+    video.addEventListener('timeupdate', check);
+  });
+}
+
+/**
+ * O intervalo, preso dentro do vídeo. Ausente = o arquivo inteiro.
+ *
+ * A duração de uma gravação de MediaRecorder chega como `Infinity` até o
+ * `probeVideo` forçá-la — e se por algum motivo ela ainda vier inválida, o
+ * fallback é gravar tudo, que é o comportamento sem intervalo.
+ */
+function clampRange(range: TimeRange | undefined, duration: number): TimeRange {
+  const total = Number.isFinite(duration) && duration > 0 ? duration : Number.MAX_SAFE_INTEGER;
+  if (!range) return { start: 0, end: total };
+
+  const start = Math.min(Math.max(0, range.start), total);
+  const end = Math.min(Math.max(start, range.end), total);
+  return { start, end };
 }
 
 function once(target: EventTarget, event: string, timeoutMs: number): Promise<void> {

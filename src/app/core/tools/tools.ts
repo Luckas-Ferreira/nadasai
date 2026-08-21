@@ -19,6 +19,7 @@ export type ToolId =
   | 'video-to-gif'
   | 'video-to-frames'
   | 'crop-video'
+  | 'trim-video'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -517,6 +518,31 @@ export const TOOLS: readonly ToolDef[] = [
       'rip audio from video', 'mov to mp3', 'webm to mp3', 'mkv to mp3', 'video to wav',
       'get audio from video', 'strip audio from video', 'convert video to mp3',
       'save audio from video', 'video audio extractor'
+    ],
+  },
+  {
+    id: 'trim-video',
+    pathPt: 'video/cortar',
+    pathEn: 'video/trim',
+    icon: 'scissors',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.trim_video',
+    shortKey: 'nav.short.trim_video',
+    titleKey: 'trimvid.title',
+    descKey: 'trimvid.subtitle',
+    suffix: 'cortado',
+    tone: 'violet',
+    keywordsPt: [
+      'cortar video', 'cortar video online', 'aparar video', 'tirar pedaco do video',
+      'encurtar video', 'cortar inicio do video', 'cortar final do video',
+      'editar video online', 'cortar trecho', 'recortar tempo do video', 'trim video'
+    ],
+    keywordsEn: [
+      'trim video', 'cut video online', 'shorten video', 'clip video',
+      'trim start of video', 'trim end of video', 'cut a section from video',
+      'video trimmer', 'online video cutter', 'edit video length'
     ],
   },
   {

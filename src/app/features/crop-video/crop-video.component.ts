@@ -4,7 +4,7 @@ import type { Region } from '../../core/geometry/region';
 import { saveBlob } from '../../core/image/download';
 import { formatBytes, suffixedName } from '../../core/image/image-file.util';
 import { ObjectUrlScope } from '../../core/image/object-url';
-import { cropVideo, pixelBox, type CropRect } from '../../core/video/crop';
+import { pixelBox, reencodeVideo, type CropRect } from '../../core/video/reencode';
 import { availableRecorderFormats, type RecordingFormat } from '../../core/video/screen-recorder';
 import { assertUsableVideo, probeVideo } from '../../core/video/video-file.util';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
@@ -239,7 +239,7 @@ export class CropVideoComponent {
     try {
       const settings = this.settings();
 
-      const result = await cropVideo({
+      const result = await reencodeVideo({
         file,
         rect,
         format: this.format(),
