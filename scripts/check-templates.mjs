@@ -72,7 +72,7 @@ const ALLOWED = new Set([
   // fontes padrão do PDF
   'arial', 'helvetica', 'times', 'roman', 'courier', 'symbol', 'zapfdingbats',
   // unidades e siglas
-  'kb', 'mb', 'gb', 'kbps', 'hz', 'khz', 'dpi', 'px', 'pt', 'en', 'lufs', 'lu', 'dbfs', 'db', 'bits',
+  'kb', 'mb', 'gb', 'kbps', 'hz', 'khz', 'dpi', 'px', 'pt', 'en', 'lufs', 'lu', 'dbfs', 'db', 'bits', 'ms',
   'ch', 'fps', 'rgb', 'cmyk', 'hex', 'sha', 'md', 'aes', 'gcm', 'pbkdf', 'ed', 'wi', 'fi',
   'pix', 'vcard', 'whatsapp', 'url', 'ssid', 'id', 'x', 'y',
 ]);

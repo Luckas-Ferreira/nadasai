@@ -116,6 +116,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'audio/remover-silencio',
+        title: 'Remover Silêncio de Áudio Online (Grátis) — Nada Sai',
+        loadComponent: () => import('./features/remove-silence/remove-silence.component').then((m) => m.RemoveSilenceComponent),
+        data: {
+          metaDescription: 'Corte as pausas longas de uma gravação ajustando limiar e duração mínima, com a prévia de quanto tempo some antes de aplicar. 100% offline no navegador.',
+          metaKeywords: 'remover silencio audio, cortar pausas, editar podcast, encurtar gravacao'
+        }
+      },
+      {
         path: 'audio/separar-canais',
         title: 'Separar Canais de Áudio (Estéreo ↔ Mono) — Nada Sai',
         loadComponent: () => import('./features/audio-channels/audio-channels.component').then((m) => m.AudioChannelsComponent),
@@ -516,6 +525,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
           metaDescription: 'Shrink MP3, WAV, OGG and M4A by choosing the bitrate, with the final size estimated before you download. Up to 100 MB, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'audio/remove-silence',
+        title: 'Remove Silence from Audio Online (Free) — Nada Sai',
+        loadComponent: () => import('./features/remove-silence/remove-silence.component').then((m) => m.RemoveSilenceComponent),
+        data: {
+          metaDescription: 'Cut the long pauses out of a recording by tuning threshold and minimum length, with a preview of how much time disappears before you apply it. 100% offline.',
+          metaKeywords: 'remove silence from audio, trim pauses, podcast editing, shorten recording'
         }
       },
       {
