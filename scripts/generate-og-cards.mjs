@@ -43,21 +43,27 @@ const HEIGHT = 630;
 
 /** Lê um literal de objeto do fonte TS sem carregar o Angular junto.
  *
- * `translation.service.ts` importa `@angular/core` e usa decorator, então o
- * `transpileModule` que `generate-sitemap.mjs` usa não serve aqui — ele deixaria
- * referências de runtime que este processo não tem. Os dicionários são literais
- * planos de string, então recortar o bloco e avaliar é suficiente e é estável:
- * se o formato mudar, isto lança em vez de gerar card errado em silêncio. */
+ * Os dicionários são literais planos de string, então recortar o bloco e
+ * avaliar é suficiente e é estável: se o formato mudar, isto lança em vez de
+ * gerar card errado em silêncio. Eles moravam dentro de
+ * `translation.service.ts` — que importa `@angular/core` e usa decorator, e por
+ * isso não podia passar pelo `transpileModule` de `generate-sitemap.mjs` — e
+ * foram para `core/i18n/{en,pt}.ts` quando viraram chunks carregados por
+ * `import()`. Lá são módulos limpos, mas a leitura por recorte continua, porque
+ * `pt.ts` só compila com o tipo que vem de `en.ts`. O `export` na frente da
+ * declaração é a diferença que a busca agora aceita. */
 function objectLiteral(source, name) {
-  const start = source.indexOf(`const ${name}`);
+  const start = source.search(new RegExp(`(export )?const ${name}\\b`));
   if (start < 0) throw new Error(`[og] não achei "const ${name}" — o formato do dicionário mudou?`);
   const open = source.indexOf('{', start);
   const end = source.indexOf('\n}', open);
   return (0, eval)(`(${source.slice(open, end + 2)})`);
 }
 
-const i18nSource = readFileSync(join(ROOT, 'src/app/core/services/translation.service.ts'), 'utf8');
-const DICT = { en: objectLiteral(i18nSource, 'EN'), pt: objectLiteral(i18nSource, 'PT') };
+const DICT = {
+  en: objectLiteral(readFileSync(join(ROOT, 'src/app/core/i18n/en.ts'), 'utf8'), 'EN'),
+  pt: objectLiteral(readFileSync(join(ROOT, 'src/app/core/i18n/pt.ts'), 'utf8'), 'PT'),
+};
 
 /** TOOLS e MODULES saem do fonte por regex de campo, e não por eval: o array tem
  *  tipos (`readonly ToolDef[]`, `satisfies`) que não sobrevivem a um eval cru. */

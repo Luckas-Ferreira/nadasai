@@ -23,13 +23,17 @@ describe('AppComponent', () => {
     expect(compiled.textContent).toContain('Nada Sai');
   });
 
-  it('should toggle the active language', () => {
+  // `toggleLanguage` passou a ser assíncrono quando os dicionários viraram
+  // chunks carregados por `import()`: ele só troca `currentLang` DEPOIS de o
+  // dicionário do destino estar em mão, senão a tela ficaria sem texto até o
+  // chunk chegar. Sem o `await`, este teste lia o idioma antes da troca.
+  it('should toggle the active language', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     const i18n = TestBed.inject(TranslationService);
     fixture.detectChanges();
 
     const initial = i18n.currentLang();
-    i18n.toggleLanguage();
+    await i18n.toggleLanguage();
 
     expect(i18n.currentLang()).not.toEqual(initial);
   });
