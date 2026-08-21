@@ -50,12 +50,13 @@ import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..', 'src', 'app');
 
-/** Documentos inteiros por traduzir — ver o cabeçalho. */
-const EXCEPT = new Set([
-  'features/about/about.component.ts',
-  'features/privacy-policy/privacy.component.ts',
-  'features/terms/terms.component.ts',
-]);
+/**
+ * Vazio, e a intenção é que continue. As três páginas estáticas moraram aqui
+ * enquanto eram `@if pt { … } @else { … }` com a marcação duplicada; passaram a
+ * ler o dicionário como todo o resto e saíram. Pôr um arquivo de volta aqui é
+ * decidir que a interface dele pode ficar num idioma só.
+ */
+const EXCEPT = new Set([]);
 
 /**
  * Palavras que aparecem cruas num template e continuam certas nas duas línguas:
