@@ -769,6 +769,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
     },
   },
 
+  favicon: {
+    pt: {
+      features: [
+        'Um .ico com 16, 32, 48, 64, 128 e 256 px dentro do mesmo arquivo',
+        'Encaixe por proporção, sem esticar imagem retangular',
+        'Entradas comprimidas em PNG, com transparência preservada',
+        'Escolha de quais resoluções entram',
+      ],
+      faq: [
+        {
+          q: 'Por que um favicon precisa de vários tamanhos dentro do mesmo arquivo?',
+          a: 'Porque quem escolhe é o sistema, não você. A aba do navegador pede 16 ou 32 px, o atalho da barra de tarefas do Windows pede 48, e a tela de favoritos em alta densidade pede 256. Um .ico guarda todas essas resoluções de uma vez e cada contexto retira a que serve. Com um tamanho só, o navegador reamostra o que tem — e uma redução de 256 para 16 feita na hora borra exatamente os detalhes que um ícone pequeno precisa ter nítidos.',
+        },
+        {
+          q: 'O que acontece se a minha imagem não for quadrada?',
+          a: 'Ela é encaixada dentro do quadrado mantendo a proporção, com margem transparente nas laterais que sobram — nunca esticada. Um logotipo largo continua largo, só passa a ter espaço vazio acima e abaixo. Se você preferir que ele ocupe o quadrado inteiro, corte a imagem antes: a ferramenta de cortar entrega o resultado direto aqui sem passar pelo disco.',
+        },
+        {
+          q: 'O .ico gerado preserva transparência?',
+          a: 'Sim. Cada resolução dentro do arquivo é uma imagem PNG de 32 bits, então o canal alfa do original chega intacto. É por isso que o formato certo para trazer aqui é um PNG com fundo transparente — um JPEG não tem transparência para preservar, e o fundo dele vira parte do ícone.',
+        },
+        {
+          q: 'Preciso mesmo de .ico, ou um PNG resolve?',
+          a: 'Os navegadores atuais aceitam PNG num link rel="icon", mas o .ico continua sendo o que funciona sem exceção: é o formato que o Internet Explorer, os leitores de feed antigos e o próprio Windows esperam, e é o único que o navegador encontra sozinho em /favicon.ico quando o HTML não declara nada. Como ele carrega várias resoluções, também é o único que resolve todos os contextos com um arquivo só.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'One .ico holding 16, 32, 48, 64, 128 and 256 px at once',
+        'Aspect-preserving fit, never a stretched rectangle',
+        'PNG-compressed entries, transparency kept',
+        'Pick exactly which resolutions go in',
+      ],
+      faq: [
+        {
+          q: 'Why does a favicon need several sizes inside one file?',
+          a: 'Because the system picks, not you. The browser tab asks for 16 or 32 px, the Windows taskbar shortcut asks for 48, and a high-density bookmarks screen asks for 256. An .ico holds all of those at once and each context pulls the one it needs. With a single size, the browser resamples whatever it has — and downscaling 256 to 16 on the fly blurs exactly the details a small icon needs sharp.',
+        },
+        {
+          q: 'What happens if my image is not square?',
+          a: 'It is fitted inside the square with its aspect ratio intact, with transparent margins on the leftover sides — never stretched. A wide logo stays wide, it just gains empty space above and below. If you would rather it fill the square, crop first: the crop tool hands its result straight here without touching the disk.',
+        },
+        {
+          q: 'Does the generated .ico keep transparency?',
+          a: 'Yes. Every resolution inside the file is a 32-bit PNG image, so the original alpha channel arrives intact. That is why a PNG with a transparent background is the right thing to bring here — a JPEG has no transparency to keep, and its background becomes part of the icon.',
+        },
+        {
+          q: 'Do I actually need .ico, or will a PNG do?',
+          a: 'Current browsers accept a PNG in a link rel="icon", but .ico is still the one that works everywhere: it is what Internet Explorer, older feed readers and Windows itself expect, and it is the only format a browser finds on its own at /favicon.ico when the HTML declares nothing. Because it carries several resolutions, it is also the only one that answers every context with a single file.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

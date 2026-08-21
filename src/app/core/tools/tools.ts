@@ -20,6 +20,7 @@ export type ToolId =
   | 'compress'
   | 'convert'
   | 'resize'
+  | 'favicon'
   | 'img-to-pdf'
   | 'edit-pdf'
   | 'merge-pdf'
@@ -579,6 +580,37 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'image to pdf', 'photos to pdf', 'jpg to pdf', 'png to pdf', 'merge images into pdf',
       'pictures to pdf', 'photo scanner pdf', 'convert photos to pdf', 'make pdf from image'
+    ],
+  },
+  {
+    /**
+     * `produces: null` porque um `.ico` é terminal: nenhuma ferramenta daqui
+     * abre um ICO, e oferecer "comprimir imagem" a seguir seria pior do que não
+     * oferecer nada. Ele ACEITA imagem, então é o fim natural de uma cadeia que
+     * começou em remover-fundo ou cortar — que é como um logotipo vira favicon.
+     */
+    id: 'favicon',
+    pathPt: 'imagem/favicon',
+    pathEn: 'image/favicon',
+    icon: 'square',
+    category: 'image',
+    accepts: ['image'],
+    produces: null,
+    navKey: 'nav.favicon',
+    shortKey: 'nav.short.favicon',
+    titleKey: 'favicon.title',
+    descKey: 'favicon.subtitle',
+    suffix: 'favicon',
+    tone: 'indigo',
+    keywordsPt: [
+      'favicon', 'ico', 'icone do site', 'icone', 'gerar favicon', 'criar favicon',
+      'png para ico', 'imagem para ico', 'icone do navegador', 'aba do navegador',
+      'multi resolucao', '16x16', '32x32', 'atalho'
+    ],
+    keywordsEn: [
+      'favicon', 'ico', 'site icon', 'favicon generator', 'png to ico', 'image to ico',
+      'browser icon', 'browser tab icon', 'multi resolution icon', '16x16', '32x32',
+      'apple touch icon', 'shortcut icon'
     ],
   },
   {
