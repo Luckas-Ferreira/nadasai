@@ -116,6 +116,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'audio/separar-canais',
+        title: 'Separar Canais de Áudio (Estéreo ↔ Mono) — Nada Sai',
+        loadComponent: () => import('./features/audio-channels/audio-channels.component').then((m) => m.AudioChannelsComponent),
+        data: {
+          metaDescription: 'Converta estéreo em mono, mono em estéreo, extraia só o canal esquerdo ou direito e troque os lados. Avisa quando a mistura vai cancelar por fase. 100% offline.',
+          metaKeywords: 'separar canais audio, estereo para mono, extrair canal esquerdo, audio so de um lado'
+        }
+      },
+      {
         path: 'audio/normalizar',
         title: 'Normalizar Áudio e Aumentar Volume Online — Nada Sai',
         loadComponent: () => import('./features/normalize-audio/normalize-audio.component').then((m) => m.NormalizeAudioComponent),
@@ -507,6 +516,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/compress-audio/compress-audio.component').then((m) => m.CompressAudioComponent),
         data: {
           metaDescription: 'Shrink MP3, WAV, OGG and M4A by choosing the bitrate, with the final size estimated before you download. Up to 100 MB, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'audio/split-channels',
+        title: 'Split Audio Channels (Stereo ↔ Mono) — Nada Sai',
+        loadComponent: () => import('./features/audio-channels/audio-channels.component').then((m) => m.AudioChannelsComponent),
+        data: {
+          metaDescription: 'Turn stereo into mono, mono into stereo, pull out just the left or right channel, or swap the sides. Warns when the mix would cancel out of phase. 100% offline.',
+          metaKeywords: 'split audio channels, stereo to mono, extract left channel, audio only one side'
         }
       },
       {

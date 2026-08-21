@@ -877,6 +877,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'audio-channels': {
+    pt: {
+      features: [
+        'Estéreo para mono, mono para estéreo, um lado sozinho, lados trocados',
+        'Aviso de cancelamento de fase antes de misturar',
+        'Saída WAV sem perda ou MP3 para enviar',
+        'A operação nomeia o arquivo: -esquerdo, -direito, -mono',
+      ],
+      faq: [
+        {
+          q: 'Meu áudio só toca de um lado. Como resolver?',
+          a: 'Extraia o lado que tem som. A ferramenta separa o canal esquerdo ou o direito e grava só ele, preservando aquele lado exatamente como está — não é uma mistura, é um recorte. Se preferir o som nos dois lados, extraia o canal bom e depois alargue para estéreo: o mesmo sinal passa a sair pelas duas caixas.',
+        },
+        {
+          q: 'Por que o aviso de cancelamento de fase aparece?',
+          a: 'Porque os dois canais têm material parecido em oposição de fase, e a mistura para mono os apaga em parte. É comum em faixa com efeito de alargamento estéreo, em gravação com microfone fora de fase e em karaokê feito por subtração. A ferramenta mede antes e avisa; a correção não existe, porque qualquer ajuste automático mudaria o som de todos os outros arquivos.',
+        },
+        {
+          q: 'Misturar em mono perde qualidade?',
+          a: 'Não no sentido de compressão — a conta é a média dos dois canais, em Float32, e gravando em WAV nada é descartado. O que se perde é a informação estéreo: a diferença entre os lados deixa de existir, e é ela que posiciona os instrumentos. Num arquivo de voz isso não custa nada; numa mixagem musical, custa a imagem.',
+        },
+        {
+          q: 'Alargar um mono para estéreo melhora o som?',
+          a: 'Não, e a ferramenta não finge que sim: o resultado é o mesmo sinal nos dois lados. Inventar diferença entre eles produziria uma imagem estéreo que a gravação não tem, que é o que "melhoradores de estéreo" fazem sem avisar. Serve para atender um destino que exige dois canais, não para acrescentar espaço.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Stereo to mono, mono to stereo, one side alone, sides swapped',
+        'Phase-cancellation warning before mixing',
+        'Lossless WAV output, or MP3 to send',
+        'The operation names the file: -left, -right, -mono',
+      ],
+      faq: [
+        {
+          q: 'My audio only plays on one side. How do I fix it?',
+          a: 'Extract the side that has sound. The tool pulls out the left or the right channel and writes only that, keeping it exactly as it is — it is a cut, not a mix. If you want the sound on both sides, extract the good channel and then widen to stereo: the same signal comes out of both speakers.',
+        },
+        {
+          q: 'Why does the phase-cancellation warning appear?',
+          a: 'Because the two channels carry similar material in opposite phase, and mixing to mono partly erases it. It is common on tracks with stereo-widening effects, on recordings with an out-of-phase microphone, and on karaoke made by subtraction. The tool measures it beforehand and says so; there is no fix, because any automatic correction would change the sound of every other file.',
+        },
+        {
+          q: 'Does mixing to mono lose quality?',
+          a: 'Not in the compression sense — the maths is the average of both channels, in Float32, and writing WAV discards nothing. What is lost is the stereo information: the difference between the sides stops existing, and that difference is what places the instruments. On a voice file it costs nothing; on a music mix, it costs the image.',
+        },
+        {
+          q: 'Does widening a mono file to stereo improve it?',
+          a: 'No, and the tool does not pretend otherwise: the result is the same signal on both sides. Inventing a difference between them would produce a stereo image the recording does not have, which is what "stereo enhancers" do without saying so. It serves a destination that requires two channels, not a wider sound.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

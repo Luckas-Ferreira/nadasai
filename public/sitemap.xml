@@ -342,6 +342,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- audio-channels -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/separar-canais</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/split-channels</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- video-to-audio -->
   <url>
     <loc>https://nadasai.com/pt/audio/extrair-de-video</loc>
