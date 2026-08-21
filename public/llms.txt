@@ -78,10 +78,20 @@ These pages open the converter above with the destination format already selecte
 - [WebP para JPG / WebP to JPG](https://nadasai.com/pt/imagem/webp-para-jpg): Convert WebP to JPG right in the browser. It is the way out for forms, printers and software that only accept JPEG.
 - [AVIF para JPG / AVIF to JPG](https://nadasai.com/pt/imagem/avif-para-jpg): Convert AVIF to JPG right in the browser. AVIF is read here but not written — and this page explains why.
 - [GIF para PNG / GIF to PNG](https://nadasai.com/pt/imagem/gif-para-png): Convert GIF to PNG right in the browser. From an animated GIF you get the first frame: PNG carries no sequence, and the page says so up front.
+- [BMP para PNG / BMP to PNG](https://nadasai.com/pt/imagem/bmp-para-png): Convert BMP to PNG right in the browser. Both are lossless, so the image is identical — what changes is the size, which usually drops to a fraction.
+- [BMP para JPG / BMP to JPG](https://nadasai.com/pt/imagem/bmp-para-jpg): Convert BMP to JPG right in the browser. The size drop is the largest on the list, because BMP compresses nothing and JPEG compresses a lot.
+- [AVIF para PNG / AVIF to PNG](https://nadasai.com/pt/imagem/avif-para-png): Convert AVIF to PNG right in the browser, alpha channel intact. It is the way out when the software on the other side does not open AVIF.
+- [AVIF para WebP / AVIF to WebP](https://nadasai.com/pt/imagem/avif-para-webp): Convert AVIF to WebP right in the browser. WebP opens in more places than AVIF and stays far lighter than PNG.
+- [GIF para JPG / GIF to JPG](https://nadasai.com/pt/imagem/gif-para-jpg): Convert GIF to JPG right in the browser. From an animated GIF you get the first frame, and transparency becomes white. The page says so up front.
 - [M4A para MP3 / M4A to MP3](https://nadasai.com/pt/audio/m4a-para-mp3): Convert M4A to MP3 right in the browser. The audio is decoded and re-encoded on your machine, with no upload and no signup.
 - [WAV para MP3 / WAV to MP3](https://nadasai.com/pt/audio/wav-para-mp3): Convert WAV to MP3 right in the browser. It is the conversion that trades tens of megabytes for a few, with no upload and no signup.
 - [FLAC para MP3 / FLAC to MP3](https://nadasai.com/pt/audio/flac-para-mp3): Convert FLAC to MP3 right in the browser. FLAC is read here; writing FLAC is what no browser does, and this page explains why.
 - [MP3 para WAV / MP3 to WAV](https://nadasai.com/pt/audio/mp3-para-wav): Convert MP3 to WAV right in the browser. WAV is raw PCM: the file grows a lot, and nothing more is discarded from here on.
+- [OGG para MP3 / OGG to MP3](https://nadasai.com/pt/audio/ogg-para-mp3): Convert OGG Vorbis or Opus to MP3 right in the browser. It is the way out for stereos, car players and software that do not know the format.
+- [AAC para MP3 / AAC to MP3](https://nadasai.com/pt/audio/aac-para-mp3): Convert AAC to MP3 right in the browser. It is a compatibility conversion: AAC is better at the same bitrate, and MP3 opens in more places.
+- [WebM para MP3 / WebM to MP3](https://nadasai.com/pt/audio/webm-para-mp3): Convert an audio WebM to MP3 right in the browser. If your WebM has video, the right tool is extract-audio-from-video.
+- [M4A para WAV / M4A to WAV](https://nadasai.com/pt/audio/m4a-para-wav): Convert M4A to WAV right in the browser. The file grows a lot, and from there on no edit adds new loss.
+- [FLAC para WAV / FLAC to WAV](https://nadasai.com/pt/audio/flac-para-wav): Convert FLAC to WAV right in the browser. Both are lossless, so the audio crosses over intact; what changes is the size.
 
 ## Privacy Architecture
 
