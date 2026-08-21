@@ -35,6 +35,7 @@ export type ToolId =
   | 'sign-pdf'
   | 'watermark-pdf'
   | 'page-numbers'
+  | 'pdf-to-text'
   | 'encrypt-file'
   | 'file-hash'
   | 'password-generator'
@@ -907,6 +908,36 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'watermark pdf', 'add watermark', 'draft stamp', 'confidential watermark',
       'text watermark', 'stamp text', 'overlay text'
+    ],
+  },
+  {
+    /**
+     * `produces: null` — texto não volta para a cadeia de PDF, e nenhuma
+     * ferramenta daqui abre um .txt. O caminho útil é o contrário: chegar aqui
+     * com um PDF que veio de juntar, organizar ou dividir.
+     */
+    id: 'pdf-to-text',
+    pathPt: 'pdf/para-texto',
+    pathEn: 'pdf/to-text',
+    icon: 'text',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: null,
+    navKey: 'nav.pdf_to_text',
+    shortKey: 'nav.short.pdf_to_text',
+    titleKey: 'p2t.title',
+    descKey: 'p2t.subtitle',
+    suffix: 'texto',
+    tone: 'sky',
+    keywordsPt: [
+      'pdf para texto', 'extrair texto de pdf', 'pdf para txt', 'pdf para markdown',
+      'copiar texto do pdf', 'pdf em texto puro', 'converter pdf em texto', 'pdf para md',
+      'texto de pdf escaneado', 'ocr pdf', 'pdf para chatgpt', 'pdf para ia'
+    ],
+    keywordsEn: [
+      'pdf to text', 'extract text from pdf', 'pdf to txt', 'pdf to markdown',
+      'copy text from pdf', 'plain text from pdf', 'convert pdf to text', 'pdf to md',
+      'scanned pdf to text', 'ocr pdf', 'pdf for llm', 'pdf for chatgpt'
     ],
   },
   {

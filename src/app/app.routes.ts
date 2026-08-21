@@ -298,6 +298,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/para-texto',
+        title: 'PDF para Texto e Markdown Online (com OCR) — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-text/pdf-to-text.component').then((m) => m.PdfToTextComponent),
+        data: {
+          metaDescription: 'Extraia o texto de um PDF em .txt ou Markdown, com OCR nas páginas escaneadas. Ideal para jogar num modelo de linguagem. 100% offline no navegador.',
+          metaKeywords: 'pdf para texto, extrair texto de pdf, pdf para markdown, pdf para txt, ocr'
+        }
+      },
+      {
         path: 'pdf/numerar-paginas',
         title: 'Numerar Páginas de PDF Online (Grátis) — Nada Sai',
         loadComponent: () => import('./features/page-numbers/page-numbers.component').then((m) => m.PageNumbersComponent),
@@ -707,6 +716,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
         data: {
           metaDescription: 'Draw or type your signature and place it anywhere on the page, in any PDF. Nothing is sent to a server, because it runs 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'pdf/to-text',
+        title: 'PDF to Text and Markdown Online (with OCR) — Nada Sai',
+        loadComponent: () => import('./features/pdf-to-text/pdf-to-text.component').then((m) => m.PdfToTextComponent),
+        data: {
+          metaDescription: 'Extract the text of a PDF as .txt or Markdown, with OCR on scanned pages. Made for pasting into a language model. 100% offline in your browser.',
+          metaKeywords: 'pdf to text, extract text from pdf, pdf to markdown, pdf to txt, ocr'
         }
       },
       {

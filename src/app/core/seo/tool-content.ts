@@ -985,6 +985,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'pdf-to-text': {
+    pt: {
+      features: [
+        'Texto puro ou Markdown, com o negrito preservado no segundo',
+        'OCR a 3× nas páginas escaneadas, em português e inglês',
+        'Ordem de leitura corrigida por bandas, não por ordem de criação',
+        'Copiar direto para a área de transferência',
+      ],
+      faq: [
+        {
+          q: 'Serve para jogar o documento num modelo de linguagem?',
+          a: 'É o caso principal, e é por isso que TXT é o padrão e o marcador de página vem desligado. Um modelo lê melhor prosa contínua do que prosa picada por "--- Página 3 ---" a cada folha. Ligue o marcador quando for conferir o texto contra o original, não quando for colar em outro lugar.',
+        },
+        {
+          q: 'Como funciona com PDF escaneado?',
+          a: 'Uma página sem camada de texto é uma imagem, e o texto dela não existe como texto no arquivo. Com o OCR ligado a página é rasterizada a 3× — cerca de 216 DPI, que é o que o Tesseract precisa para devolver geometria confiável — e reconhecida em português, inglês ou os dois. Com o OCR desligado ela é pulada, e a página avisa quantas ficaram de fora.',
+        },
+        {
+          q: 'Como o Markdown decide o que é título?',
+          a: 'Por três testes ao mesmo tempo: o corpo da fonte precisa estar pelo menos 15% acima da mediana da página, o bloco precisa ter no máximo 14 palavras, e não pode terminar em pontuação. Qualquer um deles sozinho produz falso positivo — a primeira linha de um parágrafo em destaque é grande, um item de lista é curto, uma legenda não tem ponto. Um PDF não declara hierarquia; ela é inferida, e a ferramenta prefere errar para menos.',
+        },
+        {
+          q: 'A ordem do texto sai certa em documento de duas colunas?',
+          a: 'Sim. Os blocos são reordenados por bandas de sobreposição vertical antes de virarem texto — sem isso, a ordem seria a de criação dos objetos no arquivo, que num documento de duas colunas entrega a metade direita de cada linha antes da esquerda. Todas as palavras estariam lá e o texto seria ilegível, o que se parece com falha de OCR sem ser.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Plain text or Markdown, with bold preserved in the latter',
+        '3× OCR on scanned pages, in Portuguese and English',
+        'Reading order fixed by bands, not by object creation order',
+        'Copy straight to the clipboard',
+      ],
+      faq: [
+        {
+          q: 'Is this for feeding a document to a language model?',
+          a: 'It is the main case, which is why TXT is the default and the page marker is off. A model reads continuous prose better than prose chopped up by "--- Page 3 ---" every sheet. Turn the marker on when you are checking the text against the original, not when you are pasting it somewhere.',
+        },
+        {
+          q: 'How does it handle a scanned PDF?',
+          a: 'A page with no text layer is an image, and its text does not exist as text in the file. With OCR on, the page is rendered at 3× — roughly 216 DPI, which is what Tesseract needs to return reliable geometry — and recognised in Portuguese, English or both. With OCR off it is skipped, and the page tells you how many were left out.',
+        },
+        {
+          q: 'How does the Markdown decide what is a heading?',
+          a: 'By three tests at once: the font body has to be at least 15% above the page median, the block has to be at most 14 words, and it cannot end in punctuation. Any one of them alone produces false positives — the first line of a pull quote is large, a list item is short, a caption has no full stop. A PDF does not declare hierarchy; it is inferred, and the tool prefers to under-call it.',
+        },
+        {
+          q: 'Does the text come out in the right order on a two-column document?',
+          a: 'Yes. Blocks are reordered into bands by vertical overlap before becoming text — without that, the order would be the order the objects were created in the file, which on a two-column document hands you the right half of every line before the left. Every word would be present and the text unreadable, which looks like an OCR fault without being one.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],
