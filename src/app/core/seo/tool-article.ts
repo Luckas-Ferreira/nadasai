@@ -733,7 +733,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
           'Escolha 2x ou 4x. A resolução final aparece no painel antes e depois de rodar.',
           'Ajuste a nitidez entre suave, equilibrado e máximo — quanto mais alto, mais realce de borda e mais chance de halo.',
           'Deixe a redução de ruído ligada em foto de celular e em imagem salva de aplicativo de mensagem; desligue em desenho e captura de tela.',
-          'Baixe o PNG resultante.',
+          'Baixe o resultado. PNG entra e sai PNG; JPEG, WebP e os demais saem em JPEG de alta qualidade, porque reescrever uma foto como PNG multiplicaria o tamanho sem ganho.',
         ],
       },
       {
@@ -770,7 +770,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
           'Choose 2x or 4x. The final resolution is shown in the panel before and after the run.',
           'Set sharpness to soft, balanced or maximum — the higher it goes, the more edge emphasis and the more chance of haloing.',
           'Leave noise reduction on for phone photos and images saved from messaging apps; turn it off for drawings and screenshots.',
-          'Download the resulting PNG.',
+          'Download the result. PNG goes in and comes out PNG; JPEG, WebP and the rest come out as high-quality JPEG, because rewriting a photograph as PNG would multiply the size for no gain.',
         ],
       },
       {
@@ -2897,6 +2897,102 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
           'Practically every video-to-GIF converter is a paid service in disguise: it either stamps a watermark, or caps the duration, or asks for a signup — and all three exist for the same reason, which is that the video is being processed on somebody server. You hand over the whole file to get back a branded version.',
           'Here the video is read by the browser itself, the frames are drawn onto an in-memory canvas, and the GIF is written byte by byte in the same tab. The meter at the top of the page counts file bytes leaving and stays at zero from beginning to end, and after the first visit everything works with the internet switched off.',
           'That matters more than usual in this particular tool: the video most often turned into a GIF is a screen recording — with internal systems, client data, filenames and open tabs in view. It is exactly the material that should not be uploaded to a free website in exchange for an animation.',
+        ],
+      },
+    ],
+  },
+  'video-to-frames': {
+    pt: [
+      {
+        h: 'Como tirar um quadro de um vídeo',
+        p: [
+          'O player da própria página é o controle: você para no quadro que interessa e captura. A imagem sai na resolução do vídeo, lida do arquivo — não é uma foto da tela, não tem barra de controle no meio e não depende do tamanho da sua janela.',
+        ],
+        steps: [
+          'Solte o vídeo (MP4, WebM, MOV ou MKV).',
+          'Use o player para parar exatamente no quadro que você quer.',
+          'Escolha o formato: PNG para tela e texto, JPG para cena de câmera.',
+          'Capture e confira a imagem antes de baixar.',
+          'Para vários quadros, troque o modo e escolha o intervalo — o resultado vem num zip.',
+        ],
+      },
+      {
+        h: 'Um quadro ou um contato de folha',
+        p: [
+          'O modo de quadro único resolve o caso comum: a capa de um vídeo, o print de um erro que aparece por meio segundo, o momento que ninguém fotografou porque só havia a filmagem. Como o instante vem do player, não é preciso saber em que segundo aquilo acontece — basta parar ali.',
+          'O modo de intervalo percorre o vídeo inteiro e salva um quadro a cada meio segundo, um, dois, cinco ou dez. É o contato de folha: dá para escolher a melhor imagem depois, com calma, sem voltar ao vídeo. Serve também para documentar um passo a passo e para conferir se algo aparece em algum ponto da gravação.',
+          'O teto é de 100 quadros, e ele é de memória: o zip é montado inteiro na RAM da aba, com todas as imagens já codificadas dentro. Por isso o painel mostra quantos quadros o intervalo escolhido produz ANTES de rodar, e a ferramenta pede um intervalo maior em vez de travar no meio do trabalho.',
+        ],
+      },
+      {
+        h: 'Formato, tamanho e o que esperar da nitidez',
+        p: [
+          'PNG é sem perda: letras, interface e traço saem exatamente como estão no quadro. É o formato certo para gravação de tela, e é o padrão aqui por isso. JPG fica muito mais leve em cena de câmera, onde a perda não aparece, e a diferença importa quando são dezenas de imagens no mesmo zip. WebP fica menor que os dois com qualidade parecida.',
+          'A largura padrão é a do próprio vídeo. Reduzir só faz sentido quando o destino é web ou quando o zip precisa caber num anexo — ampliar não é oferecido, porque não há detalhe a acrescentar.',
+          'Uma expectativa que vale ajustar: um quadro isolado de vídeo comprimido nem sempre é tão nítido quanto uma foto. A compressão de vídeo guarda alguns quadros inteiros e descreve os outros como diferença em relação a eles, então cena com movimento rápido produz quadro mais borrado. Isso vem do arquivo de origem, e nenhuma ferramenta recupera o que o codificador jogou fora — inclusive esta.',
+        ],
+      },
+      {
+        h: 'Onde isso se encaixa no resto',
+        p: [
+          'O quadro sai como imagem e entra na cadeia do módulo de imagem: dá para seguir direto para cortar, comprimir, redimensionar, remover fundo ou censurar, sem baixar e subir de novo. Capturar o quadro de uma gravação de tela e tarjar um dado sensível antes de mandar para o time é um caminho de dois cliques.',
+          'Quando são vários quadros, a saída é um zip — e a ferramenta avisa a barra de ações sobre isso, porque oferecer "cortar imagem" para um arquivo compactado seria pior do que não oferecer nada.',
+          'Se o que você quer é movimento e não um instante, a ferramenta ao lado transforma o mesmo trecho em GIF animado. As duas leem os quadros pela mesma máquina; muda o destino.',
+        ],
+      },
+      {
+        h: 'Por que fazer isso no navegador',
+        p: [
+          'A alternativa de sempre é a tecla de print: ela captura a janela, com barra de controle por cima, na resolução da tela e não na do vídeo. A outra alternativa é subir o arquivo para um site — um vídeo inteiro, de centenas de megabytes, para receber de volta uma imagem.',
+          'Aqui o vídeo é lido pelo próprio navegador e o quadro é desenhado num canvas dentro da aba. O medidor no alto da página conta bytes de arquivo saindo e fica em zero durante toda a extração, e depois da primeira visita a ferramenta funciona com a internet desligada.',
+          'Isso importa especialmente pelo tipo de vídeo que costuma passar por aqui: gravação de reunião, captura de tela com sistema interno à vista, filmagem pessoal. É material que não deveria virar upload em troca de uma imagem.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'How to take a frame out of a video',
+        p: [
+          'The player on the page is the control: you land on the frame you want and capture it. The image comes out at the resolution of the video, read from the file — it is not a screenshot, it has no control bar across it, and it does not depend on the size of your window.',
+        ],
+        steps: [
+          'Drop the video (MP4, WebM, MOV or MKV).',
+          'Use the player to land exactly on the frame you want.',
+          'Choose the format: PNG for screens and text, JPG for camera footage.',
+          'Capture and check the image before downloading.',
+          'For several frames, switch the mode and pick an interval — the result comes back as a zip.',
+        ],
+      },
+      {
+        h: 'One frame, or a contact sheet',
+        p: [
+          'Single-frame mode covers the common case: a video cover, a screenshot of an error that shows for half a second, the moment nobody photographed because there was only the recording. Because the instant comes from the player, you do not need to know which second it happens at — you just stop there.',
+          'Interval mode walks the whole video and saves a frame every half second, one, two, five or ten. It is a contact sheet: you can pick the best image afterwards, at your own pace, without going back to the video. It also works for documenting a step-by-step and for checking whether something appears anywhere in the recording.',
+          'The ceiling is 100 frames, and it is about memory: the zip is assembled entirely in the RAM of the tab, with every image already encoded inside. That is why the panel shows how many frames the chosen interval produces BEFORE you run it, and why the tool asks for a longer interval instead of freezing mid-job.',
+        ],
+      },
+      {
+        h: 'Format, size, and what to expect of sharpness',
+        p: [
+          'PNG is lossless: letters, interfaces and line work come out exactly as they are in the frame. It is the right format for screen recordings, and that is why it is the default here. JPG is much lighter for camera footage, where the loss does not show, and the difference matters when there are dozens of images in the same zip. WebP lands smaller than both at similar quality.',
+          'The default width is the one the video has. Reducing only makes sense when the destination is the web or when the zip has to fit an attachment — enlarging is not offered, because there is no detail to add.',
+          'One expectation worth adjusting: a single frame from compressed video is not always as sharp as a photograph. Video compression stores some frames whole and describes the others as differences from them, so fast motion produces blurrier frames. That comes from the source file, and no tool recovers what the encoder threw away — this one included.',
+        ],
+      },
+      {
+        h: 'Where this fits with the rest',
+        p: [
+          'The frame comes out as an image and joins the image module chain: you can go straight on to crop, compress, resize, remove the background or redact, with no download and re-upload in between. Capturing a frame from a screen recording and blacking out a sensitive detail before sending it to your team is a two-click path.',
+          'When there are several frames the output is a zip — and the tool tells the action bar so, because offering "crop image" for an archive would be worse than offering nothing.',
+          'If what you want is motion rather than an instant, the tool next door turns the same stretch into an animated GIF. Both read frames through the same machinery; only the destination differs.',
+        ],
+      },
+      {
+        h: 'Why do this in the browser',
+        p: [
+          'The usual alternative is the print key: it captures the window, with the control bar on top, at screen resolution rather than video resolution. The other alternative is uploading the file to a website — a whole video, hundreds of megabytes, to get one image back.',
+          'Here the video is read by the browser itself and the frame is drawn onto a canvas inside the tab. The meter at the top of the page counts file bytes leaving and stays at zero for the whole extraction, and after the first visit the tool works with the internet switched off.',
+          'That matters especially given the kind of video that passes through here: meeting recordings, screen captures with internal systems in view, personal footage. It is material that should not become an upload in exchange for a picture.',
         ],
       },
     ],

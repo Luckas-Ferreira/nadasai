@@ -1,0 +1,183 @@
+<app-tool-page [toolId]="'video-to-frames'" [forceLoaded]="!!videoUrl()">
+  <div banner [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+  </div>
+
+  <div stage>
+    @if (!videoUrl()) {
+      <app-dropzone
+        [accept]="acceptAttr"
+        [titleKey]="'video_frames.drag'"
+        [hintKey]="'video_frames.drag_hint'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="relative flex flex-col gap-3">
+        <div class="flex items-center justify-center rounded-xl bg-stage p-4 sm:p-5">
+          <!-- O player É o controle: os controles nativos são o jeito que todo
+               mundo já sabe usar para parar num quadro. -->
+          <video
+            #player
+            class="max-h-[420px] w-auto max-w-full rounded-md"
+            [src]="videoUrl()"
+            controls
+            playsinline
+            preload="metadata"
+            (timeupdate)="onTimeUpdate()"
+          ></video>
+        </div>
+
+        @if (resultUrl(); as shot) {
+          <div class="flex items-center justify-center rounded-xl bg-stage p-4 sm:p-5">
+            <img
+              class="max-h-[300px] w-auto max-w-full rounded-md"
+              [src]="shot"
+              [alt]="i18n.t()['video_frames.result_single']"
+            />
+          </div>
+        }
+
+        @if (result(); as output) {
+          <div class="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 px-1">
+            <p class="text-xs text-muted">
+              {{
+                output.isZip
+                  ? i18n.t()['video_frames.result_zip']
+                  : i18n.t()['video_frames.result_single']
+              }}
+              <span class="font-mono tabular text-faint">
+                · {{ output.width }}×{{ output.height }}
+                @if (output.isZip) {
+                  · {{ output.count }}
+                }
+              </span>
+            </p>
+            <p class="font-mono text-xs tabular text-muted">{{ resultSize() }}</p>
+          </div>
+        }
+
+        @if (busy()) {
+          <div
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-stage/85 backdrop-blur-[3px]"
+          >
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm font-medium text-white">{{ i18n.t()['video_frames.working'] }}</p>
+
+            <div class="w-56">
+              <div class="h-1 overflow-hidden rounded-full bg-white/25">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-300"
+                  [style.width.%]="progress()"
+                ></div>
+              </div>
+              <p class="mt-2 text-center text-xs tabular text-white/80" aria-live="polite">
+                {{ progress() }}%
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (videoUrl()) {
+      <app-panel [heading]="i18n.t()['video_frames.mode']">
+        <div class="flex flex-col gap-4">
+          <app-segmented
+            [options]="modeOptions()"
+            [value]="mode()"
+            (valueChange)="mode.set($event)"
+            [columns]="2"
+            [ariaLabel]="i18n.t()['video_frames.mode']"
+          />
+
+          @if (mode() === 'single') {
+            <div class="flex items-center justify-between border-t border-line pt-3 text-sm">
+              <span class="text-muted">{{ i18n.t()['video_frames.at'] }}</span>
+              <span class="font-mono tabular text-text">{{ clock(atSec()) }}</span>
+            </div>
+            <p class="text-2xs leading-relaxed text-faint">
+              {{ i18n.t()['video_frames.scrub_hint'] }}
+            </p>
+          } @else {
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-medium text-text">
+                {{ i18n.t()['video_frames.interval'] }}
+              </label>
+              <app-segmented
+                [options]="intervalOptions()"
+                [value]="intervalSec()"
+                (valueChange)="intervalSec.set($event)"
+                [columns]="5"
+                [ariaLabel]="i18n.t()['video_frames.interval']"
+              />
+            </div>
+
+            <div class="flex items-center justify-between border-t border-line pt-3 text-sm">
+              <span class="text-muted">{{ i18n.t()['video_frames.count'] }}</span>
+              <span class="font-mono tabular" [class]="tooMany() ? 'text-warning' : 'text-text'">
+                {{ count() }}
+              </span>
+            </div>
+
+            @if (tooMany()) {
+              <p class="text-2xs leading-relaxed text-warning">
+                {{ i18n.t()['video_frames.count_warning'] }}
+              </p>
+            }
+          }
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['video_frames.title']">
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">
+              {{ i18n.t()['video_frames.format'] }}
+            </label>
+            <app-segmented
+              [options]="formatOptions()"
+              [value]="format()"
+              (valueChange)="format.set($event)"
+              [columns]="3"
+              [ariaLabel]="i18n.t()['video_frames.format']"
+            />
+            <p class="text-2xs leading-relaxed text-faint">
+              {{ i18n.t()['video_frames.png_hint'] }}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-medium text-text">{{ i18n.t()['video_frames.size'] }}</label>
+            <app-segmented
+              [options]="widthOptions()"
+              [value]="width()"
+              (valueChange)="width.set($event)"
+              [columns]="widthOptions().length"
+              [ariaLabel]="i18n.t()['video_frames.size']"
+            />
+          </div>
+        </div>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'video-to-frames'"
+        [resultKind]="resultKind()"
+        [primaryLabel]="
+          stale()
+            ? mode() === 'single'
+              ? i18n.t()['video_frames.btn_single']
+              : i18n.t()['video_frames.btn_batch']
+            : null
+        "
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+      />
+    }
+  </div>
+</app-tool-page>

@@ -1,7 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Mp3Encoder } from '@breezystack/lamejs';
 
-export type TargetAudioFormat = 'wav' | 'mp3' | 'ogg' | 'webm' | 'm4a' | 'flac';
+/**
+ * FLAC NÃO ESTÁ AQUI, e a ausência é a correção de um defeito.
+ *
+ * Ele era oferecido e a implementação devolvia um WAV PCM de 16 bits com a
+ * extensão `.flac` — bytes de um formato dentro do nome de outro, que nenhum
+ * decodificador de FLAC abre. É exatamente o caso do AVIF no módulo de imagem,
+ * onde `canvas.toBlob('image/avif')` cai em PNG silenciosamente e o app chegou a
+ * publicar PNG chamado `.avif`; lá a correção foi tirar o formato da lista de
+ * SAÍDA e mantê-lo na de entrada, e aqui é a mesma.
+ *
+ * FLAC continua sendo aceito como ENTRADA: o navegador decodifica. O que ele não
+ * sabe é codificar — e não existe encoder de FLAC em JavaScript que caiba nas
+ * regras deste projeto (asset de mesma origem, sem wasm de megabytes). Quem
+ * precisa de saída sem perda tem WAV, que é sem perda de verdade e sai com o
+ * nome certo.
+ */
+export type TargetAudioFormat = 'wav' | 'mp3' | 'ogg' | 'webm' | 'm4a';
 export type AudioChannels = 'original' | 'stereo' | 'mono';
 export type AudioBitrate = '320' | '192' | '128';
 
@@ -58,7 +74,7 @@ export class AudioConverterService {
    *
    * Fast, in-memory encoding:
    * - MP3: Pure JS LAME encoder (instant, 100% compliant MP3)
-   * - WAV / FLAC: Instant 16-bit PCM WAV Blob
+   * - WAV: Instant 16-bit PCM WAV Blob
    * - OGG / WebM / M4A: Native MediaRecorder if supported, otherwise instant MP3 fallback
    */
   async convertAudio(
@@ -81,8 +97,8 @@ export class AudioConverterService {
       return { blob, ext: 'mp3' };
     }
 
-    // ── 2. WAV / FLAC (Instant PCM WAV Encoding)
-    if (format === 'wav' || format === 'flac') {
+    // ── 2. WAV (Instant PCM WAV Encoding)
+    if (format === 'wav') {
       const blob = this.audioBufferToWavBlob(processedBuffer);
       onProgress?.(100);
       return { blob, ext: format };

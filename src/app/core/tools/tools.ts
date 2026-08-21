@@ -15,6 +15,7 @@ export type ToolId =
   | 'normalize-audio'
   | 'video-to-audio'
   | 'video-to-gif'
+  | 'video-to-frames'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -364,6 +365,37 @@ export const TOOLS: readonly ToolDef[] = [
       'normalize mp3 volume', 'loudness normalization', 'lufs normalization', 'audio too quiet',
       'level audio volume', 'boost mp3 volume', 'normalize podcast audio', 'peak normalization',
       'adjust audio volume', 'audio gain'
+    ],
+  },
+  {
+    id: 'video-to-frames',
+    pathPt: 'video/extrair-quadros',
+    pathEn: 'video/extract-frames',
+    icon: 'image',
+    category: 'video',
+    accepts: ['video'],
+    // Um quadro é uma imagem; vários viram zip, e é por isso que o componente
+    // passa `resultKind` para a barra de ações — oferecer "cortar imagem" para
+    // um zip é pior do que não oferecer nada.
+    produces: 'image',
+    navKey: 'nav.video_to_frames',
+    shortKey: 'nav.short.video_to_frames',
+    titleKey: 'video_frames.title',
+    descKey: 'video_frames.subtitle',
+    suffix: 'frame',
+    tone: 'teal',
+    keywordsPt: [
+      'extrair quadros de video', 'video para imagem', 'tirar print de video',
+      'capturar quadro de video', 'salvar frame de video', 'video para jpg',
+      'video para png', 'extrair frames', 'capa de video', 'thumbnail de video',
+      'pegar imagem de video', 'frame a frame', 'screenshot de video',
+      'imagem de gravacao de tela', 'foto de video'
+    ],
+    keywordsEn: [
+      'extract frames from video', 'video to image', 'video screenshot',
+      'capture video frame', 'save frame from video', 'video to jpg', 'video to png',
+      'frame extractor', 'video thumbnail', 'get image from video',
+      'frame by frame', 'video still', 'screenshot from video', 'video cover image'
     ],
   },
   {

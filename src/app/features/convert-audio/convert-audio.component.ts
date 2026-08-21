@@ -126,7 +126,6 @@ export class ConvertAudioComponent implements OnDestroy {
     'ogg',
     'm4a',
     'webm',
-    'flac',
   ];
   protected readonly targetFormat = signal<TargetAudioFormat>('mp3');
   protected readonly channels = signal<AudioChannels>('original');

@@ -1724,6 +1724,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'video-to-frames': {
+    pt: {
+      features: [
+        'Quadro escolhido no player',
+        'Lote a cada N segundos, em zip',
+        'PNG, JPG ou WebP',
+        'Processamento 100% no navegador',
+      ],
+      faq: [
+        {
+          q: 'Como salvar um quadro de vídeo como imagem?',
+          a: 'Solte o vídeo, use os controles do próprio player para parar no quadro que interessa e clique em capturar. A extração acontece no instante exato em que o vídeo está parado, com a resolução original do arquivo — não é uma foto da tela nem um recorte da janela do navegador, é o quadro lido do vídeo. Escolha entre PNG, JPG e WebP antes de gerar, e a imagem aparece na tela para conferência antes do download.',
+        },
+        {
+          q: 'Dá para extrair vários quadros de uma vez?',
+          a: 'Sim. No modo de intervalo a ferramenta percorre o vídeo inteiro e salva um quadro a cada meio segundo, um, dois, cinco ou dez segundos, entregando tudo num arquivo zip com os quadros numerados em ordem. O painel mostra quantos quadros o intervalo escolhido vai produzir antes de você rodar, e o teto é de 100 imagens — acima disso o zip precisaria ser montado inteiro na memória da aba, então a ferramenta pede um intervalo maior em vez de travar no meio.',
+        },
+        {
+          q: 'Qual formato escolher para os quadros?',
+          a: 'PNG é sem perda e a escolha certa para gravação de tela, texto, interface e qualquer imagem com borda definida: as letras saem limpas e nada é aproximado. JPG é bem mais leve em cena de câmera, onde a perda não aparece, e é o que faz diferença quando são dezenas de quadros no mesmo zip. WebP fica menor que os dois com qualidade parecida e é aceito por todos os navegadores atuais, mas ainda encontra programa antigo que não abre.',
+        },
+        {
+          q: 'A qualidade do quadro é a mesma do vídeo?',
+          a: 'É a do quadro decodificado, na resolução que você escolher — e o padrão é a resolução original do vídeo. Vale saber que um quadro isolado de vídeo comprimido nem sempre é tão nítido quanto uma foto: a compressão de vídeo guarda alguns quadros inteiros e descreve os outros como diferença em relação a eles, então movimento rápido produz quadro mais borrado. Isso vem do arquivo de origem, não da extração, e nenhuma ferramenta recupera o que o codificador descartou.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Frame chosen in the player',
+        'Batch every N seconds, as a zip',
+        'PNG, JPG or WebP',
+        'Runs 100% in the browser',
+      ],
+      faq: [
+        {
+          q: 'How do I save a video frame as an image?',
+          a: 'Drop the video, use the player controls to land on the frame you want, and click capture. The extraction happens at the exact moment the video is paused, at the original resolution of the file — it is not a screenshot or a crop of the browser window, it is the frame read from the video. Choose between PNG, JPG and WebP before generating, and the image appears on screen for checking before the download.',
+        },
+        {
+          q: 'Can I extract several frames at once?',
+          a: 'Yes. In interval mode the tool walks the whole video and saves one frame every half second, one, two, five or ten seconds, handing everything back as a zip with the frames numbered in order. The panel shows how many frames the chosen interval will produce before you run it, and the ceiling is 100 images — above that the zip would have to be assembled entirely in the memory of the tab, so the tool asks for a longer interval instead of freezing halfway.',
+        },
+        {
+          q: 'Which format should I choose for the frames?',
+          a: 'PNG is lossless and the right choice for screen recordings, text, interfaces and any image with defined edges: letters come out clean and nothing is approximated. JPG is much lighter for camera footage, where the loss does not show, and that is what matters when there are dozens of frames in the same zip. WebP lands smaller than both at similar quality and every current browser accepts it, though you will still meet older software that will not open it.',
+        },
+        {
+          q: 'Is the frame the same quality as the video?',
+          a: 'It is the decoded frame, at whatever resolution you choose — and the default is the original resolution of the video. Worth knowing that a single frame from compressed video is not always as sharp as a photograph: video compression stores some frames whole and describes the others as differences from them, so fast motion produces blurrier frames. That comes from the source file, not from the extraction, and no tool recovers what the encoder discarded.',
+        },
+      ],
+    },
+  },
 };
 
 /**

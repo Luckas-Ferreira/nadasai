@@ -190,7 +190,10 @@
           </div>
 
           <!-- Bitrate / Quality Selection for Compressed Formats -->
-          @if (targetFormat() !== 'wav' && targetFormat() !== 'flac') {
+          <!-- WAV é PCM: não tem taxa de bits para escolher. FLAC saiu da lista
+               de saída (ver o tipo no serviço), então a condição perdeu o segundo
+               termo junto com ele. -->
+          @if (targetFormat() !== 'wav') {
             <div class="flex flex-col gap-2">
               <label class="text-xs font-semibold text-text">
                 {{ i18n.t()['convert_audio.bitrate'] }}

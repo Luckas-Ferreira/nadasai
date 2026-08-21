@@ -63,6 +63,11 @@ export type ErrorCode =
   // um trecho, a outra que ele marque um trecho MENOR.
   | 'gif_empty_range'
   | 'gif_range_too_long'
+  // O zip de quadros é montado inteiro na memória da aba: o teto é real, e a
+  // recusa acontece ANTES de ler o primeiro quadro em vez de a aba morrer no
+  // meio. A outra chave é o vídeo curto demais para o intervalo escolhido.
+  | 'frames_empty'
+  | 'frames_too_many'
   | 'generic';
 
 /**
@@ -119,6 +124,8 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   vector_failed: 'error.vector_failed',
   gif_empty_range: 'error.gif_empty_range',
   gif_range_too_long: 'error.gif_range_too_long',
+  frames_empty: 'error.frames_empty',
+  frames_too_many: 'error.frames_too_many',
   generic: 'error.generic',
 };
 
