@@ -1,7 +1,7 @@
 # Nada Sai
 
 Caixa de ferramentas de arquivo que roda inteira no navegador. **Não há backend.**
-38 ferramentas em cinco módulos — imagem, PDF, áudio, vídeo e privacidade —, todas
+39 ferramentas em cinco módulos — imagem, PDF, áudio, vídeo e privacidade —, todas
 executando em WebAssembly, Web Workers e Canvas na máquina de quem usa. Nenhum
 arquivo sai do dispositivo, e essa é a tese do produto, não um detalhe de rodapé.
 
@@ -48,7 +48,7 @@ npm run og                   # regera os cards sociais e os ícones da PWA
 ```
 
 **Não há linter nem formatador.** O `tsc` sob `strict` + `strictTemplates`, os
-587 testes unitários, as 38 suítes de e2e e o `check:templates` são o portão
+625 testes unitários, as 40 suítes de e2e e o `check:templates` são o portão
 inteiro. Não invente um passo de lint — siga o estilo do arquivo ao lado.
 
 ## Como está organizado
