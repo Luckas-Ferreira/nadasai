@@ -151,6 +151,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'video/recortar',
+        title: 'Recortar Vídeo Online (Quadrado, 9:16, 16:9) — Nada Sai',
+        loadComponent: () => import('./features/crop-video/crop-video.component').then((m) => m.CropVideoComponent),
+        data: {
+          metaDescription: 'Recorte um vídeo desenhando a área, com proporções prontas para Instagram, TikTok e YouTube. O áudio vai junto. 100% offline no seu navegador.',
+          metaKeywords: 'cortar video, recortar video, video quadrado, video vertical, video para instagram'
+        }
+      },
+      {
         path: 'video/extrair-quadros',
         title: 'Extrair Quadros de Vídeo (frame para JPG/PNG) — Nada Sai',
         loadComponent: () => import('./features/video-to-frames/video-to-frames.component').then((m) => m.VideoToFramesComponent),
@@ -587,6 +596,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
           metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
+        }
+      },
+      {
+        path: 'video/crop',
+        title: 'Crop Video Online (Square, 9:16, 16:9) — Nada Sai',
+        loadComponent: () => import('./features/crop-video/crop-video.component').then((m) => m.CropVideoComponent),
+        data: {
+          metaDescription: 'Crop a video by drawing the area, with ready aspect ratios for Instagram, TikTok and YouTube. The audio comes along. 100% offline in your browser.',
+          metaKeywords: 'crop video, square video, vertical video, video for instagram, change aspect ratio'
         }
       },
       {

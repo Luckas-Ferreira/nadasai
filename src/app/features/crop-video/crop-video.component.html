@@ -1,0 +1,158 @@
+<app-tool-page [toolId]="'crop-video'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || formats().length === 0">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- Sem MediaRecorder não há recorte possível — é o caso de todo iOS. Dizer
+         antes é melhor que oferecer um botão que só falha no fim. -->
+    @if (formats().length === 0) {
+      <app-alert [message]="i18n.t()['cropvid.unsupported']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'video/*'"
+        [titleKey]="'cropvid.drag'"
+        [hintKey]="'cropvid.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-doc-stage-line bg-stage">
+        <div class="flex items-center justify-center p-4">
+          <!-- O overlay se posiciona contra este invólucro, que é dimensionado
+               pelo próprio vídeo — então as porcentagens caem sobre a imagem
+               exibida em qualquer tamanho de tela. Mesma montagem do censurar. -->
+          <div class="relative inline-block max-w-full">
+            @if (videoUrl(); as url) {
+              <video
+                [src]="url"
+                class="block max-h-[58vh] w-auto select-none"
+                controls
+                playsinline
+                [attr.aria-label]="i18n.t()['cropvid.player_label']"
+              ></video>
+            }
+            <app-region-overlay
+              [regions]="regions()"
+              [disabled]="busy()"
+              (regionAdded)="onRegionAdded($event)"
+              (regionRemoved)="onRegionRemoved()"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-doc-stage-line bg-surface px-4 py-3">
+          <p class="truncate text-xs text-muted">{{ i18n.t()['cropvid.hint'] }}</p>
+
+          @if (outputBox(); as box) {
+            <span class="shrink-0 font-mono text-xs tabular text-faint">
+              {{ box.w }} × {{ box.h }}
+            </span>
+          }
+        </div>
+
+        @if (busy()) {
+          <div class="flex flex-col items-center gap-3 border-t border-doc-stage-line bg-surface px-4 py-5">
+            <div class="flex w-full max-w-md items-center gap-3">
+              <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
+                <div
+                  class="h-full rounded-full bg-accent transition-[width] duration-200"
+                  [style.width.%]="progress()"
+                ></div>
+              </div>
+              <span class="shrink-0 font-mono text-xs tabular text-text">{{ progress() }}%</span>
+            </div>
+
+            <p class="text-center text-xs text-muted" aria-live="polite">
+              {{ i18n.t()['cropvid.working'] }} · {{ secondsLeft() }}s
+            </p>
+
+            <button appButton variant="ghost" size="sm" (click)="cancel()">
+              {{ i18n.t()['common.cancel'] }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['cropvid.panel_shape']">
+        <app-segmented
+          [options]="aspectOptions()"
+          [value]="aspect()"
+          (valueChange)="setAspect($event)"
+          [columns]="3"
+        />
+
+        <p class="mt-3 text-xs leading-relaxed text-muted">{{ i18n.t()['cropvid.aspect_hint'] }}</p>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['cropvid.source'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ sourceWidth() }} × {{ sourceHeight() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['cropvid.result'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              @if (outputBox(); as box) {
+                {{ box.w }} × {{ box.h }}
+                @if (resultBlob()) {
+                  <span class="text-faint">· {{ resultSize() }}</span>
+                }
+              } @else {
+                —
+              }
+            </dd>
+          </div>
+        </dl>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['cropvid.panel_output']">
+        @if (onlyOneFormat()) {
+          <p class="text-sm text-muted">
+            {{ i18n.t()['cropvid.only_format'] }}
+            <span class="font-mono text-text">{{ format().toUpperCase() }}</span>
+          </p>
+        } @else if (formats().length > 1) {
+          <app-segmented
+            [options]="formatOptions()"
+            [value]="format()"
+            (valueChange)="format.set($event)"
+            [columns]="2"
+          />
+        }
+
+        <!-- Os dois custos, ditos ANTES: leva o tempo do vídeo, e recodifica.
+             Nenhum dos dois é contornável sem um demuxer, e descobrir qualquer
+             um deles depois de esperar seria pior do que ler agora. -->
+        <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['cropvid.realtime_note'] }}
+        </p>
+
+        @if (estimate() > 0) {
+          <p class="mt-2 text-xs text-muted">
+            {{ i18n.t()['cropvid.will_take'] }} <span class="font-mono tabular">{{ estimate() }}s</span>
+          </p>
+        }
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'crop-video'"
+        [primaryLabel]="stale() ? i18n.t()['cropvid.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

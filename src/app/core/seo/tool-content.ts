@@ -1147,6 +1147,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'crop-video': {
+    pt: {
+      features: [
+        'Desenhe a área direto sobre o vídeo',
+        'Proporções prontas: 1:1, 9:16, 16:9 e 4:5',
+        'O áudio da origem vai junto',
+        'Nada é enviado — o recorte acontece no seu navegador',
+      ],
+      faq: [
+        {
+          q: 'Quanto tempo demora?',
+          a: 'A duração do próprio vídeo. O recorte redesenha cada quadro num canvas e grava o resultado em tempo real, porque o áudio só pode ser capturado assim — acelerar a reprodução entregaria a trilha com a duração errada. A tela mostra o tempo restante e oferece cancelar, em vez de parecer travada.',
+        },
+        {
+          q: 'Perde qualidade?',
+          a: 'Sim, uma geração. Recortar exige redesenhar, e redesenhar exige recodificar. Um corte sem perda precisaria de um demuxer que reescrevesse o contêiner mantendo os quadros originais, e isso significaria trazer 25 a 30 MB de WebAssembly sob GPL — o mesmo motivo que manteve o ffmpeg fora da conversão para GIF.',
+        },
+        {
+          q: 'O áudio é preservado?',
+          a: 'Sim, quando o vídeo tem trilha. Ela entra no mesmo fluxo que o canvas por um destino de áudio da Web Audio API, e o gravador escreve os dois juntos. Se o vídeo não tem áudio, nenhum contexto é criado — uma trilha silenciosa só gastaria bytes.',
+        },
+        {
+          q: 'Funciona no iPhone?',
+          a: 'Não, e a página diz isso ao abrir em vez de deixar você desenhar o recorte e falhar no fim. O recorte depende do MediaRecorder, que nenhum navegador em iOS expõe — nem o Safari, nem o Chrome, porque todos usam o mesmo motor. É a mesma limitação que impede o gravador de tela de funcionar lá.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Draw the area straight onto the video',
+        'Ready ratios: 1:1, 9:16, 16:9 and 4:5',
+        'The source audio comes along',
+        'Nothing is uploaded — the crop happens in your browser',
+      ],
+      faq: [
+        {
+          q: 'How long does it take?',
+          a: 'The length of the video itself. Cropping redraws every frame onto a canvas and records the result in real time, because audio can only be captured that way — speeding up playback would deliver the track at the wrong duration. The screen shows the time remaining and offers cancel, rather than looking frozen.',
+        },
+        {
+          q: 'Does it lose quality?',
+          a: 'Yes, one generation. Cropping requires redrawing, and redrawing requires re-encoding. A lossless crop would need a demuxer that rewrote the container while keeping the original frames, and that would mean shipping 25 to 30 MB of GPL WebAssembly — the same reason ffmpeg stayed out of the GIF converter.',
+        },
+        {
+          q: 'Is the audio preserved?',
+          a: 'Yes, when the video has a track. It joins the same stream as the canvas through a Web Audio stream destination, and the recorder writes both together. If the video has no audio, no context is created at all — a silent track would only spend bytes.',
+        },
+        {
+          q: 'Does it work on an iPhone?',
+          a: 'No, and the page says so when it opens rather than letting you draw the crop and fail at the end. Cropping depends on MediaRecorder, which no browser on iOS exposes — not Safari, not Chrome, because they all use the same engine. It is the same limitation that keeps the screen recorder from working there.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

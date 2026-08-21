@@ -18,6 +18,7 @@ export type ToolId =
   | 'video-to-audio'
   | 'video-to-gif'
   | 'video-to-frames'
+  | 'crop-video'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -516,6 +517,31 @@ export const TOOLS: readonly ToolDef[] = [
       'rip audio from video', 'mov to mp3', 'webm to mp3', 'mkv to mp3', 'video to wav',
       'get audio from video', 'strip audio from video', 'convert video to mp3',
       'save audio from video', 'video audio extractor'
+    ],
+  },
+  {
+    id: 'crop-video',
+    pathPt: 'video/recortar',
+    pathEn: 'video/crop',
+    icon: 'crop',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.crop_video',
+    shortKey: 'nav.short.crop_video',
+    titleKey: 'cropvid.title',
+    descKey: 'cropvid.subtitle',
+    suffix: 'recortado',
+    tone: 'amber',
+    keywordsPt: [
+      'cortar video', 'recortar video', 'video quadrado', 'video para instagram',
+      'video vertical', 'video 9x16', 'mudar proporcao do video', 'cortar bordas do video',
+      'video para tiktok', 'video para reels', 'crop video', 'tirar barras pretas'
+    ],
+    keywordsEn: [
+      'crop video', 'square video', 'video for instagram', 'vertical video',
+      '9:16 video', 'change video aspect ratio', 'trim video edges', 'video for tiktok',
+      'video for reels', 'remove black bars', 'resize video frame'
     ],
   },
   {
