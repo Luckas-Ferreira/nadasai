@@ -823,6 +823,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'page-numbers': {
+    pt: {
+      features: [
+        'Número em seis posições, no topo ou no rodapé',
+        'Quatro formatos: 1, 1 de 10, Página 1 e — 1 —',
+        'Pular a capa e escolher em que número a contagem começa',
+        'Sem rasterizar: o texto do documento continua vetorial e pesquisável',
+      ],
+      faq: [
+        {
+          q: 'Numerar as páginas estraga o texto do PDF?',
+          a: 'Não. O número entra como mais um comando de texto no arquivo, e nada da página é redesenhado como imagem. O texto original continua vetorial, continua selecionável e continua sendo achado pelo Ctrl+F. É a diferença entre esta ferramenta e comprimir ou proteger um PDF, que precisam rasterizar as páginas e por isso destroem o texto vetorial.',
+        },
+        {
+          q: 'Como não numerar a capa?',
+          a: 'Use o campo "pular as primeiras" com o valor 1. Ele decide quantas folhas do começo ficam sem número impresso; o campo ao lado, "começar em", decide qual número a primeira folha numerada recebe. São perguntas diferentes de propósito: pular a capa e começar do 1 trata a capa como folha avulsa, e pular a capa e começar do 2 trata a capa como página 1 sem número.',
+        },
+        {
+          q: 'No formato "1 de 10", o total conta a capa?',
+          a: 'Não: conta as páginas que estão sendo numeradas. Num documento de 11 folhas com a capa pulada, a primeira numerada diz "1 de 10". Dizer "1 de 11" numa folha rotulada 1 seria uma aritmética que não fecha para quem lê — e é o comportamento que a maioria das ferramentas entrega sem avisar.',
+        },
+        {
+          q: 'Funciona em PDF protegido por senha?',
+          a: 'Sim, desde que você tenha a senha de abertura: o arquivo é aberto com ela, numerado e gravado. A senha fica na sessão do navegador enquanto você encadeia ferramentas, então numerar e depois assinar não pede a senha duas vezes. Como todo o resto do produto, nada disso sai do seu dispositivo.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Six positions, at the top or the bottom of the sheet',
+        'Four formats: 1, 1 of 10, Page 1 and — 1 —',
+        'Skip the cover and choose which number the count starts at',
+        'No rasterising: the document text stays vector and searchable',
+      ],
+      faq: [
+        {
+          q: 'Does numbering the pages damage the PDF text?',
+          a: 'No. The number goes in as one more text command in the file, and nothing on the page is redrawn as an image. The original text stays vector, stays selectable and is still found by Ctrl+F. That is the difference between this tool and compressing or protecting a PDF, which have to rasterise the pages and therefore destroy the vector text.',
+        },
+        {
+          q: 'How do I leave the cover unnumbered?',
+          a: 'Use the "skip first" field with a value of 1. It decides how many sheets at the front carry no printed number; the field beside it, "start at", decides which number the first numbered sheet receives. They are deliberately separate questions: skipping the cover and starting at 1 treats the cover as a loose sheet, while skipping it and starting at 2 treats the cover as page 1 without a printed number.',
+        },
+        {
+          q: 'In the "1 of 10" format, does the total count the cover?',
+          a: 'No: it counts the pages actually being numbered. In an 11-sheet document with the cover skipped, the first numbered sheet reads "1 of 10". Saying "1 of 11" on a sheet labelled 1 would be arithmetic that does not add up for the reader — and it is what most tools deliver without mentioning it.',
+        },
+        {
+          q: 'Does it work on a password-protected PDF?',
+          a: 'Yes, as long as you have the open password: the file is opened with it, numbered and written back. The password stays in the browser session while you chain tools, so numbering and then signing does not ask for it twice. Like everything else here, none of it leaves your device.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

@@ -32,6 +32,7 @@ export type ToolId =
   | 'protect-pdf'
   | 'sign-pdf'
   | 'watermark-pdf'
+  | 'page-numbers'
   | 'encrypt-file'
   | 'file-hash'
   | 'password-generator'
@@ -854,6 +855,30 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'watermark pdf', 'add watermark', 'draft stamp', 'confidential watermark',
       'text watermark', 'stamp text', 'overlay text'
+    ],
+  },
+  {
+    id: 'page-numbers',
+    pathPt: 'pdf/numerar-paginas',
+    pathEn: 'pdf/page-numbers',
+    icon: 'hash',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.page_numbers',
+    shortKey: 'nav.short.page_numbers',
+    titleKey: 'pagenum.title',
+    descKey: 'pagenum.subtitle',
+    suffix: 'numerado',
+    tone: 'teal',
+    keywordsPt: [
+      'numerar paginas pdf', 'numero de pagina', 'paginacao pdf', 'inserir numero de pagina',
+      'numerar pdf', 'foliar', 'foliacao', 'paginar documento', 'numero no rodape',
+      'numerar contrato', 'numerar processo'
+    ],
+    keywordsEn: [
+      'add page numbers to pdf', 'number pdf pages', 'pdf pagination', 'insert page numbers',
+      'page numbering', 'bates numbering', 'footer page number', 'paginate pdf'
     ],
   },
   {

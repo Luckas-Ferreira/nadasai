@@ -1,0 +1,155 @@
+<app-tool-page [toolId]="'page-numbers'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      @if (pdfProtected()) {
+        <app-pdf-password-prompt
+          [fileName]="pendingFile()?.name ?? ''"
+          [errorMsg]="passwordError()"
+          (unlock)="onUnlock($event)"
+          (cancel)="reset()"
+        />
+      } @else {
+        <app-dropzone
+          [accept]="'application/pdf,.pdf'"
+          [titleKey]="'pagenum.drag'"
+          [hintKey]="'pagenum.drag_hint'"
+          [buttonKey]="'pdf.upload_btn'"
+          (fileSelected)="onFile($event)"
+        />
+      }
+    } @else {
+      <div class="relative flex min-h-[360px] flex-col items-center justify-center rounded-xl border border-doc-stage-line bg-doc-stage p-4 md:p-6">
+        <p class="mb-3 text-xs text-faint">{{ i18n.t()['pagenum.preview_note'] }}</p>
+
+        @if (previewUrl(); as url) {
+          <img
+            [src]="url"
+            [alt]="i18n.t()['common.page_n'] + ' ' + pageCount()"
+            class="block max-h-[52vh] w-auto rounded-md bg-white shadow-page"
+          />
+        } @else {
+          <p class="text-sm text-muted">{{ i18n.t()['pagenum.no_preview'] }}</p>
+        }
+
+        @if (busy()) {
+          <div class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px]">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm font-medium text-text">{{ i18n.t()['pagenum.working'] }}</p>
+            <p class="text-center text-xs text-faint tabular" aria-live="polite">{{ progress() ?? 0 }}%</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['pagenum.panel_format']">
+        <app-segmented
+          [options]="formatOptions()"
+          [value]="format()"
+          (valueChange)="format.set($event)"
+          [columns]="2"
+        />
+
+        <div class="mt-4 border-t border-line pt-3">
+          <span class="mb-2 block text-2xs font-medium uppercase text-faint">
+            {{ i18n.t()['pagenum.position'] }}
+          </span>
+          <app-segmented
+            [options]="positionOptions()"
+            [value]="position()"
+            (valueChange)="position.set($event)"
+            [columns]="3"
+          />
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['pagenum.panel_range']">
+        <div class="flex items-end gap-2">
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['pagenum.skip_first'] }}</span>
+            <input
+              type="number"
+              min="0"
+              [max]="pageCount()"
+              [ngModel]="skipFirst()"
+              (ngModelChange)="skipFirst.set($event)"
+              [attr.aria-label]="i18n.t()['pagenum.skip_first']"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
+
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['pagenum.start_at'] }}</span>
+            <input
+              type="number"
+              min="1"
+              [ngModel]="startAt()"
+              (ngModelChange)="startAt.set($event)"
+              [attr.aria-label]="i18n.t()['pagenum.start_at']"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <p class="mt-2 text-xs leading-relaxed text-faint">{{ i18n.t()['pagenum.range_hint'] }}</p>
+
+        <div class="mt-4 border-t border-line pt-3">
+          <label class="flex items-center justify-between text-xs text-muted">
+            <span>{{ i18n.t()['pagenum.font_size'] }}</span>
+            <span class="font-mono tabular text-text">{{ fontSize() }} pt</span>
+          </label>
+          <input
+            type="range"
+            min="7"
+            max="18"
+            [ngModel]="fontSize()"
+            (ngModelChange)="fontSize.set($event)"
+            [attr.aria-label]="i18n.t()['pagenum.font_size']"
+            class="mt-1.5 w-full cursor-pointer accent-accent"
+          />
+        </div>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['cpdf.pages'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ pageCount() }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['pagenum.will_number'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ numberedCount() }}
+              @if (resultBlob()) {
+                <span class="text-faint">· {{ resultSize() }}</span>
+              }
+            </dd>
+          </div>
+        </dl>
+
+        <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+          {{ i18n.t()['pagenum.vector_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'page-numbers'"
+        [primaryLabel]="stale() ? i18n.t()['pagenum.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

@@ -682,6 +682,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- page-numbers -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/numerar-paginas</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/numerar-paginas" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/page-numbers" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/numerar-paginas" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/page-numbers</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/numerar-paginas" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/page-numbers" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/numerar-paginas" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- encrypt-file -->
   <url>
     <loc>https://nadasai.com/pt/privacidade/criptografar-arquivo</loc>

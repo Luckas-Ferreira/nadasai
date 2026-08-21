@@ -280,6 +280,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/numerar-paginas',
+        title: 'Numerar Páginas de PDF Online (Grátis) — Nada Sai',
+        loadComponent: () => import('./features/page-numbers/page-numbers.component').then((m) => m.PageNumbersComponent),
+        data: {
+          metaDescription: 'Insira números de página num PDF escolhendo posição, formato e a partir de qual folha. O texto continua vetorial e pesquisável. 100% offline no navegador.',
+          metaKeywords: 'numerar paginas pdf, paginacao, numero de pagina, foliar pdf'
+        }
+      },
+      {
         path: 'pdf/marca-dagua',
         title: 'Colocar Marca d’Água em PDF Online — Nada Sai',
         loadComponent: () => import('./features/watermark-pdf/watermark-pdf.component').then((m) => m.WatermarkPdfComponent),
@@ -662,6 +671,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/sign-pdf/sign-pdf.component').then((m) => m.SignPdfComponent),
         data: {
           metaDescription: 'Draw or type your signature and place it anywhere on the page, in any PDF. Nothing is sent to a server, because it runs 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'pdf/page-numbers',
+        title: 'Add Page Numbers to PDF Online (Free) — Nada Sai',
+        loadComponent: () => import('./features/page-numbers/page-numbers.component').then((m) => m.PageNumbersComponent),
+        data: {
+          metaDescription: 'Add page numbers to a PDF, choosing position, format and which sheet to start from. The text stays vector and searchable. 100% offline in your browser.',
+          metaKeywords: 'add page numbers to pdf, pdf pagination, page numbering, number pdf pages'
         }
       },
       {

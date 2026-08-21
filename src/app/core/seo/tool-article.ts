@@ -219,6 +219,108 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'page-numbers': {
+    pt: [
+      {
+        h: 'O que a ferramenta escreve',
+        p: [
+          'Um número por página, desenhado como TEXTO dentro do PDF. Isso importa mais do que parece: a página não é redesenhada como imagem em momento nenhum, então o texto que já estava lá continua vetorial, continua selecionável e continua sendo encontrado por uma busca. É a diferença entre numerar e comprimir — comprimir com perda rasteriza a folha inteira, e o que era texto vira pixel.',
+          'A fonte é a Helvetica padrão do formato PDF, embutida uma vez e reusada em todas as páginas. Um número em corpo 11 acrescenta alguns bytes por folha; o arquivo praticamente não muda de tamanho.',
+        ],
+      },
+      {
+        h: 'Como numerar',
+        p: [
+          'A prévia mostra a ÚLTIMA página do documento, e não a primeira. É deliberado: a primeira é justamente a que a maioria das pessoas pula, então ela seria a pior escolha para mostrar onde o número vai cair.',
+        ],
+        steps: [
+          'Solte o PDF na área de upload, ou traga um documento pela cadeia — de juntar, dividir ou organizar.',
+          'Escolha o formato. Os quatro botões já mostram o número resolvido: 1, 1 de 10, Página 1 e — 1 —, com o valor que de fato vai sair.',
+          'Escolha a posição entre as seis: rodapé ao centro, à direita ou à esquerda, e as mesmas três no topo.',
+          'Ajuste "pular as primeiras" e "começar em" se o documento tiver capa. Confira o número em "serão numeradas" antes de gerar.',
+          'Gere e baixe. O botão volta sempre que uma opção muda, e some quando o arquivo na tela já é o que as opções pedem.',
+        ],
+      },
+      {
+        h: 'Pular a capa e começar a contar são coisas diferentes',
+        p: [
+          'Este é o único ponto da ferramenta em que quase toda concorrente erra, e é por isso que aqui são dois campos. "Pular as primeiras" decide quantas folhas do começo saem sem número impresso. "Começar em" decide qual número a primeira folha numerada recebe.',
+          'Com capa e o resto começando do 1, a capa é folha avulsa e a página seguinte é a 1. Com capa e o resto começando do 2, a capa É a página 1 — ela só não leva número impresso, que é a convenção de trabalho acadêmico e de boa parte dos manuais de redação oficial. Um controle único não expressa os dois casos, e escolher um deles por você é decidir o que o documento significa.',
+        ],
+      },
+      {
+        h: 'O total do formato "1 de 10"',
+        p: [
+          'O total conta as páginas NUMERADAS, não as folhas do arquivo. Num documento de 11 folhas com a capa pulada, a primeira numerada diz "1 de 10", e a última diz "10 de 10".',
+          'A alternativa — contar as 11 — produz uma folha rotulada 1 que se diz parte de um conjunto de 11, e um leitor que chega na última vê "10 de 11" sem nunca encontrar a décima primeira. É um detalhe pequeno que só aparece depois de imprimir, e é o tipo de coisa que esta página prefere resolver a explicar.',
+        ],
+      },
+      {
+        h: 'Documento protegido por senha',
+        p: [
+          'PDF com senha de abertura funciona: a ferramenta pede a senha, abre o arquivo, numera e grava. A senha fica na sessão do navegador enquanto você encadeia — numerar e depois assinar, ou numerar e depois juntar, não pede a mesma senha de novo.',
+          'A senha nunca sai do dispositivo e não é guardada em lugar nenhum depois que a aba fecha. Se o PDF tiver restrição de edição mas não de abertura, ele é lido normalmente.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é um PDF e entra na cadeia inteira do módulo: numerar e então assinar, aplicar marca d’água, proteger com senha ou juntar a outro documento acontece sem baixar e subir de novo. A ordem que costuma fazer sentido é numerar por último, depois de o documento estar montado — numerar antes de juntar produz duas contagens que recomeçam no meio.',
+          'Todo o trabalho é feito no seu navegador pelo pdf-lib. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What the tool writes',
+        p: [
+          'One number per page, drawn as TEXT inside the PDF. That matters more than it sounds: the page is never redrawn as an image, so the text already there stays vector, stays selectable and is still found by a search. It is the difference between numbering and compressing — lossy compression rasterises the whole sheet, and what was text becomes pixels.',
+          'The font is the PDF format’s standard Helvetica, embedded once and reused across every page. A number at 11 point adds a few bytes per sheet; the file size barely moves.',
+        ],
+      },
+      {
+        h: 'How to number',
+        p: [
+          'The preview shows the LAST page of the document, not the first. That is deliberate: the first is precisely the one most people skip, so it would be the worst possible choice for showing where the number lands.',
+        ],
+        steps: [
+          'Drop the PDF on the upload area, or bring a document in through the chain — from merge, split or organise.',
+          'Pick the format. All four buttons show the number resolved: 1, 1 of 10, Page 1 and — 1 —, with the value that will actually come out.',
+          'Pick one of the six positions: bottom centre, right or left, and the same three at the top.',
+          'Adjust "skip first" and "start at" if the document has a cover. Check the count under "will be numbered" before generating.',
+          'Generate and download. The button returns whenever an option changes, and disappears when the file on screen already matches the options.',
+        ],
+      },
+      {
+        h: 'Skipping the cover and starting the count are different things',
+        p: [
+          'This is the one point where almost every competing tool gets it wrong, and it is why there are two fields here. "Skip first" decides how many sheets at the front come out with no printed number. "Start at" decides which number the first numbered sheet receives.',
+          'With a cover and the rest starting at 1, the cover is a loose sheet and the next page is 1. With a cover and the rest starting at 2, the cover IS page 1 — it simply carries no printed number, which is the convention in academic work and in most official writing manuals. A single control cannot express both cases, and picking one for you is deciding what the document means.',
+        ],
+      },
+      {
+        h: 'The total in the "1 of 10" format',
+        p: [
+          'The total counts the NUMBERED pages, not the sheets in the file. In an 11-sheet document with the cover skipped, the first numbered sheet reads "1 of 10" and the last reads "10 of 10".',
+          'The alternative — counting all 11 — produces a sheet labelled 1 that claims to belong to a set of 11, and a reader reaching the end sees "10 of 11" without ever finding the eleventh. It is a small detail that only surfaces after printing, and the kind of thing this page would rather solve than explain.',
+        ],
+      },
+      {
+        h: 'Password-protected documents',
+        p: [
+          'A PDF with an open password works: the tool asks for it, opens the file, numbers it and writes it back. The password stays in the browser session while you chain — numbering then signing, or numbering then merging, does not ask for it again.',
+          'The password never leaves the device and is not kept anywhere once the tab closes. If the PDF has an editing restriction but no open password, it is read normally.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is a PDF and joins the whole module chain: numbering and then signing, watermarking, password-protecting or merging with another document happens without downloading and re-uploading. The order that usually makes sense is to number last, once the document is assembled — numbering before merging produces two counts that restart in the middle.',
+          'All the work is done in your browser by pdf-lib. The file is not sent anywhere, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {
