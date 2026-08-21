@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { formatPairRoutes } from './core/seo/format-pair-routes';
 
 export const routes: Routes = [
   // Base redirect to Portuguese
@@ -417,7 +418,8 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Escolha o que fazer com um arquivo aberto pelo sistema ou compartilhado com o Nada Sai. Tudo continua no seu dispositivo.',
         }
-      }
+      },
+      ...formatPairRoutes('pt'),
     ]
   },
 
@@ -792,7 +794,8 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Choose what to do with a file opened by your system or shared into Nada Sai. Everything stays on your device.',
         }
-      }
+      },
+      ...formatPairRoutes('en'),
     ]
   },
 

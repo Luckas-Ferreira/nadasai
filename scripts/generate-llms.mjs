@@ -34,6 +34,7 @@ async function loadTsModule(relativePath) {
 }
 
 const { TOOLS, MODULES } = await loadTsModule('src/app/core/tools/tools.ts');
+const { FORMAT_PAIRS } = await loadTsModule('src/app/core/seo/format-pairs.ts');
 const { TOOL_CONTENT } = await loadTsModule('src/app/core/seo/tool-content.ts');
 
 /** O dicionário não passa pelo transpile — importa Angular. Os nomes de exibição
@@ -110,6 +111,22 @@ for (const mod of MODULES) {
   lines.push('');
 }
 
+// Os pares de formato numa seção própria, e não misturados às ferramentas:
+// eles NÃO são ferramentas, são a mesma ferramenta apontada para um destino.
+// Um modelo que os leia junto com as 39 concluiria que existem 51.
+lines.push('## Format Conversions');
+lines.push('');
+lines.push(
+  'These pages open the converter above with the destination format already selected. They exist ' +
+    'because the question behind each pair is specific — whether transparency survives, whether the ' +
+    'file grows, whether an animation is kept — and each page answers its own.',
+);
+lines.push('');
+for (const p of FORMAT_PAIRS) {
+  lines.push(`- [${p.pt.h1} / ${p.en.h1}](${ORIGIN}/pt/${p.pathPt}): ${p.en.description}`);
+}
+lines.push('');
+
 lines.push('## Privacy Architecture');
 lines.push('');
 lines.push(
@@ -135,4 +152,4 @@ for (const [path, [label, desc]] of Object.entries(STATIC_LABELS)) {
 lines.push('');
 
 writeFileSync(join(ROOT, 'public/llms.txt'), lines.join('\n'), 'utf8');
-console.log(`llms.txt written: ${TOOLS.length} tools across ${MODULES.length} modules.`);
+console.log(`llms.txt written: ${TOOLS.length} tools across ${MODULES.length} modules, plus ${FORMAT_PAIRS.length} format pairs.`);

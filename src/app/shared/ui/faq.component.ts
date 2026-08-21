@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { TranslationService } from '../../core/services/translation.service';
 import { SeoService } from '../../core/services/seo.service';
 import { GENERIC_FAQ_KEYS, TOOL_CONTENT, type FaqEntry } from '../../core/seo/tool-content';
+import type { FormatPair } from '../../core/seo/format-pairs';
 import { type ToolId, toolById } from '../../core/tools/tools';
 import { IconComponent } from './icon/icon.component';
 
@@ -105,6 +106,14 @@ export class FaqComponent {
   readonly toolId = input<ToolId | undefined>(undefined);
 
   /**
+   * Idem ao do artigo: numa página de par, as perguntas são as do par. São elas
+   * que respondem à busca que trouxe a pessoa ("some a transparência?"), e são
+   * elas que alimentam o FAQPage do JSON-LD — o nó é montado a partir do que
+   * está VISÍVEL, então acertar aqui acerta a marcação de graça.
+   */
+  readonly pair = input<FormatPair | null>(null);
+
+  /**
    * Verdadeiro quando este componente É a rota, e não uma seção dentro de outra.
    *
    * Lido uma vez na construção, e não como signal, porque é isso que o mantém
@@ -121,10 +130,15 @@ export class FaqComponent {
 
   protected readonly entries = computed<readonly FaqEntry[]>(() => {
     const dict = this.i18n.t();
+    const en = this.i18n.currentLang() === 'en';
+
+    const pair = this.pair();
+    if (pair) return (en ? pair.en : pair.pt).faq;
+
     const id = this.toolId();
     const content = id ? TOOL_CONTENT[id] : undefined;
 
-    if (content) return content[this.i18n.currentLang() === 'en' ? 'en' : 'pt'].faq;
+    if (content) return content[en ? 'en' : 'pt'].faq;
 
     // Falls back to faq.q1..q5, which already drive the /faq route and the home
     // page. A tool with no entry of its own shows the generic set rather than
@@ -134,6 +148,12 @@ export class FaqComponent {
 
   /** A tool's FAQ heading carries its name — the page's second-heaviest heading. */
   protected readonly heading = computed(() => {
+    const pair = this.pair();
+    if (pair) {
+      const en = this.i18n.currentLang() === 'en';
+      return `${this.i18n.t()['faq.about']} ${(en ? pair.en : pair.pt).h1}`;
+    }
+
     const id = this.toolId();
     if (!id || !TOOL_CONTENT[id]) return this.i18n.t()['faq.title'];
     return `${this.i18n.t()['faq.about']} ${this.i18n.t()[toolById(id).titleKey]}`;

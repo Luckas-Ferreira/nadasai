@@ -132,6 +132,7 @@ function pair({ ptPath, enPath, lastmod, changefreq, priority, comment }) {
 async function main() {
   const { TOOLS } = await loadTsModule('src/app/core/tools/tools.ts');
   const { STATIC_PAGES } = await loadTsModule('src/app/core/seo/static-pages.ts');
+  const { FORMAT_PAIRS } = await loadTsModule('src/app/core/seo/format-pairs.ts');
 
   const lastmod = lastCommitDate();
 
@@ -156,7 +157,27 @@ async function main() {
         comment: tool.id,
       }),
     ),
+    // Cauda longa: uma página por par de formato. Prioridade 0,7 — abaixo das
+    // ferramentas de propósito, porque elas são o destino canônico de quem
+    // procura "converter imagem" e estas são o destino de quem procura
+    // "png para jpg". Nenhuma das duas é cópia da outra, mas a hierarquia é
+    // essa, e o sitemap deve dizê-la.
+    ...FORMAT_PAIRS.map((p) =>
+      pair({
+        ptPath: p.pathPt,
+        enPath: p.pathEn,
+        lastmod,
+        changefreq: 'monthly',
+        priority: 0.7,
+        comment: p.id,
+      }),
+    ),
   ];
+
+  // Contado a partir dos BLOCOS, e não de uma soma escrita à mão: a versão
+  // anterior somava STATIC_PAGES e TOOLS, e no minuto em que os pares de
+  // formato entraram ela passou a anunciar 88 num arquivo com 112 URLs.
+  const total = blocks.length * 2;
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -178,12 +199,12 @@ async function main() {
   })();
 
   if (previous === xml) {
-    console.log(`sitemap.xml is up to date (${STATIC_PAGES.length * 2 + TOOLS.length * 2} URLs).`);
+    console.log(`sitemap.xml is up to date (${total} URLs).`);
     return;
   }
 
   writeFileSync(target, xml);
-  console.log(`sitemap.xml written: ${STATIC_PAGES.length * 2 + TOOLS.length * 2} URLs.`);
+  console.log(`sitemap.xml written: ${total} URLs.`);
 }
 
 await main();

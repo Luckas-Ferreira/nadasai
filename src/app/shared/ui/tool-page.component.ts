@@ -3,6 +3,7 @@ import { input } from '@angular/core';
 import { FaqComponent } from './faq.component';
 import { RelatedToolsComponent } from './related-tools.component';
 import { ToolArticleComponent } from './tool-article.component';
+import type { FormatPair } from '../../core/seo/format-pairs';
 import { WorkspaceService } from '../../core/services/workspace.service';
 import { TranslationService } from '../../core/services/translation.service';
 import { ToolId, toolById } from '../../core/tools/tools';
@@ -40,8 +41,8 @@ import { IconComponent } from './icon/icon.component';
         </span>
 
         <div>
-          <h1 class="text-2xl">{{ i18n.t()[tool().titleKey] }}</h1>
-          <p class="mt-0.5 text-md text-muted">{{ i18n.t()[tool().descKey] }}</p>
+          <h1 class="text-2xl">{{ headline() }}</h1>
+          <p class="mt-0.5 text-md text-muted">{{ subtitle() }}</p>
         </div>
       </header>
 
@@ -82,8 +83,8 @@ import { IconComponent } from './icon/icon.component';
            NÃO renderiza nada onde ainda não existe — 36 páginas de texto ruim de
            uma vez seria pior do que oito boas. -->
       @if (showFaq()) {
-        <app-tool-article [toolId]="toolId()" />
-        <app-faq [toolId]="toolId()" />
+        <app-tool-article [toolId]="toolId()" [pair]="pair()" />
+        <app-faq [toolId]="toolId()" [pair]="pair()" />
         <app-related-tools [toolId]="toolId()" />
       }
     </section>
@@ -98,7 +99,33 @@ export class ToolPageComponent {
   /** The PDF editor is a full workspace; it can opt out with one attribute. */
   readonly showFaq = input(true, { transform: booleanAttribute });
 
+  /**
+   * Preenchido só nas páginas de par de formato (/png-para-jpg e as outras
+   * onze). Elas abrem a MESMA ferramenta, mas o h1, o subtítulo, o texto longo
+   * e o FAQ são do par: "PNG para JPG" responde à busca que trouxe a pessoa,
+   * "Converter" não responde. Sem isto, doze URLs mostrariam o mesmo cabeçalho
+   * e o mesmo texto — que é a definição de porta de entrada.
+   *
+   * O ícone, o tom e o rail continuam sendo os da ferramenta: a página É a
+   * ferramenta, e fingir o contrário confundiria quem já a conhece.
+   */
+  readonly pair = input<FormatPair | null>(null);
+
   protected readonly tool = computed(() => toolById(this.toolId()));
+
+  private readonly pairContent = computed(() => {
+    const pair = this.pair();
+    if (!pair) return null;
+    return this.i18n.currentLang() === 'en' ? pair.en : pair.pt;
+  });
+
+  protected readonly headline = computed(
+    () => this.pairContent()?.h1 ?? this.i18n.t()[this.tool().titleKey],
+  );
+
+  protected readonly subtitle = computed(
+    () => this.pairContent()?.sub ?? this.i18n.t()[this.tool().descKey],
+  );
 
   /**
    * Drives the layout: the panel only has content once THIS tool has a file.

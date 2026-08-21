@@ -1,4 +1,4 @@
-<app-tool-page [toolId]="'convert-audio'" [forceLoaded]="!!audioBuffer()">
+<app-tool-page [toolId]="'convert-audio'" [forceLoaded]="!!audioBuffer()" [pair]="pair">
   <div banner [class.mb-5]="!!errorKey()">
     @if (errorKey(); as key) {
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="convert()" />

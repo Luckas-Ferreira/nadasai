@@ -1,4 +1,5 @@
 import { TOOLS } from '../tools/tools';
+import { FORMAT_PAIRS } from './format-pairs';
 import { STATIC_PAGES } from './static-pages';
 
 /**
@@ -42,6 +43,11 @@ function build(): ReadonlyMap<string, LangPair> {
 
   for (const page of STATIC_PAGES) add(page.pt, page.en);
   for (const tool of TOOLS) add(tool.pathPt, tool.pathEn);
+  // As páginas de par de formato são 24 URLs indexadas como quaisquer outras, e
+  // um hreflang não recíproco faz o Google descartar a anotação do cluster
+  // INTEIRO — as ferramentas junto. Derivar aqui é o que torna impossível
+  // esquecer, que é exatamente o argumento do cabeçalho deste arquivo.
+  for (const p of FORMAT_PAIRS) add(p.pathPt, p.pathEn);
 
   return map;
 }
