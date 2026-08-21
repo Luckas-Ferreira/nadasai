@@ -829,6 +829,108 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'crop-video': {
+    pt: [
+      {
+        h: 'Como o recorte acontece sem ffmpeg',
+        p: [
+          'O caminho é o único que o navegador oferece hoje sem trazer 25 a 30 MB de WebAssembly sob GPL: o vídeo toca num elemento escondido, cada quadro exibido é desenhado num canvas do tamanho do recorte, e esse canvas vira um fluxo que o MediaRecorder grava. O áudio da origem entra no mesmo fluxo por um destino da Web Audio API.',
+          'É a mesma API que o gravador de tela já usa, e a mesma decisão de licença que manteve o ffmpeg fora da conversão para GIF — um produto vendido on-premise não pode carregar GPL.',
+        ],
+      },
+      {
+        h: 'Como recortar',
+        p: [
+          'O retângulo é desenhado com o mesmo componente que os dois censuradores usam: ele fala em porcentagem do quadro, então o recorte cai no mesmo lugar independentemente do tamanho em que o vídeo está sendo exibido na sua tela.',
+        ],
+        steps: [
+          'Solte o vídeo, ou traga um da cadeia — uma gravação de tela feita aqui mesmo, por exemplo.',
+          'Arraste sobre o vídeo para desenhar a área que fica. Desenhar de novo substitui a anterior.',
+          'Escolha uma proporção se o destino exigir. A altura passa a acompanhar a largura que você desenhou.',
+          'Recorte. A barra mostra o progresso e o tempo restante, e dá para cancelar a qualquer momento.',
+        ],
+      },
+      {
+        h: 'Leva o tempo do vídeo, e isso não tem como ser acelerado',
+        p: [
+          'Um vídeo de dois minutos leva dois minutos. A razão é o áudio: ele só pode ser capturado em tempo real, porque a captura acompanha o relógio e não os quadros. Aumentar a velocidade de reprodução entregaria a trilha com a duração errada, dessincronizada da imagem.',
+          'É o mesmo custo que o caminho de compatibilidade da extração de áudio já paga, e a resposta aqui é a mesma: anunciar antes, mostrar o tempo restante e oferecer cancelar. Uma barra que anda é muito melhor do que uma tela que parece travada.',
+        ],
+      },
+      {
+        h: 'É uma segunda geração de compressão',
+        p: [
+          'Recortar exige redesenhar cada quadro, e redesenhar exige recodificar. O que sai daqui passou por dois codificadores: o que gerou o vídeo original e o do navegador.',
+          'Num vídeo bem produzido a diferença é discreta. Num que já estava muito comprimido — um arquivo baixado, reenviado e recomprimido algumas vezes — ela aparece. Recorte sempre do melhor original que tiver, e o resultado será melhor pelo mesmo esforço.',
+        ],
+      },
+      {
+        h: 'As proporções, e por que elas existem',
+        p: [
+          'Livre é o padrão e serve para tirar uma borda, uma barra preta ou um pedaço da tela que não deveria aparecer. As quatro proporções fixas existem porque quase todo recorte de vídeo hoje termina numa rede social com formato exigido: 9:16 para Reels, Stories e TikTok, 4:5 para post de feed do Instagram, 1:1 para quadrado e 16:9 para YouTube e apresentação.',
+          'A proporção é aplicada sobre o retângulo desenhado, ajustando a altura. Uma coisa vale saber: os lados do arquivo final são sempre PARES. O H.264 exige isso e vários codificadores de VP8 e VP9 recusam ou distorcem um lado ímpar — um recorte de 301 pixels de largura falharia só no MP4 e só em alguns navegadores, que é o tipo de defeito que aparece na máquina de outra pessoa.',
+        ],
+      },
+      {
+        h: 'Onde ele não funciona, e onde ele continua',
+        p: [
+          'Em iOS, nenhum navegador expõe o MediaRecorder — nem o Safari nem o Chrome, porque todos usam o mesmo motor. A página detecta isso ao abrir e diz, em vez de deixar você desenhar o recorte e descobrir no fim. É a mesma limitação que impede o gravador de tela de funcionar lá.',
+          'O resultado é vídeo e entra na cadeia do módulo: recortar e então extrair o áudio, virar GIF ou extrair quadros acontece sem passar pelo disco. E o caminho mais natural é o contrário — gravar a tela aqui mesmo, recortar a região que interessa, e só então converter.',
+          'Todo o trabalho é feito no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'How the crop happens without ffmpeg',
+        p: [
+          'The path is the only one the browser offers today without shipping 25 to 30 MB of GPL WebAssembly: the video plays in a hidden element, every displayed frame is drawn onto a canvas the size of the crop, and that canvas becomes a stream the MediaRecorder records. The source audio joins the same stream through a Web Audio stream destination.',
+          'It is the same API the screen recorder already uses, and the same licence decision that kept ffmpeg out of the GIF converter — a product sold on-premise cannot carry GPL.',
+        ],
+      },
+      {
+        h: 'How to crop',
+        p: [
+          'The rectangle is drawn with the same component both redaction tools use: it speaks in percentages of the frame, so the crop lands in the same place regardless of the size the video is displayed at on your screen.',
+        ],
+        steps: [
+          'Drop the video, or bring one in through the chain — a screen recording made right here, for instance.',
+          'Drag across the video to draw the area to keep. Drawing again replaces the previous one.',
+          'Pick a ratio if the destination demands one. The height then follows the width you drew.',
+          'Crop. The bar shows progress and time remaining, and you can cancel at any point.',
+        ],
+      },
+      {
+        h: 'It takes the length of the video, and that cannot be sped up',
+        p: [
+          'A two-minute video takes two minutes. The reason is the audio: it can only be captured in real time, because capture follows the clock rather than the frames. Raising the playback rate would deliver the track at the wrong duration, out of sync with the picture.',
+          'It is the same cost the compatibility path of audio extraction already pays, and the answer here is the same: announce it beforehand, show the time remaining and offer cancel. A bar that moves beats a screen that looks frozen.',
+        ],
+      },
+      {
+        h: 'It is a second generation of compression',
+        p: [
+          'Cropping requires redrawing every frame, and redrawing requires re-encoding. What comes out of here has been through two encoders: the one that produced the original video, and the browser.',
+          'On a well-produced video the difference is subtle. On one that was already heavily compressed — a file downloaded, re-sent and re-compressed a few times — it shows. Always crop from the best original you have, and the result will be better for the same effort.',
+        ],
+      },
+      {
+        h: 'The ratios, and why they exist',
+        p: [
+          'Free is the default and serves to trim an edge, a black bar or a piece of the screen that should not be there. The four fixed ratios exist because almost every video crop today ends up on a social network with a required shape: 9:16 for Reels, Stories and TikTok, 4:5 for an Instagram feed post, 1:1 for square, and 16:9 for YouTube and presentations.',
+          'The ratio is applied to the rectangle you drew, by adjusting the height. One thing is worth knowing: the sides of the final file are always EVEN. H.264 requires it and several VP8 and VP9 encoders refuse or distort an odd side — a 301-pixel-wide crop would fail only in MP4 and only in some browsers, which is the kind of defect that shows up on somebody else’s machine.',
+        ],
+      },
+      {
+        h: 'Where it does not work, and where it goes next',
+        p: [
+          'On iOS, no browser exposes MediaRecorder — not Safari, not Chrome, because they all use the same engine. The page detects that when it opens and says so, rather than letting you draw the crop and find out at the end. It is the same limitation that keeps the screen recorder from working there.',
+          'The result is video and joins the module chain: cropping and then extracting the audio, turning it into a GIF or pulling frames happens without touching the disk. And the most natural path runs the other way — record the screen right here, crop the region that matters, and only then convert.',
+          'All the work is done in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {
