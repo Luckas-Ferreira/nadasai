@@ -1,11 +1,11 @@
-import { pixelBox } from './crop';
+import { pixelBox } from './reencode';
 
 /**
  * A gravação em si não tem teste de unidade, e é deliberado: ela precisa tocar
  * mídia real por segundos e depende de `MediaRecorder`, `captureStream` e um
  * `AudioContext` que num Karma headless não sai do estado suspenso sem gesto do
  * usuário. É o mesmo argumento que o caminho de compatibilidade do
- * `video-to-audio` registra. `48-crop-video.spec.ts` cobre isso numa janela de
+ * `video-to-audio` registra. `48-crop-video.spec.ts` e `49-trim-video.spec.ts` cobrem isso numa janela de
  * verdade, com um vídeo sintetizado na página.
  *
  * O que TEM teste aqui é a aritmética do retângulo — que é onde mora o defeito

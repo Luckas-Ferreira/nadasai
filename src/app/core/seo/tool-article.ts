@@ -931,6 +931,110 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'trim-video': {
+    pt: [
+      {
+        h: 'O player é o controle de tempo',
+        p: [
+          'Ninguém sabe dizer em que segundo está a cena que quer cortar. Todo mundo sabe parar o vídeo nela. Por isso os pontos de corte saem do player: você toca, para onde interessa, e clica em marcar início ou marcar fim.',
+          'É a mesma decisão que a extração de quadros tomou, e pelo mesmo motivo. Os dois campos numéricos ao lado existem para o ajuste fino depois — mover meio segundo, alinhar num número redondo —, não para adivinhar o ponto do zero.',
+        ],
+      },
+      {
+        h: 'Como cortar',
+        p: [
+          'A faixa abaixo do vídeo mostra o que ficou selecionado e onde a reprodução está. Os botões de ir para o início e ir para o fim levam o player até as marcas, para conferir o corte antes de aplicá-lo.',
+        ],
+        steps: [
+          'Solte o vídeo, ou traga um da cadeia — uma gravação de tela feita aqui mesmo, por exemplo.',
+          'Toque até o ponto onde o trecho deve começar e clique em marcar início.',
+          'Siga até onde ele deve terminar e clique em marcar fim.',
+          'Confira com os botões de ir para o início e o fim, e corte. A barra mostra o progresso e dá para cancelar.',
+        ],
+      },
+      {
+        h: 'A espera é do TRECHO, não do arquivo',
+        p: [
+          'Esta é a diferença prática entre cortar e recortar aqui. O recorte de área precisa que o vídeo inteiro passe, porque cada quadro tem de ser redesenhado. O corte por tempo posiciona no início marcado e toca só até o fim marcado — então tirar dez segundos de um vídeo de uma hora leva dez segundos.',
+          'A barra de progresso também é relativa ao trecho: cortar os últimos dez segundos de um vídeo longo mostra uma barra que anda de 0 a 100 nesses dez segundos, e não uma que já começa em 98%.',
+        ],
+      },
+      {
+        h: 'Por que ainda recodifica',
+        p: [
+          'Cortar um vídeo sem recodificar exigiria um demuxer: um programa que abre o contêiner, joga fora os pacotes de fora do intervalo e reescreve o índice, sem tocar nos quadros. É o que o ffmpeg faz, e trazê-lo significaria 25 a 30 MB de WebAssembly sob GPL — o mesmo argumento que o manteve fora da conversão para GIF, porque GPL contamina um produto vendido on-premise.',
+          'O caminho que sobra é o que o navegador oferece nativamente: tocar o trecho, desenhar cada quadro num canvas, capturar esse canvas como fluxo e gravar com o MediaRecorder — a mesma API do gravador de tela. O preço é uma geração de compressão, e num vídeo bem produzido ela é discreta.',
+          'É também por isso que a espera é em tempo real: o áudio só se captura acompanhando o relógio, e acelerar a reprodução entregaria a trilha com a duração errada.',
+        ],
+      },
+      {
+        h: 'O que a ferramenta recusa fazer',
+        p: [
+          'Cortar o vídeo inteiro. Se o início está em zero e o fim na duração total, não há o que remover — aplicar o corte só recodificaria o arquivo e acrescentaria uma geração de compressão por nada. A página diz isso e espera você marcar alguma coisa.',
+          'E não funciona em iOS: nenhum navegador de lá expõe o MediaRecorder, nem o Safari nem o Chrome, porque todos usam o mesmo motor. A página detecta ao abrir e avisa, em vez de deixar você marcar o trecho e falhar no fim.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é vídeo e entra na cadeia do módulo. As sequências que fazem sentido: gravar a tela, cortar a parte boa e virar GIF; ou cortar o trecho e extrair só o áudio dele, que é como se tira um corte de podcast de uma gravação longa.',
+          'Cortar e depois recortar a área também funciona, e nessa ordem é mais rápido — o recorte de área passa o vídeo inteiro, então cortar primeiro reduz o que ele tem de atravessar.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha — o que num cortador de vídeo online não é o normal.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'The player is the time control',
+        p: [
+          'Nobody can say which second holds the scene they want to cut. Everybody can stop the video on it. That is why the cut points come from the player: you play, stop where it matters, and click mark start or mark end.',
+          'It is the same decision the frame extractor made, for the same reason. The two numeric fields beside it exist for fine adjustment afterwards — nudging half a second, landing on a round number — not for guessing the point from scratch.',
+        ],
+      },
+      {
+        h: 'How to trim',
+        p: [
+          'The band below the video shows what is selected and where playback is. The go-to-start and go-to-end buttons take the player to the marks, so you can check the cut before applying it.',
+        ],
+        steps: [
+          'Drop the video, or bring one in through the chain — a screen recording made right here, for instance.',
+          'Play to the point where the clip should begin and click mark start.',
+          'Carry on to where it should end and click mark end.',
+          'Check with the go-to buttons, then trim. The bar shows progress and you can cancel.',
+        ],
+      },
+      {
+        h: 'The wait is the CLIP, not the file',
+        p: [
+          'This is the practical difference between trimming and cropping here. Cropping an area needs the whole video to pass through, because every frame has to be redrawn. Trimming seeks to the marked start and plays only to the marked end — so pulling ten seconds out of an hour-long video takes ten seconds.',
+          'The progress bar is relative to the clip too: trimming the last ten seconds of a long video shows a bar that runs from 0 to 100 across those ten seconds, rather than one that starts at 98%.',
+        ],
+      },
+      {
+        h: 'Why it still re-encodes',
+        p: [
+          'Trimming a video without re-encoding would need a demuxer: a program that opens the container, throws away the packets outside the range and rewrites the index, without touching the frames. That is what ffmpeg does, and bringing it would mean 25 to 30 MB of GPL WebAssembly — the same argument that kept it out of the GIF converter, because GPL contaminates a product sold on-premise.',
+          'The path that remains is the one the browser offers natively: play the clip, draw every frame onto a canvas, capture that canvas as a stream and record it with MediaRecorder — the same API as the screen recorder. The price is one generation of compression, and on a well-produced video it is subtle.',
+          'It is also why the wait is real time: audio can only be captured following the clock, and speeding up playback would deliver the track at the wrong duration.',
+        ],
+      },
+      {
+        h: 'What the tool refuses to do',
+        p: [
+          'Trim the whole video. If the start is at zero and the end at the full duration, there is nothing to remove — applying the trim would only re-encode the file and add a generation of compression for nothing. The page says so and waits for you to mark something.',
+          'And it does not work on iOS: no browser there exposes MediaRecorder, not Safari and not Chrome, because they all use the same engine. The page detects that when it opens and says so, rather than letting you mark the clip and fail at the end.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is video and joins the module chain. The sequences that make sense: record the screen, trim the good part and turn it into a GIF; or trim the clip and extract just its audio, which is how a podcast excerpt comes out of a long recording.',
+          'Trimming and then cropping the area also works, and in that order it is faster — cropping passes the whole video through, so trimming first reduces what it has to cross.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work — which for an online video cutter is not the norm.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

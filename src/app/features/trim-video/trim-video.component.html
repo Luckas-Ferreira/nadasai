@@ -1,0 +1,215 @@
+<app-tool-page [toolId]="'trim-video'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || formats().length === 0 || wholeVideo()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    @if (formats().length === 0) {
+      <app-alert [message]="i18n.t()['trimvid.unsupported']" tone="info" />
+    }
+
+    <!-- Cortar o vídeo inteiro é recodificá-lo por nada: o resultado teria a
+         mesma duração e uma geração de compressão a mais. Dizer é melhor do que
+         deixar rodar. -->
+    @if (wholeVideo() && !resultBlob()) {
+      <app-alert [message]="i18n.t()['trimvid.whole_video']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'video/*'"
+        [titleKey]="'trimvid.drag'"
+        [hintKey]="'trimvid.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-doc-stage-line bg-stage">
+        <div class="flex items-center justify-center p-4">
+          @if (videoUrl(); as url) {
+            <video
+              #player
+              [src]="url"
+              class="block max-h-[52vh] w-auto"
+              controls
+              playsinline
+              (timeupdate)="onTimeUpdate()"
+              [attr.aria-label]="i18n.t()['trimvid.player_label']"
+            ></video>
+          }
+        </div>
+
+        <!-- A FAIXA. O player é o controle de tempo; esta barra é a leitura do
+             que ficou selecionado, com a posição atual por cima. -->
+        <div class="border-t border-doc-stage-line bg-surface px-4 py-4">
+          <div class="relative h-8 w-full overflow-hidden rounded-md border border-line bg-raised">
+            <div
+              class="absolute inset-y-0 bg-accent-soft"
+              [style.left.%]="startPercent()"
+              [style.width.%]="widthPercent()"
+            ></div>
+
+            <div
+              class="absolute inset-y-0 w-0.5 bg-accent"
+              [style.left.%]="startPercent()"
+            ></div>
+            <div
+              class="absolute inset-y-0 w-0.5 bg-accent"
+              [style.left.%]="startPercent() + widthPercent()"
+            ></div>
+
+            <div
+              class="absolute inset-y-0 w-px bg-text/60"
+              [style.left.%]="playheadPercent()"
+            ></div>
+          </div>
+
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <button appButton variant="secondary" size="sm" [disabled]="busy()" (click)="markStart()">
+                {{ i18n.t()['trimvid.mark_start'] }}
+              </button>
+              <button appButton variant="secondary" size="sm" [disabled]="busy()" (click)="markEnd()">
+                {{ i18n.t()['trimvid.mark_end'] }}
+              </button>
+            </div>
+
+            <p class="font-mono text-xs tabular text-muted">
+              {{ startClock() }} → {{ endClock() }}
+              <span class="text-faint">· {{ selectedClock() }}</span>
+            </p>
+          </div>
+
+          @if (busy()) {
+            <div class="mt-4 flex flex-col items-center gap-3 border-t border-line pt-4">
+              <div class="flex w-full max-w-md items-center gap-3">
+                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
+                  <div
+                    class="h-full rounded-full bg-accent transition-[width] duration-200"
+                    [style.width.%]="progress()"
+                  ></div>
+                </div>
+                <span class="shrink-0 font-mono text-xs tabular text-text">{{ progress() }}%</span>
+              </div>
+
+              <p class="text-center text-xs text-muted" aria-live="polite">
+                {{ i18n.t()['trimvid.working'] }} · {{ secondsLeft() }}s
+              </p>
+
+              <button appButton variant="ghost" size="sm" (click)="cancel()">
+                {{ i18n.t()['common.cancel'] }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['trimvid.panel_range']">
+        <p class="mb-3 text-xs leading-relaxed text-muted">{{ i18n.t()['trimvid.player_hint'] }}</p>
+
+        <div class="flex items-end gap-2">
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['trimvid.start'] }}</span>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              [max]="duration()"
+              [value]="start().toFixed(1)"
+              (change)="setStart(+$any($event.target).value)"
+              [attr.aria-label]="i18n.t()['trimvid.start']"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
+
+          <label class="flex-1">
+            <span class="mb-1.5 block text-xs text-muted">{{ i18n.t()['trimvid.end'] }}</span>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              [max]="duration()"
+              [value]="end().toFixed(1)"
+              (change)="setEnd(+$any($event.target).value)"
+              [attr.aria-label]="i18n.t()['trimvid.end']"
+              class="h-9 w-full rounded-md border border-line bg-raised px-2.5 font-mono text-sm text-text tabular
+                     focus:border-accent focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <div class="mt-2 flex gap-2">
+          <button appButton variant="ghost" size="sm" class="flex-1" (click)="seekTo(start())">
+            {{ i18n.t()['trimvid.go_start'] }}
+          </button>
+          <button appButton variant="ghost" size="sm" class="flex-1" (click)="seekTo(end())">
+            {{ i18n.t()['trimvid.go_end'] }}
+          </button>
+        </div>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['trimvid.original'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ durationClock() }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['trimvid.result'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ selectedClock() }}
+              @if (resultBlob()) {
+                <span class="text-faint">· {{ resultSize() }}</span>
+              }
+            </dd>
+          </div>
+        </dl>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['trimvid.panel_output']">
+        @if (onlyOneFormat()) {
+          <p class="text-sm text-muted">
+            {{ i18n.t()['trimvid.only_format'] }}
+            <span class="font-mono text-text">{{ format().toUpperCase() }}</span>
+          </p>
+        } @else if (formats().length > 1) {
+          <app-segmented
+            [options]="formatOptions()"
+            [value]="format()"
+            (valueChange)="format.set($event)"
+            [columns]="2"
+          />
+        }
+
+        <!-- A espera é a duração do TRECHO, não a do arquivo. É o que separa
+             esta ferramenta do recorte de área, onde o vídeo inteiro precisa
+             passar. -->
+        <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['trimvid.realtime_note'] }}
+        </p>
+
+        @if (estimate() > 0) {
+          <p class="mt-2 text-xs text-muted">
+            {{ i18n.t()['trimvid.will_take'] }} <span class="font-mono tabular">{{ estimate() }}s</span>
+          </p>
+        }
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'trim-video'"
+        [primaryLabel]="stale() ? i18n.t()['trimvid.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
