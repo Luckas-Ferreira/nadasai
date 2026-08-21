@@ -36,6 +36,7 @@ export type ToolId =
   | 'watermark-pdf'
   | 'page-numbers'
   | 'pdf-to-text'
+  | 'compare-pdf'
   | 'encrypt-file'
   | 'file-hash'
   | 'password-generator'
@@ -908,6 +909,36 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'watermark pdf', 'add watermark', 'draft stamp', 'confidential watermark',
       'text watermark', 'stamp text', 'overlay text'
+    ],
+  },
+  {
+    /**
+     * `produces: null` — o resultado é uma LEITURA, não um arquivo que continua
+     * a cadeia. O que se baixa é o diff unificado, e nenhuma ferramenta daqui
+     * abre um .txt de diff.
+     */
+    id: 'compare-pdf',
+    pathPt: 'pdf/comparar',
+    pathEn: 'pdf/compare',
+    icon: 'diff',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: null,
+    navKey: 'nav.compare_pdf',
+    shortKey: 'nav.short.compare_pdf',
+    titleKey: 'cmppdf.title',
+    descKey: 'cmppdf.subtitle',
+    suffix: 'diff',
+    tone: 'fuchsia',
+    keywordsPt: [
+      'comparar pdf', 'comparar dois pdf', 'diferenca entre pdf', 'comparar contratos',
+      'comparar versoes de documento', 'o que mudou no pdf', 'diff de pdf',
+      'comparar texto de pdf', 'revisao de contrato', 'conferir alteracoes'
+    ],
+    keywordsEn: [
+      'compare pdf', 'compare two pdfs', 'pdf difference', 'compare contracts',
+      'compare document versions', 'what changed in pdf', 'pdf diff',
+      'compare pdf text', 'contract review', 'check changes'
     ],
   },
   {

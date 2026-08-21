@@ -625,6 +625,106 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'compare-pdf': {
+    pt: [
+      {
+        h: 'O que ela compara, e o que não compara',
+        p: [
+          'O TEXTO dos dois documentos, parágrafo a parágrafo. Não o layout, não as imagens, não as fontes, não as cores. Duas versões com as mesmas palavras e diagramação diferente saem como idênticas, e um logotipo trocado não aparece.',
+          'É a comparação certa para o que a maioria das pessoas está de fato conferindo — uma cláusula que mudou, um valor que virou outro, um parágrafo que sumiu entre a versão que foi enviada e a que voltou assinada. E é a comparação errada para material gráfico, onde o que importa é o desenho da página.',
+        ],
+      },
+      {
+        h: 'Como comparar',
+        p: [
+          'O documento da esquerda vem da sessão, então ele pode ter chegado de outra ferramenta — de juntar, dividir ou organizar. O da direita é sempre local, pela mesma razão que o merge-pdf e o img-to-pdf mantêm suas listas fora da cadeia: a sessão guarda um arquivo, e um segundo é estado da tela.',
+        ],
+        steps: [
+          'Solte o original no primeiro campo e a nova versão no segundo.',
+          'Deixe "ignorar espaçamento" ligado, a menos que a diferença de espaços importe para você — é a fonte número um de ruído numa comparação de PDF.',
+          'Compare. O resultado sai linha a linha, com o número de linha dos dois lados e a marca de acrescentado ou removido.',
+          'Baixe o diff unificado se precisar anexar a comparação a um e-mail, a um ticket ou a uma revisão.',
+        ],
+      },
+      {
+        h: 'Por parágrafo, e não por linha física',
+        p: [
+          'Um PDF quebra linha onde a margem manda. Acrescentar uma palavra no começo de um parágrafo empurra todas as linhas seguintes, e um comparador que olhe linhas físicas marca o parágrafo inteiro como alterado — muitas vezes o resto do documento junto.',
+          'Aqui os blocos são agrupados em parágrafos antes de comparar, pela mesma heurística que o conversor para Word usa. Uma frase alterada aparece como uma linha alterada, que é a informação que se estava procurando. O refluxo, que é ruído, não aparece.',
+        ],
+      },
+      {
+        h: 'Página escaneada não entra, de propósito',
+        p: [
+          'Uma página sem camada de texto é uma imagem: não há texto a comparar. A ferramenta conta essas páginas e diz quantas ficaram de fora, em vez de comparar menos do que você pensa que está comparando.',
+          'Rodar OCR dos dois lados foi considerado e recusado. O reconhecimento erra, e erra de forma diferente em cada arquivo — mesmo com o mesmo conteúdo, um lado pode ler "1" e o outro "l". A comparação passaria a mostrar diferenças que são falha de OCR e não mudança de documento, e num uso em que a resposta decide se um contrato foi alterado, isso é pior do que não comparar. Quem precisa comparar escaneados pode extrair o texto dos dois com o PDF para texto e usar o comparador de texto, sabendo o que está aceitando.',
+        ],
+      },
+      {
+        h: 'Ignorar espaçamento e caixa',
+        p: [
+          'Espaçamento vem ligado. É a maior fonte de ruído numa comparação de PDF: um espaço duplo, uma tabulação virada em espaços, um parágrafo justificado de outro jeito — nada disso é mudança de conteúdo, e todos aparecem como diferença se forem levados a sério.',
+          'A caixa vem desligada, porque em documento jurídico e administrativo a diferença entre maiúscula e minúscula às vezes É a mudança — um nome próprio, uma sigla, um título de cláusula. Ligar é decisão de quem sabe o que está conferindo.',
+        ],
+      },
+      {
+        h: 'Nenhum dos dois arquivos sai daqui',
+        p: [
+          'A leitura é o pdf.js rodando na sua aba, e a comparação é o algoritmo de Myers em JavaScript na sua máquina. Nenhum dos dois documentos é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+          'É a diferença que importa nesta ferramenta em particular: comparar duas versões de um contrato num comparador online normalmente significa entregar as duas versões do contrato a alguém. Aqui não há a quem entregar.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What it compares, and what it does not',
+        p: [
+          'The TEXT of both documents, paragraph by paragraph. Not the layout, not the images, not the fonts, not the colours. Two versions with the same words and different typesetting come out identical, and a swapped logo does not show.',
+          'It is the right comparison for what most people are actually checking — a clause that changed, a figure that became another, a paragraph that vanished between the version sent out and the one that came back signed. And it is the wrong comparison for artwork, where what matters is the drawing of the page.',
+        ],
+      },
+      {
+        h: 'How to compare',
+        p: [
+          'The document on the left comes from the session, so it may have arrived from another tool — merge, split or organise. The one on the right is always local, for the same reason merge-pdf and img-to-pdf keep their lists off the chain: the session holds one file, and a second is screen state.',
+        ],
+        steps: [
+          'Drop the original in the first field and the new version in the second.',
+          'Leave "ignore spacing" on unless whitespace differences matter to you — it is the number-one source of noise in a PDF comparison.',
+          'Compare. The result comes out line by line, with line numbers on both sides and an added or removed marker.',
+          'Download the unified diff if you need to attach the comparison to an email, a ticket or a review.',
+        ],
+      },
+      {
+        h: 'By paragraph, not by physical line',
+        p: [
+          'A PDF breaks lines where the margin says. Adding one word at the start of a paragraph pushes every following line, and a comparer looking at physical lines marks the whole paragraph as changed — often the rest of the document with it.',
+          'Here the blocks are grouped into paragraphs before comparing, by the same heuristic the Word converter uses. One altered sentence shows as one altered line, which is the information you were after. The reflow, which is noise, does not.',
+        ],
+      },
+      {
+        h: 'Scanned pages are left out, deliberately',
+        p: [
+          'A page with no text layer is an image: there is no text to compare. The tool counts those pages and says how many were left out, rather than comparing less than you think it is comparing.',
+          'Running OCR on both sides was considered and rejected. Recognition makes mistakes, and it makes different mistakes in each file — even with identical content, one side may read "1" and the other "l". The comparison would start showing differences that are OCR faults rather than document changes, and in a use where the answer decides whether a contract was altered, that is worse than not comparing. Anyone who needs to compare scans can extract the text of both with PDF-to-text and use the text comparer, knowing what they are accepting.',
+        ],
+      },
+      {
+        h: 'Ignoring spacing and case',
+        p: [
+          'Spacing is on by default. It is the biggest source of noise in a PDF comparison: a double space, a tab turned into spaces, a paragraph justified differently — none of that is a content change, and all of it shows as a difference if taken literally.',
+          'Case is off by default, because in legal and administrative documents the difference between upper and lower case sometimes IS the change — a proper noun, an acronym, a clause title. Turning it on is a decision for someone who knows what they are checking.',
+        ],
+      },
+      {
+        h: 'Neither file leaves here',
+        p: [
+          'The reading is pdf.js running in your tab, and the comparison is Myers in JavaScript on your machine. Neither document is uploaded anywhere, and the meter at the top of the page shows that while you work.',
+          'It is the difference that matters in this tool in particular: comparing two versions of a contract in an online comparer normally means handing both versions of the contract to someone. Here there is nobody to hand them to.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

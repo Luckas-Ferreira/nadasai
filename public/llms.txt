@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 43 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 44 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -31,6 +31,7 @@ Nada Sai provides 43 tools across 5 modules, all of which run entirely offline i
 - [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Drop your PDF file, enter a secure opening password, and download the protected document.
 - [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Upload your PDF, draw your signature using your mouse, trackpad, or touchscreen, or upload a transparent PNG image of your handwritten signature.
 - [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Add a text watermark or logo stamp across your PDF pages.
+- [Comparar PDFs / Compare PDFs](https://nadasai.com/pt/pdf/comparar): Just text, and the page says so before you run it.
 - [PDF para texto / PDF to text](https://nadasai.com/pt/pdf/para-texto): It is the main case, which is why TXT is the default and the page marker is off.
 - [Numerar páginas / Page numbers](https://nadasai.com/pt/pdf/numerar-paginas): Number the pages of a PDF, without rasterising it.
 
