@@ -421,6 +421,108 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'remove-silence': {
+    pt: [
+      {
+        h: 'O que a ferramenta procura',
+        p: [
+          'Trechos abaixo de um limiar de nível, por tempo suficiente para valer um corte. A medida é RMS numa janela de 20 milissegundos, e essa escolha não é detalhe: uma onda sonora cruza o zero a cada ciclo, então um teste amostra a amostra marcaria silêncio no meio de qualquer nota sustentada. A janela é curta o bastante para achar a pausa entre duas palavras e longa o bastante para não confundir cruzamento de zero com pausa.',
+          'Um trecho só conta como silêncio se for silêncio em TODOS os canais. Cortar por causa de um lado mudo apagaria o que está no outro — que é exatamente o arquivo que traz gente à ferramenta de separar canais.',
+        ],
+      },
+      {
+        h: 'Como usar',
+        p: [
+          'A análise roda a cada mexida nos controles e o corte não. É o que torna a ferramenta ajustável: mudar o limiar mostra na hora quantos trechos sairiam e quanto tempo sobraria, sem esperar a cópia de dezenas de milhões de amostras.',
+        ],
+        steps: [
+          'Solte o áudio na área de upload, ou traga um da cadeia — de cortar, juntar ou extrair de vídeo.',
+          'Ajuste o limiar olhando a barra. Ela mostra a porcentagem do arquivo que sairia com os ajustes atuais.',
+          'Ajuste a duração mínima se a fala estiver ficando atropelada: valores maiores preservam as pausas naturais.',
+          'Gere e baixe. O botão volta sempre que um controle muda.',
+        ],
+      },
+      {
+        h: 'Os três controles, e o que cada um evita',
+        p: [
+          'O LIMIAR decide o que é baixo demais. Numa sala silenciosa, -50 dBFS separa bem; numa gravação com ruído de fundo, o ruído fica acima disso e nada é achado — daí o controle chegar até -20.',
+          'A DURAÇÃO MÍNIMA é o que separa pausa de respiro. É o controle mais importante e o que quase todo removedor automático não oferece: sem ele, cortar tudo abaixo do limiar remove os intervalos naturais entre sílabas, e o resultado tem aquele ritmo apressado típico de áudio mal editado.',
+          'A MARGEM fica dos dois lados de cada corte. Cortar exatamente no ponto em que o nível sobe come o ataque da consoante, e a palavra seguinte fica com o começo mordido. Sessenta milissegundos é o que faz o corte soar como edição em vez de falha. Nas bordas do arquivo ela não se aplica — ali não há vizinho a proteger, e preservá-la só deixaria silêncio no começo e no fim, que é o que se quer ver sumir.',
+        ],
+      },
+      {
+        h: 'A emenda que não estala',
+        p: [
+          'Remover um silêncio junta dois pedaços de áudio que nunca foram vizinhos. Quase sempre a forma de onda salta de uma amplitude para outra numa única amostra, e isso é um clique — alto, e mais evidente em fone de ouvido.',
+          'Cada junção leva uma queda de cerca de 4 milissegundos de cada lado, o que esconde o salto. É a mesma solução do cortador de áudio, e aqui ela importa mais: uma entrevista de meia hora pode ter cinquenta emendas em vez de uma. A queda é aplicada DEPOIS de toda a cópia, nunca durante — aplicá-la dentro do laço rampa amostras que a cópia seguinte ainda vai sobrescrever, e o clique volta metade das vezes.',
+        ],
+      },
+      {
+        h: 'Quando nada é encontrado',
+        p: [
+          'Se nenhum trecho passar nos dois critérios, a ferramenta diz isso e não oferece o botão. É a resposta certa: gerar um arquivo idêntico ao original com um nome diferente seria pior do que não fazer nada.',
+          'Quando acontece, o caminho costuma ser aumentar o limiar (a gravação tem ruído de fundo acima do valor atual) ou diminuir a duração mínima (as pausas são mais curtas que o pedido).',
+        ],
+      },
+      {
+        h: 'WAV ou MP3, e onde ele continua',
+        p: [
+          'WAV é o padrão porque o corte em si não descarta nada: as amostras que sobram são exatamente as que estavam lá. Escolher MP3 acrescenta uma geração de compressão, e faz sentido quando o arquivo vai direto para alguém.',
+          'O resultado é áudio e entra na cadeia do módulo: remover silêncio e então normalizar o volume é a sequência que mais aparece em podcast, e acontece sem passar pelo disco. Todo o processamento é feito no seu navegador, e o medidor no topo da página mostra que nada sai.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What the tool looks for',
+        p: [
+          'Passages below a level threshold, for long enough to be worth cutting. The measure is RMS over a 20-millisecond window, and that choice is not a detail: a sound wave crosses zero every cycle, so a sample-by-sample test would mark silence in the middle of any sustained note. The window is short enough to find the pause between two words and long enough not to mistake a zero crossing for a pause.',
+          'A passage only counts as silence if it is silent on ALL channels. Cutting because one side is mute would erase what is on the other — which is exactly the file that brings people to the channel splitter.',
+        ],
+      },
+      {
+        h: 'How to use it',
+        p: [
+          'The analysis re-runs on every control change; the cut does not. That is what makes the tool tunable: moving the threshold immediately shows how many passages would go and how much time would be left, without waiting for tens of millions of samples to be copied.',
+        ],
+        steps: [
+          'Drop the audio on the upload area, or bring one in through the chain — from cut, merge or extract-from-video.',
+          'Tune the threshold while watching the bar. It shows the percentage of the file that would go with the current settings.',
+          'Raise the minimum length if the speech starts sounding rushed: larger values preserve the natural pauses.',
+          'Generate and download. The button returns whenever a control changes.',
+        ],
+      },
+      {
+        h: 'The three controls, and what each one prevents',
+        p: [
+          'The THRESHOLD decides what counts as too quiet. In a silent room, -50 dBFS separates cleanly; in a recording with background noise, the noise sits above that and nothing is found — which is why the control reaches up to -20.',
+          'The MINIMUM LENGTH is what separates a pause from a breath. It is the most important control and the one almost no automatic remover offers: without it, cutting everything below the threshold removes the natural gaps between syllables, and the result has that hurried rhythm typical of badly edited audio.',
+          'The PADDING sits on both sides of every cut. Cutting exactly where the level rises clips the attack of the consonant, and the next word comes out bitten. Sixty milliseconds is what makes the cut sound like editing rather than a fault. At the file boundaries it does not apply — there is no neighbour to protect there, and keeping it would only leave silence at the start and the end, which is what you wanted gone.',
+        ],
+      },
+      {
+        h: 'The join that does not click',
+        p: [
+          'Removing a silence joins two pieces of audio that were never adjacent. Almost always the waveform steps from one amplitude to another in a single sample, and that is a click — loud, and most obvious on headphones.',
+          'Every junction is faded over about 4 milliseconds on each side, which hides the step. It is the same solution the audio cutter uses, and it matters more here: a half-hour interview can have fifty joins instead of one. The fade is applied AFTER all the copying, never during — applying it inside the loop ramps samples the next copy will overwrite, and the click comes back half the time.',
+        ],
+      },
+      {
+        h: 'When nothing is found',
+        p: [
+          'If no passage passes both criteria, the tool says so and offers no button. That is the right answer: producing a file identical to the original under a different name would be worse than doing nothing.',
+          'When it happens, the way forward is usually to raise the threshold (the recording has background noise above the current value) or lower the minimum length (the pauses are shorter than what was asked for).',
+        ],
+      },
+      {
+        h: 'WAV or MP3, and where it goes next',
+        p: [
+          'WAV is the default because the cut itself discards nothing: the samples that remain are exactly the ones that were there. Choosing MP3 adds one generation of compression, and makes sense when the file is going straight to someone.',
+          'The result is audio and joins the module chain: removing silence and then normalising the loudness is the sequence that shows up most in podcast work, and it happens without touching the disk. All the processing runs in your browser, and the meter at the top of the page shows that nothing leaves.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

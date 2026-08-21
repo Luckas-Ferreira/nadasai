@@ -14,6 +14,7 @@ export type ToolId =
   | 'compress-audio'
   | 'normalize-audio'
   | 'audio-channels'
+  | 'remove-silence'
   | 'video-to-audio'
   | 'video-to-gif'
   | 'video-to-frames'
@@ -429,6 +430,31 @@ export const TOOLS: readonly ToolDef[] = [
       'animated gif', 'webm to gif', 'mov to gif', 'screen recording to gif',
       'gif without watermark', 'video gif converter', 'create gif from video',
       'trim video to gif', 'screen capture to gif'
+    ],
+  },
+  {
+    id: 'remove-silence',
+    pathPt: 'audio/remover-silencio',
+    pathEn: 'audio/remove-silence',
+    icon: 'scissors',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.remove_silence',
+    shortKey: 'nav.short.remove_silence',
+    titleKey: 'silence.title',
+    descKey: 'silence.subtitle',
+    suffix: 'sem-silencio',
+    tone: 'orange',
+    keywordsPt: [
+      'remover silencio audio', 'cortar silencio', 'tirar pausas', 'editar podcast',
+      'remover pausas gravacao', 'encurtar audio', 'cortar partes mudas', 'limpar gravacao',
+      'silencio automatico', 'editar entrevista', 'reduzir duracao audio'
+    ],
+    keywordsEn: [
+      'remove silence from audio', 'cut silence', 'trim pauses', 'podcast editing',
+      'remove dead air', 'shorten audio', 'auto silence remover', 'clean up recording',
+      'trim gaps', 'edit interview', 'strip silence'
     ],
   },
   {

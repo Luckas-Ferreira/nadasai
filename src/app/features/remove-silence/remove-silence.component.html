@@ -1,0 +1,162 @@
+<app-tool-page [toolId]="'remove-silence'" [forceLoaded]="!!buffer()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || nothingToRemove()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- Nada a remover não é erro: é a resposta. Dizer isso é melhor do que
+         deixar o botão ativo para produzir um arquivo idêntico ao original. -->
+    @if (nothingToRemove()) {
+      <app-alert [message]="i18n.t()['silence.nothing_found']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!buffer()) {
+      <app-dropzone
+        [accept]="'audio/*'"
+        [titleKey]="'silence.drag'"
+        [hintKey]="'silence.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="relative flex min-h-[300px] flex-col items-center justify-center gap-7 rounded-xl border border-doc-stage-line bg-doc-stage p-8">
+        <!-- A barra é a análise: quanto do arquivo some. Ela reage a cada
+             mudança de controle, ANTES de qualquer corte — é o que torna o
+             limiar ajustável em vez de adivinhado. -->
+        <div class="w-full max-w-md">
+          <div class="mb-2 flex items-baseline justify-between text-xs">
+            <span class="text-muted">{{ i18n.t()['silence.removed'] }}</span>
+            <span class="font-mono tabular text-lg font-semibold text-accent">{{ removedPercent() }}%</span>
+          </div>
+
+          <div class="h-3 w-full overflow-hidden rounded-full border border-line bg-surface">
+            <div
+              class="h-full rounded-full bg-accent transition-[width] duration-200"
+              [style.width.%]="removedPercent()"
+            ></div>
+          </div>
+        </div>
+
+        <dl class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-center text-xs">
+          <div>
+            <dt class="text-faint">{{ i18n.t()['silence.original'] }}</dt>
+            <dd class="font-mono tabular text-text">{{ sourceClock() }}</dd>
+          </div>
+          <div>
+            <dt class="text-faint">{{ i18n.t()['silence.result'] }}</dt>
+            <dd class="font-mono tabular text-text">{{ newClock() }}</dd>
+          </div>
+          <div>
+            <dt class="text-faint">{{ i18n.t()['silence.saved'] }}</dt>
+            <dd class="font-mono tabular text-text">{{ removedClock() }}</dd>
+          </div>
+          <div>
+            <dt class="text-faint">{{ i18n.t()['silence.cuts'] }}</dt>
+            <dd class="font-mono tabular text-text">{{ cuts() }}</dd>
+          </div>
+        </dl>
+
+        @if (busy()) {
+          <div class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-doc-stage/85 backdrop-blur-[3px]">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm font-medium text-text">{{ i18n.t()['silence.working'] }}</p>
+            <p class="text-center text-xs text-faint tabular" aria-live="polite">{{ progress() ?? 0 }}%</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (buffer()) {
+      <app-panel [heading]="i18n.t()['silence.panel_detect']">
+        <div class="flex flex-col gap-1">
+          <label class="flex items-center justify-between text-xs text-muted">
+            <span>{{ i18n.t()['silence.threshold'] }}</span>
+            <span class="font-mono tabular text-text">{{ thresholdDb() }} dBFS</span>
+          </label>
+          <input
+            type="range"
+            min="-70"
+            max="-20"
+            step="1"
+            [attr.aria-label]="i18n.t()['silence.threshold']"
+            [value]="thresholdDb()"
+            (input)="thresholdDb.set(+$any($event.target).value)"
+            class="w-full cursor-pointer accent-accent"
+          />
+          <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['silence.threshold_hint'] }}</p>
+        </div>
+
+        <div class="mt-4 flex flex-col gap-1 border-t border-line pt-3">
+          <label class="flex items-center justify-between text-xs text-muted">
+            <span>{{ i18n.t()['silence.min_length'] }}</span>
+            <span class="font-mono tabular text-text">{{ minSilenceSeconds() }} s</span>
+          </label>
+          <input
+            type="range"
+            min="0.2"
+            max="3"
+            step="0.1"
+            [attr.aria-label]="i18n.t()['silence.min_length']"
+            [value]="minSilenceSeconds()"
+            (input)="minSilenceSeconds.set(+$any($event.target).value)"
+            class="w-full cursor-pointer accent-accent"
+          />
+          <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['silence.min_length_hint'] }}</p>
+        </div>
+
+        <div class="mt-4 flex flex-col gap-1 border-t border-line pt-3">
+          <label class="flex items-center justify-between text-xs text-muted">
+            <span>{{ i18n.t()['silence.padding'] }}</span>
+            <span class="font-mono tabular text-text">{{ keepPadding() * 1000 }} ms</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="0.3"
+            step="0.01"
+            [attr.aria-label]="i18n.t()['silence.padding']"
+            [value]="keepPadding()"
+            (input)="keepPadding.set(+$any($event.target).value)"
+            class="w-full cursor-pointer accent-accent"
+          />
+          <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['silence.padding_hint'] }}</p>
+        </div>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['silence.panel_output']">
+        <app-segmented
+          [options]="formatOptions()"
+          [value]="format()"
+          (valueChange)="format.set($event)"
+          [columns]="2"
+        />
+
+        @if (resultBlob()) {
+          <dl class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
+            <dt class="text-muted">{{ i18n.t()['common.result'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ resultSize() }}</dd>
+          </dl>
+        }
+
+        <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+          {{ i18n.t()['silence.splice_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'remove-silence'"
+        [primaryLabel]="stale() ? i18n.t()['silence.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

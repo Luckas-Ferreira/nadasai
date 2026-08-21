@@ -931,6 +931,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'remove-silence': {
+    pt: {
+      features: [
+        'Limiar, duração mínima e margem ajustáveis',
+        'Prévia de quanto tempo some antes de aplicar',
+        'Emenda com queda de 4 ms para não estalar',
+        'Saída WAV sem perda ou MP3',
+      ],
+      faq: [
+        {
+          q: 'Como o silêncio é detectado?',
+          a: 'Por RMS numa janela de 20 milissegundos, e não amostra a amostra. Uma onda cruza o zero a cada ciclo, então testar amostra por amostra acharia silêncio no meio de qualquer nota. A janela é curta o bastante para encontrar a pausa entre duas palavras e longa o bastante para não confundir cruzamento de zero com pausa.',
+        },
+        {
+          q: 'O corte não vai atropelar a fala?',
+          a: 'Dois controles impedem isso. A duração mínima ignora pausas curtas, que é o que separa uma pausa de um respiro — sem ela, todo intervalo entre sílabas some e o resultado sai atropelado. E a margem preservada deixa alguns milissegundos dos dois lados de cada corte, para o ataque da palavra seguinte não ser comido. Nas bordas do arquivo a margem não se aplica: ali não há vizinho a proteger.',
+        },
+        {
+          q: 'Vou ouvir cliques nas emendas?',
+          a: 'Não. Cada junção leva uma queda de cerca de 4 milissegundos de cada lado. Sem isso, juntar dois trechos que nunca foram vizinhos faz a forma de onda saltar de uma amplitude para outra numa amostra só, o que é um clique — e numa gravação longa não é um, são dezenas.',
+        },
+        {
+          q: 'Quanto tempo dá para economizar?',
+          a: 'Depende inteiramente do material, e a ferramenta mostra o número antes de aplicar. Numa entrevista com pausas longas é comum passar de 20%; numa narração já editada, quase nada. A barra e os quatro números reagem a cada ajuste de controle, então dá para calibrar o limiar olhando o resultado em vez de adivinhar.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Adjustable threshold, minimum length and edge padding',
+        'Preview of how much time disappears before applying',
+        '4 ms fade at every join, so nothing clicks',
+        'Lossless WAV output, or MP3',
+      ],
+      faq: [
+        {
+          q: 'How is silence detected?',
+          a: 'By RMS over a 20-millisecond window, not sample by sample. A waveform crosses zero every cycle, so testing sample by sample would find silence in the middle of any note. The window is short enough to catch the pause between two words and long enough not to mistake a zero crossing for a pause.',
+        },
+        {
+          q: 'Will the cut make the speech sound rushed?',
+          a: 'Two controls prevent that. The minimum length ignores short gaps, which is what separates a pause from a breath — without it, every inter-syllable gap disappears and the result comes out rushed. And the edge padding leaves a few milliseconds on both sides of every cut so the attack of the next word is not clipped. At the file boundaries the padding does not apply: there is no neighbour to protect there.',
+        },
+        {
+          q: 'Will I hear clicks at the joins?',
+          a: 'No. Every junction is faded over about 4 milliseconds on each side. Without that, splicing two passages that were never adjacent makes the waveform step from one amplitude to another in a single sample, which is a click — and on a long recording it is not one click, it is dozens.',
+        },
+        {
+          q: 'How much time can I expect to save?',
+          a: 'It depends entirely on the material, and the tool shows the number before applying. On an interview with long pauses, over 20% is common; on already-edited narration, almost nothing. The bar and the four figures react to every control change, so you can calibrate the threshold by watching the result rather than guessing.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],
