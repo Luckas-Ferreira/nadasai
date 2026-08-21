@@ -1162,6 +1162,106 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- bmp-to-png -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/bmp-para-png</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/bmp-para-png" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/bmp-to-png" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/bmp-para-png" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/bmp-to-png</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/bmp-para-png" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/bmp-to-png" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/bmp-para-png" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- bmp-to-jpg -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/bmp-para-jpg</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/bmp-para-jpg" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/bmp-to-jpg" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/bmp-para-jpg" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/bmp-to-jpg</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/bmp-para-jpg" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/bmp-to-jpg" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/bmp-para-jpg" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- avif-to-png -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/avif-para-png</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/avif-para-png" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/avif-to-png" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/avif-para-png" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/avif-to-png</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/avif-para-png" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/avif-to-png" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/avif-para-png" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- avif-to-webp -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/avif-para-webp</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/avif-para-webp" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/avif-to-webp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/avif-para-webp" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/avif-to-webp</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/avif-para-webp" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/avif-to-webp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/avif-para-webp" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- gif-to-jpg -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/gif-para-jpg</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/gif-para-jpg" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/gif-to-jpg" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/gif-para-jpg" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/gif-to-jpg</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/gif-para-jpg" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/gif-to-jpg" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/gif-para-jpg" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- m4a-to-mp3 -->
   <url>
     <loc>https://nadasai.com/pt/audio/m4a-para-mp3</loc>
@@ -1237,6 +1337,106 @@
     <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/mp3-para-wav" />
     <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/mp3-to-wav" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/mp3-para-wav" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ogg-to-mp3 -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/ogg-para-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/ogg-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/ogg-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/ogg-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/ogg-to-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/ogg-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/ogg-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/ogg-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- aac-to-mp3 -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/aac-para-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/aac-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/aac-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/aac-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/aac-to-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/aac-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/aac-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/aac-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- webm-to-mp3 -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/webm-para-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/webm-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/webm-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/webm-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/webm-to-mp3</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/webm-para-mp3" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/webm-to-mp3" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/webm-para-mp3" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- m4a-to-wav -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/m4a-para-wav</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/m4a-para-wav" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/m4a-to-wav" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/m4a-para-wav" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/m4a-to-wav</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/m4a-para-wav" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/m4a-to-wav" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/m4a-para-wav" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- flac-to-wav -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/flac-para-wav</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/flac-para-wav" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/flac-to-wav" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/flac-para-wav" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/flac-to-wav</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/flac-para-wav" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/flac-to-wav" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/flac-para-wav" />
     <lastmod>2026-08-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

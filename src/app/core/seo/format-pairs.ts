@@ -729,6 +729,411 @@ export const FORMAT_PAIRS: readonly FormatPair[] = [
     },
   },
 
+  {
+    id: 'bmp-to-png',
+    tool: 'convert',
+    target: 'PNG',
+    pathPt: 'imagem/bmp-para-png',
+    pathEn: 'image/bmp-to-png',
+    pt: {
+      h1: 'BMP para PNG',
+      sub: 'Converta BMP em PNG sem perder um pixel — e com uma fração do tamanho.',
+      title: 'Converter BMP para PNG Online (Sem Perda) — Nada Sai',
+      description:
+        'Converta BMP em PNG direto no navegador. Os dois são sem perda, então a imagem é idêntica — o que muda é o tamanho, que costuma cair para uma fração.',
+      sections: [
+        {
+          h: 'Sem perda dos dois lados, e mesmo assim muito menor',
+          p: [
+            'Esta é a conversão mais fácil de justificar da lista: BMP e PNG são ambos sem perda, então a imagem que sai é idêntica pixel a pixel à que entrou. Nenhuma decisão de qualidade, nenhum artefato, nenhuma troca.',
+            'O que muda é o tamanho. O BMP guarda cada pixel cru, sem compressão nenhuma na forma mais comum: uma captura de tela de 1920 por 1080 ocupa cerca de 8 MB. O PNG comprime sem descartar nada e costuma entregar a mesma imagem em uma fração disso.',
+          ],
+        },
+        {
+          h: 'O que mais o PNG ganha',
+          p: [
+            'Suporte universal. O BMP é um formato do Windows e continua sendo mal aceito fora dele: sites recusam, celulares hesitam, e boa parte dos aplicativos web nem lista a extensão. O PNG abre em qualquer lugar.',
+            'E canal alfa de verdade. O BMP tem transparência apenas em variantes de 32 bits que quase ninguém escreve; o PNG a carrega sempre, então a partir daqui dá para recortar o fundo e o resultado se comporta como se espera.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Converter BMP para PNG perde qualidade?',
+          a: 'Nenhuma. Os dois formatos são sem perda, então a imagem resultante é idêntica pixel a pixel à original. É a diferença desta conversão para quase todas as outras: aqui não há troca a fazer, só um arquivo muito menor com exatamente o mesmo conteúdo.',
+        },
+        {
+          q: 'Quanto menor fica?',
+          a: 'Depende do conteúdo, mas a queda costuma ser grande porque o ponto de partida é alto: um BMP comum não comprime nada e gasta três ou quatro bytes por pixel. Numa captura de tela ou num desenho com áreas chapadas, o PNG entrega a mesma imagem em uma fração do tamanho.',
+        },
+        {
+          q: 'Por que ainda existem arquivos BMP?',
+          a: 'Porque é o formato que o Windows historicamente usa em ferramentas simples — o Paint antigo, capturas de tela coladas, saída de alguns scanners e equipamentos industriais. Ele é fácil de escrever, o que o mantém vivo em software embarcado; e é pesado e mal aceito, que é o motivo de quase sempre valer a pena converter.',
+        },
+      ],
+    },
+    en: {
+      h1: 'BMP to PNG',
+      sub: 'Convert BMP to PNG without losing a pixel — at a fraction of the size.',
+      title: 'Convert BMP to PNG Online (Lossless) — Nada Sai',
+      description:
+        'Convert BMP to PNG right in the browser. Both are lossless, so the image is identical — what changes is the size, which usually drops to a fraction.',
+      sections: [
+        {
+          h: 'Lossless on both sides, and still far smaller',
+          p: [
+            'This is the easiest conversion on the list to justify: BMP and PNG are both lossless, so the image that comes out is identical pixel for pixel to the one that went in. No quality decision, no artefacts, no trade.',
+            'What changes is size. BMP stores every pixel raw, with no compression at all in its most common form: a 1920 by 1080 screenshot takes around 8 MB. PNG compresses without discarding anything and usually delivers the same image in a fraction of that.',
+          ],
+        },
+        {
+          h: 'What else PNG gains you',
+          p: [
+            'Universal support. BMP is a Windows format and remains poorly accepted outside it: websites refuse it, phones hesitate, and plenty of web applications do not even list the extension. PNG opens everywhere.',
+            'And a real alpha channel. BMP only has transparency in 32-bit variants almost nobody writes; PNG always carries it, so from here you can cut the background out and the result behaves as expected.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Does converting BMP to PNG lose quality?',
+          a: 'None at all. Both formats are lossless, so the resulting image is identical pixel for pixel to the original. That is what sets this conversion apart from almost every other one: there is no trade to make, just a much smaller file with exactly the same content.',
+        },
+        {
+          q: 'How much smaller does it get?',
+          a: 'It depends on the content, but the drop is usually large because the starting point is high: an ordinary BMP compresses nothing and spends three or four bytes per pixel. On a screenshot or line art with flat areas, PNG delivers the same image in a fraction of the size.',
+        },
+        {
+          q: 'Why do BMP files still exist?',
+          a: 'Because it is the format Windows historically uses in simple tools — old Paint, pasted screenshots, output from some scanners and industrial equipment. It is easy to write, which keeps it alive in embedded software; and it is heavy and poorly accepted, which is why converting is almost always worth it.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'bmp-to-jpg',
+    tool: 'convert',
+    target: 'JPEG',
+    pathPt: 'imagem/bmp-para-jpg',
+    pathEn: 'image/bmp-to-jpg',
+    pt: {
+      h1: 'BMP para JPG',
+      sub: 'Converta BMP em JPEG e troque megabytes por kilobytes.',
+      title: 'Converter BMP para JPG Online (Grátis, Offline) — Nada Sai',
+      description:
+        'Converta BMP em JPG direto no navegador. A queda de tamanho é a maior da lista, porque o BMP não comprime nada e o JPEG comprime muito.',
+      sections: [
+        {
+          h: 'A maior queda de tamanho da lista',
+          p: [
+            'O BMP guarda cada pixel cru e o JPEG descarta o que o olho não capta. A distância entre os dois é a maior que existe entre um formato de entrada e um de saída aqui: uma foto que ocupa vários megabytes em BMP costuma sair com algumas centenas de kilobytes.',
+            'A qualidade usada é 0,92. Em fotografia essa diferença não aparece; em captura de tela com texto pequeno e linhas finas ela aparece, e ali o destino certo é PNG, que é sem perda e ainda assim muito menor que o BMP.',
+          ],
+        },
+        {
+          h: 'Escolha pelo conteúdo, não pelo tamanho',
+          p: [
+            'Se o BMP é uma FOTOGRAFIA, JPEG é o destino óbvio: menor, aceito em todo lugar, e a perda não se vê.',
+            'Se é um desenho, um diagrama, uma captura de tela ou qualquer coisa com áreas de cor chapada e bordas duras, prefira PNG. O JPEG acrescenta chiado em volta de cada borda dura, e num conteúdo desses o PNG frequentemente sai até menor — porque é exatamente o tipo de imagem que ele comprime melhor.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Quanto menor fica um BMP virando JPG?',
+          a: 'A diferença é de ordem de grandeza. Um BMP não comprime nada e gasta três ou quatro bytes por pixel, então uma foto grande facilmente ocupa dezenas de megabytes; o mesmo conteúdo em JPEG cabe em algumas centenas de kilobytes. É a maior queda entre os pares desta lista.',
+        },
+        {
+          q: 'Devo escolher JPG ou PNG a partir de um BMP?',
+          a: 'Pelo conteúdo. Fotografia vai para JPEG: menor, aceito em todo lugar, e a perda não se vê. Desenho, diagrama, captura de tela ou qualquer coisa com cor chapada e borda dura vai para PNG, que é sem perda, não acrescenta chiado nas bordas e nesse tipo de imagem costuma sair até menor que o JPEG.',
+        },
+        {
+          q: 'A transparência do BMP sobrevive?',
+          a: 'Não, e na maioria dos casos não havia transparência para perder: o BMP só a suporta em variantes de 32 bits que quase nenhum programa escreve. Se o seu arquivo for uma dessas, o alfa é preenchido com branco, porque o JPEG não tem canal alfa. Para preservá-lo, converta para PNG ou WebP.',
+        },
+      ],
+    },
+    en: {
+      h1: 'BMP to JPG',
+      sub: 'Convert BMP to JPEG and trade megabytes for kilobytes.',
+      title: 'Convert BMP to JPG Online (Free, Offline) — Nada Sai',
+      description:
+        'Convert BMP to JPG right in the browser. The size drop is the largest on the list, because BMP compresses nothing and JPEG compresses a lot.',
+      sections: [
+        {
+          h: 'The largest size drop on the list',
+          p: [
+            'BMP stores every pixel raw and JPEG discards what the eye does not catch. The distance between the two is the widest between any input and output format here: a photo taking several megabytes as BMP usually comes out at a few hundred kilobytes.',
+            'The quality used is 0.92. On photographs that difference does not show; on a screenshot with small text and thin lines it does, and there the right destination is PNG, which is lossless and still far smaller than the BMP.',
+          ],
+        },
+        {
+          h: 'Choose by content, not by size',
+          p: [
+            'If the BMP is a PHOTOGRAPH, JPEG is the obvious destination: smaller, accepted everywhere, and the loss does not show.',
+            'If it is line art, a diagram, a screenshot or anything with flat colour areas and hard edges, prefer PNG. JPEG adds ringing around every hard edge, and on that kind of content PNG often comes out smaller anyway — because it is exactly the kind of image it compresses best.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'How much smaller does a BMP get as a JPG?',
+          a: 'The difference is an order of magnitude. A BMP compresses nothing and spends three or four bytes per pixel, so a large photo easily takes tens of megabytes; the same content as JPEG fits in a few hundred kilobytes. It is the biggest drop among the pairs on this list.',
+        },
+        {
+          q: 'Should I pick JPG or PNG from a BMP?',
+          a: 'By content. Photographs go to JPEG: smaller, accepted everywhere, and the loss does not show. Line art, diagrams, screenshots or anything with flat colour and hard edges goes to PNG, which is lossless, adds no ringing at the edges, and on that kind of image often comes out smaller than the JPEG anyway.',
+        },
+        {
+          q: 'Does BMP transparency survive?',
+          a: 'No, and in most cases there was no transparency to lose: BMP only supports it in 32-bit variants almost no program writes. If yours is one of those, the alpha is filled with white, because JPEG has no alpha channel. To keep it, convert to PNG or WebP instead.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'avif-to-png',
+    tool: 'convert',
+    target: 'PNG',
+    pathPt: 'imagem/avif-para-png',
+    pathEn: 'image/avif-to-png',
+    pt: {
+      h1: 'AVIF para PNG',
+      sub: 'Abra um AVIF e grave em PNG, com a transparência preservada.',
+      title: 'Converter AVIF para PNG Online (Mantém Alfa) — Nada Sai',
+      description:
+        'Converta AVIF em PNG direto no navegador, com o canal alfa intacto. É a saída quando o programa do outro lado não abre AVIF.',
+      sections: [
+        {
+          h: 'Quando o destino não abre AVIF',
+          p: [
+            'O AVIF é o formato mais eficiente que os navegadores atuais leem, e é justamente por ser novo que ele não abre em tanto lugar: editores de imagem mais antigos, sistemas de impressão, formulários de upload e boa parte do software de escritório ainda o recusam.',
+            'O PNG é o oposto: pesado e universal. Esta conversão troca eficiência por compatibilidade, e é quase sempre por isso que ela é feita.',
+          ],
+        },
+        {
+          h: 'Alfa preservado, arquivo maior',
+          p: [
+            'Os dois formatos têm canal alfa, então um recorte atravessa intacto — não há fundo inventado nem transparência achatada. É a diferença desta conversão para o AVIF para JPG, onde o alfa vira branco.',
+            'O tamanho vai na direção contrária: o AVIF costuma ocupar bem menos que o PNG equivalente, então o arquivo cresce, muitas vezes várias vezes. É o preço do formato sem perda que abre em qualquer lugar. Se o destino aceitar WebP, ele é o meio-termo: mantém alfa e fica bem menor que o PNG.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'A transparência do AVIF é preservada?',
+          a: 'Sim, inteira. Os dois formatos têm canal alfa, então nada precisa ser achatado e nenhum fundo é inventado. É a diferença entre este par e o AVIF para JPG, onde cada pixel transparente é preenchido com branco.',
+        },
+        {
+          q: 'Por que o PNG ficou muito maior que o AVIF?',
+          a: 'Porque o PNG é sem perda e o AVIF é um dos formatos com perda mais eficientes que existem. O AVIF economizava descartando informação que o olho não capta; o PNG grava tudo o que sobrou, exatamente como está. Crescer várias vezes é o resultado normal, não um defeito.',
+        },
+        {
+          q: 'Dá para converter uma imagem PARA AVIF aqui?',
+          a: 'Não, e a ausência é deliberada. Nenhum navegador implementa a codificação de AVIF em canvas, e a especificação manda cair em silêncio para PNG quando o tipo não é suportado — a ferramenta entregaria bytes de PNG num arquivo com extensão .avif. Uma versão antiga deste produto fazia exatamente isso, e foi por isso que o AVIF saiu da lista de saída.',
+        },
+      ],
+    },
+    en: {
+      h1: 'AVIF to PNG',
+      sub: 'Open an AVIF and write PNG, with transparency preserved.',
+      title: 'Convert AVIF to PNG Online (Keeps Alpha) — Nada Sai',
+      description:
+        'Convert AVIF to PNG right in the browser, alpha channel intact. It is the way out when the software on the other side does not open AVIF.',
+      sections: [
+        {
+          h: 'When the destination does not open AVIF',
+          p: [
+            'AVIF is the most efficient format current browsers read, and it is precisely because it is new that it does not open in many places: older image editors, print systems, upload forms and much office software still refuse it.',
+            'PNG is the opposite: heavy and universal. This conversion trades efficiency for compatibility, and that is almost always why it is made.',
+          ],
+        },
+        {
+          h: 'Alpha preserved, file larger',
+          p: [
+            'Both formats have an alpha channel, so a cutout crosses over intact — no invented background, no flattened transparency. That is the difference between this conversion and AVIF to JPG, where alpha becomes white.',
+            'Size goes the other way: AVIF usually takes far less room than the equivalent PNG, so the file grows, often several times over. That is the price of a lossless format that opens anywhere. If the destination accepts WebP, it is the middle ground: keeps alpha and lands far below PNG.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Is the AVIF transparency preserved?',
+          a: 'Yes, entirely. Both formats have an alpha channel, so nothing has to be flattened and no background is invented. That is the difference between this pair and AVIF to JPG, where every transparent pixel is filled with white.',
+        },
+        {
+          q: 'Why is the PNG so much bigger than the AVIF?',
+          a: 'Because PNG is lossless and AVIF is one of the most efficient lossy formats there is. AVIF saved room by discarding information the eye does not catch; PNG records everything that is left, exactly as it stands. Growing several times over is the normal outcome, not a fault.',
+        },
+        {
+          q: 'Can I convert an image TO AVIF here?',
+          a: 'No, and the absence is deliberate. No browser implements AVIF encoding in a canvas, and the specification says to fall back silently to PNG when the type is unsupported — the tool would hand you PNG bytes in a file with an .avif extension. An older version of this product did exactly that, and it is why AVIF left the output list.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'avif-to-webp',
+    tool: 'convert',
+    target: 'WEBP',
+    pathPt: 'imagem/avif-para-webp',
+    pathEn: 'image/avif-to-webp',
+    pt: {
+      h1: 'AVIF para WebP',
+      sub: 'Ganhe compatibilidade sem voltar ao peso do PNG.',
+      title: 'Converter AVIF para WebP Online (Mantém Alfa) — Nada Sai',
+      description:
+        'Converta AVIF em WebP direto no navegador. O WebP abre em mais lugares que o AVIF e continua muito mais leve que o PNG.',
+      sections: [
+        {
+          h: 'O meio-termo entre eficiência e suporte',
+          p: [
+            'Sair de AVIF costuma ser uma decisão de compatibilidade. O destino óbvio seria o PNG, mas ele é sem perda e o arquivo cresce muito. O WebP resolve os dois lados: abre em toda parte que o AVIF ainda não alcança dentro do navegador, mantém o canal alfa, e fica muito mais perto do tamanho do AVIF do que do PNG.',
+            'A qualidade de saída é 0,9. Como os dois formatos são com perda, esta é uma segunda geração de compressão — em imagem bem produzida a diferença não aparece, mas ela existe e é bom saber.',
+          ],
+        },
+        {
+          h: 'Onde cada um ainda ganha',
+          p: [
+            'O AVIF continua sendo mais eficiente: para a mesma aparência ele ocupa menos que o WebP. Se o seu destino já o aceita, não há motivo para converter.',
+            'O WebP ganha em alcance. Ele é suportado por navegadores há mais tempo, o que importa para quem ainda tem visitantes em versões antigas, e é aceito por bem mais ferramentas de terceiros — plataformas de publicação, geradores de site, plugins. Fora do navegador, porém, nenhum dos dois é confiável: ali o destino é PNG ou JPEG.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Por que converter AVIF para WebP em vez de PNG?',
+          a: 'Porque o PNG é sem perda e faz o arquivo crescer muito, enquanto o WebP mantém o peso próximo do AVIF. Se o motivo da conversão é compatibilidade e o destino é um navegador ou uma plataforma web, o WebP entrega o alcance sem devolver os megabytes.',
+        },
+        {
+          q: 'A transparência sobrevive?',
+          a: 'Sim. Os dois formatos têm canal alfa, então um recorte atravessa intacto. É o motivo de este par e o AVIF para PNG serem os destinos certos quando há transparência em jogo — o AVIF para JPG preenche o alfa com branco.',
+        },
+        {
+          q: 'Perde qualidade nessa conversão?',
+          a: 'Um pouco: os dois formatos são com perda, então gravar o WebP descarta uma segunda vez sobre o que o AVIF já tinha descartado. Em imagem bem produzida a diferença não aparece; num AVIF já muito comprimido ela pode aparecer nas bordas. Converta sempre do melhor original que tiver.',
+        },
+      ],
+    },
+    en: {
+      h1: 'AVIF to WebP',
+      sub: 'Gain compatibility without going back to PNG weight.',
+      title: 'Convert AVIF to WebP Online (Keeps Alpha) — Nada Sai',
+      description:
+        'Convert AVIF to WebP right in the browser. WebP opens in more places than AVIF and stays far lighter than PNG.',
+      sections: [
+        {
+          h: 'The middle ground between efficiency and support',
+          p: [
+            'Leaving AVIF is usually a compatibility decision. The obvious destination would be PNG, but it is lossless and the file grows a lot. WebP solves both sides: it opens everywhere AVIF does not yet reach inside the browser, it keeps the alpha channel, and it lands far closer to AVIF size than to PNG.',
+            'The output quality is 0.9. Since both formats are lossy, this is a second generation of compression — on well-produced imagery the difference does not show, but it exists and is worth knowing.',
+          ],
+        },
+        {
+          h: 'Where each one still wins',
+          p: [
+            'AVIF remains more efficient: for the same appearance it takes less room than WebP. If your destination already accepts it, there is no reason to convert.',
+            'WebP wins on reach. It has been supported by browsers for longer, which matters if you still have visitors on older versions, and it is accepted by far more third-party tooling — publishing platforms, site generators, plugins. Outside the browser, though, neither is reliable: there the destination is PNG or JPEG.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Why convert AVIF to WebP rather than PNG?',
+          a: 'Because PNG is lossless and makes the file grow a lot, while WebP keeps the weight close to the AVIF. If the reason for converting is compatibility and the destination is a browser or a web platform, WebP delivers the reach without handing back the megabytes.',
+        },
+        {
+          q: 'Does transparency survive?',
+          a: 'Yes. Both formats have an alpha channel, so a cutout crosses over intact. That is why this pair and AVIF to PNG are the right destinations when transparency is involved — AVIF to JPG fills the alpha with white.',
+        },
+        {
+          q: 'Does it lose quality?',
+          a: 'A little: both formats are lossy, so writing WebP discards a second time on top of what AVIF already discarded. On well-produced imagery the difference does not show; on an already heavily compressed AVIF it can show at the edges. Always convert from the best original you have.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'gif-to-jpg',
+    tool: 'convert',
+    target: 'JPEG',
+    pathPt: 'imagem/gif-para-jpg',
+    pathEn: 'image/gif-to-jpg',
+    pt: {
+      h1: 'GIF para JPG',
+      sub: 'Converta um GIF em JPEG — o primeiro quadro, sem transparência.',
+      title: 'Converter GIF para JPG Online (Primeiro Quadro) — Nada Sai',
+      description:
+        'Converta GIF em JPG direto no navegador. De um GIF animado sai o primeiro quadro, e a transparência vira branco. A página diz isso antes.',
+      sections: [
+        {
+          h: 'Duas coisas somem, e as duas antes de você baixar',
+          p: [
+            'A ANIMAÇÃO. Se o seu GIF se move, o JPEG que sai daqui não se move: a conversão desenha a imagem num canvas, e um canvas guarda um quadro — o primeiro. Não é contornável trocando de opção, porque o JPEG não tem como representar uma sequência.',
+            'A TRANSPARÊNCIA. O GIF tem transparência binária — um pixel é opaco ou invisível — e o JPEG não tem nenhuma. Cada pixel invisível é preenchido com branco, fixo.',
+          ],
+        },
+        {
+          h: 'Quando faz sentido, e quando o destino é outro',
+          p: [
+            'Faz sentido quando o GIF é uma FOTOGRAFIA estática salva no formato errado, o que acontece com frequência em arquivos antigos e em material vindo de sistemas legados. Ali o JPEG comprime muito melhor um conteúdo fotográfico do que o GIF, que só tem 256 cores.',
+            'Não faz sentido para desenho, ícone ou qualquer coisa com áreas chapadas: o JPEG acrescenta chiado em volta das bordas duras, e o PNG é o destino certo — mantém a transparência e costuma ficar menor. E se a animação importa, nenhum dos dois serve: o GIF continua sendo o formato, e a ferramenta de vídeo para GIF monta um a partir de um vídeo.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'A animação do GIF é preservada no JPG?',
+          a: 'Não. Sai o primeiro quadro e mais nada. O JPEG não carrega sequência, e a conversão desenha a imagem num canvas, que guarda um quadro por definição. A página avisa disso aqui em vez de deixar você descobrir no arquivo baixado.',
+        },
+        {
+          q: 'O que acontece com a transparência?',
+          a: 'Vira branco. A transparência do GIF é binária — um pixel é totalmente opaco ou totalmente invisível — e o JPEG não tem canal alfa nenhum, então cada pixel invisível é preenchido, com branco fixo. Se o recorte importa, converta para PNG, que guarda alfa contínuo.',
+        },
+        {
+          q: 'Devo escolher JPG ou PNG a partir de um GIF?',
+          a: 'PNG na maior parte dos casos: ele mantém a transparência, não acrescenta chiado nas bordas duras típicas de um GIF e costuma ficar menor em conteúdo de poucas cores. JPG só vale quando o GIF é na verdade uma fotografia estática salva no formato errado — ali o JPEG comprime muito melhor do que 256 cores conseguem.',
+        },
+      ],
+    },
+    en: {
+      h1: 'GIF to JPG',
+      sub: 'Convert a GIF to JPEG — the first frame, with no transparency.',
+      title: 'Convert GIF to JPG Online (First Frame) — Nada Sai',
+      description:
+        'Convert GIF to JPG right in the browser. From an animated GIF you get the first frame, and transparency becomes white. The page says so up front.',
+      sections: [
+        {
+          h: 'Two things disappear, and both before you download',
+          p: [
+            'The ANIMATION. If your GIF moves, the JPEG that comes out does not: the conversion draws the image onto a canvas, and a canvas holds one frame — the first. It is not something you can work around by changing an option, because JPEG cannot represent a sequence.',
+            'The TRANSPARENCY. GIF has binary transparency — a pixel is either opaque or invisible — and JPEG has none at all. Every invisible pixel is filled with white, fixed.',
+          ],
+        },
+        {
+          h: 'When it makes sense, and when the destination is different',
+          p: [
+            'It makes sense when the GIF is a static PHOTOGRAPH saved in the wrong format, which happens often in old archives and in material from legacy systems. There JPEG compresses photographic content far better than GIF, which only has 256 colours.',
+            'It does not make sense for line art, icons or anything with flat areas: JPEG adds ringing around the hard edges, and PNG is the right destination — it keeps transparency and usually ends up smaller. And if the animation matters, neither works: GIF is still the format, and the video-to-GIF tool builds one from a video.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Is the GIF animation preserved in the JPG?',
+          a: 'No. You get the first frame and nothing else. JPEG carries no sequence, and the conversion draws the image onto a canvas, which holds one frame by definition. The page says so here rather than letting you find out in the downloaded file.',
+        },
+        {
+          q: 'What happens to the transparency?',
+          a: 'It becomes white. GIF transparency is binary — a pixel is either fully opaque or fully invisible — and JPEG has no alpha channel at all, so every invisible pixel is filled, with fixed white. If the cutout matters, convert to PNG, which holds continuous alpha.',
+        },
+        {
+          q: 'Should I pick JPG or PNG from a GIF?',
+          a: 'PNG in most cases: it keeps the transparency, adds no ringing around the hard edges typical of a GIF, and usually ends up smaller on low-colour content. JPG is only worth it when the GIF is actually a static photograph saved in the wrong format — there JPEG compresses far better than 256 colours can.',
+        },
+      ],
+    },
+  },
   // ── Áudio ─────────────────────────────────────────────────────────────────
   {
     id: 'm4a-to-mp3',
@@ -1050,6 +1455,411 @@ export const FORMAT_PAIRS: readonly FormatPair[] = [
         {
           q: 'Is the sample rate preserved?',
           a: 'Not always. Browser decoding resamples to your computer’s output device rate, so a 44.1 kHz file on a machine set to 48 kHz comes out at 48 kHz. There is no API that allows decoding at the file’s native rate — it is a platform limit, and we would rather say so than pretend otherwise.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'ogg-to-mp3',
+    tool: 'convert-audio',
+    target: 'mp3',
+    pathPt: 'audio/ogg-para-mp3',
+    pathEn: 'audio/ogg-to-mp3',
+    pt: {
+      h1: 'OGG para MP3',
+      sub: 'Converta OGG em MP3 para tocar onde o formato livre não abre.',
+      title: 'Converter OGG para MP3 Online (Grátis, Offline) — Nada Sai',
+      description:
+        'Converta OGG Vorbis ou Opus em MP3 direto no navegador. É a saída para aparelho de som, carro e player que não conhecem o formato.',
+      sections: [
+        {
+          h: 'Compatibilidade, e só',
+          p: [
+            'O OGG é tecnicamente melhor que o MP3 na mesma taxa, e mesmo assim quase ninguém converte para ele — converte-se para FORA dele. O motivo é sempre o mesmo: aparelho de som de carro, tocador portátil, sistema de som de igreja ou de academia, e uma quantidade grande de software corporativo simplesmente não abrem OGG.',
+            'O MP3 abre em tudo. Esta conversão troca qualidade por alcance, de olhos abertos.',
+          ],
+        },
+        {
+          h: 'Vorbis ou Opus, e o que isso muda',
+          p: [
+            'Um arquivo .ogg pode carregar Vorbis, que é o codec clássico, ou Opus, que é o moderno e é o que o WhatsApp e boa parte dos gravadores de voz usam. O navegador decodifica os dois, então a conversão funciona igual nos dois casos.',
+            'O que muda é o quanto se perde. O Opus é muito eficiente em voz, e recodificar uma nota de voz para MP3 numa taxa baixa perde mais do que o número sugere. Se o destino aceitar, manter o original é sempre melhor.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Por que converter OGG para MP3 se o OGG é melhor?',
+          a: 'Porque melhor só vale onde o arquivo abre. O OGG entrega mais qualidade na mesma taxa, mas aparelho de som de carro, tocador portátil e boa parte do software corporativo não o reconhecem. A conversão é sobre onde o arquivo vai tocar, não sobre qual formato é superior.',
+        },
+        {
+          q: 'Funciona com Opus, ou só com Vorbis?',
+          a: 'Com os dois. Um arquivo .ogg pode carregar Vorbis, o codec clássico, ou Opus, o moderno — que é o que o WhatsApp e a maioria dos gravadores de voz usam. O navegador decodifica ambos, então a conversão é a mesma; o que muda é quanto se perde, porque o Opus é muito eficiente em voz.',
+        },
+        {
+          q: 'Perde qualidade?',
+          a: 'Sim, e inevitavelmente: os dois formatos são com perda, então a conversão decodifica o que sobrou do OGG e descarta mais um pouco ao gravar o MP3. Em voz a diferença é praticamente inaudível; em música ela existe e é maior quanto menor a taxa. Para não acrescentar geração nenhuma, o destino é WAV.',
+        },
+      ],
+    },
+    en: {
+      h1: 'OGG to MP3',
+      sub: 'Convert OGG to MP3 to play where the free format does not open.',
+      title: 'Convert OGG to MP3 Online (Free, Offline) — Nada Sai',
+      description:
+        'Convert OGG Vorbis or Opus to MP3 right in the browser. It is the way out for stereos, car players and software that do not know the format.',
+      sections: [
+        {
+          h: 'Compatibility, and nothing else',
+          p: [
+            'OGG is technically better than MP3 at the same bitrate, and yet almost nobody converts to it — people convert OUT of it. The reason is always the same: car stereos, portable players, church and gym sound systems, and a great deal of corporate software simply do not open OGG.',
+            'MP3 opens in everything. This conversion trades quality for reach, with eyes open.',
+          ],
+        },
+        {
+          h: 'Vorbis or Opus, and what that changes',
+          p: [
+            'An .ogg file may carry Vorbis, the classic codec, or Opus, the modern one that WhatsApp and most voice recorders use. The browser decodes both, so the conversion works the same either way.',
+            'What changes is how much is lost. Opus is very efficient on speech, and re-encoding a voice note to MP3 at a low bitrate loses more than the number suggests. If the destination accepts it, keeping the original is always better.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Why convert OGG to MP3 if OGG is better?',
+          a: 'Because better only counts where the file opens. OGG delivers more quality at the same bitrate, but car stereos, portable players and much corporate software do not recognise it. The conversion is about where the file will play, not about which format is superior.',
+        },
+        {
+          q: 'Does it work with Opus, or only Vorbis?',
+          a: 'Both. An .ogg file may carry Vorbis, the classic codec, or Opus, the modern one — which is what WhatsApp and most voice recorders use. The browser decodes both, so the conversion is the same; what changes is how much is lost, because Opus is very efficient on speech.',
+        },
+        {
+          q: 'Does it lose quality?',
+          a: 'Yes, unavoidably: both formats are lossy, so the conversion decodes what is left of the OGG and discards a little more when writing the MP3. On speech the difference is effectively inaudible; on music it exists and grows as the bitrate falls. To add no generation at all, the destination is WAV.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'aac-to-mp3',
+    tool: 'convert-audio',
+    target: 'mp3',
+    pathPt: 'audio/aac-para-mp3',
+    pathEn: 'audio/aac-to-mp3',
+    pt: {
+      h1: 'AAC para MP3',
+      sub: 'Converta AAC em MP3 no navegador, sem enviar o arquivo.',
+      title: 'Converter AAC para MP3 Online (Grátis, Offline) — Nada Sai',
+      description:
+        'Converta AAC em MP3 direto no navegador. É uma conversão de compatibilidade: o AAC é melhor na mesma taxa, e o MP3 abre em mais lugares.',
+      sections: [
+        {
+          h: 'Descendo de degrau, de propósito',
+          p: [
+            'O AAC é o sucessor técnico do MP3 e entrega mais qualidade na mesma taxa. Converter na direção contrária é sempre uma decisão de alcance: um aparelho antigo, um sistema de som que só lê MP3, um formulário que só aceita a extensão.',
+            'Vale dizer com clareza porque muita gente faz esta conversão achando que está melhorando o arquivo. Não está — está trocando qualidade por compatibilidade, e é uma troca legítima quando o destino exige.',
+          ],
+        },
+        {
+          h: 'AAC solto e AAC dentro de M4A',
+          p: [
+            'O AAC costuma vir embrulhado num contêiner .m4a, e é assim que o iPhone e o Apple Music o entregam. Um arquivo .aac cru também existe, e o navegador decodifica os dois.',
+            'Se o seu arquivo é .m4a, a página específica desse par explica a mesma conversão com o nome que você procurou. O resultado é idêntico: o que importa é o codec lá dentro, não a extensão em volta.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Converter AAC para MP3 melhora a qualidade?',
+          a: 'Não, piora — e vale dizer com clareza porque muita gente faz esta conversão achando o contrário. O AAC é o sucessor técnico do MP3 e entrega mais qualidade na mesma taxa. Descer para MP3 é uma decisão de compatibilidade, não de qualidade, e é legítima quando o destino exige.',
+        },
+        {
+          q: 'Qual a diferença entre .aac e .m4a?',
+          a: 'O codec é o mesmo; muda o contêiner. Um .m4a é AAC embrulhado num contêiner MPEG-4, que é o que o iPhone e o Apple Music entregam, e o .aac é o fluxo cru. O navegador decodifica os dois e o resultado desta conversão é idêntico — o que importa é o codec lá dentro, não a extensão em volta.',
+        },
+        {
+          q: 'Quanto se perde?',
+          a: 'É uma segunda geração de compressão: o que o AAC já tinha descartado não volta, e o MP3 descarta mais um pouco por cima. Na taxa padrão, em música bem masterizada, a diferença é difícil de ouvir; em voz é praticamente inaudível. Se o arquivo ainda vai ser editado, o destino certo é WAV.',
+        },
+      ],
+    },
+    en: {
+      h1: 'AAC to MP3',
+      sub: 'Convert AAC to MP3 in the browser, with no upload.',
+      title: 'Convert AAC to MP3 Online (Free, Offline) — Nada Sai',
+      description:
+        'Convert AAC to MP3 right in the browser. It is a compatibility conversion: AAC is better at the same bitrate, and MP3 opens in more places.',
+      sections: [
+        {
+          h: 'Stepping down, on purpose',
+          p: [
+            'AAC is the technical successor to MP3 and delivers more quality at the same bitrate. Converting the other way is always a reach decision: an older device, a sound system that only reads MP3, a form that only accepts the extension.',
+            'It is worth saying plainly because many people make this conversion believing they are improving the file. They are not — they are trading quality for compatibility, and that is a legitimate trade when the destination demands it.',
+          ],
+        },
+        {
+          h: 'Bare AAC and AAC inside M4A',
+          p: [
+            'AAC usually arrives wrapped in an .m4a container, which is how the iPhone and Apple Music deliver it. A raw .aac file also exists, and the browser decodes both.',
+            'If your file is .m4a, the dedicated page for that pair explains the same conversion under the name you searched for. The result is identical: what matters is the codec inside, not the extension around it.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Does converting AAC to MP3 improve quality?',
+          a: 'No, it lowers it — and that is worth saying plainly, because many people make this conversion believing the opposite. AAC is the technical successor to MP3 and delivers more quality at the same bitrate. Stepping down to MP3 is a compatibility decision, not a quality one, and it is legitimate when the destination demands it.',
+        },
+        {
+          q: 'What is the difference between .aac and .m4a?',
+          a: 'The codec is the same; the container differs. An .m4a is AAC wrapped in an MPEG-4 container, which is what the iPhone and Apple Music deliver, and .aac is the raw stream. The browser decodes both and the result of this conversion is identical — what matters is the codec inside, not the extension around it.',
+        },
+        {
+          q: 'How much is lost?',
+          a: 'It is a second generation of compression: what AAC already discarded does not come back, and MP3 discards a little more on top. At the default bitrate, on well-mastered music, the difference is hard to hear; on speech it is effectively inaudible. If the file will still be edited, the right destination is WAV.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'webm-to-mp3',
+    tool: 'convert-audio',
+    target: 'mp3',
+    pathPt: 'audio/webm-para-mp3',
+    pathEn: 'audio/webm-to-mp3',
+    pt: {
+      h1: 'WebM para MP3',
+      sub: 'Converta o áudio de um WebM em MP3, sem enviar o arquivo.',
+      title: 'Converter WebM para MP3 Online (Grátis, Offline) — Nada Sai',
+      description:
+        'Converta um WebM de áudio em MP3 direto no navegador. Se o seu WebM tiver vídeo, a ferramenta certa é a de extrair áudio de vídeo.',
+      sections: [
+        {
+          h: 'Se o WebM tem VÍDEO, a ferramenta é outra',
+          p: [
+            'Esta é a distinção que mais importa aqui, e ela vem antes de tudo. O WebM é um contêiner que carrega áudio, vídeo ou os dois. Esta página trata do caso de ÁUDIO — uma gravação de voz, um trecho de som, um arquivo que só tem trilha sonora.',
+            'Se o seu WebM tem imagem, o caminho é a ferramenta de extrair áudio de vídeo. Ela existe justamente para isso e lida com o caso que este não lida: o navegador demuxa o contêiner e devolve só a trilha, sem tocar o vídeo inteiro quando não precisa.',
+          ],
+        },
+        {
+          h: 'Opus dentro do contêiner',
+          p: [
+            'O áudio de um WebM é quase sempre Opus, que é o codec que o navegador usa para gravar — pelo gravador de tela, pelo microfone de uma página, por uma chamada. O navegador o decodifica sem dificuldade, e a conversão para MP3 é uma segunda geração de perda.',
+            'Vale saber uma coisa sobre WebM gravado no navegador: ele quase nunca traz a duração no cabeçalho. Isso não é defeito nem arquivo corrompido — o gravador escreve o arquivo em fluxo e não volta para preencher o campo. As ferramentas daqui lidam com isso.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Meu WebM tem vídeo. Esta é a ferramenta certa?',
+          a: 'Não, use a de extrair áudio de vídeo. O WebM é um contêiner que pode carregar áudio, vídeo ou os dois, e esta página trata do caso de áudio puro. A ferramenta de vídeo demuxa o contêiner e devolve só a trilha sonora, que é exatamente o que você quer quando há imagem no arquivo.',
+        },
+        {
+          q: 'Que codec está dentro de um WebM de áudio?',
+          a: 'Quase sempre Opus, que é o codec que o navegador usa ao gravar — pelo gravador de tela, pelo microfone de uma página ou por uma chamada. Vorbis também aparece em arquivos mais antigos. O navegador decodifica os dois, então a conversão funciona igual.',
+        },
+        {
+          q: 'Por que alguns WebM aparecem sem duração?',
+          a: 'Porque um arquivo gravado pelo navegador é escrito em fluxo, e o gravador não volta ao começo para preencher o campo de duração no cabeçalho. Não é arquivo corrompido, e é o comportamento de toda gravação de tela, de webcam e de reunião. As ferramentas daqui já contam com isso.',
+        },
+      ],
+    },
+    en: {
+      h1: 'WebM to MP3',
+      sub: 'Convert the audio of a WebM to MP3, with no upload.',
+      title: 'Convert WebM to MP3 Online (Free, Offline) — Nada Sai',
+      description:
+        'Convert an audio WebM to MP3 right in the browser. If your WebM has video, the right tool is extract-audio-from-video.',
+      sections: [
+        {
+          h: 'If the WebM has VIDEO, the tool is a different one',
+          p: [
+            'This is the distinction that matters most here, and it comes before everything else. WebM is a container that carries audio, video or both. This page covers the AUDIO case — a voice recording, a sound clip, a file with nothing but a soundtrack.',
+            'If your WebM has picture in it, the path is the extract-audio-from-video tool. It exists precisely for that and handles the case this one does not: the browser demuxes the container and hands back only the track, without playing the whole video when it does not have to.',
+          ],
+        },
+        {
+          h: 'Opus inside the container',
+          p: [
+            'The audio in a WebM is almost always Opus, the codec the browser uses when recording — from the screen recorder, from a page microphone, from a call. The browser decodes it without trouble, and converting to MP3 is a second generation of loss.',
+            'One thing worth knowing about browser-recorded WebM: it almost never carries a duration in its header. That is not a defect or a corrupt file — the recorder writes the file as a stream and does not go back to fill the field in. The tools here account for it.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'My WebM has video. Is this the right tool?',
+          a: 'No, use extract-audio-from-video. WebM is a container that can carry audio, video or both, and this page covers the pure-audio case. The video tool demuxes the container and hands back only the soundtrack, which is exactly what you want when there is picture in the file.',
+        },
+        {
+          q: 'What codec is inside an audio WebM?',
+          a: 'Almost always Opus, the codec the browser uses when recording — from the screen recorder, from a page microphone or from a call. Vorbis also shows up in older files. The browser decodes both, so the conversion works the same.',
+        },
+        {
+          q: 'Why do some WebM files show no duration?',
+          a: 'Because a browser-recorded file is written as a stream, and the recorder does not go back to the start to fill in the duration field in the header. It is not a corrupt file, and it is the behaviour of every screen, webcam and meeting recording. The tools here already account for it.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'm4a-to-wav',
+    tool: 'convert-audio',
+    target: 'wav',
+    pathPt: 'audio/m4a-para-wav',
+    pathEn: 'audio/m4a-to-wav',
+    pt: {
+      h1: 'M4A para WAV',
+      sub: 'Converta M4A em WAV para editar sem acrescentar perda.',
+      title: 'Converter M4A para WAV Online (Grátis, Offline) — Nada Sai',
+      description:
+        'Converta M4A em WAV direto no navegador. O arquivo cresce muito, e a partir daí nenhuma edição acrescenta perda nova.',
+      sections: [
+        {
+          h: 'Isto é para EDITAR, não para guardar',
+          p: [
+            'Ninguém converte para WAV por tamanho: um M4A de 5 MB vira facilmente um WAV de 50. Converte-se para trabalhar. Toda regravação em M4A ou MP3 acrescenta uma geração de perda, então cortar, juntar e normalizar em cima do arquivo comprimido e salvar comprimido degrada a cada passo. Em WAV, nenhum passo custa nada.',
+            'A outra razão é destino: parte dos programas de edição, dos sistemas de telefonia e dos equipamentos de estúdio aceita apenas PCM.',
+          ],
+        },
+        {
+          h: 'O WAV não devolve o que o AAC tirou',
+          p: [
+            'A conversão grava sem perda o que sobrou, e o que sobrou é o áudio depois da compressão do AAC. O ganho é para o FUTURO do arquivo, não para o passado dele.',
+            'Uma coisa muda de fato: a taxa de amostragem passa a ser a do dispositivo de saída do seu computador, porque é assim que a decodificação do navegador funciona. Um arquivo de 44,1 kHz numa máquina configurada a 48 kHz sai a 48 kHz. Não há API para decodificar na taxa nativa; é um piso da plataforma, e preferimos dizê-lo a fingir que não existe.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Converter M4A para WAV melhora a qualidade?',
+          a: 'Não. O WAV grava sem perda o que sobrou depois da compressão do AAC, e o que foi descartado não está mais no arquivo. O que você ganha é que, daqui para a frente, nenhuma edição acrescenta perda nova — o ganho é para o futuro do arquivo, não para o passado dele.',
+        },
+        {
+          q: 'Por que o WAV ficou tão grande?',
+          a: 'Porque não há compressão nenhuma: o WAV é PCM cru, cerca de 10 MB por minuto em estéreo de qualidade de CD. Um M4A de 5 MB vira facilmente um WAV de 50 MB. É o preço de não descartar nada, e a razão de o WAV ser formato de trabalho e não de distribuição.',
+        },
+        {
+          q: 'A taxa de amostragem é preservada?',
+          a: 'Nem sempre. A decodificação do navegador reamostra para a taxa do dispositivo de saída do seu computador, então um arquivo de 44,1 kHz numa máquina configurada a 48 kHz sai a 48 kHz. Não existe API que permita decodificar na taxa nativa do arquivo — é um limite da plataforma, e preferimos dizê-lo a fingir que não existe.',
+        },
+      ],
+    },
+    en: {
+      h1: 'M4A to WAV',
+      sub: 'Convert M4A to WAV to edit without adding loss.',
+      title: 'Convert M4A to WAV Online (Free, Offline) — Nada Sai',
+      description:
+        'Convert M4A to WAV right in the browser. The file grows a lot, and from there on no edit adds new loss.',
+      sections: [
+        {
+          h: 'This is for EDITING, not for keeping',
+          p: [
+            'Nobody converts to WAV for size: a 5 MB M4A easily becomes a 50 MB WAV. People convert to work. Every re-save as M4A or MP3 adds a generation of loss, so cutting, joining and normalising on top of the compressed file and saving compressed degrades at every step. In WAV, no step costs anything.',
+            'The other reason is the destination: some editing software, telephony systems and studio equipment accept nothing but PCM.',
+          ],
+        },
+        {
+          h: 'WAV does not give back what AAC took',
+          p: [
+            'The conversion losslessly records what survived, and what survived is the audio after AAC compression. The gain is for the file’s FUTURE, not its past.',
+            'One thing does genuinely change: the sample rate becomes your computer’s output device rate, because that is how browser decoding works. A 44.1 kHz file on a machine set to 48 kHz comes out at 48 kHz. There is no API to decode at the native rate; it is a platform floor, and we would rather say so than pretend otherwise.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Does converting M4A to WAV improve the quality?',
+          a: 'No. WAV losslessly records what survived AAC compression, and what was discarded is no longer in the file. What you gain is that from here on no edit adds new loss — the gain is for the file’s future, not its past.',
+        },
+        {
+          q: 'Why did the WAV get so large?',
+          a: 'Because there is no compression at all: WAV is raw PCM, around 10 MB per minute in CD-quality stereo. A 5 MB M4A easily becomes a 50 MB WAV. That is the price of discarding nothing, and the reason WAV is a working format rather than a distribution one.',
+        },
+        {
+          q: 'Is the sample rate preserved?',
+          a: 'Not always. Browser decoding resamples to your computer’s output device rate, so a 44.1 kHz file on a machine set to 48 kHz comes out at 48 kHz. There is no API that allows decoding at the file’s native rate — it is a platform limit, and we would rather say so than pretend otherwise.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'flac-to-wav',
+    tool: 'convert-audio',
+    target: 'wav',
+    pathPt: 'audio/flac-para-wav',
+    pathEn: 'audio/flac-to-wav',
+    pt: {
+      h1: 'FLAC para WAV',
+      sub: 'Sem perda de um lado ao outro — o áudio atravessa intacto.',
+      title: 'Converter FLAC para WAV Online (Sem Perda) — Nada Sai',
+      description:
+        'Converta FLAC em WAV direto no navegador. Os dois são sem perda, então o áudio atravessa intacto; o que muda é o tamanho.',
+      sections: [
+        {
+          h: 'A única conversão de áudio desta lista que não perde nada',
+          p: [
+            'FLAC e WAV são ambos sem perda. O FLAC comprime, o WAV não, mas nenhum dos dois descarta informação — então o áudio que sai é o mesmo que entrou. É a conversão de áudio equivalente ao BMP para PNG do lado da imagem: sem decisão de qualidade a tomar.',
+            'O que muda é o tamanho, e na direção desconfortável: o WAV cresce, porque o FLAC guardava a mesma informação comprimida. Uma faixa em FLAC costuma virar um WAV de duas a três vezes o tamanho.',
+          ],
+        },
+        {
+          h: 'Por que trocar compressão sem perda por nenhuma',
+          p: [
+            'Compatibilidade. O WAV abre em qualquer programa de edição, em qualquer sistema de telefonia, em qualquer equipamento de estúdio, e em software antigo que nunca ouviu falar de FLAC. Alguns fluxos de trabalho profissionais exigem PCM cru e não aceitam nem FLAC.',
+            'A única ressalva vale a pena saber: a taxa de amostragem passa a ser a do dispositivo de saída do seu computador, porque é assim que a decodificação do navegador funciona. Um FLAC de 44,1 kHz numa máquina configurada a 48 kHz sai a 48 kHz — que é uma reamostragem, e portanto a única alteração real nesta conversão.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Converter FLAC para WAV perde qualidade?',
+          a: 'Não pela compressão: os dois formatos são sem perda, então o áudio atravessa intacto. A única alteração possível é a taxa de amostragem, que o navegador ajusta para a do dispositivo de saída do computador — um FLAC de 44,1 kHz numa máquina a 48 kHz sai reamostrado. É um limite da plataforma, não da conversão.',
+        },
+        {
+          q: 'Por que o WAV ficou maior que o FLAC?',
+          a: 'Porque o FLAC comprime sem perder nada e o WAV não comprime coisa nenhuma. Os dois carregam exatamente a mesma informação; um a guarda de forma compacta e o outro crua. Crescer duas a três vezes é o resultado normal.',
+        },
+        {
+          q: 'Então por que não ficar no FLAC?',
+          a: 'Se o destino aceita FLAC, fique. A conversão existe para os lugares que não aceitam: parte dos programas de edição, sistemas de telefonia, equipamentos de estúdio e software antigo pedem PCM cru. É uma troca de compressão por compatibilidade, sem custo de qualidade.',
+        },
+      ],
+    },
+    en: {
+      h1: 'FLAC to WAV',
+      sub: 'Lossless on both sides — the audio crosses over intact.',
+      title: 'Convert FLAC to WAV Online (Lossless) — Nada Sai',
+      description:
+        'Convert FLAC to WAV right in the browser. Both are lossless, so the audio crosses over intact; what changes is the size.',
+      sections: [
+        {
+          h: 'The one audio conversion here that loses nothing',
+          p: [
+            'FLAC and WAV are both lossless. FLAC compresses, WAV does not, but neither discards information — so the audio that comes out is the audio that went in. It is the audio equivalent of BMP to PNG on the image side: no quality decision to make.',
+            'What changes is size, and in the uncomfortable direction: the WAV grows, because FLAC was holding the same information compressed. A track in FLAC usually becomes a WAV two to three times the size.',
+          ],
+        },
+        {
+          h: 'Why trade lossless compression for none',
+          p: [
+            'Compatibility. WAV opens in any editing program, any telephony system, any studio equipment, and in old software that never heard of FLAC. Some professional workflows require raw PCM and will not take FLAC either.',
+            'The one caveat is worth knowing: the sample rate becomes your computer’s output device rate, because that is how browser decoding works. A 44.1 kHz FLAC on a machine set to 48 kHz comes out at 48 kHz — which is a resample, and therefore the only real alteration in this conversion.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Does converting FLAC to WAV lose quality?',
+          a: 'Not through compression: both formats are lossless, so the audio crosses over intact. The only possible alteration is the sample rate, which the browser adjusts to the computer’s output device — a 44.1 kHz FLAC on a machine at 48 kHz comes out resampled. That is a platform limit, not a limit of the conversion.',
+        },
+        {
+          q: 'Why is the WAV bigger than the FLAC?',
+          a: 'Because FLAC compresses without losing anything and WAV compresses nothing at all. Both carry exactly the same information; one stores it compactly and the other raw. Growing two to three times is the normal outcome.',
+        },
+        {
+          q: 'So why not stay in FLAC?',
+          a: 'If the destination accepts FLAC, stay. The conversion exists for the places that do not: some editing programs, telephony systems, studio equipment and older software require raw PCM. It is a trade of compression for compatibility, at no cost in quality.',
         },
       ],
     },
