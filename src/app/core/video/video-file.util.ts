@@ -151,15 +151,24 @@ export function probeVideo(file: File, timeoutMs = 30_000): Promise<VideoProbe> 
         finish(() => reject(new AppError('video_too_long')));
         return;
       }
-      const done = () =>
-        finish(() =>
-          resolve({
-            duration,
-            width: video.videoWidth,
-            height: video.videoHeight,
-            hasAudio: readAudioHint(video),
-          }),
-        );
+      /**
+       * LER ANTES DE `finish`, e este era um defeito de verdade.
+       *
+       * `finish` limpa o `src` e chama `load()` para soltar o arquivo — e o
+       * algoritmo de carga do elemento zera `videoWidth`, `videoHeight` e as
+       * pistas de áudio na hora. Como a leitura estava DENTRO do callback
+       * passado para ele, o probe devolvia 0x0 para todo vídeo, sempre. Ninguém
+       * tinha notado porque o único consumidor era o extrator de áudio, que usa
+       * apenas a duração; o defeito apareceu quando o vídeo para GIF passou a
+       * calcular a altura pela proporção e um vídeo 4:3 saiu em 16:9.
+       */
+      const done = () => {
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        const hasAudio = readAudioHint(video);
+
+        finish(() => resolve({ duration, width, height, hasAudio }));
+      };
 
       // DIMENSÃO ZERO NÃO É "vídeo sem imagem": é metadado que ainda não chegou.
       //

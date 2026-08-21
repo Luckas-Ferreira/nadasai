@@ -63,7 +63,7 @@ export const routes: Routes = [
         title: 'Melhorar Qualidade de Foto Online (2x e 4x) — Nada Sai',
         loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
         data: {
-          metaDescription: 'Aumente a resolução e a nitidez de fotos em 2x ou 4x com IA, sem borrar o rosto nem inventar detalhe. Grátis, sem cadastro e 100% offline no seu navegador.'
+          metaDescription: 'Amplie fotos em 2x ou 4x com reamostragem em duas passagens, reconstrução de bordas e antisserrilhamento. Sem inventar detalhe, sem cadastro e 100% offline no navegador.'
         }
       },
       {
@@ -129,6 +129,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Grave a tela, uma janela ou uma aba do navegador, com som do sistema e microfone. O vídeo é escrito dentro da própria aba e não sai do seu dispositivo.',
           metaKeywords: 'gravar tela, gravador de tela, gravar tela com audio, screencast, gravar reuniao, gravar aula'
+        }
+      },
+      {
+        path: 'video/extrair-quadros',
+        title: 'Extrair Quadros de Vídeo (frame para JPG/PNG) — Nada Sai',
+        loadComponent: () => import('./features/video-to-frames/video-to-frames.component').then((m) => m.VideoToFramesComponent),
+        data: {
+          metaDescription: 'Salve um quadro do vídeo como imagem, ou um a cada tantos segundos num zip. Pare no quadro pelo próprio player — o vídeo não sai do seu dispositivo.',
+          metaKeywords: 'extrair quadros de video, video para imagem, tirar print de video, capturar frame, thumbnail de video'
         }
       },
       {
@@ -429,7 +438,7 @@ export const routes: Routes = [
         title: 'Upscale and Enhance Photos Online (2x, 4x) — Nada Sai',
         loadComponent: () => import('./features/upscale/upscale.component').then((m) => m.UpscaleComponent),
         data: {
-          metaDescription: 'Increase resolution and sharpness by 2x or 4x with AI, without smearing faces or inventing detail. Free, no signup and 100% offline in your browser.'
+          metaDescription: 'Enlarge photos 2x or 4x with two-pass resampling, edge reconstruction and anti-aliasing. No invented detail, no signup, and 100% offline in your browser.'
         }
       },
       {
@@ -495,6 +504,15 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
           metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
+        }
+      },
+      {
+        path: 'video/extract-frames',
+        title: 'Extract Frames from Video (frame to JPG/PNG) — Nada Sai',
+        loadComponent: () => import('./features/video-to-frames/video-to-frames.component').then((m) => m.VideoToFramesComponent),
+        data: {
+          metaDescription: 'Save one video frame as an image, or one every few seconds as a zip. Land on the frame with the player itself — the video never leaves your device.',
+          metaKeywords: 'extract frames from video, video to image, video screenshot, capture frame, video thumbnail'
         }
       },
       {
