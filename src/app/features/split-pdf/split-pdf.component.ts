@@ -84,6 +84,13 @@ export class SplitPdfComponent {
   protected readonly thumbs = signal<PageThumb[]>([]);
   protected readonly renderingThumbs = signal(false);
 
+  /**
+   * Separado de `errorKey`: a prévia falhar não impede dividir nada — a seleção
+   * é por número de página e o arquivo está intacto. O que não pode continuar é
+   * o silêncio de antes, em que o spinner parava sobre uma grade vazia.
+   */
+  protected readonly thumbsWarning = signal<TranslationKey | null>(null);
+
   // Split Modes
   protected readonly mainMode = signal<SplitMainMode>('range');
   protected readonly rangeSubMode = signal<SplitRangeMode>('custom');
@@ -236,6 +243,7 @@ export class SplitPdfComponent {
 
   private async loadThumbnails(file: File, password?: string): Promise<void> {
     this.renderingThumbs.set(true);
+    this.thumbsWarning.set(null);
     const generatedThumbs: PageThumb[] = [];
 
     try {
@@ -261,7 +269,14 @@ export class SplitPdfComponent {
         await closePdf(doc);
       }
     } catch (err) {
+      // Duas coisas quebravam aqui, e nenhuma delas aparecia. O `thumbs.set` só
+      // acontecia DEPOIS do laço, então uma falha na página 7 de 20 jogava fora
+      // as 6 prévias que já estavam prontas; e o catch não dizia nada, então o
+      // spinner sumia sobre uma grade vazia. Agora entrega o que deu certo e diz
+      // que o resto não deu.
       console.error('[SplitPdf] Error rendering thumbnails:', err);
+      this.thumbs.set(generatedThumbs);
+      this.thumbsWarning.set('error.pdf_thumbs_failed');
     } finally {
       this.renderingThumbs.set(false);
     }

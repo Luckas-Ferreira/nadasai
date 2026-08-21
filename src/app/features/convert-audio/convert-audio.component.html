@@ -145,7 +145,7 @@
                 [class.shadow-sm]="channels() === 'original'"
                 [class.text-muted]="channels() !== 'original'"
               >
-                Original
+                {{ i18n.t()['common.original'] }}
               </button>
               <button
                 type="button"
@@ -156,7 +156,7 @@
                 [class.shadow-sm]="channels() === 'stereo'"
                 [class.text-muted]="channels() !== 'stereo'"
               >
-                Estéreo
+                {{ i18n.t()['audio.ch_stereo'] }}
               </button>
               <button
                 type="button"
@@ -167,7 +167,7 @@
                 [class.shadow-sm]="channels() === 'mono'"
                 [class.text-muted]="channels() !== 'mono'"
               >
-                Mono
+                {{ i18n.t()['audio.ch_mono'] }}
               </button>
             </div>
           </div>
@@ -178,6 +178,7 @@
               {{ i18n.t()['convert_audio.sample_rate'] }}
             </label>
             <select
+              [attr.aria-label]="i18n.t()['convert_audio.sample_rate']"
               [ngModel]="sampleRate()"
               (ngModelChange)="sampleRate.set(+$event)"
               class="w-full rounded-xl border border-line bg-raised px-3.5 py-2 text-xs font-medium text-text outline-none focus:border-accent"
@@ -208,7 +209,7 @@
                   [class.shadow-sm]="bitrate() === '320'"
                   [class.text-muted]="bitrate() !== '320'"
                 >
-                  320 kbps (Alta)
+                  {{ i18n.t()['convert_audio.br_high'] }}
                 </button>
                 <button
                   type="button"
@@ -219,7 +220,7 @@
                   [class.shadow-sm]="bitrate() === '192'"
                   [class.text-muted]="bitrate() !== '192'"
                 >
-                  192 kbps (Padrão)
+                  {{ i18n.t()['convert_audio.br_default'] }}
                 </button>
                 <button
                   type="button"
@@ -230,7 +231,7 @@
                   [class.shadow-sm]="bitrate() === '128'"
                   [class.text-muted]="bitrate() !== '128'"
                 >
-                  128 kbps (Leve)
+                  {{ i18n.t()['convert_audio.br_light'] }}
                 </button>
               </div>
             </div>
@@ -253,6 +254,7 @@
             </button>
             <input
               type="text"
+              [attr.aria-label]="i18n.t()['cut_audio.zoom']"
               class="min-w-0 flex-1 border-none bg-transparent py-2 text-center text-sm font-medium tabular outline-none"
               [value]="zoomPercent()"
               (change)="setZoomFromInput($any($event.target))"

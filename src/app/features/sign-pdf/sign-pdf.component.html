@@ -42,7 +42,7 @@
             </button>
 
             <span class="font-mono text-text">
-              Página {{ selectedPageIndex() }} de {{ pageCount() }}
+              {{ i18n.t()['common.page_n'] }} {{ selectedPageIndex() }} {{ i18n.t()['pdf.page_of'] }} {{ pageCount() }}
             </span>
 
             <button
@@ -59,7 +59,7 @@
 
           <div class="flex items-center gap-3">
             <span class="text-xs text-faint font-mono">
-              {{ placedSignatures().length }} assinatura(s) no documento
+              {{ placedSignatures().length }} {{ i18n.t()['signpdf.count_in_doc'] }}
             </span>
 
             <button
@@ -102,7 +102,7 @@
                   [style.width.%]="sig.widthPercent"
                   (click)="selectSignature(sig)"
                 >
-                  <img [src]="sig.signaturePngDataUrl" alt="Assinatura" class="w-full h-auto object-contain max-h-full" />
+                  <img [src]="sig.signaturePngDataUrl" [alt]="i18n.t()['signpdf.signature_alt']" class="w-full h-auto object-contain max-h-full" />
                 </div>
               }
             </div>
@@ -183,7 +183,7 @@
                 ></canvas>
 
                 @if (!signatureDataUrl()) {
-                  <span class="absolute text-xs text-faint pointer-events-none">Desenhe sua assinatura aqui</span>
+                  <span class="absolute text-xs text-faint pointer-events-none">{{ i18n.t()['signpdf.draw_here'] }}</span>
                 }
               </div>
 
@@ -204,7 +204,7 @@
           <!-- TAB 2: UPLOAD IMAGE -->
           @if (activeTab() === 'upload') {
             <div class="flex flex-col gap-2">
-              <label class="text-xs font-medium text-muted">Carregar imagem de rubrica / carimbo</label>
+              <label class="text-xs font-medium text-muted">{{ i18n.t()['signpdf.upload_label'] }}</label>
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
@@ -219,6 +219,7 @@
             <div class="flex flex-col gap-2">
               <label class="text-xs font-medium text-muted">{{ i18n.t()['signpdf.type_name_label'] }}</label>
               <input
+                [attr.aria-label]="i18n.t()['signpdf.type_name_label']"
                 type="text"
                 [value]="typedName()"
                 (input)="updateTypedName($any($event.target).value)"
@@ -239,7 +240,7 @@
                 (click)="addSignatureToDocument()"
               >
                 <app-icon name="plus" [size]="14" />
-                Adicionar nesta página (Pág. {{ selectedPageIndex() }})
+                {{ i18n.t()['signpdf.add_here'] }} ({{ i18n.t()['common.page_n'] }} {{ selectedPageIndex() }})
               </button>
 
               @if (pageCount() > 1) {
@@ -250,7 +251,7 @@
                   class="w-full text-xs text-muted hover:text-text"
                   (click)="applySignatureToAllPages()"
                 >
-                  Aplicar como rubrica em todas as páginas
+                  {{ i18n.t()['signpdf.apply_all'] }}
                 </button>
               }
             </div>
@@ -262,7 +263,7 @@
 
             <div class="flex flex-col gap-2">
               <div class="flex items-center justify-between text-xs text-muted">
-                <span class="font-medium">Assinaturas no Documento ({{ placedSignatures().length }})</span>
+                <span class="font-medium">{{ i18n.t()['signpdf.in_document'] }} ({{ placedSignatures().length }})</span>
               </div>
 
               <div class="flex flex-col gap-1.5 max-h-36 overflow-y-auto pr-1">
@@ -276,7 +277,7 @@
                   >
                     <div class="flex items-center gap-2 min-w-0">
                       <div class="h-6 w-10 shrink-0 bg-surface rounded border border-line flex items-center justify-center p-0.5 overflow-hidden">
-                        <img [src]="sig.signaturePngDataUrl" alt="Thumbnail" class="max-h-full max-w-full object-contain" />
+                        <img [src]="sig.signaturePngDataUrl" [alt]="i18n.t()['signpdf.signature_alt']" class="max-h-full max-w-full object-contain" />
                       </div>
                       <span class="truncate font-medium text-text">{{ sig.label }}</span>
                     </div>
@@ -309,6 +310,7 @@
                 </div>
                 <input
                   type="range"
+                  [attr.aria-label]="i18n.t()['signpdf.pos_x']"
                   min="0"
                   max="80"
                   [value]="xPercent()"
@@ -325,6 +327,7 @@
                 </div>
                 <input
                   type="range"
+                  [attr.aria-label]="i18n.t()['signpdf.pos_y']"
                   min="0"
                   max="85"
                   [value]="yPercent()"
@@ -336,11 +339,12 @@
               <!-- Width -->
               <div class="flex flex-col gap-1">
                 <div class="flex justify-between text-xs text-muted">
-                  <span>Tamanho da Assinatura</span>
+                  <span>{{ i18n.t()['signpdf.size'] }}</span>
                   <span class="font-mono tabular">{{ widthPercent() }}%</span>
                 </div>
                 <input
                   type="range"
+                  [attr.aria-label]="i18n.t()['signpdf.size']"
                   min="10"
                   max="60"
                   [value]="widthPercent()"

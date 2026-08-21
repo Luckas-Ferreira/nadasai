@@ -34,6 +34,7 @@
           </div>
 
           <textarea
+            [attr.aria-label]="i18n.t()[side.labelKey]"
             [ngModel]="side.text()"
             (ngModelChange)="side.set($event)"
             [placeholder]="i18n.t()['diff.paste_hint']"

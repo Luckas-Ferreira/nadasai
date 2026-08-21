@@ -25,7 +25,7 @@
 
         @if (reading()) {
           <p class="mt-3 text-center text-sm text-muted tabular" aria-live="polite">
-            Lendo páginas do PDF… · {{ progress() ?? 0 }}%
+            {{ i18n.t()['orgpdf.reading'] }} · {{ progress() ?? 0 }}%
           </p>
         }
       }
@@ -49,7 +49,7 @@
             <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
 
             <p class="text-sm font-medium text-text">
-              {{ reading() ? 'Lendo páginas…' : i18n.t()['orgpdf.working'] }}
+              {{ reading() ? i18n.t()['orgpdf.reading'] : i18n.t()['orgpdf.working'] }}
             </p>
 
             <div class="w-56">
@@ -90,7 +90,7 @@
         }
 
         <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
-          O PDF organizado é gerado e baixado direto no seu dispositivo — nada é enviado para servidores.
+          {{ i18n.t()['orgpdf.terminal_note'] }}
         </p>
       </app-panel>
 

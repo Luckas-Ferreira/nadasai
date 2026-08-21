@@ -37,7 +37,7 @@
                   ? 'flex items-center justify-center rounded-lg border border-accent bg-accent-soft p-2.5 text-xs font-semibold text-accent'
                   : 'flex items-center justify-center rounded-lg border border-line bg-surface p-2.5 text-xs font-medium text-text hover:bg-raised'"
               >
-                Português
+                {{ i18n.t()['extract_text.lang_pt'] }}
               </button>
             </div>
           </div>
@@ -53,6 +53,7 @@
               }
             </div>
             <textarea
+              [attr.aria-label]="i18n.t()['extract_text.result_label']"
               [value]="extractedText()"
               (input)="extractedText.set($any($event.target).value)"
               rows="8"

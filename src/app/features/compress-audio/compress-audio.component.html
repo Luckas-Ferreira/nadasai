@@ -144,17 +144,17 @@
       <!-- Channels panel -->
       <app-panel [heading]="i18n.t()['convert_audio.channels']">
         <div class="grid grid-cols-3 gap-1.5 rounded-xl border border-line bg-raised p-1 text-xs font-semibold">
-          @for (ch of [['original', 'Original'], ['stereo', 'Estéreo'], ['mono', 'Mono']]; track ch[0]) {
+          @for (ch of channelOptions(); track ch.value) {
             <button
               type="button"
-              (click)="channels.set($any(ch[0]))"
+              (click)="channels.set($any(ch.value))"
               class="rounded-lg py-2 transition-all text-center"
-              [class.bg-surface]="channels() === ch[0]"
-              [class.text-accent]="channels() === ch[0]"
-              [class.shadow-sm]="channels() === ch[0]"
-              [class.text-muted]="channels() !== ch[0]"
+              [class.bg-surface]="channels() === ch.value"
+              [class.text-accent]="channels() === ch.value"
+              [class.shadow-sm]="channels() === ch.value"
+              [class.text-muted]="channels() !== ch.value"
             >
-              {{ ch[1] }}
+              {{ ch.label }}
             </button>
           }
         </div>
@@ -163,6 +163,7 @@
       <!-- Sample rate panel -->
       <app-panel [heading]="i18n.t()['convert_audio.sample_rate']">
         <select
+          [attr.aria-label]="i18n.t()['convert_audio.sample_rate']"
           [value]="sampleRate()"
           (change)="sampleRate.set(+$any($event.target).value)"
           class="w-full rounded-xl border border-line bg-raised px-3.5 py-2 text-xs font-medium text-text outline-none focus:border-accent"
@@ -213,6 +214,7 @@
             >−</button>
             <input
               type="text"
+              [attr.aria-label]="i18n.t()['cut_audio.zoom']"
               class="min-w-0 flex-1 border-none bg-transparent py-2 text-center text-sm font-medium tabular outline-none"
               [value]="zoomPercent()"
               (change)="setZoomFromInput($any($event.target))"

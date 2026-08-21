@@ -127,6 +127,18 @@ export class CompressAudioComponent implements OnDestroy {
 
   // ---------------------------------------------------------------- computed
 
+  /**
+   * Os três rótulos eram literais dentro do `@for` do template — "Original",
+   * "Estéreo", "Mono" —, o que os deixava em português na interface em inglês
+   * e fora do alcance da checagem de chave. Aqui eles seguem o idioma porque
+   * `i18n.t()` é um signal e este computed reage a ele.
+   */
+  protected readonly channelOptions = computed<{ value: CompressChannels; label: string }[]>(() => [
+    { value: 'original', label: this.i18n.t()['common.original'] },
+    { value: 'stereo', label: this.i18n.t()['audio.ch_stereo'] },
+    { value: 'mono', label: this.i18n.t()['audio.ch_mono'] },
+  ]);
+
   protected readonly duration = computed(() => this.audioBuffer()?.duration ?? 0);
 
   protected readonly sourceSize = computed(() => {

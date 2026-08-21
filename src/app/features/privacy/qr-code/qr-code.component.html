@@ -25,7 +25,7 @@
               type="button"
               (click)="copyPayload()"
               class="ml-1 shrink-0 rounded p-1 hover:bg-surface text-text transition"
-              title="Copiar texto do QR Code"
+              [title]="i18n.t()['qrcode.copy_payload']"
             >
               <app-icon [name]="copiedPayload() ? 'check' : 'copy'" [size]="14" />
             </button>
@@ -270,6 +270,7 @@
               <div class="space-y-1">
                 <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.type_url'] }}</label>
                 <input
+                  [attr.aria-label]="i18n.t()['qrcode.type_url']"
                   type="url"
                   [ngModel]="urlInput()"
                   (ngModelChange)="urlInput.set($event); updateRender()"
@@ -283,6 +284,7 @@
               <div class="space-y-1">
                 <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.type_text'] }}</label>
                 <textarea
+                  [attr.aria-label]="i18n.t()['qrcode.type_text']"
                   rows="3"
                   [ngModel]="textInput()"
                   (ngModelChange)="textInput.set($event); updateRender()"
@@ -297,6 +299,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wifi_ssid'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.wifi_ssid']"
                     type="text"
                     [ngModel]="wifiSsid()"
                     (ngModelChange)="wifiSsid.set($event); updateRender()"
@@ -307,6 +310,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wifi_pass'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.wifi_pass']"
                     type="text"
                     [ngModel]="wifiPass()"
                     (ngModelChange)="wifiPass.set($event); updateRender()"
@@ -333,6 +337,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_key'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.pix_key']"
                     type="text"
                     [ngModel]="pixKey()"
                     (ngModelChange)="pixKey.set($event); updateRender()"
@@ -344,6 +349,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_name'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.pix_name']"
                       type="text"
                       [ngModel]="pixName()"
                       (ngModelChange)="pixName.set($event); updateRender()"
@@ -354,6 +360,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_city'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.pix_city']"
                       type="text"
                       [ngModel]="pixCity()"
                       (ngModelChange)="pixCity.set($event); updateRender()"
@@ -366,6 +373,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_amount'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.pix_amount']"
                       type="number"
                       step="0.01"
                       [ngModel]="pixAmount()"
@@ -377,6 +385,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.pix_txid'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.pix_txid']"
                       type="text"
                       [ngModel]="pixTxId()"
                       (ngModelChange)="pixTxId.set($event); updateRender()"
@@ -394,6 +403,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_fn'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.vcard_fn']"
                       type="text"
                       [ngModel]="vcardFn()"
                       (ngModelChange)="vcardFn.set($event); updateRender()"
@@ -403,6 +413,7 @@
                   <div class="space-y-1">
                     <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_ln'] }}</label>
                     <input
+                      [attr.aria-label]="i18n.t()['qrcode.vcard_ln']"
                       type="text"
                       [ngModel]="vcardLn()"
                       (ngModelChange)="vcardLn.set($event); updateRender()"
@@ -413,6 +424,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_phone'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.vcard_phone']"
                     type="tel"
                     [ngModel]="vcardPhone()"
                     (ngModelChange)="vcardPhone.set($event); updateRender()"
@@ -422,6 +434,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_email'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.vcard_email']"
                     type="email"
                     [ngModel]="vcardEmail()"
                     (ngModelChange)="vcardEmail.set($event); updateRender()"
@@ -431,6 +444,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.vcard_org'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.vcard_org']"
                     type="text"
                     [ngModel]="vcardOrg()"
                     (ngModelChange)="vcardOrg.set($event); updateRender()"
@@ -445,6 +459,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_to'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.email_to']"
                     type="email"
                     [ngModel]="emailTo()"
                     (ngModelChange)="emailTo.set($event); updateRender()"
@@ -454,6 +469,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_subject'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.email_subject']"
                     type="text"
                     [ngModel]="emailSubject()"
                     (ngModelChange)="emailSubject.set($event); updateRender()"
@@ -463,6 +479,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.email_body'] }}</label>
                   <textarea
+                    [attr.aria-label]="i18n.t()['qrcode.email_body']"
                     rows="2"
                     [ngModel]="emailBody()"
                     (ngModelChange)="emailBody.set($event); updateRender()"
@@ -477,6 +494,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wa_phone'] }}</label>
                   <input
+                    [attr.aria-label]="i18n.t()['qrcode.wa_phone']"
                     type="tel"
                     [ngModel]="waPhone()"
                     (ngModelChange)="waPhone.set($event); updateRender()"
@@ -487,6 +505,7 @@
                 <div class="space-y-1">
                   <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.wa_msg'] }}</label>
                   <textarea
+                    [attr.aria-label]="i18n.t()['qrcode.wa_msg']"
                     rows="2"
                     [ngModel]="waMsg()"
                     (ngModelChange)="waMsg.set($event); updateRender()"
@@ -511,6 +530,7 @@
               <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.fg_color'] }}</label>
               <div class="flex items-center gap-2 rounded-md border border-line bg-raised p-1.5">
                 <input
+                  [attr.aria-label]="i18n.t()['qrcode.fg_color']"
                   type="color"
                   [ngModel]="fgColor()"
                   (ngModelChange)="fgColor.set($event); updateRender()"
@@ -524,6 +544,7 @@
               <label class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.bg_color'] }}</label>
               <div class="flex items-center gap-2 rounded-md border border-line bg-raised p-1.5">
                 <input
+                  [attr.aria-label]="i18n.t()['qrcode.bg_color']"
                   type="color"
                   [disabled]="isTransparentBg()"
                   [ngModel]="bgColor()"
@@ -562,7 +583,7 @@
               <span class="text-xs font-semibold text-text">{{ i18n.t()['qrcode.logo'] }}</span>
               @if (logoImage()) {
                 <button type="button" class="text-xs text-danger hover:underline" (click)="clearLogo()">
-                  Remover
+                  {{ i18n.t()['common.remove'] }}
                 </button>
               }
             </div>
@@ -571,7 +592,7 @@
               class="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-line bg-raised/40 p-2.5 text-xs text-muted hover:border-line-strong hover:text-text transition"
             >
               <app-icon name="image" [size]="16" />
-              <span>{{ logoImage() ? 'Alterar Logo' : 'Adicionar Logo no Centro' }}</span>
+              <span>{{ logoImage() ? i18n.t()['qrcode.change_logo'] : i18n.t()['qrcode.add_logo'] }}</span>
               <input
                 type="file"
                 accept="image/*"

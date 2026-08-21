@@ -80,6 +80,14 @@ export class PdfToImgComponent {
   protected readonly thumbs = signal<PageThumb[]>([]);
   protected readonly renderingThumbs = signal(false);
 
+  /**
+   * Separado de `errorKey`: a prévia falhar não impede converter nada — a
+   * seleção é por número de página e o arquivo está intacto. O que não pode
+   * continuar é o silêncio de antes, em que o spinner parava sobre uma grade
+   * vazia.
+   */
+  protected readonly thumbsWarning = signal<TranslationKey | null>(null);
+
   // Options
   protected readonly format = signal<ImageOutputFormat>('png');
   protected readonly scale = signal<number>(2); // 1=1x, 2=2x, 3=3x
@@ -197,6 +205,7 @@ export class PdfToImgComponent {
 
   private async loadThumbnails(file: File, password?: string): Promise<void> {
     this.renderingThumbs.set(true);
+    this.thumbsWarning.set(null);
     const generatedThumbs: PageThumb[] = [];
 
     try {
@@ -222,7 +231,13 @@ export class PdfToImgComponent {
         await closePdf(doc);
       }
     } catch (err) {
+      // Mesmo par de defeitos do split-pdf: o `thumbs.set` vinha só depois do
+      // laço, então uma falha no meio apagava as prévias já prontas, e o catch
+      // não dizia nada — spinner sumindo sobre uma grade vazia. Entrega o que
+      // deu certo e avisa sobre o resto.
       console.error('[PdfToImg] Error rendering thumbnails:', err);
+      this.thumbs.set(generatedThumbs);
+      this.thumbsWarning.set('error.pdf_thumbs_failed');
     } finally {
       this.renderingThumbs.set(false);
     }

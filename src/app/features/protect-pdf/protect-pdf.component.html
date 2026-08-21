@@ -94,6 +94,7 @@
             </label>
             <div class="relative flex items-center">
               <input
+                [attr.aria-label]="i18n.t()['protpdf.password_label']"
                 [type]="showPassword() ? 'text' : 'password'"
                 [value]="password()"
                 (input)="password.set($any($event.target).value)"
@@ -117,7 +118,7 @@
                   <div class="h-full transition-all duration-300 {{ strength.bar }}"></div>
                 </div>
                 <div class="flex justify-between text-[11px]">
-                  <span class="text-faint">Força da senha:</span>
+                  <span class="text-faint">{{ i18n.t()['protpdf.strength_label'] }}</span>
                   <span class="font-medium {{ strength.color }}">{{ strength.label }}</span>
                 </div>
               </div>
@@ -130,6 +131,7 @@
               {{ i18n.t()['protpdf.password_confirm_label'] }}
             </label>
             <input
+              [attr.aria-label]="i18n.t()['protpdf.password_confirm_label']"
               [type]="showPassword() ? 'text' : 'password'"
               [value]="confirmPassword()"
               (input)="confirmPassword.set($any($event.target).value)"
@@ -155,14 +157,14 @@
 
           @if (resultSize(); as size) {
             <div class="flex justify-between text-sm">
-              <span class="text-muted">Protegido</span>
+              <span class="text-muted">{{ i18n.t()['protpdf.protected_size'] }}</span>
               <span class="font-mono text-text tabular">{{ size }}</span>
             </div>
           }
 
           @if (resultBlob()) {
             <div class="flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
-              <span class="text-sm font-medium text-success">PDF Criptografado!</span>
+              <span class="text-sm font-medium text-success">{{ i18n.t()['protpdf.done'] }}</span>
               <app-icon name="check" [size]="16" class="text-success" />
             </div>
           }

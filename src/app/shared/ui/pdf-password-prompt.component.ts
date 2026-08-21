@@ -38,6 +38,7 @@ import { IconComponent } from './icon/icon.component';
       <form (ngSubmit)="submit()" class="w-full flex flex-col gap-3">
         <div class="relative flex items-center">
           <input
+            [attr.aria-label]="i18n.t()['pdfpass.placeholder']"
             [type]="showPassword() ? 'text' : 'password'"
             [value]="password()"
             (input)="password.set($any($event.target).value)"
