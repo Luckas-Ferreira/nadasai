@@ -38,17 +38,25 @@ const { TOOL_CONTENT } = await loadTsModule('src/app/core/seo/tool-content.ts');
 
 /** O dicionário não passa pelo transpile — importa Angular. Os nomes de exibição
  *  saem por recorte do literal, como em `generate-og-cards.mjs`. */
+/**
+ * Lê o literal do dicionário direto do fonte, sem compilar o módulo.
+ *
+ * Os dois moravam dentro de `translation.service.ts`; foram para
+ * `core/i18n/{en,pt}.ts` quando viraram chunks carregados por `import()`, e
+ * este gerador derrubou o build inteiro no `prebuild` porque procurava
+ * "const EN" num arquivo onde ele não estava mais. A outra diferença é o
+ * `export` na frente da declaração — daí a busca aceitar os dois.
+ */
 function objectLiteral(source, name) {
-  const start = source.indexOf(`const ${name}`);
+  const start = source.search(new RegExp(`(export )?const ${name}\\b`));
   if (start < 0) throw new Error(`[llms] não achei "const ${name}".`);
   const open = source.indexOf('{', start);
   const end = source.indexOf('\n}', open);
   return (0, eval)(`(${source.slice(open, end + 2)})`);
 }
 
-const i18nSource = readFileSync(join(ROOT, 'src/app/core/services/translation.service.ts'), 'utf8');
-const EN = objectLiteral(i18nSource, 'EN');
-const PT = objectLiteral(i18nSource, 'PT');
+const EN = objectLiteral(readFileSync(join(ROOT, 'src/app/core/i18n/en.ts'), 'utf8'), 'EN');
+const PT = objectLiteral(readFileSync(join(ROOT, 'src/app/core/i18n/pt.ts'), 'utf8'), 'PT');
 
 const MODULE_HEADING = {
   image: 'Image Tools',

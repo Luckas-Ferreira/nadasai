@@ -8,6 +8,7 @@ import {
   provideAppInitializer,
   provideExperimentalZonelessChangeDetection,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
@@ -17,6 +18,11 @@ import { AppErrorHandler } from './core/errors/global-error-handler';
 import { AppUpdateService } from './core/services/app-update.service';
 import { ModelPrefetchService } from './core/services/model-prefetch.service';
 import { NetworkProbeService } from './core/services/network-probe.service';
+import {
+  TranslationService,
+  languageFromUrl,
+  loadDictionary,
+} from './core/services/translation.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -102,6 +108,36 @@ export const appConfig: ApplicationConfig = {
     // Wraps fetch/XHR/sendBeacon/WebSocket to count file egress. Must run before
     // any application code can issue a request, or the instrument has a blind spot.
     provideAppInitializer(() => inject(NetworkProbeService).install()),
+
+    /**
+     * Carrega o dicionário do idioma DESTA URL, e segura o bootstrap até ele
+     * chegar.
+     *
+     * Os dois dicionários deixaram de morar dentro do `TranslationService` e
+     * viraram chunks próprios (ver o cabeçalho de lá): eram 123 kB brutos /
+     * 43,8 kB gz que todo visitante baixava e o parser atravessava, com metade
+     * num idioma que ele nunca ia ler. O preço de separá-los é este
+     * inicializador, porque `t()` é síncrono em ~750 pontos de template e não
+     * pode ser a primeira coisa a descobrir que o texto ainda não chegou.
+     *
+     * Bloquear o bootstrap é a escolha certa e não um atalho: o alternativo é
+     * renderizar a casca sem texto e preenchê-la um quadro depois, que é uma
+     * página inteira piscando em branco — e, com hidratação, um mismatch contra
+     * um HTML de prerender que JÁ TEM o texto, o que faz o Angular descartar e
+     * repintar a subárvore. `scripts/preload-dictionary.mjs` põe um
+     * `modulepreload` do chunk certo em cada página gerada, então o download
+     * acontece em paralelo com o `main.js` em vez de depois dele.
+     *
+     * A URL sai do `DOCUMENT` injetado, não de `window`: no prerender não há
+     * `window`, e é o platform-server que preenche `document.location` com a
+     * rota sendo gerada — é isso que faz cada arquivo nascer com o dicionário
+     * certo dentro.
+     */
+    provideAppInitializer(() => {
+      const i18n = inject(TranslationService);
+      const lang = languageFromUrl(inject(DOCUMENT).location?.pathname ?? '/pt');
+      return loadDictionary(lang).then((dict) => i18n.install(lang, dict));
+    }),
 
     /**
      * O par no navegador do handler que `app.config.server.ts` instala para o
