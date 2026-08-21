@@ -462,6 +462,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- favicon -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/favicon</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/favicon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/favicon" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/favicon" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/favicon</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/favicon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/favicon" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/favicon" />
+    <lastmod>2026-08-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- edit-pdf -->
   <url>
     <loc>https://nadasai.com/pt/pdf/editar</loc>

@@ -1,0 +1,82 @@
+<app-tool-page [toolId]="'favicon'">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || (!!sourceUrl() && !isSquare())">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- O encoder encaixa por `contain`, não por corte nem por esticão: um
+         retângulo entra na caixa quadrada com borda transparente em volta. Vale
+         dizer ANTES, porque a pessoa que sobe um logotipo largo e vê o resultado
+         com margem vai achar que a ferramenta errou. -->
+    @if (sourceUrl() && !isSquare()) {
+      <app-alert [message]="i18n.t()['favicon.not_square']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone (fileSelected)="onFile($event)" />
+    } @else {
+      <app-preview-surface
+        [src]="sourceUrl()"
+        [busy]="busy()"
+        checkerboard
+        [alt]="i18n.t()['common.original']"
+      />
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['favicon.sizes']">
+        <p class="mb-3 text-xs leading-relaxed text-muted">{{ i18n.t()['favicon.sizes_hint'] }}</p>
+
+        <div class="grid grid-cols-3 gap-1.5">
+          @for (size of allSizes; track size) {
+            <button
+              appButton
+              [variant]="isSelected(size) ? 'secondary' : 'ghost'"
+              size="sm"
+              [attr.aria-pressed]="isSelected(size)"
+              (click)="toggleSize(size)"
+            >
+              {{ size }}
+            </button>
+          }
+        </div>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['resize.original_dim'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ sourceWidth() }} × {{ sourceHeight() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['favicon.entries'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ sizes().length }}
+              @if (resultBlob()) {
+                <span class="text-faint">· {{ resultSize() }}</span>
+              }
+            </dd>
+          </div>
+        </dl>
+
+        <p class="mt-4 border-t border-line pt-3 text-xs text-faint">
+          {{ i18n.t()['favicon.terminal_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'favicon'"
+        [primaryLabel]="stale() ? i18n.t()['favicon.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

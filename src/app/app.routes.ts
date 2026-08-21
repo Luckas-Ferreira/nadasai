@@ -190,6 +190,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/favicon',
+        title: 'Gerador de Favicon .ICO Online (16 a 256 px) — Nada Sai',
+        loadComponent: () => import('./features/favicon/favicon.component').then((m) => m.FaviconComponent),
+        data: {
+          metaDescription: 'Gere um favicon .ico com várias resoluções dentro do mesmo arquivo, a partir de um PNG ou JPEG. Sem cadastro, sem marca d\'água e 100% offline no seu navegador.',
+          metaKeywords: 'favicon, gerador de favicon, ico, png para ico, icone do site, icone do navegador'
+        }
+      },
+      {
         path: 'imagem/para-pdf',
         title: 'Converter Imagem em PDF Online (Várias Fotos) — Nada Sai',
         loadComponent: () => import('./features/img-to-pdf/img-to-pdf.component').then((m) => m.ImgToPdfComponent),
@@ -562,6 +571,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/resize/resize.component').then((m) => m.ResizeComponent),
         data: {
           metaDescription: 'Change a photo\'s width and height by pixels or percentage, locking the aspect ratio if you want. No signup, no watermark, 100% offline in your browser.'
+        }
+      },
+      {
+        path: 'image/favicon',
+        title: 'Favicon .ICO Generator Online (16 to 256 px) — Nada Sai',
+        loadComponent: () => import('./features/favicon/favicon.component').then((m) => m.FaviconComponent),
+        data: {
+          metaDescription: 'Build a multi-resolution .ico favicon from a PNG or JPEG, with every size inside one file. No signup, no watermark, 100% offline in your browser.',
+          metaKeywords: 'favicon, favicon generator, ico, png to ico, site icon, browser tab icon'
         }
       },
       {

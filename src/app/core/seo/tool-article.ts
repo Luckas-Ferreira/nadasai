@@ -119,6 +119,106 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  favicon: {
+    pt: [
+      {
+        h: 'O que este gerador escreve',
+        p: [
+          'Um arquivo .ico de verdade, com estrutura ICONDIR: um diretório no começo e, depois dele, uma imagem PNG completa por resolução escolhida. Não é um PNG renomeado. O navegador lê o diretório, descobre quais tamanhos existem e pede o que precisa — que é o motivo de o formato ainda existir depois de trinta anos.',
+          'Os tamanhos disponíveis são 16, 32, 48, 64, 128 e 256 pixels, e vêm marcados os quatro que um site de fato usa: 16 e 32 para a aba, 48 para o atalho do Windows e 256 para o ícone grande. Desmarcar os outros deixa o arquivo menor sem tirar nada que alguém vá pedir.',
+        ],
+      },
+      {
+        h: 'Como gerar',
+        p: [
+          'A imagem de origem pode ser PNG, JPEG ou WebP. O ideal é um PNG quadrado com fundo transparente, porque é o único caso em que nada precisa ser inventado nem descartado.',
+        ],
+        steps: [
+          'Solte a imagem na área de upload, ou traga o resultado de outra ferramenta pela cadeia.',
+          'Marque as resoluções que devem entrar no arquivo. Pelo menos uma é obrigatória.',
+          'Gere o .ico e baixe. O botão volta a aparecer sempre que você mudar a seleção de tamanhos, e some quando o arquivo na tela já é exatamente o que a seleção pede.',
+          'No seu HTML, aponte <link rel="icon" href="/favicon.ico"> para ele — ou simplesmente coloque o arquivo na raiz do site com esse nome.',
+        ],
+      },
+      {
+        h: 'Retângulo entra, retângulo continua',
+        p: [
+          'Um ícone é quadrado por definição, e a maioria dos logotipos não é. Aqui a imagem é encaixada por proporção: ela é reduzida até caber inteira no quadrado e o que sobra fica transparente. A alternativa — esticar até preencher — foi rejeitada porque produz um resultado que ninguém aceita: uma foto 1600x900 espremida num 256x256 fica visivelmente achatada, e no tamanho de 16 pixels isso vira uma mancha.',
+          'Quando a imagem não é quadrada, a página avisa antes de gerar. Se o que você quer é o logotipo preenchendo o quadrado inteiro, o caminho é cortar antes — e a ferramenta de cortar entrega o recorte direto aqui, sem baixar e subir de novo.',
+        ],
+      },
+      {
+        h: 'Transparência e cor',
+        p: [
+          'Cada entrada do arquivo é gravada como PNG de 32 bits, então o canal alfa do original passa inteiro: um logotipo com fundo transparente continua transparente sobre a barra de abas, seja ela clara ou escura. É a razão de o PNG ser o formato certo para trazer aqui.',
+          'Um JPEG não tem transparência para preservar. O fundo dele — branco, quase sempre — vira parte do ícone, e aparece como um quadrado sólido em volta do desenho. Se a sua arte está em JPEG e você precisa do fundo fora, passe pela remoção de fundo antes: ela devolve um PNG com alfa de verdade, e esse PNG chega aqui pela cadeia.',
+        ],
+      },
+      {
+        h: 'Por que continua sendo .ico',
+        p: [
+          'Um <link rel="icon"> apontando para PNG funciona em todo navegador atual, e para muitos sites isso basta. O .ico ganha em dois pontos concretos: é o que o navegador procura sozinho em /favicon.ico quando o HTML não declara nada — inclusive ao abrir uma página sua que veio de um cache antigo — e é o único formato que responde a todos os contextos com um arquivo só, porque carrega várias resoluções dentro de si.',
+          'Também é o que o Windows espera ao criar um atalho da página, e o que ferramentas de leitura de feed e agregadores mais antigos sabem ler. Nada disso é decisivo isoladamente; junto, é o motivo de o .ico continuar sendo o padrão que não dá trabalho.',
+        ],
+      },
+      {
+        h: 'Onde ele para',
+        p: [
+          'O .ico é o fim da cadeia: nenhuma ferramenta daqui abre um de volta, e por isso a página não oferece um próximo passo depois de gerar. O caminho útil é o contrário — chegar aqui vindo de outra ferramenta. Remover fundo, cortar num quadrado e então gerar o ícone é a sequência inteira, e nenhum dos três passos manda o arquivo para lugar nenhum.',
+          'Todo o trabalho acontece no seu navegador: a imagem é decodificada, redesenhada em cada tamanho e codificada em PNG na sua máquina, e o arquivo que você baixa foi montado ali. Nada é enviado, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What this generator writes',
+        p: [
+          'A real .ico file, with ICONDIR structure: a directory at the front and, after it, one complete PNG image per chosen resolution. It is not a renamed PNG. The browser reads the directory, learns which sizes exist and asks for the one it needs — which is why the format still exists thirty years on.',
+          'The available sizes are 16, 32, 48, 64, 128 and 256 pixels, and the four a site actually uses come pre-selected: 16 and 32 for the tab, 48 for the Windows shortcut and 256 for the large icon. Unticking the rest makes the file smaller without dropping anything anyone will ask for.',
+        ],
+      },
+      {
+        h: 'How to generate one',
+        p: [
+          'The source image can be PNG, JPEG or WebP. The ideal input is a square PNG with a transparent background, because it is the only case where nothing has to be invented or thrown away.',
+        ],
+        steps: [
+          'Drop the image on the upload area, or bring another tool’s result in through the chain.',
+          'Tick the resolutions that should go into the file. At least one is required.',
+          'Build the .ico and download it. The button comes back whenever you change the size selection, and disappears when the file on screen is already exactly what the selection asks for.',
+          'In your HTML, point <link rel="icon" href="/favicon.ico"> at it — or simply drop the file at the site root under that name.',
+        ],
+      },
+      {
+        h: 'A rectangle goes in, a rectangle stays',
+        p: [
+          'An icon is square by definition, and most logos are not. Here the image is fitted by aspect ratio: it shrinks until it fits inside the square whole, and what is left over stays transparent. The alternative — stretching to fill — was rejected because it produces a result nobody accepts: a 1600x900 photo squeezed into 256x256 is visibly flattened, and at 16 pixels that becomes a smudge.',
+          'When the image is not square, the page says so before you generate. If what you want is the logo filling the whole square, crop first — and the crop tool hands its result straight here, with no download and re-upload in between.',
+        ],
+      },
+      {
+        h: 'Transparency and colour',
+        p: [
+          'Every entry in the file is written as a 32-bit PNG, so the original alpha channel passes through whole: a logo with a transparent background stays transparent against the tab bar, light or dark. That is why PNG is the right format to bring here.',
+          'A JPEG has no transparency to keep. Its background — white, almost always — becomes part of the icon and shows up as a solid square around the artwork. If your art is a JPEG and you need the background gone, run it through background removal first: it returns a PNG with real alpha, and that PNG reaches this tool through the chain.',
+        ],
+      },
+      {
+        h: 'Why it is still .ico',
+        p: [
+          'A <link rel="icon"> pointing at a PNG works in every current browser, and for many sites that is enough. The .ico wins on two concrete points: it is what the browser looks for on its own at /favicon.ico when the HTML declares nothing — including when opening a page of yours served from an old cache — and it is the only format that answers every context with one file, because it carries several resolutions inside itself.',
+          'It is also what Windows expects when creating a shortcut to the page, and what older feed readers and aggregators know how to read. None of that is decisive on its own; together it is why .ico remains the standard that gives no trouble.',
+        ],
+      },
+      {
+        h: 'Where it stops',
+        p: [
+          'The .ico is the end of the chain: no tool here opens one back up, which is why the page offers no next step after generating. The useful path runs the other way — arriving here from another tool. Remove the background, crop to a square and then build the icon is the whole sequence, and none of the three steps sends the file anywhere.',
+          'All of the work happens in your browser: the image is decoded, redrawn at each size and encoded to PNG on your machine, and the file you download was assembled right there. Nothing is uploaded, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {
