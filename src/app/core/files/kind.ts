@@ -39,7 +39,12 @@ const BY_EXTENSION: ReadonlyArray<readonly [RegExp, FileKind]> = [
   [/\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba)$/i, 'audio'],
   [/\.(mp4|m4v|mov|webm|mkv|avi|ogv|3gp|mpe?g)$/i, 'video'],
   [/\.(txt|md|csv|json|xml|log|srt|vtt)$/i, 'text'],
-  [/\.(docx|doc)$/i, 'docx'],
+  // O tipo cobre o OOXML do Office inteiro, e não só o Word: planilha e
+  // apresentação têm a mesma forma (um zip com XML) e passam pelas mesmas
+  // ferramentas. Sem isto elas cairiam em 'binary', que é o balde do
+  // desconhecido — e aí a limpeza de metadados só seria oferecida junto com
+  // criptografar e hash, que aceitam qualquer coisa.
+  [/\.(docx|doc|xlsx|xls|pptx|ppt)$/i, 'docx'],
   [/\.zip$/i, 'zip'],
 ];
 

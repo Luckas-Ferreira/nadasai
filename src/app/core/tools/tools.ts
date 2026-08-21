@@ -45,6 +45,7 @@ export type ToolId =
   | 'diff-checker'
   | 'redact-pdf'
   | 'clean-pdf-metadata'
+  | 'office-metadata'
   | 'encrypt-text'
   | 'qr-code';
 
@@ -1156,6 +1157,37 @@ export const TOOLS: readonly ToolDef[] = [
       'redact pdf', 'black out pdf', 'hide text in pdf', 'censor pdf',
       'remove sensitive data pdf', 'anonymize pdf', 'pdf redaction',
       'permanently remove pdf text'
+    ],
+  },
+  {
+    /**
+     * `produces: null` — um .docx limpo não entra em nenhuma outra ferramenta
+     * daqui. O caminho útil é o contrário: chegar com o .docx que o
+     * `pdf-to-word` acabou de escrever, que carrega os metadados que o pdf-lib
+     * pôs nele.
+     */
+    id: 'office-metadata',
+    pathPt: 'privacidade/metadados-office',
+    pathEn: 'privacy/office-metadata',
+    icon: 'shield',
+    category: 'privacy',
+    accepts: ['docx'],
+    produces: null,
+    navKey: 'nav.office_metadata',
+    shortKey: 'nav.short.office_metadata',
+    titleKey: 'office.title',
+    descKey: 'office.subtitle',
+    suffix: 'limpo',
+    tone: 'emerald',
+    keywordsPt: [
+      'metadados word', 'metadados docx', 'remover autor do word', 'limpar metadados excel',
+      'propriedades do documento', 'quem criou o arquivo', 'ultimo a salvar',
+      'anonimizar docx', 'remover nome do curriculo', 'metadados powerpoint', 'limpar xlsx'
+    ],
+    keywordsEn: [
+      'word metadata', 'docx metadata', 'remove author from word', 'clean excel metadata',
+      'document properties', 'who created the file', 'last modified by',
+      'anonymise docx', 'remove name from resume', 'powerpoint metadata', 'clean xlsx'
     ],
   },
   {

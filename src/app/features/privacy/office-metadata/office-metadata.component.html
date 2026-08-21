@@ -1,0 +1,107 @@
+<app-tool-page [toolId]="'office-metadata'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || nothingFound() || !!resultBlob()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- "Nenhum metadado encontrado" é o único resultado que passa quer o
+         analisador funcione ou não. Dizê-lo explicitamente é o que separa as
+         duas situações para quem está lendo. -->
+    @if (nothingFound() && !resultBlob()) {
+      <app-alert [message]="i18n.t()['office.nothing_found']" tone="info" />
+    }
+
+    @if (resultBlob()) {
+      <app-alert [message]="removed() + ' ' + i18n.t()['office.cleaned_note']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'.docx,.xlsx,.pptx'"
+        [titleKey]="'office.drag'"
+        [hintKey]="'office.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-line bg-surface">
+        <div class="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5 text-xs">
+          <span class="truncate font-medium text-text">{{ file()?.name }}</span>
+          <span class="shrink-0 font-mono tabular text-faint">
+            {{ found() }} {{ i18n.t()['office.fields'] }}
+          </span>
+        </div>
+
+        @if (rows().length > 0) {
+          <div class="max-h-[480px] overflow-auto">
+            <table class="w-full text-sm">
+              <tbody>
+                @for (row of rows(); track row.key) {
+                  <tr class="border-b border-line last:border-0">
+                    <th
+                      scope="row"
+                      class="w-2/5 px-4 py-2.5 text-left align-top font-medium"
+                      [class.text-danger]="row.sensitive"
+                      [class.text-muted]="!row.sensitive"
+                    >
+                      {{ row.label }}
+                    </th>
+                    <td class="px-4 py-2.5 align-top break-words text-text">{{ row.value }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="flex min-h-[220px] items-center justify-center px-6 text-center">
+            <p class="text-sm text-muted">
+              {{ resultBlob() ? i18n.t()['office.now_empty'] : i18n.t()['office.nothing_found'] }}
+            </p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['office.panel_summary']">
+        <dl class="flex flex-col gap-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['office.fields_found'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ found() }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['office.sensitive_found'] }}</dt>
+            <dd class="font-mono tabular" [class.text-danger]="sensitiveCount() > 0" [class.text-text]="sensitiveCount() === 0">
+              {{ sensitiveCount() }}
+            </dd>
+          </div>
+          @if (resultBlob()) {
+            <div class="flex justify-between border-t border-line pt-2">
+              <dt class="text-muted">{{ i18n.t()['common.result'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ resultSize() }}</dd>
+            </div>
+          }
+        </dl>
+
+        <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['office.lossless_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'office-metadata'"
+        [primaryLabel]="stale() ? i18n.t()['office.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

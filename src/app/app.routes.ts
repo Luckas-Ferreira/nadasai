@@ -389,6 +389,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'privacidade/metadados-office',
+        title: 'Remover Metadados de Word, Excel e PowerPoint — Nada Sai',
+        loadComponent: () => import('./features/privacy/office-metadata/office-metadata.component').then((m) => m.OfficeMetadataComponent),
+        data: {
+          metaDescription: 'Veja e apague autor, empresa, último a salvar e tempo de edição de um .docx, .xlsx ou .pptx. O conteúdo sai byte a byte igual. 100% offline no navegador.',
+          metaKeywords: 'metadados word, metadados docx, remover autor, limpar metadados excel, anonimizar documento'
+        }
+      },
+      {
         path: 'privacidade/limpar-metadados-pdf',
         title: 'Remover Metadados de PDF Online — Nada Sai',
         loadComponent: () => import('./features/privacy/clean-pdf-metadata/clean-pdf-metadata.component').then((m) => m.CleanPdfMetadataComponent),
@@ -816,6 +825,15 @@ export const routes: Routes = [
         loadComponent: () => import('./features/privacy/redact-pdf/redact-pdf.component').then((m) => m.RedactPdfComponent),
         data: {
           metaDescription: 'Real PDF redaction: the text under each black bar is destroyed, not just covered, so it cannot be copied back out. 100% offline in your browser.',
+        }
+      },
+      {
+        path: 'privacy/office-metadata',
+        title: 'Remove Metadata from Word, Excel and PowerPoint — Nada Sai',
+        loadComponent: () => import('./features/privacy/office-metadata/office-metadata.component').then((m) => m.OfficeMetadataComponent),
+        data: {
+          metaDescription: 'See and erase author, company, last-modified-by and editing time from a .docx, .xlsx or .pptx. The content comes out byte for byte identical. 100% offline.',
+          metaKeywords: 'word metadata, docx metadata, remove author, clean excel metadata, anonymise document'
         }
       },
       {
