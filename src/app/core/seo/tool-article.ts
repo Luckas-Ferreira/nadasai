@@ -523,6 +523,108 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'pdf-to-text': {
+    pt: [
+      {
+        h: 'Duas leituras, escolhidas por página',
+        p: [
+          'Uma página com camada de texto nativa é lida direto do PDF: os blocos vêm do pdf.js e são agrupados em parágrafos pela mesma heurística que o conversor para Word usa, calibrada contra documentos reais. Uma página escaneada é uma imagem, e ali o texto precisa ser reconhecido.',
+          'A escolha é por PÁGINA, não pelo documento, porque documento de processo mistura os dois o tempo todo: petição digital com anexo fotografado. Um arquivo em que só a folha 7 é escaneada é lido nativamente nas outras e por OCR só nela.',
+        ],
+      },
+      {
+        h: 'Como extrair',
+        p: [
+          'Copiar é o caminho principal, não baixar: quem extrai texto de PDF quase sempre vai colar em outro lugar. O botão de copiar aparece assim que há texto.',
+        ],
+        steps: [
+          'Solte o PDF na área de upload, ou traga um da cadeia — de juntar, dividir ou organizar.',
+          'Escolha TXT ou Markdown. TXT é o padrão e é o que serve para colar num modelo de linguagem.',
+          'Deixe o OCR ligado se o documento tiver páginas escaneadas. Desligado, elas são puladas e a página diz quantas.',
+          'Extraia, leia o resultado na tela, e copie ou baixe.',
+        ],
+      },
+      {
+        h: 'A ordem de leitura, que é onde isso costuma dar errado',
+        p: [
+          'Os blocos de um PDF não vêm em ordem de leitura — vêm na ordem em que os objetos foram criados no arquivo, que depende do programa que o gerou. Num documento de duas colunas isso entrega a metade direita de cada linha antes da esquerda: todas as palavras presentes, o texto ilegível.',
+          'Antes de virar texto, os blocos passam por um reordenamento em bandas de sobreposição vertical — linhas que se sobrepõem em mais da metade da altura são a mesma banda, e dentro da banda a ordem é da esquerda para a direita. É a mesma correção que o conversor para Word recebeu depois de uma digitalização sair exatamente assim, e que parecia falha de OCR sem ser.',
+        ],
+      },
+      {
+        h: 'O Markdown é inferido, e por isso é conservador',
+        p: [
+          'Um PDF não tem estrutura de título. Tem texto com corpo de fonte, e é só a partir disso que dá para adivinhar hierarquia. A regra aqui exige três coisas ao mesmo tempo: corpo pelo menos 15% acima da mediana da página, no máximo 14 palavras, e sem pontuação no fim.',
+          'Cada um desses testes sozinho erra. Só o corpo marcaria a primeira linha de um parágrafo em destaque; só o tamanho marcaria itens de lista; só a pontuação marcaria legendas. Juntos, marcam o que quase sempre é cabeçalho de verdade — e quando não têm certeza, deixam parágrafo comum, porque um texto plano correto é melhor que um documento cheio de títulos falsos.',
+          'A mediana é da PÁGINA e não um valor fixo em pontos: um edital em 10pt e um cartaz em 30pt precisam de réguas diferentes.',
+        ],
+      },
+      {
+        h: 'O que sobrevive em cada formato',
+        p: [
+          'Em Markdown, o negrito por trecho atravessa: o agrupador marca os pedaços em negrito e eles saem como duas estrelas. Em texto puro isso é descartado, porque o formato não tem como representá-lo — deixar a marcação literal seria pior que perder a ênfase.',
+          'Nenhum dos dois preserva cor, fonte, posição ou imagem. Se o que você precisa é o documento com aparência, o destino é o conversor para Word, que reconstrói corpo de fonte, negrito, cor e alinhamento.',
+        ],
+      },
+      {
+        h: 'Onde ele para',
+        p: [
+          'Texto é o fim da cadeia: nenhuma ferramenta daqui abre um .txt, então a página não oferece próximo passo. O caminho útil é o contrário — chegar aqui com um PDF que veio de juntar, dividir ou organizar.',
+          'Tudo roda no seu navegador: a leitura pelo pdf.js, o OCR pelo Tesseract em WebAssembly, e o arquivo que você baixa é montado ali. Nada é enviado, e o medidor no topo da página mostra isso enquanto você trabalha — o que importa quando o documento é um contrato ou um processo.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'Two readings, chosen per page',
+        p: [
+          'A page with a native text layer is read straight from the PDF: the blocks come from pdf.js and are grouped into paragraphs by the same heuristic the Word converter uses, calibrated against real documents. A scanned page is an image, and there the text has to be recognised.',
+          'The choice is per PAGE, not per document, because case files mix the two constantly: a digital filing with a photographed annex. A file where only sheet 7 is scanned is read natively everywhere else and by OCR only there.',
+        ],
+      },
+      {
+        h: 'How to extract',
+        p: [
+          'Copying is the main path, not downloading: people who extract text from a PDF are almost always going to paste it somewhere. The copy button appears as soon as there is text.',
+        ],
+        steps: [
+          'Drop the PDF on the upload area, or bring one in through the chain — from merge, split or organise.',
+          'Pick TXT or Markdown. TXT is the default and the one that suits pasting into a language model.',
+          'Leave OCR on if the document has scanned pages. Off, they are skipped and the page says how many.',
+          'Extract, read the result on screen, and copy or download.',
+        ],
+      },
+      {
+        h: 'Reading order, which is where this usually goes wrong',
+        p: [
+          'PDF blocks do not arrive in reading order — they arrive in the order the objects were created in the file, which depends on the program that produced it. On a two-column document that hands you the right half of every line before the left: every word present, the text unreadable.',
+          'Before becoming text, blocks are reordered into bands of vertical overlap — lines overlapping by more than half their height are the same band, and within a band the order runs left to right. It is the same fix the Word converter received after a scan came out exactly that way, and which looked like an OCR fault without being one.',
+        ],
+      },
+      {
+        h: 'The Markdown is inferred, and therefore conservative',
+        p: [
+          'A PDF has no heading structure. It has text with a font body, and that is all there is to guess hierarchy from. The rule here demands three things at once: a body at least 15% above the page median, at most 14 words, and no punctuation at the end.',
+          'Each of those tests alone gets it wrong. Body size alone would mark the first line of a pull quote; length alone would mark list items; punctuation alone would mark captions. Together they mark what is almost always a real heading — and when unsure they leave a plain paragraph, because correct flat text beats a document full of false headings.',
+          'The median is per PAGE rather than a fixed value in points: a 10pt legal notice and a 30pt poster need different rulers.',
+        ],
+      },
+      {
+        h: 'What survives in each format',
+        p: [
+          'In Markdown, per-span bold crosses over: the grouper marks the bold runs and they come out as double asterisks. In plain text that is discarded, because the format has no way to represent it — leaving the markup literal would be worse than losing the emphasis.',
+          'Neither preserves colour, font, position or images. If what you need is the document with its appearance, the destination is the Word converter, which reconstructs font body, bold, colour and alignment.',
+        ],
+      },
+      {
+        h: 'Where it stops',
+        p: [
+          'Text is the end of the chain: no tool here opens a .txt, so the page offers no next step. The useful path runs the other way — arriving with a PDF that came from merge, split or organise.',
+          'Everything runs in your browser: the reading by pdf.js, the OCR by Tesseract in WebAssembly, and the file you download is assembled right there. Nothing is uploaded, and the meter at the top of the page shows that while you work — which matters when the document is a contract or a case file.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {
