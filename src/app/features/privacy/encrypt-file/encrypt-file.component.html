@@ -66,6 +66,7 @@
           <div class="space-y-1.5">
             <label class="text-xs font-semibold text-muted">{{ i18n.t()['encrypt.pass_label'] }}</label>
             <input
+              [attr.aria-label]="i18n.t()['encrypt.pass_label']"
               type="password"
               [ngModel]="password()"
               (ngModelChange)="password.set($event)"

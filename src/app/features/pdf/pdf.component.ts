@@ -103,20 +103,25 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
   ],
   template: `
     <app-tool-page [toolId]="'edit-pdf'" [forceLoaded]="status() !== 'idle'">
-      @if (status() === 'error' && errorMessage()) {
-        <div banner class="mb-5">
+      <!-- Um único elemento raiz, sempre presente: a projeção de conteúdo do
+           app-tool-page não atravessa um @if com várias raízes, e a falha do OCR
+           precisa poder aparecer AO LADO do aviso de rasterização em vez de
+           disputar o mesmo @else if com ele. -->
+      <div
+        banner
+        class="flex flex-col gap-2"
+        [class.mb-5]="(status() === 'error' && !!errorMessage()) || !!ocrError() || !!renderWarning()"
+      >
+        @if (status() === 'error' && errorMessage()) {
           <app-alert [message]="errorMessage()" [actionLabel]="i18n.t()['common.reset']" (action)="reset()" />
-        </div>
-      } @else if (renderWarning()) {
-        <div banner class="mb-5">
-          <app-alert
-            [message]="renderWarning()!"
-            tone="info"
-            dismissible
-            (dismiss)="renderWarning.set(null)"
-          />
-        </div>
-      }
+        }
+        @if (ocrError(); as msg) {
+          <app-alert [message]="msg" dismissible (dismiss)="ocrError.set(null)" />
+        }
+        @if (renderWarning(); as msg) {
+          <app-alert [message]="msg" tone="info" dismissible (dismiss)="renderWarning.set(null)" />
+        }
+      </div>
 
       <!-- ── Canvas Stage ───────────────────────────────────────────────── -->
       <div stage class="min-w-0 flex flex-col">
@@ -159,7 +164,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                       <div class="flex flex-col min-w-0">
                         <span class="text-xs font-semibold text-text truncate">{{ i18n.t()['pdf.ocr_loading_title'] }}</span>
                         <span class="text-[11px] text-muted truncate">
-                          {{ currentOcrPage() ? ('Página ' + currentOcrPage() + ' • ') : '' }}{{ getFormattedOcrStatus() }}
+                          {{ currentOcrPage() ? (i18n.t()['common.page_n'] + ' ' + currentOcrPage() + ' • ') : '' }}{{ getFormattedOcrStatus() }}
                         </span>
                       </div>
                     </div>
@@ -298,6 +303,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                     @if (addingText() && activeTool() === 'add_text' && addingTextPage() === page.index) {
                       <textarea
                         #newTextArea
+                        [attr.aria-label]="i18n.t()['pdf.tool.add_text']"
                         class="absolute resize-none rounded border-2 border-sky-500 bg-white/95 px-1 py-0.5 text-sm text-black outline-none shadow-md"
                         [style.left.px]="addTextPos().x * scale()"
                         [style.top.px]="addTextPos().y * scale()"
@@ -343,7 +349,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                 (click)="undo()"
               >
                 <app-icon name="undo" [size]="15" />
-                Desfazer
+                {{ i18n.t()['common.undo'] }}
               </button>
             </div>
           </app-panel>
@@ -352,16 +358,17 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                Painel próprio, logo abaixo das ferramentas: é o que o usuário
                quer ver no momento em que clica num texto. Antes ficava enterrado
                entre a paginação e o zoom. -->
-          <app-panel heading="Bloco selecionado">
+          <app-panel [heading]="i18n.t()['pdf.block_panel']">
             @if (selectedBlock(); as id) {
               <div class="flex flex-col gap-3">
 
                 <!-- Fonte -->
                 <select
+                  [attr.aria-label]="i18n.t()['pdf.font_family']"
                   class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium outline-none hover:border-accent transition-colors cursor-pointer"
                   [value]="getBlockFont(id)"
                   (change)="changeBlockFont(id, $event)"
-                  title="Família da fonte"
+                  [title]="i18n.t()['pdf.font_family']"
                 >
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
@@ -376,11 +383,12 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                     <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, -5)">−</button>
                     <input
                       type="text"
+                      [attr.aria-label]="i18n.t()['pdf.font_size']"
                       class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
                       [value]="getBlockScalePercent(id)"
                       (change)="setBlockSizeFromInput(id, $event)"
                       (keydown.enter)="setBlockSizeFromInput(id, $event)"
-                      title="Tamanho (%)"
+                      [title]="i18n.t()['pdf.font_size']"
                     />
                     <button class="px-2.5 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="changeBlockSize(id, 5)">+</button>
                   </div>
@@ -388,7 +396,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm font-semibold font-serif transition-all shrink-0"
                     [class]="isBlockBold(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
-                    title="Negrito"
+                    [title]="i18n.t()['pdf.bold']"
                     (mousedown)="$event.preventDefault()"
                     (click)="toggleBlockBold(id)"
                   >B</button>
@@ -396,7 +404,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                   <button
                     class="h-9 w-9 flex items-center justify-center rounded-lg border text-sm italic font-serif transition-all shrink-0"
                     [class]="isBlockItalic(id) ? 'bg-accent/15 border-accent/40 text-accent' : 'border-line text-muted hover:bg-raised hover:text-text'"
-                    title="Itálico"
+                    [title]="i18n.t()['pdf.italic']"
                     (mousedown)="$event.preventDefault()"
                     (click)="toggleBlockItalic(id)"
                   >I</button>
@@ -405,7 +413,7 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                 <!-- Alinhamento — o detector de layout acerta a maioria dos
                      casos, mas não todos; aqui se corrige à mão. -->
                 <div class="flex flex-col gap-1.5">
-                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Alinhamento</span>
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ i18n.t()['pdf.alignment'] }}</span>
                   <div class="flex items-center gap-1.5">
                     @for (opt of alignOptions; track opt.value) {
                       <button
@@ -425,18 +433,18 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
                 <!-- Cores -->
                 <div class="flex flex-col gap-1.5">
-                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">Cores</span>
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider">{{ i18n.t()['pdf.colors'] }}</span>
                   <div class="flex items-center gap-2">
-                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor do texto">
-                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(id)" (input)="changeBlockColor(id, $event)" />
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" [title]="i18n.t()['pdf.text_color']">
+                      <input type="color" [attr.aria-label]="i18n.t()['pdf.text_color']" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockColor(id)" (input)="changeBlockColor(id, $event)" />
                       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
                         <app-icon name="text" [size]="12" class="text-text opacity-70" />
                         <div class="h-2 w-7 rounded-sm" [style.background]="getBlockColor(id)"></div>
                       </div>
                     </div>
 
-                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" title="Cor de fundo">
-                      <input type="color" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(id)" (input)="changeBlockBgColor(id, $event)" />
+                    <div class="flex-1 relative h-9 rounded-lg border border-line hover:border-accent overflow-hidden transition-colors" [title]="i18n.t()['pdf.bg_color']">
+                      <input type="color" [attr.aria-label]="i18n.t()['pdf.bg_color']" class="absolute -top-2 -left-2 h-14 w-full cursor-pointer border-0 p-0 opacity-0" [value]="getBlockBgColor(id)" (input)="changeBlockBgColor(id, $event)" />
                       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-0.5">
                         <app-icon name="square" [size]="12" class="text-text opacity-70" />
                         <div class="h-2 w-7 rounded-sm" [style.background]="getBlockBgColor(id)"></div>
@@ -449,19 +457,17 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
 
                 <button appButton variant="danger" size="sm" block (click)="deleteBlock(id)">
                   <app-icon name="close" [size]="13" />
-                  Apagar bloco
+                  {{ i18n.t()['pdf.delete_block'] }}
                 </button>
                 <button appButton variant="ghost" size="sm" block (click)="selectedBlock.set(null)">
-                  Desselecionar
+                  {{ i18n.t()['pdf.deselect'] }}
                 </button>
               </div>
             } @else {
               <!-- Estado vazio: o painel some quando nada está selecionado fazia
                    parecer que os controles tinham desaparecido. -->
               <p class="text-xs text-muted leading-relaxed">
-                Clique num bloco de texto da página para trocar fonte, tamanho,
-                alinhamento e cor. Com o bloco selecionado, clique de novo no
-                texto para editá-lo.
+                {{ i18n.t()['pdf.empty_hint'] }}
               </p>
             }
           </app-panel>
@@ -471,28 +477,29 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                edita. Guardado por loadedPdf(), não por status(): o painel abre
                em 'loading', quando ainda não há documento. -->
           @if (loadedPdf(); as pdf) {
-            <app-panel heading="Visualização">
+            <app-panel [heading]="i18n.t()['pdf.preview_panel']">
               <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs text-muted font-medium">Página {{ currentPage() }} de {{ pdf.pageCount }}</span>
+                  <span class="text-xs text-muted font-medium">{{ i18n.t()['common.page_n'] }} {{ currentPage() }} {{ i18n.t()['pdf.page_of'] }} {{ pdf.pageCount }}</span>
                   <div class="flex items-center gap-1">
-                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)" aria-label="Página anterior">‹</button>
-                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="goToPage(currentPage() + 1)" aria-label="Próxima página">›</button>
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() <= 1" (click)="goToPage(currentPage() - 1)" [attr.aria-label]="i18n.t()['common.prev_page']">‹</button>
+                    <button class="h-7 w-7 flex items-center justify-center rounded-lg border border-line text-muted hover:text-text hover:bg-raised transition-colors disabled:opacity-30" [disabled]="currentPage() >= pdf.pageCount" (click)="goToPage(currentPage() + 1)" [attr.aria-label]="i18n.t()['common.next_page']">›</button>
                   </div>
                 </div>
 
                 <div class="flex items-center rounded-lg border border-line bg-surface overflow-hidden">
-                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)" aria-label="Diminuir zoom">−</button>
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(-0.1)" [attr.aria-label]="i18n.t()['common.zoom_out']">−</button>
                   <input
                     type="text"
+                    [attr.aria-label]="i18n.t()['common.zoom_level']"
                     class="flex-1 text-sm font-medium tabular-nums text-center bg-transparent border-none outline-none py-2 min-w-0"
                     [value]="(scale() * 100) | number:'1.0-0'"
                     (change)="setZoomFromInput($event)"
                     (keydown.enter)="setZoomFromInput($event)"
-                    title="Zoom %"
+                    [title]="i18n.t()['common.zoom_level']"
                   />
                   <span class="text-xs text-muted pr-2 select-none">%</span>
-                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)" aria-label="Aumentar zoom">+</button>
+                  <button class="px-3 py-2 text-muted hover:text-text hover:bg-raised transition-colors font-medium" (click)="zoom(0.1)" [attr.aria-label]="i18n.t()['common.zoom_in']">+</button>
                 </div>
               </div>
             </app-panel>
@@ -504,37 +511,38 @@ export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
                blocos reconhecidos por cima dos nativos — a opção estava sempre
                visível oferecendo algo que ou não fazia nada ou piorava. -->
           @if (showOcrPanel()) {
-            <app-panel heading="Reconhecimento de texto">
+            <app-panel [heading]="i18n.t()['pdf.ocr_panel']">
               <div class="flex flex-col gap-2.5">
                 <p class="text-xs text-muted leading-relaxed">
                   @if (currentPageIsScanned()) {
-                    Esta página é uma imagem digitalizada — o texto foi lido por OCR e pode conter erros.
+                    {{ i18n.t()['pdf.scanned_page_note'] }}
                   } @else {
-                    Este documento tem páginas digitalizadas. Esta aqui já tem texto digital.
+                    {{ i18n.t()['pdf.digital_page_note'] }}
                   }
                 </p>
 
                 <select
+                  [attr.aria-label]="i18n.t()['pdf.ocr_lang_title']"
                   class="w-full rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-medium outline-none hover:border-accent transition-colors cursor-pointer"
                   [(ngModel)]="ocrLangValue"
-                  title="Idioma do reconhecimento"
+                  [title]="i18n.t()['pdf.ocr_lang_title']"
                 >
-                  <option value="por+eng">Português + Inglês</option>
-                  <option value="por">Português</option>
-                  <option value="eng">Inglês</option>
+                  <option value="por+eng">{{ i18n.t()['pdf.lang.por_eng'] }}</option>
+                  <option value="por">{{ i18n.t()['pdf.lang.por'] }}</option>
+                  <option value="eng">{{ i18n.t()['pdf.lang.eng'] }}</option>
                 </select>
 
                 <button
                   appButton variant="secondary" size="sm" block
                   [disabled]="ocrRunning()"
                   (click)="forceOcrOnCurrentPage()"
-                  title="Reconhece o texto da página atual de novo"
+                  [title]="i18n.t()['pdf.reocr_title']"
                 >
                   <app-icon name="scan" [size]="13" />
-                  Reconhecer esta página
+                  {{ i18n.t()['pdf.reocr_btn'] }}
                 </button>
 
-                <span class="text-[10px] text-muted/70">Tesseract.js — roda no seu navegador</span>
+                <span class="text-[10px] text-muted/70">{{ i18n.t()['pdf.ocr_engine_note'] }}</span>
               </div>
             </app-panel>
           }
@@ -595,6 +603,16 @@ export class PdfComponent implements OnDestroy {
    * parece com "o editor comeu meu documento".
    */
   protected readonly renderWarning = signal<string | null>(null);
+
+  /**
+   * Falha do OCR, e SEPARADA de `status`/`errorMessage` de propósito. Os dois
+   * caminhos de OCR morriam num `console.error`: o overlay de progresso sumia,
+   * nada aparecia na página, e o resultado era indistinguível de "cliquei e não
+   * aconteceu nada". Mandá-los para `status = 'error'` seria a outra ponta do
+   * mesmo erro — o banner dali oferece "recomeçar" e o documento aberto continua
+   * perfeitamente editável, então descartá-lo é a última coisa que se quer.
+   */
+  protected readonly ocrError = signal<string | null>(null);
   protected readonly loadedPdf = signal<LoadedPdf | null>(null);
   protected readonly currentPage = signal(1);
   protected readonly scale = signal(1.0);
@@ -724,6 +742,7 @@ export class PdfComponent implements OnDestroy {
     this.canvasRendered.set(new Set());
     this.resetRasterState();
     this.renderWarning.set(null);
+    this.ocrError.set(null);
     this.passwordError.set(null);
     this.pendingFile.set(file);
 
@@ -848,6 +867,7 @@ export class PdfComponent implements OnDestroy {
     if (pages.length === 0) return;
 
     // Keep editor visible — just show progress overlay
+    this.ocrError.set(null);
     this.ocrRunning.set(true);
     this.ocr.progress.set(0);
 
@@ -895,6 +915,7 @@ export class PdfComponent implements OnDestroy {
       this.ocrBlocks.set(allOcr);
     } catch (err) {
       console.error('[OCR] runOcrOnScannedPages failed:', err);
+      this.ocrError.set(this.i18n.t()['error.ocr_failed']);
     } finally {
       this.ocrRunning.set(false);
       this.ocr.progress.set(-1);
@@ -928,6 +949,7 @@ export class PdfComponent implements OnDestroy {
 
     // Debug: log classification info
 
+    this.ocrError.set(null);
     this.ocrRunning.set(true);
     this.currentOcrPage.set(pageIdx);
     this.ocr.progress.set(0);
@@ -979,6 +1001,7 @@ export class PdfComponent implements OnDestroy {
       this.ocrBlocks.set(allOcr);
     } catch (err) {
       console.error('[PDF OCR] Error during forced OCR:', err);
+      this.ocrError.set(this.i18n.t()['error.ocr_failed']);
     } finally {
       this.ocrRunning.set(false);
       this.ocr.progress.set(-1);
@@ -1971,6 +1994,7 @@ export class PdfComponent implements OnDestroy {
     this.canvasRendered.set(new Set());
     this.resetRasterState();
     this.renderWarning.set(null);
+    this.ocrError.set(null);
     this.selectedBlock.set(null);
   }
 

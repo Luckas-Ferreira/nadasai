@@ -1,8 +1,11 @@
 <app-tool-page [toolId]="'split-pdf'" [forceLoaded]="!!file()">
   <!-- Error & Info Banners -->
-  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || !!thumbsWarning()">
     @if (errorKey(); as key) {
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+    @if (thumbsWarning(); as key) {
+      <app-alert [message]="i18n.t()[key]" tone="info" dismissible (dismiss)="thumbsWarning.set(null)" />
     }
   </div>
 
@@ -33,7 +36,7 @@
             <span class="truncate font-medium text-text">{{ file()?.name }}</span>
             <span class="shrink-0 font-mono text-faint">
               @if (mainMode() === 'pages') {
-                ({{ selectedPages().size }} de {{ pageCount() }} páginas selecionadas)
+                ({{ selectedPages().size }} {{ i18n.t()['pdf.page_of'] }} {{ pageCount() }} {{ i18n.t()['common.pages_selected'] }})
               } @else {
                 ({{ pageCount() }} {{ i18n.t()['cpdf.pages'] }} · {{ originalSize() }})
               }
@@ -77,7 +80,7 @@
         @if (renderingThumbs()) {
           <div class="flex-1 flex flex-col items-center justify-center gap-3 py-16">
             <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
-            <p class="text-sm font-medium text-muted">Gerando miniaturas…</p>
+            <p class="text-sm font-medium text-muted">{{ i18n.t()['splitpdf.thumbs_working'] }}</p>
           </div>
         } @else {
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[62vh] overflow-y-auto pr-1">
@@ -168,7 +171,7 @@
                 @for (range of customRanges(); track $index) {
                   <div class="flex flex-col gap-1.5 p-2.5 rounded-lg border border-line bg-raised">
                     <div class="flex items-center justify-between text-xs">
-                      <span class="font-medium text-text">Intervalo {{ $index + 1 }}</span>
+                      <span class="font-medium text-text">{{ i18n.t()['splitpdf.range'] }} {{ $index + 1 }}</span>
                       @if (customRanges().length > 1) {
                         <button
                           type="button"
@@ -182,8 +185,9 @@
 
                     <div class="grid grid-cols-2 gap-2">
                       <div class="flex flex-col gap-1">
-                        <label class="text-[11px] text-faint">Página inicial</label>
+                        <label class="text-[11px] text-faint">{{ i18n.t()['splitpdf.range_from'] }}</label>
                         <input
+                          [attr.aria-label]="i18n.t()['splitpdf.range_from']"
                           type="number"
                           min="1"
                           [max]="pageCount()"
@@ -193,8 +197,9 @@
                         />
                       </div>
                       <div class="flex flex-col gap-1">
-                        <label class="text-[11px] text-faint">Página final</label>
+                        <label class="text-[11px] text-faint">{{ i18n.t()['splitpdf.range_to'] }}</label>
                         <input
+                          [attr.aria-label]="i18n.t()['splitpdf.range_to']"
                           type="number"
                           min="1"
                           [max]="pageCount()"
@@ -236,6 +241,7 @@
                 <label class="text-xs text-muted">{{ i18n.t()['splitpdf.fixed_every'] }}</label>
                 <div class="flex items-center gap-2">
                   <input
+                    [attr.aria-label]="i18n.t()['splitpdf.fixed_every']"
                     type="number"
                     min="1"
                     [max]="pageCount()"
@@ -291,16 +297,16 @@
         </div>
 
         <div class="mt-2 flex justify-between text-sm">
-          <span class="text-muted">Arquivos a gerar</span>
+          <span class="text-muted">{{ i18n.t()['common.files_to_make'] }}</span>
           <span class="font-mono text-text tabular">{{ estimatedPdfCount() }}</span>
         </div>
 
         @if (result(); as res) {
           <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
             <span class="text-sm font-medium text-success">
-              {{ res.isZip ? 'Arquivo ZIP gerado' : 'PDF gerado' }}
+              {{ res.isZip ? i18n.t()['splitpdf.done_zip'] : i18n.t()['splitpdf.done_pdf'] }}
             </span>
-            <span class="font-mono text-sm font-medium text-success tabular">{{ res.pdfCount }} arquivo(s)</span>
+            <span class="font-mono text-sm font-medium text-success tabular">{{ res.pdfCount }} {{ i18n.t()['common.n_files'] }}</span>
           </div>
         }
       </app-panel>

@@ -1,8 +1,11 @@
 <app-tool-page [toolId]="'pdf-to-img'" [forceLoaded]="!!file()">
   <!-- Error Banners -->
-  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || !!thumbsWarning()">
     @if (errorKey(); as key) {
       <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+    @if (thumbsWarning(); as key) {
+      <app-alert [message]="i18n.t()[key]" tone="info" dismissible (dismiss)="thumbsWarning.set(null)" />
     }
   </div>
 
@@ -32,7 +35,7 @@
           <div class="flex items-center gap-2 min-w-0">
             <span class="truncate font-medium text-text">{{ file()?.name }}</span>
             <span class="shrink-0 font-mono text-faint">
-              ({{ selectedCount() }} de {{ pageCount() }} páginas selecionadas)
+              ({{ selectedCount() }} {{ i18n.t()['pdf.page_of'] }} {{ pageCount() }} {{ i18n.t()['common.pages_selected'] }})
             </span>
           </div>
 
@@ -106,7 +109,7 @@
 
                 <!-- Page Number Badge -->
                 <span class="mt-2 font-mono text-xs text-muted group-hover:text-text transition-colors">
-                  Página {{ thumb.index }}
+                  {{ i18n.t()['common.page_n'] }} {{ thumb.index }}
                 </span>
               </div>
             }
@@ -165,28 +168,28 @@
 
         <!-- Summary Statistics Table -->
         <div class="mt-4 flex justify-between border-t border-line pt-3 text-sm">
-          <span class="text-muted">Páginas selecionadas</span>
+          <span class="text-muted">{{ i18n.t()['common.pages_selected_label'] }}</span>
           <span class="font-mono text-text tabular">{{ selectedCount() }} / {{ pageCount() }}</span>
         </div>
 
         <div class="mt-2 flex justify-between text-sm">
-          <span class="text-muted">Formato final</span>
+          <span class="text-muted">{{ i18n.t()['pdf2img.final_format'] }}</span>
           <span class="font-mono text-text tabular uppercase">{{ format() }}</span>
         </div>
 
         <div class="mt-2 flex justify-between text-sm">
-          <span class="text-muted">Arquivos a gerar</span>
+          <span class="text-muted">{{ i18n.t()['common.files_to_make'] }}</span>
           <span class="font-mono text-text tabular">
-            {{ selectedCount() === 1 ? '1 imagem' : selectedCount() + ' imagens (.ZIP)' }}
+            {{ selectedCount() === 1 ? i18n.t()['pdf2img.one_image'] : selectedCount() + ' ' + i18n.t()['pdf2img.n_images'] }}
           </span>
         </div>
 
         @if (result(); as res) {
           <div class="mt-3 flex items-center justify-between rounded-md bg-success-soft px-3 py-2">
             <span class="text-sm font-medium text-success">
-              {{ res.isZip ? 'Imagens geradas em ZIP' : 'Imagem gerada' }}
+              {{ res.isZip ? i18n.t()['pdf2img.done_zip'] : i18n.t()['pdf2img.done_one'] }}
             </span>
-            <span class="font-mono text-sm font-medium text-success tabular">{{ res.imageCount }} arquivo(s)</span>
+            <span class="font-mono text-sm font-medium text-success tabular">{{ res.imageCount }} {{ i18n.t()['common.n_files'] }}</span>
           </div>
         }
       </app-panel>

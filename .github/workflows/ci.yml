@@ -64,6 +64,14 @@ jobs:
           npx tsc -p tsconfig.spec.json --noEmit
           npx tsc -p tsconfig.e2e.json --noEmit
 
+      # As duas coisas que o compilador NÃO enxerga dentro de um template: a
+      # frase que nunca virou chave de dicionário (e por isso aparece em
+      # português na interface em inglês) e o campo de formulário cujo <label>
+      # é irmão em vez de envolvê-lo — rotulado na tela, anônimo para o leitor
+      # de tela. Nenhuma das duas dá erro de tipo; as duas já passaram em massa.
+      - name: Templates (i18n + rótulo acessível)
+        run: npm run check:templates
+
       - name: Unit tests
         run: npm test -- --watch=false --browsers=ChromeHeadless
 

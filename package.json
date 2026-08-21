@@ -15,7 +15,8 @@
     "postinstall": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs",
     "prebuild": "node scripts/fetch-model.mjs && node scripts/fetch-tessdata.mjs && node scripts/generate-sitemap.mjs && node scripts/generate-llms.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
-    "llms": "node scripts/generate-llms.mjs"
+    "llms": "node scripts/generate-llms.mjs",
+    "check:templates": "node scripts/check-templates.mjs"
   },
   "private": true,
   "dependencies": {
@@ -30,14 +31,12 @@
     "@angular/service-worker": "^19.2.25",
     "@angular/ssr": "^19.2.27",
     "@breezystack/lamejs": "^1.2.7",
-    "@fontsource/inter": "^5.2.8",
     "@fontsource/nunito": "^5.2.7",
     "cropperjs": "^1.6.1",
     "docx": "^9.7.1",
     "fflate": "^0.8.3",
     "file-saver": "^2.0.5",
     "jspdf": "^4.2.1",
-    "lamejs": "^1.2.1",
     "onnxruntime-web": "^1.27.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.1.200",

@@ -220,6 +220,7 @@
             </button>
             <input
               type="text"
+              [attr.aria-label]="i18n.t()['cut_audio.zoom']"
               class="min-w-0 flex-1 border-none bg-transparent py-2 text-center text-sm font-medium tabular outline-none"
               [value]="zoomPercent()"
               (change)="setZoomFromInput($any($event.target))"

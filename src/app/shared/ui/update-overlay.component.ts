@@ -24,8 +24,8 @@ import { IconComponent } from './icon/icon.component';
         </div>
 
         <div class="flex flex-col gap-0.5 text-xs text-text">
-          <span class="font-semibold text-text">Nova versão disponível</span>
-          <span class="text-2xs text-muted">Atualização pronta em segundo plano.</span>
+          <span class="font-semibold text-text">{{ i18n.t()['update.available'] }}</span>
+          <span class="text-2xs text-muted">{{ i18n.t()['update.ready'] }}</span>
         </div>
 
         <div class="ml-auto flex items-center gap-1">
@@ -34,13 +34,13 @@ import { IconComponent } from './icon/icon.component';
             (click)="update.applyUpdate()"
             class="rounded-lg bg-accent px-2.5 py-1.5 text-2xs font-semibold text-white shadow-sm hover:bg-accent-hover transition-all"
           >
-            Atualizar
+            {{ i18n.t()['update.apply'] }}
           </button>
           <button
             type="button"
             (click)="dismissed.set(true)"
             class="rounded-lg p-1 text-muted hover:bg-raised hover:text-text transition-all"
-            aria-label="Fechar"
+            [attr.aria-label]="i18n.t()['common.dismiss']"
           >
             <app-icon name="close" [size]="14" />
           </button>
