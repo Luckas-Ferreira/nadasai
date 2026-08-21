@@ -725,6 +725,110 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'office-metadata': {
+    pt: [
+      {
+        h: 'Onde os metadados moram',
+        p: [
+          'Um .docx, .xlsx ou .pptx é um arquivo zip com XML dentro, e as propriedades ficam em dois lugares previsíveis. Em docProps/core.xml estão autor, último a salvar, título, assunto, palavras-chave e as datas de criação e modificação. Em docProps/app.xml estão empresa, gerente, programa que gerou, modelo usado e o tempo total de edição.',
+          'Nenhum desses campos aparece ao abrir o documento. Todos aparecem ao clicar com o botão direito no arquivo e olhar as propriedades — que é o que a pessoa do outro lado faz.',
+        ],
+      },
+      {
+        h: 'Como limpar',
+        p: [
+          'A tabela mostra tudo o que foi encontrado, com os campos que identificam você em destaque e no topo — porque é por eles que se chega aqui.',
+        ],
+        steps: [
+          'Solte o .docx, .xlsx ou .pptx na área de upload.',
+          'Leia a tabela. O painel conta quantos campos existem e quantos deles identificam alguém.',
+          'Apague. A tabela é RELIDA a partir do arquivo limpo, então o que você vê depois é o que de fato sobrou.',
+          'Baixe a cópia limpa. O original no seu disco não é tocado.',
+        ],
+      },
+      {
+        h: 'Os três campos que mais vazam',
+        p: [
+          'ÚLTIMO A SALVAR é o pior. Ele guarda o nome de usuário do computador em que o arquivo foi gravado pela última vez, e num currículo enviado a dez empresas isso costuma ser o nome do PC de casa. Não é o nome que você escolheu pôr no documento; é o que o sistema operacional sabe sobre você.',
+          'EMPRESA guarda o nome da organização configurada na instalação do Office. Uma proposta comercial feita a partir do arquivo de outro cliente carrega o nome desse cliente, e é assim que se descobre que uma proposta foi reaproveitada.',
+          'TEMPO TOTAL DE EDIÇÃO diz quantos minutos o documento ficou aberto. Já foi usado para contestar prazo e para questionar quanto trabalho um entregável de fato deu.',
+        ],
+      },
+      {
+        h: 'A limpeza não decodifica o documento',
+        p: [
+          'Só os dois arquivos de propriedades são reescritos. Todas as outras entradas do zip — o texto, as imagens, as fórmulas, os estilos — são copiadas byte a byte, exatamente como saíram do arquivo original.',
+          'É a mesma escolha da remoção de EXIF, e pelo mesmo motivo: qualquer coisa que decodifique e regrave o conteúdo é um segundo lugar onde o documento pode se degradar. Aqui não há segundo lugar. Um teste de unidade compara as entradas byte a byte para garantir que continue assim.',
+        ],
+      },
+      {
+        h: 'Vazio em vez de removido',
+        p: [
+          'Os elementos são esvaziados, não apagados. O Office recria os que faltam na próxima gravação, e leitores mais estritos reclamam de um core.xml sem os elementos obrigatórios do Dublin Core.',
+          'Um elemento vazio não carrega informação nenhuma — a diferença entre esvaziar e remover é de forma, não de privacidade. Uma busca pelos bytes do arquivo inteiro não acha mais o nome, e é isso que o teste verifica.',
+        ],
+      },
+      {
+        h: 'O que a ferramenta não faz',
+        p: [
+          'Não mexe em comentários, em alterações controladas nem no histórico de revisões — essas coisas moram no corpo do documento, não nas propriedades, e apagá-las é editar o documento. Se o seu arquivo tem controle de alterações ligado, aceite-as ou rejeite-as no Word antes de enviar.',
+          'Também não toca em imagens embutidas: uma foto com EXIF dentro de um .docx continua com EXIF. Para isso, extraia a imagem e passe pela remoção de EXIF, que é byte a byte e está a uma navegação daqui.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha — o que importa especialmente aqui, onde o arquivo é justamente aquele que você não quer que outra pessoa leia.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'Where the metadata lives',
+        p: [
+          'A .docx, .xlsx or .pptx is a zip file with XML inside, and the properties sit in two predictable places. docProps/core.xml holds author, last modified by, title, subject, keywords and the creation and modification dates. docProps/app.xml holds company, manager, the application that produced it, the template used and the total editing time.',
+          'None of those fields shows when you open the document. All of them show when you right-click the file and look at its properties — which is what the person on the other end does.',
+        ],
+      },
+      {
+        h: 'How to clean it',
+        p: [
+          'The table shows everything found, with the fields that identify you highlighted and at the top — because those are what brought you here.',
+        ],
+        steps: [
+          'Drop the .docx, .xlsx or .pptx on the upload area.',
+          'Read the table. The panel counts how many fields exist and how many of them identify someone.',
+          'Erase. The table is RE-READ from the cleaned file, so what you see afterwards is what actually survived.',
+          'Download the clean copy. The original on your disk is untouched.',
+        ],
+      },
+      {
+        h: 'The three fields that leak most',
+        p: [
+          'LAST MODIFIED BY is the worst. It holds the username of the computer the file was last saved on, and on a résumé sent to ten employers that is usually the name of the home PC. It is not the name you chose to put in the document; it is what the operating system knows about you.',
+          'COMPANY holds the organisation name configured in the Office installation. A proposal built from another client’s file carries that client’s name, and that is how people find out a proposal was recycled.',
+          'TOTAL EDITING TIME says how many minutes the document was open. It has been used to contest deadlines and to question how much work a deliverable actually took.',
+        ],
+      },
+      {
+        h: 'The clean does not decode the document',
+        p: [
+          'Only the two property files are rewritten. Every other entry in the zip — the text, the images, the formulas, the styles — is copied byte for byte, exactly as it came out of the original file.',
+          'It is the same choice EXIF stripping makes, for the same reason: anything that decodes and re-saves the content is a second place where the document can degrade. Here there is no second place. A unit test compares the entries byte for byte to keep it that way.',
+        ],
+      },
+      {
+        h: 'Emptied rather than removed',
+        p: [
+          'The elements are emptied, not deleted. Office recreates missing ones on the next save, and stricter readers complain about a core.xml without the required Dublin Core elements.',
+          'An empty element carries no information — the difference between emptying and removing is one of form, not of privacy. A search through the bytes of the whole file no longer finds the name, and that is what the test checks.',
+        ],
+      },
+      {
+        h: 'What the tool does not do',
+        p: [
+          'It does not touch comments, tracked changes or revision history — those live in the body of the document, not in the properties, and erasing them is editing the document. If your file has track changes on, accept or reject them in Word before sending it.',
+          'It also does not touch embedded images: a photo with EXIF inside a .docx still has its EXIF. For that, extract the image and run it through EXIF removal, which is byte for byte and one navigation away.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work — which matters especially here, where the file is precisely the one you do not want somebody else reading.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

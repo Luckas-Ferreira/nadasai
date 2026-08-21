@@ -1093,6 +1093,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'office-metadata': {
+    pt: {
+      features: [
+        'Lê .docx, .xlsx e .pptx — Word, Excel e PowerPoint',
+        'Mostra autor, último a salvar, empresa e tempo de edição',
+        'O conteúdo sai byte a byte igual; só as propriedades são reescritas',
+        'A tabela é relida depois da limpeza, em vez de prometer',
+      ],
+      faq: [
+        {
+          q: 'Que informação um .docx guarda sobre mim?',
+          a: 'Mais do que a maioria das pessoas imagina. O campo "último a salvar" guarda o nome de usuário do computador em que o arquivo foi gravado pela última vez; "empresa" guarda o nome da organização configurada no Office; e "tempo total de edição" diz quantos minutos o documento ficou aberto. Um currículo enviado a dez empresas costuma carregar o nome do PC de casa, e uma proposta feita a partir do arquivo de outro cliente costuma carregar o nome dele.',
+        },
+        {
+          q: 'A limpeza estraga o documento?',
+          a: 'Não. Um arquivo do Office é um zip com XML dentro, e a limpeza reescreve apenas os dois arquivos de propriedades. Todas as outras entradas — o texto, as imagens, as fórmulas, a formatação — são copiadas byte a byte, sem serem decodificadas em momento nenhum. O arquivo abre no Office exatamente como antes.',
+        },
+        {
+          q: 'Por que os campos ficam vazios em vez de sumirem?',
+          a: 'Porque o Office recria os elementos que faltam na próxima gravação, e alguns leitores estritos reclamam de um core.xml sem os elementos obrigatórios do Dublin Core. Um elemento vazio não carrega informação nenhuma e não quebra ninguém — a diferença é de forma, não de privacidade.',
+        },
+        {
+          q: 'E se eu quiser manter o título do documento?',
+          a: 'O título é o único campo que costuma ser legítimo num arquivo publicado, e a limpeza aceita uma lista do que preservar. Os demais campos identificadores — autor, último a salvar, empresa, gerente — são o alvo da ferramenta e saem por padrão.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Reads .docx, .xlsx and .pptx — Word, Excel and PowerPoint',
+        'Shows author, last-modified-by, company and editing time',
+        'The content comes out byte for byte identical; only properties are rewritten',
+        'The table is re-read after cleaning, rather than promising',
+      ],
+      faq: [
+        {
+          q: 'What does a .docx store about me?',
+          a: 'More than most people expect. The "last modified by" field stores the username of the computer the file was last saved on; "company" stores the organisation name configured in Office; and "total editing time" says how many minutes the document was open. A résumé sent to ten employers usually carries the name of the home PC, and a proposal built from another client’s file usually carries their name.',
+        },
+        {
+          q: 'Does cleaning damage the document?',
+          a: 'No. An Office file is a zip with XML inside, and the clean rewrites only the two property files. Every other entry — the text, the images, the formulas, the formatting — is copied byte for byte, never decoded at any point. The file opens in Office exactly as before.',
+        },
+        {
+          q: 'Why are the fields emptied rather than deleted?',
+          a: 'Because Office recreates missing elements on the next save, and some strict readers complain about a core.xml without the required Dublin Core elements. An empty element carries no information and breaks nobody — the difference is one of form, not of privacy.',
+        },
+        {
+          q: 'What if I want to keep the document title?',
+          a: 'The title is the one field that is often legitimate on a published file, and the clean accepts a list of fields to preserve. The other identifying fields — author, last modified by, company, manager — are what the tool is for, and they go by default.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

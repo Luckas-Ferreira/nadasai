@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 44 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 45 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -61,6 +61,7 @@ Nada Sai provides 44 tools across 5 modules, all of which run entirely offline i
 - [Censurar imagem / Tarja preta / Redact image / Black bar](https://nadasai.com/pt/privacidade/censurar-imagem): Draw black bars over sensitive details — ID numbers, card numbers, addresses and faces.
 - [Comparar textos (Diff) / Text diff checker](https://nadasai.com/pt/privacidade/comparar-texto): Paste or drop your two texts into the side-by-side comparison panes (original on the left, modified on the right).
 - [Censurar PDF / Tarja preta / Redact PDF / Black bar](https://nadasai.com/pt/privacidade/censurar-pdf): Because standard PDF editors simply place a visual vector rectangle on top of the existing text.
+- [Metadados do Office / Office metadata](https://nadasai.com/pt/privacidade/metadados-office): See and erase what a Word, Excel or PowerPoint file says about you.
 - [Limpar metadados do PDF / Clean PDF metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): PDF files routinely embed the creator’s real name, organization, authoring software (e.g.
 - [Criptografar texto (AES-256) / Encrypt text (AES-256)](https://nadasai.com/pt/privacidade/criptografar-texto): Type your message, enter a secret password, and click to generate a Base64-armored text envelope with header tags.
 - [QR Code (Gerador & Leitor) / QR Code (Generator & Scanner)](https://nadasai.com/pt/privacidade/qr-code): Select your data type (URL, Wi-Fi credentials, Pix payment, vCard contact, email, or plain text), enter your content, and customize colors and margins.
