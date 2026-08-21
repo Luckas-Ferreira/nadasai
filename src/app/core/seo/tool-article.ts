@@ -321,6 +321,106 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'audio-channels': {
+    pt: [
+      {
+        h: 'As cinco operações',
+        p: [
+          'Misturar em mono tira a média dos canais. Alargar para estéreo duplica o sinal. Extrair o esquerdo ou o direito grava aquele lado sozinho, sem tocar nas amostras. Trocar os lados inverte esquerdo e direito. São cinco contas curtas em Float32, sem dependência nenhuma, e é por isso que a ferramenta é instantânea mesmo num arquivo longo.',
+          'Quais aparecem depende do arquivo. Num mono não existe canal direito para extrair nem lados para trocar, então só sobra alargar — mostrar três botões que não fazem nada seria pedir que você descobrisse isso sozinho.',
+        ],
+      },
+      {
+        h: 'Como usar',
+        p: [
+          'O desenho no centro da tela é a operação: quantas caixas entram, quantas saem. Ele muda junto com a escolha, antes de qualquer processamento.',
+        ],
+        steps: [
+          'Solte o áudio na área de upload, ou traga um da cadeia — de cortar, juntar ou extrair de vídeo.',
+          'Escolha a operação. O painel explica o que ela faz com este arquivo em particular.',
+          'Escolha a saída: WAV, que é sem perda, ou MP3, para enviar.',
+          'Gere e baixe. O nome do arquivo diz qual operação produziu ele.',
+        ],
+      },
+      {
+        h: 'O problema do lado mudo',
+        p: [
+          'É o caso mais comum que traz alguém aqui: uma entrevista gravada com um microfone só, um arquivo que veio de uma placa de captura, um vídeo em que o áudio só sai de um fone. Misturar em mono resolve o sintoma pela metade — o áudio passa a sair dos dois lados, mas com metade do nível, porque a média de "som" e "silêncio" é meio som.',
+          'A resposta certa é extrair o lado que tem som e, se precisar de dois canais, alargar depois. Assim o nível fica onde estava e o resultado sai nas duas caixas. A ferramenta mostra a duração, a taxa de amostragem e o cancelamento medido antes de você decidir.',
+        ],
+      },
+      {
+        h: 'Cancelamento de fase — por que existe o aviso',
+        p: [
+          'Se os dois canais tiverem o mesmo material em oposição de fase, a média os apaga. O número no painel mede exatamente isso: quanto da energia se perde ao somar os lados. Perto de zero, misturar é seguro; alto, a mistura vai sair mais baixa e partes do som podem sumir por completo.',
+          'Isso é propriedade do sinal, não da conta, e por isso não há botão de corrigir. Inverter a fase de um canal resolveria alguns arquivos e destruiria outros; escolher por você seria adivinhar. O produto prefere medir e dizer — o mesmo princípio do limitador da normalização, que avisa quando entrou em ação em vez de prometer um número que o arquivo não tem.',
+        ],
+      },
+      {
+        h: 'WAV ou MP3',
+        p: [
+          'WAV é o padrão porque torna a operação sem perda de ponta a ponta: as amostras que saíram do decodificador são exatamente as que vão para o arquivo. Extrair um canal de um WAV e gravar WAV não descarta nada.',
+          'MP3 acrescenta uma geração de compressão, e é oferecido porque o caso comum termina num arquivo que vai para alguém. Se o áudio ainda vai ser editado — cortado, normalizado, juntado — fique no WAV e converta uma vez, no fim: cada regravação em MP3 empilha perda.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é áudio e entra na cadeia inteira do módulo: separar e então normalizar, cortar, juntar ou comprimir acontece sem passar pelo disco. Extrair os dois lados como arquivos separados é rodar duas vezes — o sufixo do nome distingue um do outro na pasta de download sem precisar abrir nenhum.',
+          'A decodificação é a do próprio navegador e a aritmética roda na sua máquina. Nada é enviado, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'The five operations',
+        p: [
+          'Mixing to mono averages the channels. Widening to stereo duplicates the signal. Extracting left or right writes that side alone, without touching the samples. Swapping inverts left and right. Five short pieces of Float32 arithmetic with no dependency at all, which is why the tool is instant even on a long file.',
+          'Which ones appear depends on the file. A mono file has no right channel to extract and no sides to swap, so only widening is left — showing three buttons that do nothing would be asking you to work that out yourself.',
+        ],
+      },
+      {
+        h: 'How to use it',
+        p: [
+          'The diagram in the middle of the screen is the operation: how many boxes go in, how many come out. It changes with your choice, before any processing happens.',
+        ],
+        steps: [
+          'Drop the audio on the upload area, or bring one in through the chain — from cut, merge or extract-from-video.',
+          'Pick the operation. The panel explains what it does to this particular file.',
+          'Pick the output: WAV, which is lossless, or MP3, to send.',
+          'Generate and download. The filename says which operation produced it.',
+        ],
+      },
+      {
+        h: 'The silent-side problem',
+        p: [
+          'It is the most common reason people arrive here: an interview recorded with a single microphone, a file that came off a capture card, a video whose audio only reaches one earbud. Mixing to mono half-solves it — the audio now comes out of both sides, but at half the level, because the average of "sound" and "silence" is half the sound.',
+          'The right answer is to extract the side that has sound and, if you need two channels, widen afterwards. The level stays where it was and the result plays on both speakers. The tool shows length, sample rate and measured cancellation before you decide.',
+        ],
+      },
+      {
+        h: 'Phase cancellation — why the warning exists',
+        p: [
+          'If both channels carry the same material in opposite phase, the average erases it. The number in the panel measures exactly that: how much energy is lost when the sides are summed. Near zero, mixing is safe; high, the mix will come out quieter and parts of the sound can disappear entirely.',
+          'This is a property of the signal, not of the maths, which is why there is no fix button. Flipping the phase of one channel would rescue some files and destroy others; choosing for you would be guessing. The product prefers to measure and say so — the same principle as the limiter in the normaliser, which reports when it engaged rather than promising a number the file does not have.',
+        ],
+      },
+      {
+        h: 'WAV or MP3',
+        p: [
+          'WAV is the default because it makes the operation lossless end to end: the samples that came out of the decoder are exactly the ones written to the file. Extracting a channel from a WAV and writing WAV discards nothing.',
+          'MP3 adds one generation of compression, and is offered because the common case ends in a file that goes to someone. If the audio will still be edited — cut, normalised, joined — stay in WAV and convert once at the end: every MP3 re-save stacks loss.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is audio and joins the whole module chain: splitting and then normalising, cutting, joining or compressing happens without touching the disk. Extracting both sides as separate files means running it twice — the filename suffix tells them apart in the downloads folder without opening either.',
+          'The decoding is the browser’s own and the arithmetic runs on your machine. Nothing is uploaded, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

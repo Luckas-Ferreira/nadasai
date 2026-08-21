@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 40 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 41 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -40,6 +40,7 @@ Nada Sai provides 40 tools across 5 modules, all of which run entirely offline i
 - [Converter áudio / Convert audio](https://nadasai.com/pt/audio/converter): Upload your audio track, choose your target format (MP3, WAV, OGG, or M4A), and select your desired bitrate and channel configuration.
 - [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Select your target bitrate and optionally enable mono downmixing for spoken word.
 - [Normalizar Áudio / Normalize Audio](https://nadasai.com/pt/audio/normalizar): Drop your file into Loudness (LUFS) mode: the tool scans perceived loudness across the track, calculates required decibel gain, and applies a transparent look-ahead limiter to prevent distortion and clipping on sudden peaks.
+- [Separar canais / Split channels](https://nadasai.com/pt/audio/separar-canais): Stereo to mono, one side on its own, or the sides swapped.
 
 ## video
 

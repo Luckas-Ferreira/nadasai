@@ -13,6 +13,7 @@ export type ToolId =
   | 'convert-audio'
   | 'compress-audio'
   | 'normalize-audio'
+  | 'audio-channels'
   | 'video-to-audio'
   | 'video-to-gif'
   | 'video-to-frames'
@@ -428,6 +429,31 @@ export const TOOLS: readonly ToolDef[] = [
       'animated gif', 'webm to gif', 'mov to gif', 'screen recording to gif',
       'gif without watermark', 'video gif converter', 'create gif from video',
       'trim video to gif', 'screen capture to gif'
+    ],
+  },
+  {
+    id: 'audio-channels',
+    pathPt: 'audio/separar-canais',
+    pathEn: 'audio/split-channels',
+    icon: 'split',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.audio_channels',
+    shortKey: 'nav.short.audio_channels',
+    titleKey: 'channels.title',
+    descKey: 'channels.subtitle',
+    suffix: 'canais',
+    tone: 'teal',
+    keywordsPt: [
+      'separar canais audio', 'estereo para mono', 'mono para estereo', 'extrair canal esquerdo',
+      'extrair canal direito', 'converter para mono', 'audio so de um lado', 'trocar canais',
+      'inverter canais', 'downmix', 'audio desbalanceado', 'canal mudo'
+    ],
+    keywordsEn: [
+      'split audio channels', 'stereo to mono', 'mono to stereo', 'extract left channel',
+      'extract right channel', 'convert to mono', 'audio only one side', 'swap channels',
+      'downmix stereo', 'channel splitter', 'fix one sided audio'
     ],
   },
   {
