@@ -1,4 +1,5 @@
 import { AppError } from '../errors';
+import { canvasToBlob } from '../image/image-file.util';
 import { probeVideo } from './video-file.util';
 
 /**
@@ -235,4 +236,85 @@ export async function sampleFramePixels(
   } finally {
     reader.release();
   }
+}
+
+/**
+ * Um `<video>` aberto UMA vez, do qual se pede quadro avulso por posição.
+ *
+ * `forEachFrame` abre um leitor por chamada — um `probeVideo` e um decode
+ * inteiros —, o que é certo para percorrer um intervalo e caro demais para uma
+ * régua que pede um quadro por arrasto. Aqui o elemento fica aberto e cada
+ * pedido é só uma busca, que é o que torna a troca do quadro de referência do
+ * recorte instantânea depois da primeira.
+ *
+ * O quadro sai no tamanho NATURAL do vídeo, e isso não é detalhe: quem recorta
+ * converte o retângulo desenhado em pixels do arquivo, e uma escala no meio
+ * seria mais uma conversão para errar.
+ */
+export interface FramePicker {
+  readonly width: number;
+  readonly height: number;
+  readonly duration: number;
+  frameAt(seconds: number): Promise<Blob>;
+  release(): void;
+}
+
+export async function openFramePicker(file: File): Promise<FramePicker> {
+  const probe = await probeVideo(file);
+
+  const url = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.preload = 'auto';
+  video.muted = true;
+  video.playsInline = true;
+  video.src = url;
+
+  await new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new AppError('video_decode_failed')), SEEK_TIMEOUT_MS);
+    video.onloadeddata = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    video.onerror = () => {
+      clearTimeout(timer);
+      reject(new AppError('video_decode_failed'));
+    };
+  });
+
+  // As dimensões do ELEMENTO, não as do probe: o probe devolve zero em arquivo
+  // sem metadado completo — foi assim que o vídeo para GIF saiu 16:9 sobre um
+  // vídeo 4:3 — e aqui uma proporção errada deslocaria o recorte inteiro.
+  const width = video.videoWidth || probe.width;
+  const height = video.videoHeight || probe.height;
+  if (width < 2 || height < 2) throw new AppError('video_decode_failed');
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) throw new AppError('video_decode_failed');
+
+  return {
+    width,
+    height,
+    duration: probe.duration,
+
+    async frameAt(seconds: number): Promise<Blob> {
+      // Nunca a duração exata: alguns navegadores devolvem o fim do vídeo e
+      // outros um quadro preto. Mesmo cuidado do laço de quadros.
+      const at = Math.min(Math.max(0, seconds), Math.max(0, probe.duration - 0.001));
+      await seekTo(video, at);
+      ctx.drawImage(video, 0, 0, width, height);
+      return canvasToBlob(canvas, 'image/png');
+    },
+
+    release: () => {
+      video.removeAttribute('src');
+      video.load();
+      URL.revokeObjectURL(url);
+      canvas.width = 0;
+      canvas.height = 0;
+    },
+  };
 }
