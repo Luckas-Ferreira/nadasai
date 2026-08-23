@@ -1,0 +1,134 @@
+<app-tool-page [toolId]="'id-photo'">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+  </div>
+
+  <div stage>
+    @if (!sourceUrl()) {
+      <app-dropzone
+        [titleKey]="'idphoto.drag'"
+        [hintKey]="'idphoto.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-stage-line bg-stage">
+        <!-- A cropper.js com a proporção TRAVADA no formato escolhido: é o que
+             impede enquadrar um retângulo e receber outro. -->
+        <div class="flex min-h-[420px] items-center justify-center p-4">
+          <img #photo [src]="sourceUrl()" [alt]="i18n.t()['idphoto.frame_alt']" class="block max-w-full" />
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-stage-line bg-surface px-4 py-3">
+          <p class="truncate text-xs text-muted">{{ i18n.t()['idphoto.hint'] }}</p>
+
+          <span class="shrink-0 font-mono text-xs tabular text-faint">
+            {{ photoPixels().w }} × {{ photoPixels().h }} px
+          </span>
+        </div>
+
+        @if (busy()) {
+          <div class="flex flex-col items-center gap-3 border-t border-stage-line bg-surface px-4 py-5">
+            <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+            <p class="text-sm text-muted" aria-live="polite">{{ i18n.t()['idphoto.working'] }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (sourceUrl()) {
+      <app-panel [heading]="i18n.t()['idphoto.panel_format']">
+        <app-segmented
+          [options]="formatOptions()"
+          [value]="format()"
+          (valueChange)="setFormat($event)"
+          [columns]="2"
+        />
+
+        <button appButton variant="ghost" size="sm" class="mt-3 w-full" (click)="resetBox()">
+          {{ i18n.t()['idphoto.reset_box'] }}
+        </button>
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['idphoto.size'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ physicalLabel() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['idphoto.pixels'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ photoPixels().w }} × {{ photoPixels().h }}
+            </dd>
+          </div>
+        </dl>
+
+        <!-- O que separa esta ferramenta do recortar: a medida é física. -->
+        <p class="mt-3 text-xs leading-relaxed text-muted">{{ i18n.t()['idphoto.dpi_note'] }}</p>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['idphoto.panel_sheet']">
+        <app-segmented
+          [options]="sheetOptions()"
+          [value]="sheet()"
+          (valueChange)="setSheet($event)"
+          [columns]="3"
+        />
+
+        <dl class="mt-4 flex flex-col gap-2 border-t border-line pt-3 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['idphoto.copies'] }}</dt>
+            <dd class="font-mono text-text tabular">
+              {{ layout().count }}
+              @if (layout().count > 1) {
+                <span class="text-faint">· {{ layout().cols }} × {{ layout().rows }}</span>
+              }
+            </dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['idphoto.result'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ resultSize() }}</dd>
+          </div>
+        </dl>
+
+        @if (layout().count > 1) {
+          <p class="mt-3 text-xs leading-relaxed text-muted">{{ i18n.t()['idphoto.sheet_note'] }}</p>
+        }
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['idphoto.panel_output']">
+        <app-segmented
+          [options]="outputOptions()"
+          [value]="output()"
+          (valueChange)="setOutput($event)"
+          [columns]="2"
+        />
+
+        <!-- Só o PDF carrega o tamanho físico. Um JPEG carrega pixels, e quem
+             decide o tamanho impresso é o programa de impressão. -->
+        <p class="mt-3 text-xs leading-relaxed text-muted">{{ i18n.t()['idphoto.pdf_note'] }}</p>
+
+        <p class="mt-3 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+          {{ i18n.t()['idphoto.bg_note'] }}
+        </p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'id-photo'"
+        [resultKind]="resultKind()"
+        [primaryLabel]="stale() ? i18n.t()['idphoto.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
