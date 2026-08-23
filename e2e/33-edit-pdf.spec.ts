@@ -103,11 +103,19 @@ test.describe('Editor de PDF', () => {
 
     // Só as páginas perto da viewport guardam canvas; as outras são liberadas e
     // rasterizadas de novo ao voltar. Navegar é o caminho que exercita isso.
+    //
+    // O indicador do EDITOR ("Página N de 6", com acento), nunca o texto
+    // impresso na página ("Pagina N de 6", sem acento, que é o que a fixture
+    // escreve). A asserção era sobre o segundo, e ela passava no Windows e
+    // reprovava no Linux do CI em toda execução: o agrupamento de blocos do
+    // pdf.js depende das métricas de fonte da plataforma, e lá a etiqueta
+    // chegava quebrada em "Pagina de 6" + "2". O acento é o que separa os
+    // dois, e o indicador é o que este teste queria conferir desde sempre.
     await page.getByRole('button', { name: 'Próxima página' }).click();
-    await expect(page.getByText('Pagina 2 de 6').first()).toBeVisible(READY);
+    await expect(page.getByText('Página 2 de 6').first()).toBeVisible(READY);
 
     await page.getByRole('button', { name: 'Página anterior' }).click();
-    await expect(page.getByText('Pagina 1 de 6').first()).toBeVisible(READY);
+    await expect(page.getByText('Página 1 de 6').first()).toBeVisible(READY);
   });
 
   test('rejects a file that is not a PDF', async ({ page }) => {
