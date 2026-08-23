@@ -20,6 +20,8 @@ export type ToolId =
   | 'video-to-frames'
   | 'crop-video'
   | 'trim-video'
+  | 'convert-video'
+  | 'compress-video'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -568,6 +570,58 @@ export const TOOLS: readonly ToolDef[] = [
       'crop video', 'square video', 'video for instagram', 'vertical video',
       '9:16 video', 'change video aspect ratio', 'trim video edges', 'video for tiktok',
       'video for reels', 'remove black bars', 'resize video frame'
+    ],
+  },
+  {
+    id: 'convert-video',
+    pathPt: 'video/converter',
+    pathEn: 'video/convert',
+    icon: 'convert',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.convert_video',
+    shortKey: 'nav.short.convert_video',
+    titleKey: 'convvid.title',
+    descKey: 'convvid.subtitle',
+    suffix: 'convertido',
+    tone: 'sky',
+    keywordsPt: [
+      'converter video', 'mov para mp4', 'mkv para mp4', 'webm para mp4',
+      'mp4 para webm', 'converter video online', 'mudar formato de video',
+      'conversor de video', 'video para mp4', 'transformar video', 'trocar extensao de video'
+    ],
+    keywordsEn: [
+      'convert video', 'mov to mp4', 'mkv to mp4', 'webm to mp4', 'mp4 to webm',
+      'video converter', 'change video format', 'online video converter',
+      'video to mp4', 'convert video online'
+    ],
+  },
+  {
+    id: 'compress-video',
+    pathPt: 'video/comprimir',
+    pathEn: 'video/compress',
+    icon: 'compress',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.compress_video',
+    shortKey: 'nav.short.compress_video',
+    titleKey: 'compvid.title',
+    descKey: 'compvid.subtitle',
+    suffix: 'comprimido',
+    tone: 'emerald',
+    keywordsPt: [
+      'comprimir video', 'reduzir tamanho do video', 'diminuir video',
+      'comprimir video online', 'video menor', 'reduzir mb do video',
+      'compactar video', 'video para whatsapp', 'video para email',
+      'diminuir resolucao do video', 'video 720p', 'video mais leve'
+    ],
+    keywordsEn: [
+      'compress video', 'reduce video size', 'make video smaller',
+      'compress video online', 'shrink video', 'video compressor',
+      'reduce video file size', 'video for whatsapp', 'video for email',
+      'lower video resolution', '720p video', 'lighter video'
     ],
   },
   {

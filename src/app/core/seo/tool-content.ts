@@ -1255,6 +1255,114 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'convert-video': {
+    pt: {
+      features: [
+        'MOV, MKV e WebM para MP4 no navegador',
+        'O áudio da origem vai junto',
+        'Sem marca d’água, sem cadastro e sem enviar o arquivo',
+        'Diz antes o que o seu navegador consegue escrever',
+      ],
+      faq: [
+        {
+          q: 'Para quais formatos dá para converter?',
+          a: 'MP4 e WebM, e só o que o seu navegador souber gravar — WebM funciona em todo lugar, MP4 na maioria. Não há saída para MOV, AVI ou MKV, e a página não os oferece: prometer um formato que o navegador não escreve entregaria bytes de um formato dentro do nome de outro, que é o mesmo motivo pelo qual o FLAC saiu da lista do conversor de áudio.',
+        },
+        {
+          q: 'Consigo converter um AVI?',
+          a: 'Não. Nenhum navegador decodifica AVI, então o arquivo nem chega a abrir — e a página avisa na hora em vez de falhar no fim. Entram MP4, MOV e WebM em qualquer navegador, e MKV em alguns, dependendo do codec de dentro. A regra é simples: se o vídeo toca numa aba, ele converte aqui.',
+        },
+        {
+          q: 'Perde qualidade?',
+          a: 'Uma geração. Trocar de contêiner sem recodificar exigiria um demuxer, e trazer um significaria 25 a 30 MB de WebAssembly sob GPL — o mesmo argumento que mantém o ffmpeg fora deste produto inteiro. O caminho que sobra é redesenhar cada quadro e gravar, então a espera é a duração do vídeo e o resultado é uma segunda compressão.',
+        },
+        {
+          q: 'Tem limite de tamanho ou marca d’água?',
+          a: 'Marca d’água nenhuma. Os limites são de memória, não de política: 500 MB de arquivo e 30 minutos de duração, porque o navegador precisa segurar o vídeo para decodificá-lo. E nada é enviado a lugar nenhum — a conversão acontece na sua máquina, o que num conversor de vídeo online não é o normal.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'MOV, MKV and WebM to MP4 in the browser',
+        'The source audio comes along',
+        'No watermark, no signup, no upload',
+        'Says up front what your browser can write',
+      ],
+      faq: [
+        {
+          q: 'Which formats can it convert to?',
+          a: 'MP4 and WebM, and only what your browser can write — WebM works everywhere, MP4 in most. There is no MOV, AVI or MKV output, and the page does not offer any: promising a format the browser cannot write would hand you one format’s bytes inside another format’s name, which is the same reason FLAC left the audio converter’s list.',
+        },
+        {
+          q: 'Can I convert an AVI?',
+          a: 'No. No browser decodes AVI, so the file never opens — and the page says so immediately rather than failing at the end. MP4, MOV and WebM come in on any browser, and MKV on some, depending on the codec inside. The rule is simple: if the video plays in a tab, it converts here.',
+        },
+        {
+          q: 'Does it lose quality?',
+          a: 'One generation. Swapping containers without re-encoding would need a demuxer, and bringing one would mean 25 to 30 MB of GPL WebAssembly — the same argument that keeps ffmpeg out of this whole product. The path that remains is redrawing every frame and recording, so the wait is the video’s duration and the result is a second compression.',
+        },
+        {
+          q: 'Is there a size limit or a watermark?',
+          a: 'No watermark at all. The limits are memory, not policy: 500 MB of file and 30 minutes of duration, because the browser has to hold the video to decode it. And nothing is uploaded anywhere — the conversion happens on your machine, which for an online video converter is not the norm.',
+        },
+      ],
+    },
+  },
+  'compress-video': {
+    pt: {
+      features: [
+        'Escolha a resolução e a qualidade, e veja o tamanho estimado antes',
+        'Avisa quando o ajuste produziria um arquivo MAIOR',
+        'Sem marca d’água, sem cadastro e sem enviar o arquivo',
+        'Para caber no WhatsApp, no e-mail ou no formulário',
+      ],
+      faq: [
+        {
+          q: 'Quanto o arquivo encolhe?',
+          a: 'Depende dos dois controles, e o painel mostra a estimativa antes de você esperar. Ela sai do bitrate escolhido vezes a duração — o codificador gasta menos em cena parada e mais em cena com movimento, então o número final difere um pouco. É a mesma regra do conversor para GIF: número apresentado como aproximado, porque prometer megabytes antes de escrever seria inventar precisão.',
+        },
+        {
+          q: 'Por que baixar a resolução, e não só a qualidade?',
+          a: 'Porque reduzir só o bitrate de um 1080p entrega um 1080p borrado, enquanto o mesmo bitrate num 720p é um 720p limpo. Os pixels que sobram roubam bits dos que importam. Por isso a resolução vem primeiro no painel, e por isso a lista só mostra alturas que de fato REDUZEM: oferecer 1080p sobre um vídeo 720p seria oferecer o contrário de comprimir.',
+        },
+        {
+          q: 'O arquivo pode ficar maior?',
+          a: 'Pode, e a ferramenta recusa quando isso vai acontecer. Um vídeo já bem comprimido, recodificado em alta qualidade na resolução original, cresce — e entregar isso em silêncio seria o pior resultado possível aqui. O aviso aparece e o botão desativa; baixar a resolução ou a qualidade resolve.',
+        },
+        {
+          q: 'Quanto tempo demora?',
+          a: 'A duração do vídeo, e isso é intransponível. O áudio só se captura em tempo real, e acelerar a reprodução entregaria a trilha com a duração errada — então um vídeo de cinco minutos leva cinco minutos. A tela mostra o tempo restante e oferece cancelar, em vez de parecer travada.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Pick resolution and quality, and see the estimated size first',
+        'Warns you when a setting would produce a BIGGER file',
+        'No watermark, no signup, no upload',
+        'To fit WhatsApp, an email or an upload form',
+      ],
+      faq: [
+        {
+          q: 'How much smaller does the file get?',
+          a: 'It depends on the two controls, and the panel shows the estimate before you wait. It comes from the chosen bitrate times the duration — the encoder spends less on a still scene and more on a moving one, so the final number differs a little. Same rule as the GIF converter: a number presented as approximate, because promising megabytes before writing would be inventing precision.',
+        },
+        {
+          q: 'Why lower the resolution instead of just the quality?',
+          a: 'Because lowering only the bitrate of a 1080p file gives you a blurry 1080p, while the same bitrate on a 720p gives you a clean 720p. The extra pixels steal bits from the ones that matter. That is why resolution comes first in the panel, and why the list only shows heights that actually REDUCE: offering 1080p for a 720p video would be offering the opposite of compression.',
+        },
+        {
+          q: 'Can the file come out bigger?',
+          a: 'It can, and the tool refuses when that is about to happen. A video that is already well compressed, re-encoded at high quality at its original resolution, grows — and handing that back silently would be the worst possible result here. The warning appears and the button goes inactive; lowering the resolution or the quality fixes it.',
+        },
+        {
+          q: 'How long does it take?',
+          a: 'The length of the video, and there is no way around it. Audio can only be captured in real time, and speeding up playback would deliver the track at the wrong duration — so a five-minute video takes five minutes. The screen shows the remaining time and offers a cancel, rather than looking stuck.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

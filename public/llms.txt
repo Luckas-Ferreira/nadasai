@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 47 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 49 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -53,6 +53,8 @@ Nada Sai provides 47 tools across 5 modules, all of which run entirely offline i
 - [Vídeo para áudio / Video to audio](https://nadasai.com/pt/audio/extrair-de-video): Drop your video file (MP4, MOV, WebM, MKV, etc.), select your output format (MP3 or lossless WAV), and click download.
 - [Cortar vídeo / Trim video](https://nadasai.com/pt/video/cortar): The length of the CLIP you kept, not of the whole file.
 - [Recortar vídeo / Crop video](https://nadasai.com/pt/video/recortar): Draw the area to keep — the audio comes along.
+- [Converter vídeo / Convert video](https://nadasai.com/pt/video/converter): MP4 and WebM, and only what your browser can write — WebM works everywhere, MP4 in most.
+- [Comprimir vídeo / Compress video](https://nadasai.com/pt/video/comprimir): It depends on the two controls, and the panel shows the estimate before you wait.
 
 ## Privacy & Security Tools
 

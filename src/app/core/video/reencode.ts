@@ -23,6 +23,14 @@ export interface ReencodeOptions {
   /** O trecho que fica. Ausente = o vídeo inteiro. */
   readonly range?: TimeRange;
   readonly format?: RecordingFormat;
+  /**
+   * Altura máxima da SAÍDA. Ausente = o tamanho da própria área de origem.
+   *
+   * Reduzir resolução é metade do que "comprimir vídeo" quer dizer: baixar só
+   * o bitrate de um 1080p entrega um 1080p borrado, enquanto o mesmo bitrate
+   * num 720p é um 720p limpo.
+   */
+  readonly maxHeight?: number;
   /** Bitrate de vídeo. O padrão acompanha a área de saída. */
   readonly videoBitsPerSecond?: number;
   readonly onProgress?: (percent: number, secondsLeft: number) => void;
@@ -104,9 +112,11 @@ export async function reencodeVideo(options: ReencodeOptions): Promise<Reencoded
   video.playsInline = true;
   video.preload = 'auto';
 
+  const out = outputSize(box, options.maxHeight);
+
   const canvas = document.createElement('canvas');
-  canvas.width = box.w;
-  canvas.height = box.h;
+  canvas.width = out.w;
+  canvas.height = out.h;
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new AppError('video_decode_failed');
 
@@ -139,7 +149,7 @@ export async function reencodeVideo(options: ReencodeOptions): Promise<Reencoded
 
     const recorder = new MediaRecorder(stream, {
       mimeType: target.mime,
-      videoBitsPerSecond: options.videoBitsPerSecond ?? bitrateFor(box.w, box.h),
+      videoBitsPerSecond: options.videoBitsPerSecond ?? bitrateFor(out.w, out.h),
     });
 
     const chunks: Blob[] = [];
@@ -160,7 +170,7 @@ export async function reencodeVideo(options: ReencodeOptions): Promise<Reencoded
       await once(video, 'seeked', 30_000);
     }
 
-    stopDrawing = drawEveryFrame(video, ctx, box);
+    stopDrawing = drawEveryFrame(video, ctx, box, out);
 
     recorder.start(1000);
     await video.play();
@@ -188,8 +198,8 @@ export async function reencodeVideo(options: ReencodeOptions): Promise<Reencoded
     return {
       blob,
       ext: target.ext,
-      width: box.w,
-      height: box.h,
+      width: out.w,
+      height: out.h,
       duration: range.end - range.start,
       hasAudio,
     };
@@ -221,6 +231,22 @@ export function pixelBox(rect: CropRect, width: number, height: number) {
     w: Math.min(w, width),
     h: Math.min(h, height),
   };
+}
+
+/**
+ * O tamanho da SAÍDA a partir da área de origem.
+ *
+ * Só reduz, nunca amplia: pedir 1080p de um vídeo 480p entregaria os mesmos
+ * pixels ocupando um arquivo maior, que é o contrário do que qualquer um dos
+ * dois consumidores quer. Os lados continuam pares pelo motivo de sempre.
+ */
+export function outputSize(box: { w: number; h: number }, maxHeight?: number) {
+  const even = (n: number): number => Math.max(2, Math.floor(n / 2) * 2);
+
+  if (!maxHeight || maxHeight <= 0 || box.h <= maxHeight) return { w: even(box.w), h: even(box.h) };
+
+  const scale = maxHeight / box.h;
+  return { w: even(Math.round(box.w * scale)), h: even(Math.round(box.h * scale)) };
 }
 
 /**
@@ -256,12 +282,13 @@ function drawEveryFrame(
   video: HTMLVideoElement,
   ctx: CanvasRenderingContext2D,
   box: { x: number; y: number; w: number; h: number },
+  out: { w: number; h: number },
 ): () => void {
   let stopped = false;
 
   const paint = (): void => {
     if (stopped) return;
-    ctx.drawImage(video, box.x, box.y, box.w, box.h, 0, 0, box.w, box.h);
+    ctx.drawImage(video, box.x, box.y, box.w, box.h, 0, 0, out.w, out.h);
   };
 
   const withVideoFrame = video as HTMLVideoElement & {

@@ -151,6 +151,32 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'video/converter',
+        loadComponent: () =>
+          import('./features/convert-video/convert-video.component').then(
+            (m) => m.ConvertVideoComponent,
+          ),
+        title: 'Converter vídeo online grátis — MOV, MKV e WebM para MP4 | Nada Sai',
+        data: {
+          metaDescription:
+            'Converta vídeo para MP4 ou WebM no navegador. O arquivo não é enviado a lugar nenhum, não há marca d’água e não precisa instalar nada.',
+          metaKeywords: 'converter video, mov para mp4, mkv para mp4, webm para mp4, conversor de video online',
+        },
+      },
+      {
+        path: 'video/comprimir',
+        loadComponent: () =>
+          import('./features/compress-video/compress-video.component').then(
+            (m) => m.CompressVideoComponent,
+          ),
+        title: 'Comprimir vídeo online grátis — reduza o tamanho sem enviar o arquivo | Nada Sai',
+        data: {
+          metaDescription:
+            'Reduza o tamanho de um vídeo no próprio navegador, escolhendo resolução e qualidade. Sem upload, sem marca d’água e sem cadastro.',
+          metaKeywords: 'comprimir video, reduzir tamanho do video, compactar video, video para whatsapp, video menor',
+        },
+      },
+      {
         path: 'video/cortar',
         title: 'Cortar Vídeo Online (Grátis, Sem Marca) — Nada Sai',
         loadComponent: () => import('./features/trim-video/trim-video.component').then((m) => m.TrimVideoComponent),
@@ -606,6 +632,32 @@ export const routes: Routes = [
           metaDescription: 'Record your screen, a window or a browser tab, with system and microphone audio. The video is written inside the tab and never leaves your device.',
           metaKeywords: 'screen recorder, record screen, screen capture with audio, screencast, record meeting, record tutorial'
         }
+      },
+      {
+        path: 'video/convert',
+        loadComponent: () =>
+          import('./features/convert-video/convert-video.component').then(
+            (m) => m.ConvertVideoComponent,
+          ),
+        title: 'Convert video online free — MOV, MKV and WebM to MP4 | Nada Sai',
+        data: {
+          metaDescription:
+            'Convert video to MP4 or WebM in your browser. The file is never uploaded, there is no watermark and nothing to install.',
+          metaKeywords: 'convert video, mov to mp4, mkv to mp4, webm to mp4, online video converter',
+        },
+      },
+      {
+        path: 'video/compress',
+        loadComponent: () =>
+          import('./features/compress-video/compress-video.component').then(
+            (m) => m.CompressVideoComponent,
+          ),
+        title: 'Compress video online free — shrink it without uploading | Nada Sai',
+        data: {
+          metaDescription:
+            'Shrink a video in your own browser by choosing resolution and quality. No upload, no watermark, no signup.',
+          metaKeywords: 'compress video, reduce video size, video compressor, video for whatsapp, smaller video',
+        },
       },
       {
         path: 'video/trim',
