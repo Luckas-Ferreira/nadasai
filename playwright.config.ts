@@ -60,11 +60,18 @@ export default defineConfig({
     colorScheme: 'dark',
     acceptDownloads: true,
     launchOptions: { slowMo: CI ? 0 : 250 },
-    viewport: { width: 1440, height: 900 },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
   },
 
+  /**
+   * O VIEWPORT VEM DO DEVICE (1280x720), e não do `use` acima.
+   *
+   * O `use` do projeto é mesclado por cima do global, então o viewport que
+   * estava declarado lá — 1440x900 — nunca se aplicava a execução nenhuma. A
+   * linha morta saiu, e o do device fica de propósito: 720px de altura é a
+   * janela de um notebook comum, e é nela que o rail precisa caber inteiro.
+   */
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   webServer: [

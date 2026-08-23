@@ -9,69 +9,69 @@ Nada Sai provides 52 tools across 5 modules, all of which run entirely offline i
 ## Image Tools
 
 - [Remover fundo / Remove background](https://nadasai.com/pt/imagem/remover-fundo): Simply drop your image into the dropzone: the app automatically loads the neural IS-Net model compiled in WebAssembly/WebGPU, segments the primary foreground subject, and generates a transparent PNG with real alpha channel in seconds, all within your browser tab.
+- [Comprimir / Compress](https://nadasai.com/pt/imagem/comprimir): Drop your image and adjust the quality slider.
+- [Converter / Convert](https://nadasai.com/pt/imagem/converter): You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, PDF, or ICO icons.
+- [Redimensionar / Resize](https://nadasai.com/pt/imagem/redimensionar): Enter your desired width or height in pixels, or choose a percentage reduction.
+- [Cortar / Crop](https://nadasai.com/pt/imagem/cortar): Drop your image into the canvas and drag the framing handles.
+- [Foto 3x4 / Passport photo](https://nadasai.com/pt/imagem/foto-3x4): At the real size, with the sheet ready to print.
+- [Imagens para PDF / Images to PDF](https://nadasai.com/pt/imagem/para-pdf): Drag all your images into the dropzone simultaneously.
+- [Extrair texto (OCR) / Extract text (OCR)](https://nadasai.com/pt/imagem/extrair-texto): Drop your photo or screenshot into the tool: the WebAssembly-powered Tesseract OCR engine scans the pixel layout, identifies text lines, and extracts readable text directly in your browser.
 - [Melhorar qualidade / Enhance quality](https://nadasai.com/pt/imagem/melhorar-qualidade): Select your preferred upscale multiplier (2x or 4x) and fine-tune the sharpness slider.
 - [Vetorizar (SVG) / Vectorize (SVG)](https://nadasai.com/pt/imagem/vetorizar): Vectorizing converts a fixed raster pixel grid (PNG or JPG) into mathematically defined geometric paths and Bézier curves (SVG).
-- [Extrair texto (OCR) / Extract text (OCR)](https://nadasai.com/pt/imagem/extrair-texto): Drop your photo or screenshot into the tool: the WebAssembly-powered Tesseract OCR engine scans the pixel layout, identifies text lines, and extracts readable text directly in your browser.
-- [Foto 3x4 / Passport photo](https://nadasai.com/pt/imagem/foto-3x4): At the real size, with the sheet ready to print.
-- [Cortar / Crop](https://nadasai.com/pt/imagem/cortar): Drop your image into the canvas and drag the framing handles.
-- [Comprimir / Compress](https://nadasai.com/pt/imagem/comprimir): Drop your image and adjust the quality slider.
-- [Redimensionar / Resize](https://nadasai.com/pt/imagem/redimensionar): Enter your desired width or height in pixels, or choose a percentage reduction.
-- [Converter / Convert](https://nadasai.com/pt/imagem/converter): You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, PDF, or ICO icons.
-- [Imagens para PDF / Images to PDF](https://nadasai.com/pt/imagem/para-pdf): Drag all your images into the dropzone simultaneously.
 - [Favicon / Favicon](https://nadasai.com/pt/imagem/favicon): Build a multi-resolution .ico from any image.
 
 ## PDF Tools
 
-- [Girar PDF / Rotate PDF](https://nadasai.com/pt/pdf/girar): No, and this is the one PDF tool here that can say so without a caveat.
-- [Desbloquear PDF / Unlock PDF](https://nadasai.com/pt/pdf/desbloquear): Remove the password and restrictions from a PDF you can open.
-- [Editar / Edit](https://nadasai.com/pt/pdf/editar): Edit, read and make scanned PDFs searchable — all locally.
 - [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Drop all your PDF files into the tool, rearrange their order in the document list, and download the unified document.
 - [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Drop your PDF and select a compression profile (Lossless, Light, Medium, or Strong).
 - [Dividir PDF / Split PDF](https://nadasai.com/pt/pdf/dividir): Select pages by clicking their thumbnails, specify custom ranges (e.g.
-- [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Drop your PDF, choose your target format (PNG, JPEG, or WebP), and set your desired resolution scale.
+- [Editar / Edit](https://nadasai.com/pt/pdf/editar): Edit, read and make scanned PDFs searchable — all locally.
 - [PDF para Word / PDF to Word](https://nadasai.com/pt/pdf/para-word): Drop your PDF into the converter: the engine analyzes text blocks, font metrics, and paragraph groupings to assemble a native .docx file compatible with Microsoft Word, Google Docs, and LibreOffice.
+- [PDF para Imagem / PDF to Image](https://nadasai.com/pt/pdf/para-imagem): Drop your PDF, choose your target format (PNG, JPEG, or WebP), and set your desired resolution scale.
+- [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Upload your PDF, draw your signature using your mouse, trackpad, or touchscreen, or upload a transparent PNG image of your handwritten signature.
+- [Girar PDF / Rotate PDF](https://nadasai.com/pt/pdf/girar): No, and this is the one PDF tool here that can say so without a caveat.
+- [Desbloquear PDF / Unlock PDF](https://nadasai.com/pt/pdf/desbloquear): Remove the password and restrictions from a PDF you can open.
 - [Organizar PDF / Organize PDF](https://nadasai.com/pt/pdf/organizar): Document pages are displayed as an interactive thumbnail grid.
 - [Proteger PDF / Protect PDF](https://nadasai.com/pt/pdf/proteger): Drop your PDF file, enter a secure opening password, and download the protected document.
-- [Assinar PDF / Sign PDF](https://nadasai.com/pt/pdf/assinar): Upload your PDF, draw your signature using your mouse, trackpad, or touchscreen, or upload a transparent PNG image of your handwritten signature.
 - [Marca d'Água / Watermark PDF](https://nadasai.com/pt/pdf/marca-dagua): Add a text watermark or logo stamp across your PDF pages.
-- [Comparar PDFs / Compare PDFs](https://nadasai.com/pt/pdf/comparar): Just text, and the page says so before you run it.
-- [PDF para texto / PDF to text](https://nadasai.com/pt/pdf/para-texto): It is the main case, which is why TXT is the default and the page marker is off.
 - [Numerar páginas / Page numbers](https://nadasai.com/pt/pdf/numerar-paginas): Number the pages of a PDF, without rasterising it.
+- [PDF para texto / PDF to text](https://nadasai.com/pt/pdf/para-texto): It is the main case, which is why TXT is the default and the page marker is off.
+- [Comparar PDFs / Compare PDFs](https://nadasai.com/pt/pdf/comparar): Just text, and the page says so before you run it.
 
 ## Audio Tools
 
 - [Cortar áudio (Aparar MP3) / Cut audio (Trim MP3)](https://nadasai.com/pt/audio/cortar): Drop your audio file to render the interactive waveform.
-- [Juntar áudio / Merge audio](https://nadasai.com/pt/audio/juntar): Drop all your audio files, arrange track order in the visual playlist, adjust the optional crossfade duration for smooth transitions, and download the combined audio track.
 - [Converter áudio / Convert audio](https://nadasai.com/pt/audio/converter): Upload your audio track, choose your target format (MP3, WAV, OGG, or M4A), and select your desired bitrate and channel configuration.
 - [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Select your target bitrate and optionally enable mono downmixing for spoken word.
+- [Juntar áudio / Merge audio](https://nadasai.com/pt/audio/juntar): Drop all your audio files, arrange track order in the visual playlist, adjust the optional crossfade duration for smooth transitions, and download the combined audio track.
 - [Normalizar Áudio / Normalize Audio](https://nadasai.com/pt/audio/normalizar): Drop your file into Loudness (LUFS) mode: the tool scans perceived loudness across the track, calculates required decibel gain, and applies a transparent look-ahead limiter to prevent distortion and clipping on sudden peaks.
 - [Remover silêncio / Remove silence](https://nadasai.com/pt/audio/remover-silencio): By RMS over a 20-millisecond window, not sample by sample.
 - [Separar canais / Split channels](https://nadasai.com/pt/audio/separar-canais): Stereo to mono, one side on its own, or the sides swapped.
 
 ## video
 
-- [Gravador de tela / Screen recorder](https://nadasai.com/pt/video/gravar-tela): Open the recorder, choose whether to capture system audio and/or microphone voiceover, and click "Start Recording".
-- [Extrair quadros / Extract frames](https://nadasai.com/pt/video/extrair-quadros): Drop the video, use the player controls to land on the frame you want, and click capture.
-- [Vídeo para GIF / Video to GIF](https://nadasai.com/pt/video/para-gif): Drop the video file on the upload area, drag the two controls to mark the stretch you want (up to 30 seconds), set the width, the frames per second and the number of colours, and generate.
+- [Comprimir vídeo / Compress video](https://nadasai.com/pt/video/comprimir): It depends on the two controls, and the panel shows the estimate before you wait.
+- [Converter vídeo / Convert video](https://nadasai.com/pt/video/converter): MP4 and WebM, and only what your browser can write — WebM works everywhere, MP4 in most.
 - [Vídeo para áudio / Video to audio](https://nadasai.com/pt/audio/extrair-de-video): Drop your video file (MP4, MOV, WebM, MKV, etc.), select your output format (MP3 or lossless WAV), and click download.
 - [Cortar vídeo / Trim video](https://nadasai.com/pt/video/cortar): The length of the CLIP you kept, not of the whole file.
+- [Gravador de tela / Screen recorder](https://nadasai.com/pt/video/gravar-tela): Open the recorder, choose whether to capture system audio and/or microphone voiceover, and click "Start Recording".
+- [Vídeo para GIF / Video to GIF](https://nadasai.com/pt/video/para-gif): Drop the video file on the upload area, drag the two controls to mark the stretch you want (up to 30 seconds), set the width, the frames per second and the number of colours, and generate.
 - [Recortar vídeo / Crop video](https://nadasai.com/pt/video/recortar): Draw the area to keep — the audio comes along.
-- [Converter vídeo / Convert video](https://nadasai.com/pt/video/converter): MP4 and WebM, and only what your browser can write — WebM works everywhere, MP4 in most.
-- [Comprimir vídeo / Compress video](https://nadasai.com/pt/video/comprimir): It depends on the two controls, and the panel shows the estimate before you wait.
+- [Extrair quadros / Extract frames](https://nadasai.com/pt/video/extrair-quadros): Drop the video, use the player controls to land on the frame you want, and click capture.
 
 ## Privacy & Security Tools
 
-- [Criptografar arquivo (AES-256) / Encrypt file (AES-256)](https://nadasai.com/pt/privacidade/criptografar-arquivo): To encrypt, drag and drop any file into the upload zone, select "Encrypt", choose a strong password, and download the encrypted .enc envelope.
-- [Hash de arquivo & Checksum / File hash & Checksum](https://nadasai.com/pt/privacidade/hash-de-arquivo): A cryptographic hash is a unique digital fingerprint computed from a file’s exact byte sequence.
 - [Gerador de senhas / Password generator](https://nadasai.com/pt/privacidade/gerador-de-senha): Generate strong, unguessable passwords 100% offline with custom rules and entropy calculation.
+- [QR Code (Gerador & Leitor) / QR Code (Generator & Scanner)](https://nadasai.com/pt/privacidade/qr-code): Select your data type (URL, Wi-Fi credentials, Pix payment, vCard contact, email, or plain text), enter your content, and customize colors and margins.
+- [Comparar textos (Diff) / Text diff checker](https://nadasai.com/pt/privacidade/comparar-texto): Paste or drop your two texts into the side-by-side comparison panes (original on the left, modified on the right).
 - [Remover EXIF / GPS / Remove EXIF / GPS](https://nadasai.com/pt/privacidade/remover-exif): Strip private GPS location, camera info, author, and timestamp from your photos.
 - [Censurar imagem / Tarja preta / Redact image / Black bar](https://nadasai.com/pt/privacidade/censurar-imagem): Draw black bars over sensitive details — ID numbers, card numbers, addresses and faces.
-- [Comparar textos (Diff) / Text diff checker](https://nadasai.com/pt/privacidade/comparar-texto): Paste or drop your two texts into the side-by-side comparison panes (original on the left, modified on the right).
 - [Censurar PDF / Tarja preta / Redact PDF / Black bar](https://nadasai.com/pt/privacidade/censurar-pdf): Because standard PDF editors simply place a visual vector rectangle on top of the existing text.
-- [Metadados do Office / Office metadata](https://nadasai.com/pt/privacidade/metadados-office): See and erase what a Word, Excel or PowerPoint file says about you.
-- [Limpar metadados do PDF / Clean PDF metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): PDF files routinely embed the creator’s real name, organization, authoring software (e.g.
+- [Hash de arquivo & Checksum / File hash & Checksum](https://nadasai.com/pt/privacidade/hash-de-arquivo): A cryptographic hash is a unique digital fingerprint computed from a file’s exact byte sequence.
+- [Criptografar arquivo (AES-256) / Encrypt file (AES-256)](https://nadasai.com/pt/privacidade/criptografar-arquivo): To encrypt, drag and drop any file into the upload zone, select "Encrypt", choose a strong password, and download the encrypted .enc envelope.
 - [Criptografar texto (AES-256) / Encrypt text (AES-256)](https://nadasai.com/pt/privacidade/criptografar-texto): Type your message, enter a secret password, and click to generate a Base64-armored text envelope with header tags.
-- [QR Code (Gerador & Leitor) / QR Code (Generator & Scanner)](https://nadasai.com/pt/privacidade/qr-code): Select your data type (URL, Wi-Fi credentials, Pix payment, vCard contact, email, or plain text), enter your content, and customize colors and margins.
+- [Limpar metadados do PDF / Clean PDF metadata](https://nadasai.com/pt/privacidade/limpar-metadados-pdf): PDF files routinely embed the creator’s real name, organization, authoring software (e.g.
+- [Metadados do Office / Office metadata](https://nadasai.com/pt/privacidade/metadados-office): See and erase what a Word, Excel or PowerPoint file says about you.
 
 ## Format Conversions
 
