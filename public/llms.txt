@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 49 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 51 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -21,6 +21,8 @@ Nada Sai provides 49 tools across 5 modules, all of which run entirely offline i
 
 ## PDF Tools
 
+- [Girar PDF / Rotate PDF](https://nadasai.com/pt/pdf/girar): No, and this is the one PDF tool here that can say so without a caveat.
+- [Desbloquear PDF / Unlock PDF](https://nadasai.com/pt/pdf/desbloquear): Remove the password and restrictions from a PDF you can open.
 - [Editar / Edit](https://nadasai.com/pt/pdf/editar): Edit, read and make scanned PDFs searchable — all locally.
 - [Juntar PDF / Merge PDF](https://nadasai.com/pt/pdf/juntar): Drop all your PDF files into the tool, rearrange their order in the document list, and download the unified document.
 - [Comprimir PDF / Compress PDF](https://nadasai.com/pt/pdf/comprimir): Drop your PDF and select a compression profile (Lossless, Light, Medium, or Strong).

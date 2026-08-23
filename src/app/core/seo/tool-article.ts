@@ -1241,6 +1241,218 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'rotate-pdf': {
+    pt: [
+      {
+        h: 'Girar tudo é o botão principal',
+        p: [
+          'Quem procura girar PDF quase nunca tem uma página torta: tem um documento inteiro escaneado de lado, ou um contrato que saiu de cabeça para baixo do alimentador. Por isso o controle grande do painel gira TODAS as páginas de uma vez, nos três sentidos que existem — esquerda, direita e meia-volta.',
+          'A página avulsa continua atendida: cada miniatura tem seu próprio botão de girar, para o caso do documento certo com uma folha virada no meio. E girar tudo depois disso soma sobre o que aquela página já tinha, em vez de zerá-la — quem acertou uma página espera que ela acompanhe o resto.',
+        ],
+      },
+      {
+        h: 'Como girar',
+        p: [
+          'As miniaturas aparecem assim que o arquivo é lido, já na orientação que terão no resultado. É por elas que se confere antes de salvar.',
+        ],
+        steps: [
+          'Solte o PDF, ou traga um da cadeia — um documento que você acabou de juntar ou dividir, por exemplo.',
+          'Escolha o sentido no painel: esquerda, direita ou 180°. Todas as páginas acompanham.',
+          'Se alguma página precisar de tratamento próprio, clique no girar da miniatura dela.',
+          'Salve e baixe. O contador de páginas giradas diz quantas mudaram.',
+        ],
+      },
+      {
+        h: 'Girar não estraga nada, e isso é raro por aqui',
+        p: [
+          'A rotação é um número guardado dentro do PDF, não uma imagem nova. Nada é redesenhado: o texto continua texto, as fontes continuam embutidas, os vetores continuam vetores e o tamanho do arquivo praticamente não muda.',
+          'Vale dizer porque a vizinhança não é assim. Comprimir nos níveis com perda, proteger com senha e censurar rasterizam a página — transformam texto em fotografia de texto — e cada uma dessas páginas explica o custo. Girar é a exceção: entra um PDF, sai o mesmo PDF de lado.',
+          'A consequência prática é que dá para girar, conferir, girar de volta e salvar sem acumular gerações de perda. Numa ferramenta que rasteriza, cada ida e volta cobraria.',
+        ],
+      },
+      {
+        h: 'Girar o arquivo, não a tela',
+        p: [
+          'Todo leitor de PDF tem um botão de girar, e ele quase sempre muda só o que está na sua tela. Você fecha o arquivo, manda por e-mail, e do outro lado ele chega deitado de novo.',
+          'O que sai daqui é diferente: a rotação está no arquivo, no campo que o próprio formato PDF define para isso, e todo leitor a respeita — Acrobat, Preview, o visualizador do Chrome, e a impressora. É o que faz diferença quando o documento vai para outra pessoa ou para um sistema que só recebe.',
+        ],
+      },
+      {
+        h: 'Documento com senha',
+        p: [
+          'Se o PDF pedir senha, a página pede a senha, abre e gira normalmente. Ela fica guardada na sessão do navegador para que as outras ferramentas de PDF daqui não a peçam de novo quando você encadear — e não sai dali.',
+          'Se o que você quer é justamente tirar a senha, existe ferramenta própria para isso aqui, e ela explica o que muda no arquivo.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é PDF e entra na cadeia do módulo. Girar antes de juntar é o caminho que mais aparece: endireitar cada documento e só então uni-los evita um arquivo final com páginas em três orientações.',
+          'Girar antes de converter para imagem ou para Word também muda o resultado, porque as duas leem a página como ela está orientada.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'Rotating everything is the main button',
+        p: [
+          'Anyone searching for rotate PDF almost never has one crooked page: they have a whole document scanned sideways, or a contract that came out of the feeder upside down. That is why the big control in the panel turns EVERY page at once, in the three directions that exist — left, right and half-turn.',
+          'The stray page is still covered: each thumbnail has its own rotate button, for the correct document with one sheet turned in the middle. And rotating everything afterwards adds to what that page already had rather than resetting it — someone who fixed a page expects it to follow the rest.',
+        ],
+      },
+      {
+        h: 'How to rotate',
+        p: [
+          'The thumbnails appear as soon as the file is read, already in the orientation they will have in the result. They are how you check before saving.',
+        ],
+        steps: [
+          'Drop the PDF, or bring one in through the chain — a document you just merged or split, for instance.',
+          'Pick the direction in the panel: left, right or 180°. Every page follows.',
+          'If a page needs its own treatment, click the rotate button on its thumbnail.',
+          'Save and download. The rotated-page counter tells you how many changed.',
+        ],
+      },
+      {
+        h: 'Rotating spoils nothing, which is rare around here',
+        p: [
+          'The rotation is a number stored inside the PDF, not a new image. Nothing is redrawn: the text stays text, the fonts stay embedded, the vectors stay vectors and the file size barely moves.',
+          'Worth saying because the neighbourhood is not like that. Compressing at lossy levels, protecting with a password and redacting all rasterise the page — they turn text into a photograph of text — and each of those pages explains the cost. Rotating is the exception: a PDF goes in, the same PDF comes out sideways.',
+          'The practical consequence is that you can rotate, check, rotate back and save without stacking generations of loss. In a tool that rasterises, every round trip would charge you.',
+        ],
+      },
+      {
+        h: 'Rotating the file, not the screen',
+        p: [
+          'Every PDF reader has a rotate button, and it almost always changes only what is on your screen. You close the file, email it, and at the other end it arrives lying down again.',
+          'What leaves here is different: the rotation is in the file, in the field the PDF format itself defines for it, and every reader respects it — Acrobat, Preview, Chrome’s viewer, and the printer. That is what matters when the document goes to another person or into a system that only receives.',
+        ],
+      },
+      {
+        h: 'A document with a password',
+        p: [
+          'If the PDF asks for a password, the page asks for it, opens and rotates normally. It is kept in the browser session so the other PDF tools here do not ask again when you chain them — and it goes nowhere else.',
+          'If what you want is to remove the password, there is a dedicated tool for that here, and it explains what changes in the file.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is a PDF and joins the module chain. Rotating before merging is the route that comes up most: straighten each document and only then join them, and you avoid a final file with pages in three orientations.',
+          'Rotating before converting to images or to Word changes the result too, because both read the page as it is oriented.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
+  'unlock-pdf': {
+    pt: [
+      {
+        h: 'O que esta ferramenta é, e o que ela não é',
+        p: [
+          'Ela remove a proteção de um PDF que você JÁ CONSEGUE ABRIR. Se o arquivo pede senha, você digita a senha que tem; se ele abre sozinho mas recusa imprimir ou copiar, basta soltá-lo. O que sai é uma cópia sem senha e sem lista de permissões.',
+          'Ela não quebra senha, não adivinha senha e não testa senha — e não vai passar a fazer isso. É para o seu próprio arquivo: o relatório do banco que chega protegido todo mês, o holerite, o documento que você mesmo protegeu e cansou de destravar.',
+          'A senha que você digita fica no seu navegador, como todo o resto. Não há servidor para onde mandá-la.',
+        ],
+      },
+      {
+        h: 'Os dois tipos de proteção, e por que o segundo é o caso comum',
+        p: [
+          'Um PDF pode carregar duas senhas diferentes. A de USUÁRIO é a que impede abrir: sem ela o leitor não mostra nada. A de DONO não impede abrir — ela carrega uma lista de permissões que diz ao leitor para recusar imprimir, copiar texto, extrair páginas ou editar.',
+          'A segunda é a que mais aparece. É o PDF que abre normalmente em qualquer lugar e trava na hora de copiar um parágrafo ou imprimir uma via. Para esse caso não há senha a digitar aqui: solte o arquivo e a restrição sai junto com o resto.',
+        ],
+      },
+      {
+        h: 'Como desbloquear',
+        p: [
+          'O painel diz o estado da proteção antes de qualquer processamento: se o arquivo pediu senha ou se ele abre sozinho e a restrição é só de permissão. É por ele que se confere que o documento certo foi aberto.',
+        ],
+        steps: [
+          'Solte o PDF. Se ele pedir senha, a página pergunta — é a mesma senha que você digitaria no leitor.',
+          'Confira o que o painel diz: quantas páginas, o tamanho, e se o arquivo abre com ou sem senha.',
+          'Leia o que muda no arquivo. É a parte que a maioria dos concorrentes não mostra.',
+          'Remova a proteção e baixe. O arquivo abaixo abre sem senha em qualquer leitor.',
+        ],
+      },
+      {
+        h: 'O que muda no arquivo, dito antes',
+        p: [
+          'Cada página vira uma imagem. Não é uma escolha de qualidade, é a única saída num navegador, e a razão está na divisão de trabalho entre as bibliotecas: a que LÊ PDF sabe decifrar — dada a senha, ela entrega a página aberta — e não sabe escrever; a que ESCREVE PDF não sabe decifrar nada. Passar o arquivo cifrado direto de uma para a outra produz um PDF ilegível, e o pior é que sem erro nenhum.',
+          'O que sobra é redesenhar: o leitor abre a página, ela é rasterizada a 200 DPI e o escritor monta um documento novo com essas imagens, agora sem criptografia.',
+          'A busca não se perde. A camada de texto da página é redesenhada por baixo da imagem com opacidade zero, então o Ctrl+F continua achando tudo e dá para selecionar e copiar. O que se perde é o texto vetorial: a nitidez ao ampliar muitas vezes, e a possibilidade de editar as letras num editor de PDF.',
+        ],
+      },
+      {
+        h: 'Por que não existe o caminho sem perda',
+        p: [
+          'A pergunta certa é por que não tirar só a criptografia e deixar todo o resto byte a byte igual. Tecnicamente é o que um servidor com uma biblioteca completa faria: decifrar os fluxos, remover o dicionário de criptografia, reescrever o arquivo.',
+          'Aqui não há servidor, e nenhuma biblioteca de navegador faz as duas metades. É a mesma limitação que obriga a ferramenta de PROTEGER a rasterizar quando põe a senha — o escritor de PDF daqui não criptografa, e o que criptografa não escreve estrutura. As duas pontas do mesmo problema.',
+          'Preferimos dizer isso na tela a entregar um arquivo pior sem avisar. É a mesma regra do censurar PDF, que também perde a camada de texto do documento inteiro e explica o porquê.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é PDF e entra na cadeia. Depois de desbloquear, comprimir faz sentido: as páginas já são imagens, e o compressor tem controles melhores para o tamanho do que os 200 DPI fixos daqui.',
+          'Girar, juntar, dividir e organizar também funcionam, e agora sem pedir senha a cada passo.',
+          'Tudo roda no seu navegador. O arquivo e a senha não são enviados a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha — num desbloqueador de PDF online, é o oposto do normal.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What this tool is, and what it is not',
+        p: [
+          'It removes the protection from a PDF you CAN ALREADY OPEN. If the file asks for a password, you type the one you have; if it opens by itself but refuses to print or copy, just drop it. What comes out is a copy with no password and no permissions list.',
+          'It does not crack passwords, guess passwords or test passwords — and it will not start to. It is for your own file: the bank statement that arrives protected every month, the payslip, the document you protected yourself and are tired of unlocking.',
+          'The password you type stays in your browser, like everything else. There is no server to send it to.',
+        ],
+      },
+      {
+        h: 'The two kinds of protection, and why the second is the common one',
+        p: [
+          'A PDF can carry two different passwords. The USER password is the one that prevents opening: without it the reader shows nothing. The OWNER password does not prevent opening — it carries a permissions list telling the reader to refuse printing, copying text, extracting pages or editing.',
+          'The second is the one you meet most. It is the PDF that opens normally anywhere and jams when you try to copy a paragraph or print a copy. For that case there is no password to type here: drop the file and the restriction leaves with everything else.',
+        ],
+      },
+      {
+        h: 'How to unlock',
+        p: [
+          'The panel states the protection before anything is processed: whether the file asked for a password, or whether it opens by itself and the restriction is permissions only. That is how you confirm the right document was opened.',
+        ],
+        steps: [
+          'Drop the PDF. If it asks for a password, the page asks too — it is the same password you would type into your reader.',
+          'Check what the panel says: how many pages, the size, and whether the file opens with or without a password.',
+          'Read what changes in the file. It is the part most competitors do not show.',
+          'Remove the protection and download. The file below opens without a password in any reader.',
+        ],
+      },
+      {
+        h: 'What changes in the file, said up front',
+        p: [
+          'Every page becomes an image. It is not a quality choice, it is the only way out in a browser, and the reason is the division of labour between the libraries: the one that READS PDF can decrypt — given the password it hands you the open page — and cannot write; the one that WRITES PDF cannot decrypt anything. Passing the encrypted file straight from one to the other produces an unreadable PDF, and the worse part is that it throws no error.',
+          'What remains is redrawing: the reader opens the page, it is rasterised at 200 DPI and the writer assembles a new document from those images, now with no encryption.',
+          'Search is not lost. The page’s text layer is redrawn underneath the image at zero opacity, so Ctrl+F still finds everything and you can select and copy. What you lose is vector text: sharpness at heavy zoom, and the ability to edit the letters in a PDF editor.',
+        ],
+      },
+      {
+        h: 'Why there is no lossless path',
+        p: [
+          'The right question is why not strip only the encryption and leave everything else byte for byte identical. Technically that is what a server with a complete library would do: decrypt the streams, remove the encryption dictionary, rewrite the file.',
+          'There is no server here, and no browser library does both halves. It is the same limitation that forces the PROTECT tool to rasterise when it adds the password — the PDF writer here does not encrypt, and what encrypts does not write structure. Two ends of the same problem.',
+          'We would rather say so on screen than hand back a worse file without warning. Same rule as the PDF redactor, which also loses the whole document’s text layer and explains why.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is a PDF and joins the chain. After unlocking, compressing makes sense: the pages are already images, and the compressor has better size controls than the fixed 200 DPI here.',
+          'Rotating, merging, splitting and organising all work too, and now without asking for a password at every step.',
+          'Everything runs in your browser. Neither the file nor the password is sent anywhere, and the meter at the top of the page shows that while you work — for an online PDF unlocker, the opposite of the norm.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

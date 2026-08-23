@@ -1363,6 +1363,114 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'rotate-pdf': {
+    pt: {
+      features: [
+        'Gira o documento inteiro num clique',
+        'Ou uma página sozinha, pela miniatura',
+        'Sem perda: o texto continua texto',
+        'Sem marca d’água e sem enviar o arquivo',
+      ],
+      faq: [
+        {
+          q: 'Girar o PDF piora a qualidade?',
+          a: 'Não, e esta é a única ferramenta de PDF daqui que pode dizer isso sem ressalva. A rotação é um número guardado dentro do arquivo, não uma imagem nova: o texto continua texto, as fontes continuam embutidas, e o tamanho praticamente não muda. Comprimir, proteger e censurar rasterizam; girar não.',
+        },
+        {
+          q: 'Dá para girar só uma página?',
+          a: 'Dá — clique no ícone de girar na miniatura dela. Mas o controle principal gira TODAS de uma vez, porque é esse o caso de quem procura girar PDF: o documento inteiro foi escaneado de lado. Girar tudo depois de acertar uma página avulsa soma sobre o que ela já tinha, em vez de zerar.',
+        },
+        {
+          q: 'A rotação vale em qualquer leitor?',
+          a: 'Vale. O campo de rotação é do próprio formato PDF e todo leitor o respeita — Acrobat, Preview, o visualizador do Chrome, a impressora. É diferente de girar na tela do seu leitor, que muda só a visualização e não acompanha o arquivo quando você o envia.',
+        },
+        {
+          q: 'E se o PDF tiver senha?',
+          a: 'A página pede a senha, abre o documento e gira normalmente. A senha fica na sua sessão do navegador para as outras ferramentas de PDF não a pedirem de novo, e não sai daí. Se o que você quer é remover a senha, essa é outra ferramenta daqui.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Turns the whole document in one click',
+        'Or a single page, from its thumbnail',
+        'Lossless: the text stays text',
+        'No watermark and no upload',
+      ],
+      faq: [
+        {
+          q: 'Does rotating make the PDF worse?',
+          a: 'No, and this is the one PDF tool here that can say so without a caveat. The rotation is a number stored inside the file, not a new image: the text stays text, the fonts stay embedded, and the size barely moves. Compressing, protecting and redacting rasterise; rotating does not.',
+        },
+        {
+          q: 'Can I rotate just one page?',
+          a: 'You can — click the rotate icon on its thumbnail. But the main control turns them ALL at once, because that is the case for anyone searching for rotate PDF: the whole document was scanned sideways. Rotating everything after fixing a stray page adds to what that page already had, rather than resetting it.',
+        },
+        {
+          q: 'Does the rotation hold in any reader?',
+          a: 'It does. The rotation field belongs to the PDF format itself and every reader respects it — Acrobat, Preview, Chrome’s viewer, the printer. That is different from rotating on screen in your reader, which changes only the view and does not travel with the file when you send it.',
+        },
+        {
+          q: 'What if the PDF has a password?',
+          a: 'The page asks for it, opens the document and rotates normally. The password stays in your browser session so the other PDF tools do not ask again, and it goes nowhere else. If what you want is to remove the password, that is a different tool here.',
+        },
+      ],
+    },
+  },
+  'unlock-pdf': {
+    pt: {
+      features: [
+        'Remove a senha e as restrições de imprimir e copiar',
+        'Funciona com a senha que você já tem',
+        'A senha não sai do seu navegador',
+        'Diz na tela o que muda no arquivo',
+      ],
+      faq: [
+        {
+          q: 'Isto quebra a senha de um PDF?',
+          a: 'Não, e não vai passar a quebrar. A ferramenta exige a senha que ABRE o documento — a mesma que você digitaria no Acrobat — e o que ela faz é gravar uma cópia sem proteção nenhuma. É para o seu próprio arquivo, aquele cuja senha você tem e cansou de digitar. Nenhuma senha é adivinhada, testada ou enviada a lugar nenhum.',
+        },
+        {
+          q: 'Meu PDF abre sem senha mas não deixa imprimir. Serve?',
+          a: 'Serve, e é o caso mais comum. Esse PDF tem senha de DONO: ele abre em qualquer leitor e carrega uma lista de permissões que proíbe imprimir, copiar ou editar. A restrição está no arquivo do mesmo jeito, e sai daqui junto com o resto — é só soltar o arquivo, sem digitar senha nenhuma.',
+        },
+        {
+          q: 'O arquivo muda em quê?',
+          a: 'Cada página vira uma imagem, e a página diz isso antes de você processar. É o único caminho possível num navegador: quem sabe decifrar aqui é o leitor de PDF, e quem escreve PDF não sabe. O texto é redesenhado por baixo, invisível, então o Ctrl+F continua achando tudo; o que se perde é o texto vetorial — a nitidez ao ampliar muito e a possibilidade de editar as letras.',
+        },
+        {
+          q: 'Por que não dá para tirar só a criptografia e deixar o resto igual?',
+          a: 'Porque isso exigiria decifrar e reescrever o arquivo com a mesma biblioteca, e as duas metades estão em bibliotecas diferentes por limitação delas, não nossa. A que lê decifra e não escreve; a que escreve não decifra. Um servidor resolveria — e um servidor é exatamente o que este produto não tem.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Removes the password and the print and copy restrictions',
+        'Works with the password you already have',
+        'The password never leaves your browser',
+        'Says on screen what changes in the file',
+      ],
+      faq: [
+        {
+          q: 'Does this crack a PDF password?',
+          a: 'No, and it will not start to. The tool requires the password that OPENS the document — the same one you would type into Acrobat — and what it does is write a copy with no protection at all. It is for your own file, the one whose password you have and are tired of typing. No password is guessed, tested or sent anywhere.',
+        },
+        {
+          q: 'My PDF opens without a password but will not print. Does this help?',
+          a: 'It does, and that is the most common case. That PDF has an OWNER password: it opens in any reader and carries a permissions list forbidding printing, copying or editing. The restriction is in the file all the same, and it leaves here with everything else — just drop the file, no password to type.',
+        },
+        {
+          q: 'What changes in the file?',
+          a: 'Every page becomes an image, and the page says so before you process anything. It is the only path available in a browser: what decrypts here is the PDF reader, and what writes PDF cannot decrypt. The text is redrawn underneath, invisible, so Ctrl+F still finds everything; what you lose is vector text — sharpness at heavy zoom and the ability to edit the letters.',
+        },
+        {
+          q: 'Why not strip only the encryption and leave the rest identical?',
+          a: 'Because that would require decrypting and rewriting the file with the same library, and the two halves live in different libraries by their limitation, not ours. The one that reads decrypts and does not write; the one that writes does not decrypt. A server would solve it — and a server is exactly what this product does not have.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

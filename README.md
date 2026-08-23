@@ -1,7 +1,7 @@
 # Nada Sai
 
 Caixa de ferramentas de arquivo que roda inteira no navegador. **Não há backend.**
-49 ferramentas em cinco módulos — imagem, PDF, áudio, vídeo e privacidade —, todas
+51 ferramentas em cinco módulos — imagem, PDF, áudio, vídeo e privacidade —, todas
 executando em WebAssembly, Web Workers e Canvas na máquina de quem usa. Nenhum
 arquivo sai do dispositivo, e essa é a tese do produto, não um detalhe de rodapé.
 

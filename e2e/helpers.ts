@@ -1,3 +1,4 @@
+import { inflateSync } from 'node:zlib';
 import { expect, type Page } from '@playwright/test';
 import { join } from 'node:path';
 
@@ -194,4 +195,36 @@ export async function drawRegion(
   await page.mouse.move((start.x + end.x) / 2, (start.y + end.y) / 2);
   await page.mouse.move(end.x, end.y);
   await page.mouse.up();
+}
+
+/**
+ * Os bytes de um PDF mais TUDO o que estiver comprimido dentro dele.
+ *
+ * O pdf-lib salva com object streams, então recurso, dicionário e a própria
+ * camada de texto ficam dentro de fluxos Flate. Procurar nos bytes crus
+ * aprova um arquivo que ainda carrega o que deveria ter saído, e reprova um
+ * que carrega o que deveria ter ficado — os dois erros na mesma varredura.
+ *
+ * Isto vivia dentro do spec de limpar metadados; o desbloquear precisou do
+ * mesmo e teria nascido com uma cópia.
+ */
+export function decompressedPdf(bytes: Buffer): string {
+  const parts: string[] = [bytes.toString('latin1')];
+
+  for (let at = bytes.indexOf('stream', 0, 'latin1'); at !== -1; at = bytes.indexOf('stream', at + 6, 'latin1')) {
+    let start = at + 6;
+    if (bytes[start] === 0x0d) start++;
+    if (bytes[start] === 0x0a) start++;
+
+    const end = bytes.indexOf('endstream', start, 'latin1');
+    if (end === -1) break;
+
+    try {
+      parts.push(inflateSync(bytes.subarray(start, end)).toString('latin1'));
+    } catch {
+      // Não é Flate — a cópia crua acima já cobre.
+    }
+  }
+
+  return parts.join(String.fromCharCode(10));
 }

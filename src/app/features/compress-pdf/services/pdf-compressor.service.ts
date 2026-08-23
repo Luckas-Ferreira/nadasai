@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import type { PDFFont, PDFPage } from 'pdf-lib';
 import { canvasToBlob } from '../../../core/image/image-file.util';
+import { drawInvisibleText } from '../../../core/pdf/invisible-text';
 import { closePdf, openPdf, releaseCanvas, renderPageToCanvas } from '../../../core/pdf/pdfjs';
 
 export type CompressLevel = 'light' | 'balanced' | 'strong' | 'lossless';
@@ -116,7 +116,7 @@ export class PdfCompressorService {
         const outPage = out.addPage([width, height]);
         outPage.drawImage(embedded, { x: 0, y: 0, width, height });
 
-        this.drawInvisibleText(outPage, textContent.items, height, helvetica);
+        drawInvisibleText(outPage, textContent.items, height, helvetica);
 
         onProgress?.(i, source.numPages);
       }
@@ -128,76 +128,4 @@ export class PdfCompressorService {
     }
   }
 
-  /**
-   * Re-draws the page's own text at `opacity: 0` over the raster, so the
-   * compressed PDF is still searchable and selectable.
-   *
-   * pdf.js hands back each item's transform in PDF space, which is already the
-   * space pdf-lib draws in — same origin (bottom-left), same units — so the
-   * position needs no conversion. `transform[5]` is the baseline, which is
-   * exactly what `drawText`'s `y` means.
-   */
-  private drawInvisibleText(
-    page: PDFPage,
-    items: readonly unknown[],
-    pageHeight: number,
-    font: PDFFont,
-  ): void {
-    for (const item of items) {
-      const entry = item as { str?: string; transform?: number[]; height?: number };
-      const text = entry.str;
-      const transform = entry.transform;
-      if (!text?.trim() || !transform) continue;
-
-      const clean = sanitizeWinAnsi(text);
-      if (!clean) continue;
-
-      const size = Math.max(1, Math.abs(entry.height || transform[3] || 8));
-      const y = transform[5];
-      // Text that landed off-page (pdf.js reports clipped items too) would be
-      // invisible anyway; skipping it keeps the file smaller.
-      if (y < -size || y > pageHeight + size) continue;
-
-      /**
-       * Guarded per item, on purpose. `StandardFonts.Helvetica` can only encode
-       * WinAnsi, and pdf-lib THROWS on anything outside it — sanitizeWinAnsi
-       * handles the characters it can name, but one exotic glyph must not cost
-       * the user the whole compression. The invisible layer is a bonus; the
-       * smaller file is the job.
-       */
-      try {
-        page.drawText(clean, { x: transform[4], y, size, font, opacity: 0 });
-      } catch {
-        // Skip this run and keep going.
-      }
-    }
-  }
-}
-
-/**
- * Maps text onto what WinAnsi (cp1252) can actually encode.
- *
- * The common offenders in real documents are the typographic punctuation Word
- * and InDesign insert — curly quotes, dashes, ellipsis — which have WinAnsi
- * equivalents and are worth keeping legible in a search. Anything else outside
- * Latin-1 becomes a space, which preserves word boundaries for Ctrl+F rather
- * than gluing tokens together.
- */
-function sanitizeWinAnsi(text: string): string {
-  const folded = text
-    .replace(/[‘’‚′]/g, "'")
-    .replace(/[“”„″]/g, '"')
-    .replace(/[‐-―]/g, '-')
-    .replace(/…/g, '...')
-    .replace(/ /g, ' ');
-
-  let out = '';
-  for (const char of folded) {
-    const code = char.codePointAt(0) ?? 0;
-    // Printable Latin-1 plus tab; everything else would either throw on encode
-    // or render as a control character.
-    out += (code >= 0x20 && code <= 0xff) || code === 0x09 ? char : ' ';
-  }
-
-  return out.trim();
 }
