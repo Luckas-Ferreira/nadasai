@@ -442,6 +442,46 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- convert-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/converter</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/convert</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- compress-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- crop -->
   <url>
     <loc>https://nadasai.com/pt/imagem/cortar</loc>

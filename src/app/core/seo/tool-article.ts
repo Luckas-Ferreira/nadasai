@@ -1035,6 +1035,212 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'convert-video': {
+    pt: [
+      {
+        h: 'O que entra e o que sai',
+        p: [
+          'Entra o que o seu navegador souber decodificar: MP4 e MOV em qualquer um, WebM em qualquer um, e MKV em alguns, dependendo do codec que estiver dentro. A regra prática é a mais simples possível — se o vídeo toca numa aba, ele converte aqui.',
+          'Sai MP4 ou WebM, e só o que o navegador souber gravar. WebM funciona em todo lugar; MP4 na maioria. Se o seu só escrever um dos dois, a página diz qual em vez de mostrar um seletor de uma opção só.',
+          'Não há saída para MOV, AVI ou MKV, e isso é decisão e não esquecimento. Escrever um contêiner que o navegador não sabe escrever significaria entregar bytes de um formato dentro do nome de outro — que é exatamente o defeito que tirou o FLAC da lista do conversor de áudio e o AVIF da lista do conversor de imagem.',
+        ],
+      },
+      {
+        h: 'Como converter',
+        p: [
+          'A ferramenta chega apontando para o formato ÚTIL: se você soltou um MP4, o destino já vem marcado como WebM, e vice-versa. Converter para o formato que o arquivo já tem não faz nada além de acrescentar uma geração de compressão, então a página avisa e desativa o botão quando os dois coincidem.',
+        ],
+        steps: [
+          'Solte o vídeo, ou traga um da cadeia — uma gravação de tela feita aqui mesmo, por exemplo.',
+          'Confirme o formato de saída. O que o seu navegador não escreve não aparece na lista.',
+          'Converta. A barra mostra o progresso, o tempo restante e um botão de cancelar.',
+          'Baixe, ou mande o resultado para outra ferramenta pela barra de arquivo.',
+        ],
+      },
+      {
+        h: 'Por que demora o tempo do vídeo',
+        p: [
+          'Porque não há demuxer aqui. Trocar de contêiner sem recodificar seria abrir o arquivo, remontar o índice e reescrever os mesmos quadros noutro invólucro — instantâneo, e é o que o ffmpeg faz. Trazer o ffmpeg significaria 25 a 30 MB de WebAssembly sob GPL, e GPL contamina um produto vendido on-premise. É o mesmo argumento que o mantém fora da conversão para GIF e do corte de vídeo.',
+          'O caminho que sobra é o que o navegador oferece nativamente: tocar o vídeo, desenhar cada quadro num canvas, capturar esse canvas como fluxo e gravar com o MediaRecorder — a mesma API do gravador de tela. O áudio da origem entra no mesmo fluxo.',
+          'Daí vêm as duas consequências que a página anuncia antes de você esperar: leva a duração do vídeo, porque áudio só se captura acompanhando o relógio; e o resultado é uma segunda geração de compressão.',
+        ],
+      },
+      {
+        h: 'MOV para MP4, MKV para MP4, WebM para MP4',
+        p: [
+          'São os três caminhos que quase todo mundo procura, e os três funcionam pelo mesmo mecanismo. O MOV é o contêiner da Apple e costuma trazer H.264 dentro, que é o mesmo codec do MP4 — na prática você está trocando o invólucro de um arquivo que o resto do mundo já saberia ler.',
+          'O MKV é o caso mais irregular: ele aceita quase qualquer codec, e o navegador só abre os que ele já conhece. Quando não abre, a página recusa na hora, com uma frase, em vez de deixar você esperar a duração inteira do vídeo para falhar no fim.',
+        ],
+      },
+      {
+        h: 'O que não dá para fazer aqui',
+        p: [
+          'Converter AVI. Nenhum navegador o decodifica, então o arquivo nem chega a abrir — e não adianta a ferramenta querer: o decodificador simplesmente não existe na plataforma.',
+          'E não funciona em iOS: nenhum navegador de lá expõe o MediaRecorder, nem o Safari nem o Chrome, porque todos usam o mesmo motor. A página detecta ao abrir e avisa, em vez de deixar você escolher o formato e falhar no fim.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é vídeo e entra na cadeia do módulo. Converter e depois comprimir é redundante — comprimir já converte —, mas converter e depois cortar, recortar ou virar GIF são caminhos que fazem sentido e não custam um novo upload, porque nunca houve upload nenhum.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha — num conversor de vídeo online, é o oposto do normal.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What goes in and what comes out',
+        p: [
+          'In comes whatever your browser can decode: MP4 and MOV on any of them, WebM on any of them, and MKV on some, depending on the codec inside. The practical rule is as simple as it gets — if the video plays in a tab, it converts here.',
+          'Out comes MP4 or WebM, and only what the browser can write. WebM works everywhere; MP4 in most. If yours writes only one of the two, the page names it instead of showing a one-option selector.',
+          'There is no MOV, AVI or MKV output, and that is a decision rather than an oversight. Writing a container the browser cannot write would mean handing you one format’s bytes inside another format’s name — exactly the defect that took FLAC out of the audio converter and AVIF out of the image converter.',
+        ],
+      },
+      {
+        h: 'How to convert',
+        p: [
+          'The tool arrives pointing at the USEFUL format: drop an MP4 and the target is already set to WebM, and the other way round. Converting to the format the file already has does nothing except add a generation of compression, so the page says so and disables the button when the two match.',
+        ],
+        steps: [
+          'Drop the video, or bring one in through the chain — a screen recording made right here, for instance.',
+          'Confirm the output format. What your browser cannot write is not in the list.',
+          'Convert. The bar shows progress, the remaining time and a cancel button.',
+          'Download, or send the result to another tool from the file bar.',
+        ],
+      },
+      {
+        h: 'Why it takes as long as the video',
+        p: [
+          'Because there is no demuxer here. Swapping containers without re-encoding would mean opening the file, rebuilding the index and rewriting the same frames into another wrapper — instant, and it is what ffmpeg does. Bringing ffmpeg would mean 25 to 30 MB of GPL WebAssembly, and GPL contaminates a product sold on-premise. Same argument that keeps it out of the GIF converter and the video trimmer.',
+          'The path that remains is the one the browser offers natively: play the video, draw every frame onto a canvas, capture that canvas as a stream and record it with MediaRecorder — the same API as the screen recorder. The source audio joins the same stream.',
+          'From that come the two consequences the page announces before you wait: it takes the length of the video, because audio can only be captured following the clock; and the result is a second generation of compression.',
+        ],
+      },
+      {
+        h: 'MOV to MP4, MKV to MP4, WebM to MP4',
+        p: [
+          'These are the three routes almost everyone is looking for, and all three work through the same mechanism. MOV is Apple’s container and usually carries H.264 inside, which is the same codec MP4 carries — in practice you are swapping the wrapper on a file the rest of the world could already read.',
+          'MKV is the irregular case: it accepts almost any codec, and the browser only opens the ones it already knows. When it does not open, the page refuses immediately, in one sentence, instead of letting you wait out the whole video only to fail at the end.',
+        ],
+      },
+      {
+        h: 'What you cannot do here',
+        p: [
+          'Convert AVI. No browser decodes it, so the file never opens — and no amount of wanting helps: the decoder simply does not exist on the platform.',
+          'And it does not work on iOS: no browser there exposes MediaRecorder, not Safari and not Chrome, because they all use the same engine. The page detects that when it opens and says so, rather than letting you pick a format and fail at the end.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is video and joins the module chain. Converting and then compressing is redundant — compressing already converts — but converting and then trimming, cropping or turning into a GIF are routes that make sense and cost no new upload, because there never was one.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work — for an online video converter, the opposite of the norm.',
+        ],
+      },
+    ],
+  },
+  'compress-video': {
+    pt: [
+      {
+        h: 'Resolução primeiro, qualidade depois',
+        p: [
+          'É a ordem do painel, e ela não é estética. Reduzir só o bitrate de um vídeo 1080p entrega um 1080p borrado: os pixels que sobram roubam bits dos que importam. O mesmo bitrate aplicado a um 720p entrega um 720p limpo. Por isso a resolução é o primeiro controle.',
+          'A lista só mostra alturas que de fato REDUZEM. Num vídeo que já é 720p, a opção 1080p não aparece — ampliar entregaria os mesmos pixels ocupando um arquivo maior, que é o contrário do que a ferramenta promete. Mostrar e ignorar seria pior do que não mostrar.',
+        ],
+      },
+      {
+        h: 'Como comprimir',
+        p: [
+          'O painel mostra o tamanho estimado antes de você esperar, e é por ele que se escolhe. Mexa nos dois controles até o número caber no seu limite — 16 MB do WhatsApp, 25 MB de um anexo de e-mail, o que o formulário aceitar — e só então aplique.',
+        ],
+        steps: [
+          'Solte o vídeo, ou traga um da cadeia.',
+          'Escolha a altura de saída. 720p resolve a maioria dos casos; 480p é o que faz um vídeo longo caber num anexo.',
+          'Escolha a qualidade e confira o tamanho estimado ao lado.',
+          'Comprima. A barra mostra o progresso e o tempo restante, e dá para cancelar.',
+        ],
+      },
+      {
+        h: 'O tamanho é estimado, e por isso é dito assim',
+        p: [
+          'A conta é o bitrate escolhido vezes a duração. É o que o codificador vai MIRAR, não o que ele vai necessariamente entregar: ele gasta menos numa cena parada e mais numa cena com movimento, então uma palestra fica abaixo da estimativa e um vídeo de esporte fica em cima dela.',
+          'Preferimos o número aproximado e dito como aproximado ao número exato que não se cumpre. É a mesma decisão do painel do conversor para GIF, que mostra quadros e resolução e não promete megabytes.',
+        ],
+      },
+      {
+        h: 'Quando ela recusa comprimir',
+        p: [
+          'Quando o ajuste escolhido produziria um arquivo MAIOR que o original. Isso acontece de verdade: um vídeo que já saiu bem comprimido de um celular, recodificado em qualidade alta na resolução original, cresce.',
+          'Entregar isso em silêncio seria o pior resultado possível numa ferramenta chamada "comprimir" — você esperaria a duração inteira do vídeo para receber algo pior e maior. Então o aviso aparece e o botão desativa. Baixar a altura ou a qualidade resolve, e a estimativa ao lado mostra na hora que resolveu.',
+        ],
+      },
+      {
+        h: 'A espera é a duração do vídeo',
+        p: [
+          'E não há como acelerar. O áudio só se captura em tempo real; tocar o vídeo mais rápido entregaria a trilha com a duração errada. Um vídeo de cinco minutos leva cinco minutos, e a tela mostra o tempo restante e oferece cancelar em vez de parecer travada.',
+          'É o mesmo custo que o recorte de vídeo paga, e pelo mesmo motivo: sem um demuxer de 25 a 30 MB sob GPL, o único caminho é redesenhar cada quadro num canvas e gravar o que passa.',
+          'E não funciona em iOS: nenhum navegador de lá expõe o MediaRecorder. A página detecta ao abrir e avisa.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é vídeo e entra na cadeia do módulo. Comprimir já troca o formato de saída, então não faz sentido converter depois; o que faz sentido é cortar ou recortar ANTES — tirar o trecho que interessa reduz o que a compressão precisa atravessar, e o tempo de espera cai junto.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'Resolution first, quality second',
+        p: [
+          'That is the order in the panel, and it is not decoration. Lowering only the bitrate of a 1080p video gives you a blurry 1080p: the extra pixels steal bits from the ones that matter. The same bitrate on a 720p gives you a clean 720p. That is why resolution is the first control.',
+          'The list only shows heights that actually REDUCE. On a video that is already 720p, the 1080p option is absent — enlarging would hand back the same pixels in a bigger file, which is the opposite of what the tool promises. Showing it and ignoring it would be worse than not showing it.',
+        ],
+      },
+      {
+        h: 'How to compress',
+        p: [
+          'The panel shows the estimated size before you wait, and that is what you choose by. Move the two controls until the number fits your limit — WhatsApp’s 16 MB, an email attachment’s 25 MB, whatever the form accepts — and only then apply.',
+        ],
+        steps: [
+          'Drop the video, or bring one in through the chain.',
+          'Pick the output height. 720p covers most cases; 480p is what makes a long video fit an attachment.',
+          'Pick the quality and check the estimated size beside it.',
+          'Compress. The bar shows progress and remaining time, and you can cancel.',
+        ],
+      },
+      {
+        h: 'The size is an estimate, and it is said that way',
+        p: [
+          'The arithmetic is the chosen bitrate times the duration. That is what the encoder will AIM at, not necessarily what it will deliver: it spends less on a still scene and more on a moving one, so a lecture lands below the estimate and a sports clip lands above it.',
+          'We prefer the approximate number said to be approximate over the exact number that is not kept. Same decision as the GIF converter’s panel, which shows frames and resolution and does not promise megabytes.',
+        ],
+      },
+      {
+        h: 'When it refuses to compress',
+        p: [
+          'When the chosen setting would produce a file BIGGER than the original. This genuinely happens: a video that already came well compressed off a phone, re-encoded at high quality at its original resolution, grows.',
+          'Handing that back silently would be the worst possible result in a tool called "compress" — you would wait out the whole video to receive something worse and larger. So the warning appears and the button goes inactive. Lowering the height or the quality fixes it, and the estimate beside it shows the moment it does.',
+        ],
+      },
+      {
+        h: 'The wait is the length of the video',
+        p: [
+          'And there is no speeding it up. Audio can only be captured in real time; playing the video faster would deliver the track at the wrong duration. A five-minute video takes five minutes, and the screen shows the remaining time and offers a cancel rather than looking stuck.',
+          'It is the same cost the video cropper pays, for the same reason: without a 25-to-30 MB GPL demuxer, the only path is redrawing every frame onto a canvas and recording what passes.',
+          'And it does not work on iOS: no browser there exposes MediaRecorder. The page detects that when it opens and says so.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is video and joins the module chain. Compressing already changes the output format, so converting afterwards makes no sense; what makes sense is trimming or cropping BEFORE — pulling out the part you care about reduces what the compression has to cross, and the wait drops with it.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

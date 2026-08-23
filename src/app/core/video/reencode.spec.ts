@@ -1,4 +1,4 @@
-import { pixelBox } from './reencode';
+import { outputSize, pixelBox } from './reencode';
 
 /**
  * A gravação em si não tem teste de unidade, e é deliberado: ela precisa tocar
@@ -74,5 +74,51 @@ describe('pixelBox', () => {
     const box = pixelBox({ x: 0, y: 0, w: 1, h: 1 }, 1920, 1080);
 
     expect(box).toEqual({ x: 0, y: 0, w: 1920, h: 1080 });
+  });
+});
+
+/**
+ * O tamanho da SAÍDA, que é o que o comprimir escolhe e o converter deixa em
+ * paz. A regra que carrega a ferramenta é a de não ampliar: pedir 1080p de um
+ * vídeo 480p entregaria os mesmos pixels num arquivo maior, ou seja o oposto
+ * de comprimir.
+ */
+describe('outputSize', () => {
+  it('keeps the source size when no ceiling is asked for', () => {
+    expect(outputSize({ w: 1920, h: 1080 })).toEqual({ w: 1920, h: 1080 });
+  });
+
+  it('scales down to the ceiling and keeps the aspect ratio', () => {
+    const out = outputSize({ w: 1920, h: 1080 }, 720);
+
+    expect(out.h).toBe(720);
+    expect(out.w).toBe(1280);
+  });
+
+  it('never enlarges: a ceiling above the source is ignored', () => {
+    expect(outputSize({ w: 640, h: 480 }, 1080)).toEqual({ w: 640, h: 480 });
+  });
+
+  it('keeps both sides even, which H.264 requires', () => {
+    const out = outputSize({ w: 1001, h: 563 }, 360);
+
+    expect(out.w % 2).toBe(0);
+    expect(out.h % 2).toBe(0);
+  });
+
+  it('never returns a side below the two-pixel floor', () => {
+    const out = outputSize({ w: 4, h: 3 }, 1);
+
+    expect(out.w).toBeGreaterThanOrEqual(2);
+    expect(out.h).toBeGreaterThanOrEqual(2);
+  });
+
+  it('scales a portrait video by its height, not its longest side', () => {
+    const out = outputSize({ w: 1080, h: 1920 }, 720);
+
+    expect(out.h).toBe(720);
+    // 1080 x 0,375 = 405, e o piso par leva a 404. A proporcao anda 0,25% —
+    // o preco de exigir lados pares, e menor que qualquer outra opcao.
+    expect(out.w).toBe(404);
   });
 });
