@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/ports';
+import { previewNeeded } from './e2e/preview';
 
 /**
  * Headed by design: the point of this suite is to *watch* the tools run.
@@ -13,7 +14,30 @@ import { DEV_PORT, DEV_URL, PREVIEW_PORT, PREVIEW_URL } from './e2e/ports';
  */
 const CI = !!process.env['CI'];
 
-/** As portas moram em `e2e/ports.ts`, junto com os dois specs que as usam. */
+/** As portas moram em `e2e/ports.ts`, junto com os specs que as usam. */
+
+/**
+ * O servidor de preview só sobe quando algum spec o pede.
+ *
+ * Ele servia `dist/` para TODA execução, e o comando dele começava por
+ * `npm run build`. Isso produziu três defeitos que se disfarçam de falha do
+ * produto:
+ *
+ *  1. Um build de dois minutos antes de rodar um spec que não olha para o
+ *     artefato.
+ *  2. Esse build rodava AO MESMO TEMPO que o `ng serve` do outro servidor, e
+ *     os dois dividem `.angular/cache` — daí um servidor de desenvolvimento
+ *     corrompido, com todo teste falhando em `setInputFiles`.
+ *  3. `npm run build && node …` é uma cadeia de shell. No Windows o
+ *     Playwright mata o shell e o `node` neto sobrevive; com
+ *     `reuseExistingServer`, a execução seguinte reaproveitava esse órfão,
+ *     que serve um `dist/` antigo — e o `09-offline` reprovava por um
+ *     arquivo que não existia mais.
+ *
+ * Agora o build é do `npm run e2e`, o comando é um processo só (o Playwright
+ * consegue matá-lo) e o servidor recusa subir sobre um artefato velho.
+ */
+const NEEDS_PREVIEW = previewNeeded(process.argv);
 
 export default defineConfig({
   testDir: './e2e',
@@ -44,25 +68,35 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
   webServer: [
+    /**
+     * REUSAR ESTE É SEGURO, e reusar o outro não — a diferença é estrutural.
+     *
+     * O `ng serve` observa os arquivos e recompila, então um servidor que já
+     * estava de pé nunca está desatualizado. O de preview serve um retrato
+     * congelado do `dist/`: reusar um que ficou de execuções anteriores é
+     * exatamente como se testa a versão errada do produto.
+     */
     {
       command: `npm start -- --port ${DEV_PORT}`,
       url: DEV_URL,
       reuseExistingServer: true,
       timeout: 180_000,
     },
-    /**
-     * The production build, for 09-offline.
-     *
-     * `ng serve` does not emit ngsw-worker.js, so under the dev server there is
-     * no service worker at all — the offline suite would be asserting against
-     * the one condition it exists to prove. It needs the real artifact, served
-     * the way a static host serves it.
-     */
-    {
-      command: `npm run build && node e2e/preview-server.mjs ${PREVIEW_PORT}`,
-      url: PREVIEW_URL,
-      reuseExistingServer: true,
-      timeout: 240_000,
-    },
+    ...(NEEDS_PREVIEW
+      ? [
+          {
+            // Um processo só: sem `&&` e sem `npm`, o que o Playwright mata
+            // no teardown é o próprio servidor, e não um shell que deixa o
+            // filho vivo segurando a porta.
+            command: `node e2e/preview-server.mjs ${PREVIEW_PORT}`,
+            url: PREVIEW_URL,
+            // Nunca reusar: um servidor nesta porta ou é órfão de outra
+            // execução ou é de outra pessoa, e nos dois casos serve bytes que
+            // ninguém conferiu. Falhar alto é melhor do que aprovar errado.
+            reuseExistingServer: false,
+            timeout: 60_000,
+          },
+        ]
+      : []),
   ],
 });

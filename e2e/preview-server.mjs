@@ -11,7 +11,7 @@
  *
  *   node e2e/preview-server.mjs [port]
  */
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 
@@ -39,6 +39,48 @@ const TYPES = {
 
 if (!existsSync(ROOT)) {
   console.error(`No build at ${ROOT}. Run: npm run build`);
+  process.exit(1);
+}
+
+/**
+ * RECUSA SERVIR UM ARTEFATO VELHO.
+ *
+ * Este servidor entrega um retrato congelado do `dist/`, e é o único lugar da
+ * suíte onde o que está sendo testado pode não ser o que está no código. Já
+ * aconteceu: um servidor órfão de uma execução anterior continuou de pé, a
+ * execução seguinte o reaproveitou, e o `09-offline` reprovou por causa de um
+ * arquivo que a versão nova já tinha. Três diagnósticos falsos saíram daí.
+ *
+ * A comparação é por data de modificação: qualquer arquivo em `src/` ou
+ * `public/` mais novo que o `index.html` gerado significa build defasado. O
+ * servidor então SAI dizendo o comando, em vez de servir bytes que ninguém
+ * conferiu.
+ */
+function newestMtime(dir) {
+  let newest = 0;
+
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    // Spec não entra no bundle: o tsconfig.app.json o exclui. Contar um deles
+    // invalidaria o build a cada teste unitário escrito, e o servidor passaria
+    // a recusar subir por uma mudança que não muda o artefato.
+    if (entry.isFile() && entry.name.endsWith('.spec.ts')) continue;
+
+    const full = join(dir, entry.name);
+    const at = entry.isDirectory() ? newestMtime(full) : statSync(full).mtimeMs;
+    if (at > newest) newest = at;
+  }
+
+  return newest;
+}
+
+const builtAt = statSync(join(ROOT, 'index.html')).mtimeMs;
+const sourceAt = Math.max(newestMtime(resolve('src')), newestMtime(resolve('public')));
+
+if (sourceAt > builtAt) {
+  console.error(
+    `The build at ${ROOT} is older than src/ or public/. The offline, prerender` +
+      ` and CSP specs would be checking the previous version. Run: npm run build`,
+  );
   process.exit(1);
 }
 
