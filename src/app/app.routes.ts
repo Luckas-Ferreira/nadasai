@@ -318,6 +318,28 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'pdf/girar',
+        loadComponent: () =>
+          import('./features/rotate-pdf/rotate-pdf.component').then((m) => m.RotatePdfComponent),
+        title: 'Girar PDF online grátis — endireite um documento escaneado de lado | Nada Sai',
+        data: {
+          metaDescription:
+            'Gire todas as páginas de um PDF de uma vez, ou uma por uma, e salve. Sem perda: o texto continua texto. O arquivo não sai do seu navegador.',
+          metaKeywords: 'girar pdf, rotacionar pdf, virar pdf, corrigir orientacao do pdf, pdf de lado',
+        },
+      },
+      {
+        path: 'pdf/desbloquear',
+        loadComponent: () =>
+          import('./features/unlock-pdf/unlock-pdf.component').then((m) => m.UnlockPdfComponent),
+        title: 'Desbloquear PDF — remova a senha de um arquivo que você abre | Nada Sai',
+        data: {
+          metaDescription:
+            'Remova a senha e as restrições de um PDF que você consegue abrir, no próprio navegador. Nada é enviado, e a página diz antes o que muda no arquivo.',
+          metaKeywords: 'desbloquear pdf, remover senha do pdf, tirar senha do pdf, pdf protegido, desproteger pdf',
+        },
+      },
+      {
         path: 'pdf/organizar',
         title: 'Organizar PDF Online (Girar e Apagar Páginas) — Nada Sai',
         loadComponent: () => import('./features/organize-pdf/organize-pdf.component').then((m) => m.OrganizePdfComponent),
@@ -799,6 +821,28 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Convert a PDF into an editable .docx keeping paragraphs, bold and italics, with OCR for scanned pages. Free and 100% offline in your browser.'
         }
+      },
+      {
+        path: 'pdf/rotate',
+        loadComponent: () =>
+          import('./features/rotate-pdf/rotate-pdf.component').then((m) => m.RotatePdfComponent),
+        title: 'Rotate PDF online free — straighten a sideways scan | Nada Sai',
+        data: {
+          metaDescription:
+            'Rotate every page of a PDF at once, or one at a time, and save. Lossless: the text stays text. The file never leaves your browser.',
+          metaKeywords: 'rotate pdf, turn pdf pages, fix pdf orientation, pdf sideways, rotate pdf online',
+        },
+      },
+      {
+        path: 'pdf/unlock',
+        loadComponent: () =>
+          import('./features/unlock-pdf/unlock-pdf.component').then((m) => m.UnlockPdfComponent),
+        title: 'Unlock PDF — remove the password from a file you can open | Nada Sai',
+        data: {
+          metaDescription:
+            'Remove the password and restrictions from a PDF you can already open, right in your browser. Nothing is uploaded, and the page says up front what changes.',
+          metaKeywords: 'unlock pdf, remove pdf password, decrypt pdf, protected pdf, remove pdf restrictions',
+        },
       },
       {
         path: 'pdf/organize',

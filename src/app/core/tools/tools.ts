@@ -22,6 +22,8 @@ export type ToolId =
   | 'trim-video'
   | 'convert-video'
   | 'compress-video'
+  | 'rotate-pdf'
+  | 'unlock-pdf'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -622,6 +624,56 @@ export const TOOLS: readonly ToolDef[] = [
       'compress video online', 'shrink video', 'video compressor',
       'reduce video file size', 'video for whatsapp', 'video for email',
       'lower video resolution', '720p video', 'lighter video'
+    ],
+  },
+  {
+    id: 'rotate-pdf',
+    pathPt: 'pdf/girar',
+    pathEn: 'pdf/rotate',
+    icon: 'rotate',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.rotate_pdf',
+    shortKey: 'nav.short.rotate_pdf',
+    titleKey: 'rotpdf.title',
+    descKey: 'rotpdf.subtitle',
+    suffix: 'girado',
+    tone: 'indigo',
+    keywordsPt: [
+      'girar pdf', 'rotacionar pdf', 'virar pdf', 'pdf de lado', 'pdf de cabeca para baixo',
+      'corrigir orientacao do pdf', 'girar pagina do pdf', 'girar pdf online',
+      'pdf deitado', 'endireitar pdf', 'girar 90 graus', 'salvar pdf girado'
+    ],
+    keywordsEn: [
+      'rotate pdf', 'turn pdf', 'pdf sideways', 'pdf upside down',
+      'fix pdf orientation', 'rotate pdf pages', 'rotate pdf online',
+      'straighten pdf', 'rotate 90 degrees', 'save rotated pdf'
+    ],
+  },
+  {
+    id: 'unlock-pdf',
+    pathPt: 'pdf/desbloquear',
+    pathEn: 'pdf/unlock',
+    icon: 'unlock',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.unlock_pdf',
+    shortKey: 'nav.short.unlock_pdf',
+    titleKey: 'unlockpdf.title',
+    descKey: 'unlockpdf.subtitle',
+    suffix: 'desbloqueado',
+    tone: 'teal',
+    keywordsPt: [
+      'desbloquear pdf', 'remover senha do pdf', 'tirar senha do pdf', 'pdf sem senha',
+      'pdf protegido', 'liberar pdf', 'desproteger pdf', 'pdf nao deixa imprimir',
+      'pdf nao deixa copiar', 'remover protecao do pdf', 'desbloquear pdf online'
+    ],
+    keywordsEn: [
+      'unlock pdf', 'remove pdf password', 'pdf password remover', 'decrypt pdf',
+      'protected pdf', 'pdf will not print', 'pdf will not copy',
+      'remove pdf restrictions', 'unlock pdf online', 'open locked pdf'
     ],
   },
   {
