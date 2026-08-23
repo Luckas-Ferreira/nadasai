@@ -221,6 +221,17 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'imagem/foto-3x4',
+        loadComponent: () =>
+          import('./features/id-photo/id-photo.component').then((m) => m.IdPhotoComponent),
+        title: 'Foto 3x4 online grátis — monte a folha para imprimir | Nada Sai',
+        data: {
+          metaDescription:
+            'Recorte a foto na medida real de 3x4, 5x7 ou passaporte a 300 DPI e monte a folha 10x15 ou A4 com linha de corte. Sem enviar a foto para lugar nenhum.',
+          metaKeywords: 'foto 3x4, foto 3x4 online, foto para documento, foto 3x4 para imprimir, foto de passaporte',
+        },
+      },
+      {
         path: 'imagem/cortar',
         title: 'Cortar Imagem Online (Proporção Livre) — Nada Sai',
         loadComponent: () => import('./features/crop/crop.component').then((m) => m.CropComponent),
@@ -724,6 +735,17 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Pull the audio track out of an MP4, MOV, WebM or MKV and save it as MP3 or lossless WAV. The video never leaves your device — 100% offline.'
         }
+      },
+      {
+        path: 'image/id-photo',
+        loadComponent: () =>
+          import('./features/id-photo/id-photo.component').then((m) => m.IdPhotoComponent),
+        title: 'Passport photo online free — build the sheet to print | Nada Sai',
+        data: {
+          metaDescription:
+            'Crop to the real size of a 2x2, 35x45 or 3x4 photo at 300 DPI and lay out a 10x15 or A4 sheet with cut guides. The photo is never uploaded.',
+          metaKeywords: 'passport photo, id photo, 2x2 photo, 35x45 photo, print passport photos',
+        },
       },
       {
         path: 'image/crop',

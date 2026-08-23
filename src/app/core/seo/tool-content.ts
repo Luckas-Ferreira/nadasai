@@ -1471,6 +1471,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'id-photo': {
+    pt: {
+      features: [
+        'Medida real: 3x4, 5x7, passaporte e Schengen',
+        'Folha 10x15 ou A4 com linha de corte',
+        '300 DPI, que é o que a gráfica pede',
+        'A foto não sai do seu navegador',
+      ],
+      faq: [
+        {
+          q: 'Isso não é a mesma coisa que recortar em 3:4?',
+          a: 'Não. 3x4 é uma medida FÍSICA — três centímetros por quatro —, não a razão 3:4. Uma foto recortada na proporção certa e salva com 200 pixels de largura sai borrada da gráfica; a mesma foto com 4000 pixels só engorda o arquivo. Quem decide o tamanho impresso é o DPI, e aqui ele é fixo em 300, que é o mínimo que uma gráfica trata como foto.',
+        },
+        {
+          q: 'Preciso de uma foto ou de uma folha?',
+          a: 'Quase sempre da folha, e é por isso que ela é o padrão. Ninguém leva um arquivo de 3x4 à gráfica: leva uma folha 10x15 com o máximo de cópias que couber e a linha de corte. Numa 10x15 cabem nove fotos 3x4; numa A4, muitas mais. Se você só quer o arquivo para anexar num formulário, escolha "Só a foto".',
+        },
+        {
+          q: 'Devo baixar em PDF ou em JPG?',
+          a: 'PDF para imprimir, JPG para mandar. O PDF carrega o tamanho físico dentro dele, então sai em 3x4 de verdade em qualquer impressora. O JPEG carrega só pixels — o tamanho impresso passa a depender do que o programa de impressão decidir, e é aí que a foto sai maior ou menor do que devia.',
+        },
+        {
+          q: 'A ferramenta deixa o fundo branco?',
+          a: 'Não, e ela não finge que deixa. Trocar fundo de retrato é outro problema — cabelo, contorno, sombra — e existe uma ferramenta própria para isso aqui, a de remover fundo, que usa uma rede neural de verdade. O caminho é: remover o fundo, pôr o fundo branco, e então voltar para cá para a medida e a folha.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Real size: 2x2, 35x45, 3x4 and 5x7',
+        '10x15 or A4 sheet with cut guides',
+        '300 DPI, which is what a lab asks for',
+        'The photo never leaves your browser',
+      ],
+      faq: [
+        {
+          q: 'Is this not the same as cropping to a ratio?',
+          a: 'No. A passport photo is a PHYSICAL measurement — two inches by two, or 35 by 45 millimetres — not a ratio. A photo cropped to the right shape and saved 200 pixels wide comes back blurry from the lab; the same photo at 4000 pixels only bloats the file. What decides the printed size is DPI, and here it is fixed at 300, the minimum a lab treats as a photo.',
+        },
+        {
+          q: 'Do I need one photo or a sheet?',
+          a: 'Almost always the sheet, which is why it is the default. Nobody takes a single 2x2 file to a print shop: they take a 10x15 sheet with as many copies as fit and cut guides between them. If you only need the file to attach to a form, pick "Photo only".',
+        },
+        {
+          q: 'Should I download PDF or JPG?',
+          a: 'PDF to print, JPG to send. A PDF carries the physical size inside it, so it prints at the true size on any printer. A JPEG carries pixels only — the printed size then depends on whatever the print dialog decides, and that is where photos come out larger or smaller than they should.',
+        },
+        {
+          q: 'Does the tool make the background white?',
+          a: 'No, and it does not pretend to. Replacing a portrait background is a different problem — hair, edges, shadow — and there is a dedicated tool for it here, the background remover, which uses a real neural network. The route is: remove the background, put white behind it, then come back here for the size and the sheet.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

@@ -522,6 +522,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- id-photo -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/foto-3x4</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/id-photo</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- crop -->
   <url>
     <loc>https://nadasai.com/pt/imagem/cortar</loc>

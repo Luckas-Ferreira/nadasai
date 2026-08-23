@@ -141,12 +141,26 @@ describe('tools registry', () => {
    * mexendo na imagem vem antes de transformá-la em outra coisa.
    */
   it('offers the tools that keep the kind before the ones that change it', () => {
-    const chips = nextToolsFor('image', 'resize', MAX_NEXT_TOOL_CHIPS).map((t) => t.id);
+    const chips = nextToolsFor('image', 'resize', MAX_NEXT_TOOL_CHIPS);
+    const ids = chips.map((t) => t.id);
 
-    expect(chips).toContain('convert');
-    expect(chips).toContain('crop');
-    expect(chips.indexOf('convert')).toBeLessThan(chips.indexOf('vectorize'));
-    expect(chips.indexOf('compress')).toBeLessThan(chips.indexOf('img-to-pdf'));
+    expect(ids).toContain('convert');
+    expect(ids).toContain('crop');
+
+    /**
+     * A REGRA, dita como regra.
+     *
+     * Isto era uma comparação entre os índices de dois ids fixos, e por isso
+     * reprovava assim que uma ferramenta nova empurrava um deles para FORA do
+     * corte de chips — `indexOf` devolve -1 e a asserção acusa uma inversão de
+     * ordem que não aconteceu. Foi o que a foto de documento causou ao entrar
+     * no módulo de imagem. O que interessa não é onde o `vectorize` caiu: é que
+     * nenhum destino que muda o tipo apareça antes de um que o mantém.
+     */
+    const lastKeeping = chips.reduce((at, tool, i) => (tool.produces === 'image' ? i : at), -1);
+    const firstChanging = chips.findIndex((tool) => tool.produces !== 'image');
+
+    if (firstChanging !== -1) expect(firstChanging).toBeGreaterThan(lastKeeping);
   });
 
   /**

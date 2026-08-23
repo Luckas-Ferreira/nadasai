@@ -24,6 +24,7 @@ export type ToolId =
   | 'compress-video'
   | 'rotate-pdf'
   | 'unlock-pdf'
+  | 'id-photo'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -674,6 +675,31 @@ export const TOOLS: readonly ToolDef[] = [
       'unlock pdf', 'remove pdf password', 'pdf password remover', 'decrypt pdf',
       'protected pdf', 'pdf will not print', 'pdf will not copy',
       'remove pdf restrictions', 'unlock pdf online', 'open locked pdf'
+    ],
+  },
+  {
+    id: 'id-photo',
+    pathPt: 'imagem/foto-3x4',
+    pathEn: 'image/id-photo',
+    icon: 'images',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.id_photo',
+    shortKey: 'nav.short.id_photo',
+    titleKey: 'idphoto.title',
+    descKey: 'idphoto.subtitle',
+    suffix: 'foto',
+    tone: 'rose',
+    keywordsPt: [
+      'foto 3x4', 'foto 3x4 online', 'fazer foto 3x4', 'foto para documento',
+      'foto 5x7', 'foto de passaporte', 'foto 3x4 para imprimir', 'folha de foto 3x4',
+      'foto rg', 'foto cnh', 'foto carteira de trabalho', 'imprimir foto 3x4 em casa'
+    ],
+    keywordsEn: [
+      'passport photo', 'id photo', 'passport photo maker', 'photo for documents',
+      'passport photo online', '2x2 photo', '35x45 photo', 'visa photo',
+      'print passport photos', 'passport photo sheet', 'id photo generator'
     ],
   },
   {

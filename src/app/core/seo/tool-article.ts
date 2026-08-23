@@ -1453,6 +1453,118 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'id-photo': {
+    pt: [
+      {
+        h: 'Medida física, não proporção',
+        p: [
+          'Esta é a diferença inteira entre esta página e a de recortar imagem. "3x4" não é a razão 3:4 — são três centímetros por quatro, impressos. Uma foto recortada na forma certa e salva com 200 pixels de largura sai borrada da gráfica. A mesma foto com 4000 pixels não sai melhor: sai só maior de arquivo.',
+          'Quem liga uma coisa à outra é o DPI, os pontos por polegada. A 300 DPI, três centímetros são 354 pixels e quatro centímetros são 472. Por isso a resolução aqui é fixa e declarada em vez de ser mais um controle para errar — 300 é o mínimo que uma gráfica trata como foto, e acima disso o ganho não aparece num retângulo desse tamanho.',
+          'O painel mostra as duas medidas lado a lado o tempo todo: a física, que é o que o documento exige, e a em pixels, que é o que o arquivo vai ter.',
+        ],
+      },
+      {
+        h: 'Como fazer',
+        p: [
+          'A caixa de enquadramento fica travada na proporção do formato escolhido, e muda no instante em que você troca de formato. É o que impede enquadrar um retângulo e receber outro — o defeito que produz foto de documento com a testa cortada.',
+        ],
+        steps: [
+          'Solte o retrato. Serve foto de celular, desde que o rosto esteja nítido e de frente.',
+          'Escolha o formato. 3x4 e 5x7 são os brasileiros, 35x45 mm é o europeu e o do visto Schengen, 2x2 polegadas é o do passaporte americano.',
+          'Enquadre o rosto arrastando a caixa e as alças. A proporção não sai do lugar.',
+          'Escolha a folha e a saída, e monte. Baixe o PDF para imprimir.',
+        ],
+      },
+      {
+        h: 'A folha é o produto',
+        p: [
+          'Ninguém leva um arquivo de 3x4 à gráfica. Leva uma folha 10x15 com o máximo de cópias que couber, corta em casa ou pede para cortarem. Por isso a folha é o padrão aqui, e não um extra.',
+          'A grade é calculada pela medida, não chutada: numa 10x15 cabem nove fotos 3x4, numa A4 cabem muitas mais, e o painel diz o número antes de você montar. A conta respeita o detalhe que costuma passar batido — n fotos têm n-1 vãos entre elas, e contar um vão a mais tira uma coluna inteira de toda folha sem que o resultado pareça errado.',
+          'A sobra é dividida igualmente nas quatro bordas em vez de ficar toda de um lado. Corte de gráfica raramente cai no milímetro, e folga simétrica é o que perdoa esse erro.',
+          'Entre as fotos vai uma linha fina de corte. Ela some quando você escolhe "Só a foto", porque aí não há o que cortar.',
+        ],
+      },
+      {
+        h: 'PDF para imprimir, JPG para mandar',
+        p: [
+          'A escolha não é de gosto. O PDF carrega o tamanho físico dentro do arquivo: a página tem 100 por 150 milímetros declarados, e cada foto tem 30 por 40. Qualquer impressora respeita isso, e o que sai do papel mede o que devia medir.',
+          'O JPEG carrega apenas pixels. O tamanho impresso passa a depender do que o programa de impressão decidir — "ajustar à página", "100%", a margem que ele resolver aplicar —, e é exatamente daí que vem a foto que sai um pouco maior ou um pouco menor e é recusada no guichê.',
+          'Então: PDF quando o destino é o papel, JPG quando o destino é um formulário na internet ou uma mensagem.',
+        ],
+      },
+      {
+        h: 'O que ela não faz',
+        p: [
+          'Não troca o fundo, e não finge que troca. Fundo de retrato é outro problema — cabelo, contorno, sombra — e existe ferramenta própria para isso aqui: a de remover fundo, que roda uma rede neural de verdade no seu navegador. O caminho é remover o fundo, pôr o branco, e voltar para cá para a medida e a folha.',
+          'Não valida a foto contra a regra do órgão. Distância do queixo ao topo da cabeça, expressão, óculos, sombra na parede: isso varia por documento e por país, muda com o tempo, e uma ferramenta que dissesse "aprovado" estaria prometendo o que não pode cumprir.',
+          'Não recorta várias fotos de uma vez. Uma foto, uma folha.',
+        ],
+      },
+      {
+        h: 'Onde ela continua',
+        p: [
+          'O resultado entra na cadeia. Em JPG ele é imagem e segue para comprimir, converter ou redimensionar; em PDF ele é PDF e segue para o módulo de PDF — juntar a folha de fotos a um formulário digitalizado, por exemplo.',
+          'E o caminho mais útil é o contrário: passar pelo removedor de fundo ANTES, e chegar aqui com o retrato já pronto.',
+          'Tudo roda no seu navegador. A foto não é enviada a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha — num serviço de foto de documento online, onde o arquivo é o seu rosto, é a diferença que importa.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'A physical size, not a ratio',
+        p: [
+          'This is the entire difference between this page and the image cropper. A passport photo is not a shape — it is two inches by two, or thirty-five millimetres by forty-five, printed. A photo cropped to the right shape and saved 200 pixels wide comes back blurry from the lab. The same photo at 4000 pixels is no better: it is just a bigger file.',
+          'What connects the two is DPI, dots per inch. At 300 DPI, two inches are 600 pixels and 35 millimetres are 413. That is why the resolution here is fixed and stated rather than being one more control to get wrong — 300 is the minimum a lab treats as a photo, and above it the gain does not show on a rectangle this small.',
+          'The panel keeps both measurements side by side the whole time: the physical one, which the document demands, and the pixel one, which the file will have.',
+        ],
+      },
+      {
+        h: 'How to do it',
+        p: [
+          'The framing box is locked to the ratio of the chosen format, and changes the instant you switch formats. That is what stops you framing one rectangle and receiving another — the defect that produces an ID photo with the forehead cut off.',
+        ],
+        steps: [
+          'Drop the portrait. A phone photo is fine, as long as the face is sharp and facing forward.',
+          'Pick the format. 2x2 inches is the US passport, 35x45 mm is the European and Schengen visa size, 3x4 and 5x7 cm are the Brazilian ones.',
+          'Frame the face by dragging the box and its handles. The ratio does not move.',
+          'Pick the sheet and the output, and build. Download the PDF to print.',
+        ],
+      },
+      {
+        h: 'The sheet is the product',
+        p: [
+          'Nobody takes a single 2x2 file to a print shop. They take a 10x15 sheet with as many copies as fit, and cut them at home or have them cut. That is why the sheet is the default here rather than an extra.',
+          'The grid is computed from the measurements, not guessed: a 10x15 sheet fits nine 3x4 photos, an A4 fits many more, and the panel says the number before you build. The arithmetic respects the detail that usually slips by — n photos have n-1 gaps between them, and counting one gap too many drops a whole column from every sheet without the result looking wrong.',
+          'The leftover is split evenly across all four edges instead of piling up on one side. A lab cut rarely lands on the millimetre, and symmetric slack is what forgives that error.',
+          'A thin cut guide runs between the photos. It disappears when you choose "Photo only", because then there is nothing to cut.',
+        ],
+      },
+      {
+        h: 'PDF to print, JPG to send',
+        p: [
+          'The choice is not a matter of taste. A PDF carries the physical size inside the file: the page declares 100 by 150 millimetres, and each photo declares 30 by 40. Any printer respects that, and what comes off the paper measures what it should.',
+          'A JPEG carries pixels only. The printed size then depends on whatever the print dialog decides — "fit to page", "100%", whichever margin it applies — and that is exactly where the photo that comes out slightly too large or too small, and is refused at the counter, comes from.',
+          'So: PDF when the destination is paper, JPG when the destination is a web form or a message.',
+        ],
+      },
+      {
+        h: 'What it does not do',
+        p: [
+          'It does not replace the background, and does not pretend to. A portrait background is a different problem — hair, edges, shadow — and there is a dedicated tool for it here: the background remover, which runs a real neural network in your browser. The route is to remove the background, put white behind it, and come back here for the size and the sheet.',
+          'It does not validate the photo against an authority’s rules. Chin-to-crown distance, expression, glasses, shadow on the wall: that varies by document and by country, changes over time, and a tool that said "approved" would be promising what it cannot keep.',
+          'It does not crop several photos at once. One photo, one sheet.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result joins the chain. As a JPG it is an image and moves on to compress, convert or resize; as a PDF it is a PDF and moves to the PDF module — attaching the photo sheet to a scanned form, for instance.',
+          'And the most useful route is the other way round: run the portrait through the background remover FIRST, and arrive here with it ready.',
+          'Everything runs in your browser. The photo is not sent anywhere, and the meter at the top of the page shows that while you work — in an online ID photo service, where the file is your own face, that is the difference that matters.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {
