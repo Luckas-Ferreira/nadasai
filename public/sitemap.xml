@@ -102,26 +102,6 @@
     <priority>0.5</priority>
   </url>
 
-  <!-- screen-recorder -->
-  <url>
-    <loc>https://nadasai.com/pt/video/gravar-tela</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/gravar-tela" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/screen-record" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/gravar-tela" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/screen-record</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/gravar-tela" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/screen-record" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/gravar-tela" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
   <!-- remove-bg -->
   <url>
     <loc>https://nadasai.com/pt/imagem/remover-fundo</loc>
@@ -140,6 +120,146 @@
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
+  </url>
+
+  <!-- compress -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- convert -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/converter</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/convert</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- resize -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/redimensionar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/resize</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- crop -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/crop</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- id-photo -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/foto-3x4</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/id-photo</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- img-to-pdf -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/para-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/to-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- extract-text -->
+  <url>
+    <loc>https://nadasai.com/pt/imagem/extrair-texto</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/image/extract-text</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <!-- upscale -->
@@ -182,466 +302,6 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- extract-text -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/extrair-texto</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/extract-text</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/extrair-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/extract-text" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/extrair-texto" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- cut-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/cortar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/cut</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- merge-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/juntar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/juntar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/merge" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/juntar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/merge</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/juntar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/merge" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/juntar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- convert-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/converter</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/convert</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- compress-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/comprimir</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/compress</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <!-- normalize-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/normalizar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/normalizar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/normalize" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/normalizar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/normalize</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/normalizar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/normalize" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/normalizar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- video-to-frames -->
-  <url>
-    <loc>https://nadasai.com/pt/video/extrair-quadros</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/extrair-quadros" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/extract-frames" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/extrair-quadros" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/extract-frames</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/extrair-quadros" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/extract-frames" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/extrair-quadros" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- video-to-gif -->
-  <url>
-    <loc>https://nadasai.com/pt/video/para-gif</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/para-gif" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/to-gif" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/para-gif" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/to-gif</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/para-gif" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/to-gif" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/para-gif" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- remove-silence -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/remover-silencio</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/remover-silencio" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/remove-silence" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/remover-silencio" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/remove-silence</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/remover-silencio" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/remove-silence" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/remover-silencio" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- audio-channels -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/separar-canais</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/split-channels</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- video-to-audio -->
-  <url>
-    <loc>https://nadasai.com/pt/audio/extrair-de-video</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/extrair-de-video" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/extract-from-video" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/extrair-de-video" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/audio/extract-from-video</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/extrair-de-video" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/extract-from-video" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/extrair-de-video" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- trim-video -->
-  <url>
-    <loc>https://nadasai.com/pt/video/cortar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/trim</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- crop-video -->
-  <url>
-    <loc>https://nadasai.com/pt/video/recortar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/recortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/crop" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/recortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/crop</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/recortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/crop" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/recortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- convert-video -->
-  <url>
-    <loc>https://nadasai.com/pt/video/converter</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/convert</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- compress-video -->
-  <url>
-    <loc>https://nadasai.com/pt/video/comprimir</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/video/compress</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- rotate-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/girar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/girar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/rotate" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/girar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/rotate</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/girar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/rotate" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/girar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- unlock-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/desbloquear</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/desbloquear" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/unlock" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/desbloquear" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/unlock</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/desbloquear" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/unlock" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/desbloquear" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- id-photo -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/foto-3x4</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/id-photo</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/foto-3x4" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/id-photo" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/foto-3x4" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- crop -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/cortar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/crop</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/cortar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/crop" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/cortar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- compress -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/comprimir</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/compress</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/comprimir" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/compress" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/comprimir" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- resize -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/redimensionar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/resize</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/redimensionar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/resize" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/redimensionar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- convert -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/converter</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/convert</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/converter" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/convert" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/converter" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- img-to-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/imagem/para-pdf</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/image/to-pdf</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/imagem/para-pdf" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/image/to-pdf" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/imagem/para-pdf" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
   <!-- favicon -->
   <url>
     <loc>https://nadasai.com/pt/imagem/favicon</loc>
@@ -660,26 +320,6 @@
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <!-- edit-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/editar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/edit</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
   </url>
 
   <!-- merge-pdf -->
@@ -742,6 +382,46 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- edit-pdf -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/editar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/edit</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/editar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/edit" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/editar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- pdf-to-word -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/para-word</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-word" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-word" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-word" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/to-word</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-word" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-word" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-word" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- pdf-to-img -->
   <url>
     <loc>https://nadasai.com/pt/pdf/para-imagem</loc>
@@ -762,21 +442,61 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- pdf-to-word -->
+  <!-- sign-pdf -->
   <url>
-    <loc>https://nadasai.com/pt/pdf/para-word</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-word" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-word" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-word" />
+    <loc>https://nadasai.com/pt/pdf/assinar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/assinar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/sign" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/assinar" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/pdf/to-word</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-word" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-word" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-word" />
+    <loc>https://nadasai.com/en/pdf/sign</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/assinar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/sign" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/assinar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- rotate-pdf -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/girar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/girar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/rotate" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/girar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/rotate</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/girar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/rotate" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/girar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- unlock-pdf -->
+  <url>
+    <loc>https://nadasai.com/pt/pdf/desbloquear</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/desbloquear" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/unlock" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/desbloquear" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/pdf/unlock</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/desbloquear" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/unlock" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/desbloquear" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -822,26 +542,6 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- sign-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/assinar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/assinar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/sign" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/assinar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/sign</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/assinar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/sign" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/assinar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
   <!-- watermark-pdf -->
   <url>
     <loc>https://nadasai.com/pt/pdf/marca-dagua</loc>
@@ -857,46 +557,6 @@
     <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/marca-dagua" />
     <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/watermark" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/marca-dagua" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- compare-pdf -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/comparar</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/compare</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- pdf-to-text -->
-  <url>
-    <loc>https://nadasai.com/pt/pdf/para-texto</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-text" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-texto" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/pdf/to-text</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-text" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-texto" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -922,41 +582,341 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- encrypt-file -->
+  <!-- pdf-to-text -->
   <url>
-    <loc>https://nadasai.com/pt/privacidade/criptografar-arquivo</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <loc>https://nadasai.com/pt/pdf/para-texto</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-texto" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/privacy/encrypt-file</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <loc>https://nadasai.com/en/pdf/to-text</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/para-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/to-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/para-texto" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- file-hash -->
+  <!-- compare-pdf -->
   <url>
-    <loc>https://nadasai.com/pt/privacidade/hash-de-arquivo</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <loc>https://nadasai.com/pt/pdf/comparar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/privacy/file-hash</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <loc>https://nadasai.com/en/pdf/compare</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/pdf/comparar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/pdf/compare" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/pdf/comparar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- cut-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/cut</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/cut" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- convert-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/converter</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/convert</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- compress-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- merge-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/juntar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/juntar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/merge" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/juntar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/merge</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/juntar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/merge" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/juntar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- normalize-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/normalizar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/normalizar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/normalize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/normalizar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/normalize</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/normalizar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/normalize" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/normalizar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- remove-silence -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/remover-silencio</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/remover-silencio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/remove-silence" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/remover-silencio" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/remove-silence</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/remover-silencio" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/remove-silence" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/remover-silencio" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- audio-channels -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/separar-canais</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/split-channels</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/separar-canais" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/split-channels" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/separar-canais" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- compress-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/comprimir</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/compress</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/comprimir" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/compress" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/comprimir" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- convert-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/converter</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/convert</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/converter" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/convert" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/converter" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- video-to-audio -->
+  <url>
+    <loc>https://nadasai.com/pt/audio/extrair-de-video</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/extrair-de-video" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/extract-from-video" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/extrair-de-video" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/audio/extract-from-video</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/audio/extrair-de-video" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/audio/extract-from-video" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/audio/extrair-de-video" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- trim-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/cortar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/trim</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/cortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/trim" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/cortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- screen-recorder -->
+  <url>
+    <loc>https://nadasai.com/pt/video/gravar-tela</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/gravar-tela" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/screen-record" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/gravar-tela" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/screen-record</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/gravar-tela" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/screen-record" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/gravar-tela" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- video-to-gif -->
+  <url>
+    <loc>https://nadasai.com/pt/video/para-gif</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/para-gif" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/to-gif" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/para-gif" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/to-gif</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/para-gif" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/to-gif" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/para-gif" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- crop-video -->
+  <url>
+    <loc>https://nadasai.com/pt/video/recortar</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/recortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/crop" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/recortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/crop</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/recortar" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/crop" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/recortar" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- video-to-frames -->
+  <url>
+    <loc>https://nadasai.com/pt/video/extrair-quadros</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/extrair-quadros" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/extract-frames" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/extrair-quadros" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/video/extract-frames</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/video/extrair-quadros" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/video/extract-frames" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/video/extrair-quadros" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -977,6 +937,46 @@
     <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
     <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/password-generator" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/gerador-de-senha" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- qr-code -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/qr-code</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/qr-code" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/qr-code</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/qr-code" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- diff-checker -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/comparar-texto</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/diff-checker</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -1022,26 +1022,6 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- diff-checker -->
-  <url>
-    <loc>https://nadasai.com/pt/privacidade/comparar-texto</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nadasai.com/en/privacy/diff-checker</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/comparar-texto" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/diff-checker" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/comparar-texto" />
-    <lastmod>2026-08-23</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
   <!-- redact-pdf -->
   <url>
     <loc>https://nadasai.com/pt/privacidade/censurar-pdf</loc>
@@ -1062,41 +1042,41 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- office-metadata -->
+  <!-- file-hash -->
   <url>
-    <loc>https://nadasai.com/pt/privacidade/metadados-office</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/metadados-office" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/office-metadata" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/metadados-office" />
+    <loc>https://nadasai.com/pt/privacidade/hash-de-arquivo</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/privacy/office-metadata</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/metadados-office" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/office-metadata" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/metadados-office" />
+    <loc>https://nadasai.com/en/privacy/file-hash</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/file-hash" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/hash-de-arquivo" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- clean-pdf-metadata -->
+  <!-- encrypt-file -->
   <url>
-    <loc>https://nadasai.com/pt/privacidade/limpar-metadados-pdf</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <loc>https://nadasai.com/pt/privacidade/criptografar-arquivo</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/privacy/clean-pdf-metadata</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <loc>https://nadasai.com/en/privacy/encrypt-file</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/encrypt-file" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/criptografar-arquivo" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -1122,21 +1102,41 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- qr-code -->
+  <!-- clean-pdf-metadata -->
   <url>
-    <loc>https://nadasai.com/pt/privacidade/qr-code</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/qr-code" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/qr-code" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <loc>https://nadasai.com/pt/privacidade/limpar-metadados-pdf</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nadasai.com/en/privacy/qr-code</loc>
-    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/qr-code" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/qr-code" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/qr-code" />
+    <loc>https://nadasai.com/en/privacy/clean-pdf-metadata</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/clean-pdf-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/limpar-metadados-pdf" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- office-metadata -->
+  <url>
+    <loc>https://nadasai.com/pt/privacidade/metadados-office</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/metadados-office" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/office-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/metadados-office" />
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/privacy/office-metadata</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/privacidade/metadados-office" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/privacy/office-metadata" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/privacidade/metadados-office" />
     <lastmod>2026-08-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

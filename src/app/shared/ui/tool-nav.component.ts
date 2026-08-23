@@ -6,7 +6,13 @@ import { type ToolDef, moduleById, toolPath, toolsOfModule } from '../../core/to
 import { IconComponent } from './icon/icon.component';
 
 const LINK =
-  'relative flex shrink-0 items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors';
+  // `py-1.5`, e não `py-2`: o módulo de PDF chegou a 15 ferramentas e o rail
+  // passou a exceder a janela de 720px, que é a de um notebook comum. A
+  // promessa do rail é que todo o módulo se alcança SEM rolar, e o `01-shell` a
+  // cobra medindo `scrollHeight` contra `clientHeight`. Sobrou espaço para mais
+  // uma ou duas ferramentas; a próxima que estourar pede outra resposta, não
+  // mais 2px.
+  'relative flex shrink-0 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors';
 // Rail tokens, not white/xx: the rail is light, and literal white text on it is
 // invisible.
 const ACTIVE = `${LINK} bg-rail-active text-accent`;

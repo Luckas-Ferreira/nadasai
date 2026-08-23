@@ -119,35 +119,6 @@ export interface ToolDef {
 
 export const TOOLS: readonly ToolDef[] = [
   {
-    id: 'screen-recorder',
-    pathPt: 'video/gravar-tela',
-    pathEn: 'video/screen-record',
-    icon: 'screenRecord',
-    category: 'video',
-    // A única do produto que não recebe arquivo nenhum: ela CRIA um.
-    accepts: [],
-    produces: 'video',
-    navKey: 'nav.screen_recorder',
-    shortKey: 'nav.short.screen_recorder',
-    titleKey: 'screenrec.title',
-    descKey: 'screenrec.subtitle',
-    suffix: 'gravacao',
-    tone: 'rose',
-    keywordsPt: [
-      'gravar tela', 'gravador de tela', 'gravar tela do pc', 'gravar tela online',
-      'capturar tela', 'gravar aula', 'gravar reuniao', 'gravar tutorial',
-      'gravar tela com audio', 'gravar tela com microfone', 'screencast',
-      'gravar navegador', 'gravar janela', 'filmar a tela', 'gravar video da tela',
-      'gravador de tela sem programa', 'gravar tela gratis'
-    ],
-    keywordsEn: [
-      'screen recorder', 'record screen', 'screen capture', 'record my screen',
-      'browser screen recorder', 'record tab', 'record window', 'screencast',
-      'record screen with audio', 'record screen with microphone', 'free screen recorder',
-      'online screen recorder', 'record meeting', 'record tutorial', 'no download screen recorder'
-    ],
-  },
-  {
     id: 'remove-bg',
     pathPt: 'imagem/remover-fundo',
     pathEn: 'image/remove-bg',
@@ -171,6 +142,176 @@ export const TOOLS: readonly ToolDef[] = [
       'remove background', 'erase background', 'transparent png', 'background eraser', 'cutout',
       'transparent background', 'remove bg', 'ai background remover', 'isolate subject',
       'drop background', 'photo cutout', 'clear background', 'no background'
+    ],
+  },
+  {
+    id: 'compress',
+    pathPt: 'imagem/comprimir',
+    pathEn: 'image/compress',
+    icon: 'compress',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.compress',
+    shortKey: 'nav.short.compress',
+    titleKey: 'compress.title',
+    descKey: 'compress.subtitle',
+    suffix: 'min',
+    tone: 'emerald',
+    keywordsPt: [
+      'comprimir', 'reduzir tamanho', 'diminuir kb', 'diminuir mb', 'otimizar imagem',
+      'compactar foto', 'imagem leve', 'qualidade', 'peso da imagem', 'economizar espaco',
+      'reduzir peso', 'diminuir foto', 'diminuir tamanho'
+    ],
+    keywordsEn: [
+      'compress image', 'reduce file size', 'shrink photo', 'optimize image', 'smaller kb',
+      'decrease mb', 'image optimizer', 'lossy', 'lossless', 'small image', 'downsize'
+    ],
+  },
+  {
+    id: 'convert',
+    pathPt: 'imagem/converter',
+    pathEn: 'image/convert',
+    icon: 'convert',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.convert',
+    shortKey: 'nav.short.convert',
+    titleKey: 'convert.title',
+    descKey: 'convert.subtitle',
+    suffix: 'converted',
+    tone: 'sky',
+    keywordsPt: [
+      'converter', 'mudar formato', 'png para jpg', 'jpg para webp', 'webp para png',
+      'transformar imagem', 'formato de foto', 'exportar', 'conversor de imagem',
+      'extensao', 'mudar tipo', 'jpg para png', 'salvar como'
+    ],
+    keywordsEn: [
+      'convert image', 'change format', 'png to jpg', 'jpg to webp', 'webp to png',
+      'image converter', 'file type', 'export format', 'transform photo', 'jpg to png', 'save as'
+    ],
+  },
+  {
+    id: 'resize',
+    pathPt: 'imagem/redimensionar',
+    pathEn: 'image/resize',
+    icon: 'resize',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.resize',
+    shortKey: 'nav.short.resize',
+    titleKey: 'resize.title',
+    descKey: 'resize.subtitle',
+    suffix: 'resized',
+    tone: 'rose',
+    keywordsPt: [
+      'redimensionar', 'mudar tamanho', 'alterar resolucao', 'largura', 'altura',
+      'pixels', 'rescale', 'escalar', 'aumentar imagem', 'diminuir imagem',
+      'porcentagem', 'redimensionamento', 'mudar dimensao', 'escala'
+    ],
+    keywordsEn: [
+      'resize image', 'change resolution', 'change dimensions', 'width', 'height',
+      'pixels', 'scale', 'rescale', 'stretch', 'enlarge', 'shrink size', 'resolution'
+    ],
+  },
+  {
+    id: 'crop',
+    pathPt: 'imagem/cortar',
+    pathEn: 'image/crop',
+    icon: 'crop',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.crop',
+    shortKey: 'nav.short.crop',
+    titleKey: 'crop.title',
+    descKey: 'crop.subtitle',
+    suffix: 'crop',
+    tone: 'amber',
+    keywordsPt: [
+      'cortar', 'recortar', 'enquadrar', 'proporcao', 'aspect ratio', 'ajustar bordas',
+      'focar imagem', 'cortar foto', 'aparar', 'dimensoes', 'tamanho', 'quadrado',
+      'feed', 'story', 'instagram', 'moldura', 'corte livre'
+    ],
+    keywordsEn: [
+      'crop', 'trim', 'aspect ratio', 'frame', 'reframe', 'crop photo', 'photo cropper',
+      'square', 'story', 'banner', 'custom size', 'viewport', 'boundaries', 'snip'
+    ],
+  },
+  {
+    id: 'id-photo',
+    pathPt: 'imagem/foto-3x4',
+    pathEn: 'image/id-photo',
+    icon: 'images',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'image',
+    navKey: 'nav.id_photo',
+    shortKey: 'nav.short.id_photo',
+    titleKey: 'idphoto.title',
+    descKey: 'idphoto.subtitle',
+    suffix: 'foto',
+    tone: 'rose',
+    keywordsPt: [
+      'foto 3x4', 'foto 3x4 online', 'fazer foto 3x4', 'foto para documento',
+      'foto 5x7', 'foto de passaporte', 'foto 3x4 para imprimir', 'folha de foto 3x4',
+      'foto rg', 'foto cnh', 'foto carteira de trabalho', 'imprimir foto 3x4 em casa'
+    ],
+    keywordsEn: [
+      'passport photo', 'id photo', 'passport photo maker', 'photo for documents',
+      'passport photo online', '2x2 photo', '35x45 photo', 'visa photo',
+      'print passport photos', 'passport photo sheet', 'id photo generator'
+    ],
+  },
+  {
+    id: 'img-to-pdf',
+    pathPt: 'imagem/para-pdf',
+    pathEn: 'image/to-pdf',
+    icon: 'images',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'pdf',
+    navKey: 'nav.img_to_pdf',
+    shortKey: 'nav.short.img_to_pdf',
+    titleKey: 'imgpdf.title',
+    descKey: 'imgpdf.subtitle',
+    suffix: 'pdf',
+    tone: 'indigo',
+    keywordsPt: [
+      'imagem para pdf', 'fotos em pdf', 'jpg para pdf', 'png para pdf', 'juntar fotos em pdf',
+      'transformar fotos em pdf', 'criar pdf de imagens', 'escaneamento', 'album pdf',
+      'converter fotos em pdf', 'gerar pdf'
+    ],
+    keywordsEn: [
+      'image to pdf', 'photos to pdf', 'jpg to pdf', 'png to pdf', 'merge images into pdf',
+      'pictures to pdf', 'photo scanner pdf', 'convert photos to pdf', 'make pdf from image'
+    ],
+  },
+  {
+    id: 'extract-text',
+    pathPt: 'imagem/extrair-texto',
+    pathEn: 'image/extract-text',
+    icon: 'scan',
+    category: 'image',
+    accepts: ['image'],
+    produces: 'text',
+    navKey: 'nav.extract_text',
+    shortKey: 'nav.short.extract_text',
+    titleKey: 'extract_text.title',
+    descKey: 'extract_text.subtitle',
+    suffix: 'txt',
+    tone: 'teal',
+    keywordsPt: [
+      'extrair texto', 'ocr', 'copiar texto de foto', 'ler foto', 'imagem para texto',
+      'pdf para texto', 'reconhecer texto', 'copiar recibo', 'ler documento', 'scan texto',
+      'extrair caracteres', 'copiar documento', 'digitalizar texto'
+    ],
+    keywordsEn: [
+      'extract text', 'ocr', 'image to text', 'copy text from photo', 'photo to text',
+      'pdf to text', 'scan text', 'character recognition', 'text extractor', 'read photo',
+      'copy document text', 'digitize text'
     ],
   },
   {
@@ -227,602 +368,6 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    id: 'extract-text',
-    pathPt: 'imagem/extrair-texto',
-    pathEn: 'image/extract-text',
-    icon: 'scan',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'text',
-    navKey: 'nav.extract_text',
-    shortKey: 'nav.short.extract_text',
-    titleKey: 'extract_text.title',
-    descKey: 'extract_text.subtitle',
-    suffix: 'txt',
-    tone: 'teal',
-    keywordsPt: [
-      'extrair texto', 'ocr', 'copiar texto de foto', 'ler foto', 'imagem para texto',
-      'pdf para texto', 'reconhecer texto', 'copiar recibo', 'ler documento', 'scan texto',
-      'extrair caracteres', 'copiar documento', 'digitalizar texto'
-    ],
-    keywordsEn: [
-      'extract text', 'ocr', 'image to text', 'copy text from photo', 'photo to text',
-      'pdf to text', 'scan text', 'character recognition', 'text extractor', 'read photo',
-      'copy document text', 'digitize text'
-    ],
-  },
-  {
-    id: 'cut-audio',
-    pathPt: 'audio/cortar',
-    pathEn: 'audio/cut',
-    icon: 'scissors',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.cut_audio',
-    shortKey: 'nav.short.cut_audio',
-    titleKey: 'cut_audio.title',
-    descKey: 'cut_audio.subtitle',
-    suffix: 'cut',
-    tone: 'violet',
-    keywordsPt: [
-      'cortar audio', 'aparar mp3', 'cortar musica', 'cortar som', 'editor de audio',
-      'cortar faixa', 'cortar podcast', 'toque de celular', 'cortar ogg', 'cortar wav',
-      'cortar m4a', 'fatia de audio', 'remover trecho de audio', 'recortar som',
-      'tirar pedaco do audio', 'cortar audio do whatsapp'
-    ],
-    keywordsEn: [
-      'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
-      'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice',
-      'remove part of audio', 'split audio'
-    ],
-  },
-  {
-    id: 'merge-audio',
-    pathPt: 'audio/juntar',
-    pathEn: 'audio/merge',
-    icon: 'merge',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.merge_audio',
-    shortKey: 'nav.short.merge_audio',
-    titleKey: 'mergeaudio.title',
-    descKey: 'mergeaudio.subtitle',
-    suffix: 'merged',
-    tone: 'sky',
-    keywordsPt: [
-      'juntar audio', 'unir audios', 'mesclar mp3', 'combinar musicas', 'juntar mp3',
-      'colar audios', 'emendar audio', 'juntar varios audios', 'unir faixas',
-      'juntar audios do whatsapp', 'fazer mixtape', 'crossfade', 'juntar podcast',
-      'concatenar audio', 'juntar wav'
-    ],
-    keywordsEn: [
-      'merge audio', 'join mp3', 'combine audio files', 'audio joiner', 'concatenate audio',
-      'merge songs', 'stitch audio', 'crossfade tracks', 'combine wav', 'append audio',
-      'make a mixtape', 'merge voice notes', 'join podcast segments'
-    ],
-  },
-  {
-    id: 'convert-audio',
-    pathPt: 'audio/converter',
-    pathEn: 'audio/convert',
-    icon: 'convert',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.convert_audio',
-    shortKey: 'nav.short.convert_audio',
-    titleKey: 'convert_audio.title',
-    descKey: 'convert_audio.subtitle',
-    suffix: 'converted',
-    tone: 'sky',
-    keywordsPt: [
-      'converter audio', 'mudar formato audio', 'mp3 para wav', 'wav para mp3',
-      'ogg para mp3', 'm4a para mp3', 'flac para mp3', 'conversor de audio',
-      'transformar audio', 'converter musica', 'converter gravacao', 'aac para mp3'
-    ],
-    keywordsEn: [
-      'convert audio', 'audio format converter', 'mp3 to wav', 'wav to mp3',
-      'ogg to mp3', 'm4a to mp3', 'flac to mp3', 'audio converter', 'sound converter',
-      'change audio format', 'convert music file'
-    ],
-  },
-  {
-    id: 'compress-audio',
-    pathPt: 'audio/comprimir',
-    pathEn: 'audio/compress',
-    icon: 'compress',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.compress_audio',
-    shortKey: 'nav.short.compress_audio',
-    titleKey: 'compress_audio.title',
-    descKey: 'compress_audio.subtitle',
-    suffix: 'compressed',
-    tone: 'emerald',
-    keywordsPt: [
-      'comprimir audio', 'reduzir tamanho mp3', 'comprimir mp3', 'diminuir audio',
-      'comprimir arquivo de som', 'mp3 menor', 'compactar audio', 'reduzir tamanho arquivo de audio',
-      'comprimir wav', 'comprimir ogg', 'comprimir m4a', 'audio menor', 'otimizar audio',
-      'bitrate menor', 'reduzir bitrate'
-    ],
-    keywordsEn: [
-      'compress audio', 'reduce audio file size', 'shrink mp3', 'audio compressor',
-      'lower bitrate', 'compress mp3', 'compress wav', 'reduce mp3 size', 'audio file reducer',
-      'make audio smaller', 'compress ogg', 'reduce audio bitrate'
-    ],
-  },
-  {
-    id: 'normalize-audio',
-    pathPt: 'audio/normalizar',
-    pathEn: 'audio/normalize',
-    icon: 'zap',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.normalize_audio',
-    shortKey: 'nav.short.normalize_audio',
-    titleKey: 'normalize_audio.title',
-    descKey: 'normalize_audio.subtitle',
-    suffix: 'normalized',
-    tone: 'amber',
-    keywordsPt: [
-      'normalizar audio', 'aumentar volume do audio', 'aumentar volume mp3', 'audio muito baixo',
-      'deixar audio mais alto', 'equalizar volume', 'nivelar volume', 'normalizar volume mp3',
-      'ajustar volume do audio', 'volume baixo', 'aumentar som de gravacao', 'normalizar podcast',
-      'lufs', 'normalizar wav', 'diminuir volume do audio'
-    ],
-    keywordsEn: [
-      'normalize audio', 'increase audio volume', 'make audio louder', 'audio volume booster',
-      'normalize mp3 volume', 'loudness normalization', 'lufs normalization', 'audio too quiet',
-      'level audio volume', 'boost mp3 volume', 'normalize podcast audio', 'peak normalization',
-      'adjust audio volume', 'audio gain'
-    ],
-  },
-  {
-    id: 'video-to-frames',
-    pathPt: 'video/extrair-quadros',
-    pathEn: 'video/extract-frames',
-    icon: 'image',
-    category: 'video',
-    accepts: ['video'],
-    // Um quadro é uma imagem; vários viram zip, e é por isso que o componente
-    // passa `resultKind` para a barra de ações — oferecer "cortar imagem" para
-    // um zip é pior do que não oferecer nada.
-    produces: 'image',
-    navKey: 'nav.video_to_frames',
-    shortKey: 'nav.short.video_to_frames',
-    titleKey: 'video_frames.title',
-    descKey: 'video_frames.subtitle',
-    suffix: 'frame',
-    tone: 'teal',
-    keywordsPt: [
-      'extrair quadros de video', 'video para imagem', 'tirar print de video',
-      'capturar quadro de video', 'salvar frame de video', 'video para jpg',
-      'video para png', 'extrair frames', 'capa de video', 'thumbnail de video',
-      'pegar imagem de video', 'frame a frame', 'screenshot de video',
-      'imagem de gravacao de tela', 'foto de video'
-    ],
-    keywordsEn: [
-      'extract frames from video', 'video to image', 'video screenshot',
-      'capture video frame', 'save frame from video', 'video to jpg', 'video to png',
-      'frame extractor', 'video thumbnail', 'get image from video',
-      'frame by frame', 'video still', 'screenshot from video', 'video cover image'
-    ],
-  },
-  {
-    id: 'video-to-gif',
-    pathPt: 'video/para-gif',
-    pathEn: 'video/to-gif',
-    icon: 'images',
-    category: 'video',
-    accepts: ['video'],
-    // GIF é `image` para o `kindOf`, e isso não é detalhe: o resultado cai
-    // inteiro na cadeia do módulo de imagem — comprimir, redimensionar,
-    // converter — sem nenhum código novo.
-    produces: 'image',
-    navKey: 'nav.video_to_gif',
-    shortKey: 'nav.short.video_to_gif',
-    titleKey: 'video_gif.title',
-    descKey: 'video_gif.subtitle',
-    suffix: 'gif',
-    tone: 'fuchsia',
-    keywordsPt: [
-      'video para gif', 'converter video em gif', 'mp4 para gif', 'transformar video em gif',
-      'criar gif', 'fazer gif de video', 'gif animado', 'webm para gif', 'mov para gif',
-      'gravacao de tela para gif', 'gif sem marca dagua', 'gerador de gif',
-      'video em gif online', 'cortar video e fazer gif', 'gif de tela'
-    ],
-    keywordsEn: [
-      'video to gif', 'convert video to gif', 'mp4 to gif', 'make a gif', 'gif maker',
-      'animated gif', 'webm to gif', 'mov to gif', 'screen recording to gif',
-      'gif without watermark', 'video gif converter', 'create gif from video',
-      'trim video to gif', 'screen capture to gif'
-    ],
-  },
-  {
-    id: 'remove-silence',
-    pathPt: 'audio/remover-silencio',
-    pathEn: 'audio/remove-silence',
-    icon: 'scissors',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.remove_silence',
-    shortKey: 'nav.short.remove_silence',
-    titleKey: 'silence.title',
-    descKey: 'silence.subtitle',
-    suffix: 'sem-silencio',
-    tone: 'orange',
-    keywordsPt: [
-      'remover silencio audio', 'cortar silencio', 'tirar pausas', 'editar podcast',
-      'remover pausas gravacao', 'encurtar audio', 'cortar partes mudas', 'limpar gravacao',
-      'silencio automatico', 'editar entrevista', 'reduzir duracao audio'
-    ],
-    keywordsEn: [
-      'remove silence from audio', 'cut silence', 'trim pauses', 'podcast editing',
-      'remove dead air', 'shorten audio', 'auto silence remover', 'clean up recording',
-      'trim gaps', 'edit interview', 'strip silence'
-    ],
-  },
-  {
-    id: 'audio-channels',
-    pathPt: 'audio/separar-canais',
-    pathEn: 'audio/split-channels',
-    icon: 'split',
-    category: 'audio',
-    accepts: ['audio'],
-    produces: 'audio',
-    navKey: 'nav.audio_channels',
-    shortKey: 'nav.short.audio_channels',
-    titleKey: 'channels.title',
-    descKey: 'channels.subtitle',
-    suffix: 'canais',
-    tone: 'teal',
-    keywordsPt: [
-      'separar canais audio', 'estereo para mono', 'mono para estereo', 'extrair canal esquerdo',
-      'extrair canal direito', 'converter para mono', 'audio so de um lado', 'trocar canais',
-      'inverter canais', 'downmix', 'audio desbalanceado', 'canal mudo'
-    ],
-    keywordsEn: [
-      'split audio channels', 'stereo to mono', 'mono to stereo', 'extract left channel',
-      'extract right channel', 'convert to mono', 'audio only one side', 'swap channels',
-      'downmix stereo', 'channel splitter', 'fix one sided audio'
-    ],
-  },
-  {
-    id: 'video-to-audio',
-    // A URL fica onde está: `ActiveToolService` casa por caminho declarado e
-    // nunca por prefixo — é a mesma razão pela qual `img-to-pdf` mora em
-    // `imagem/para-pdf` e é do módulo de imagem. Mudar a categoria não custa
-    // redirect, sitemap nem hreflang.
-    pathPt: 'audio/extrair-de-video',
-    pathEn: 'audio/extract-from-video',
-    icon: 'video',
-    // O módulo é o tipo de ENTRADA, não o de saída. Esta ferramenta recebe um
-    // vídeo; que ela devolva áudio é o que ela faz, não onde ela mora.
-    category: 'video',
-    accepts: ['video'],
-    produces: 'audio',
-    navKey: 'nav.video_to_audio',
-    shortKey: 'nav.short.video_to_audio',
-    titleKey: 'video_audio.title',
-    descKey: 'video_audio.subtitle',
-    suffix: 'audio',
-    tone: 'indigo',
-    keywordsPt: [
-      'extrair audio de video', 'video para mp3', 'mp4 para mp3', 'tirar audio de video',
-      'converter video em audio', 'separar audio do video', 'mov para mp3', 'webm para mp3',
-      'mkv para mp3', 'extrair musica de video', 'audio de videoaula', 'video para wav',
-      'salvar audio de video', 'transformar video em audio', 'extrair som de video'
-    ],
-    keywordsEn: [
-      'extract audio from video', 'video to mp3', 'mp4 to mp3', 'video to audio',
-      'rip audio from video', 'mov to mp3', 'webm to mp3', 'mkv to mp3', 'video to wav',
-      'get audio from video', 'strip audio from video', 'convert video to mp3',
-      'save audio from video', 'video audio extractor'
-    ],
-  },
-  {
-    id: 'trim-video',
-    pathPt: 'video/cortar',
-    pathEn: 'video/trim',
-    icon: 'scissors',
-    category: 'video',
-    accepts: ['video'],
-    produces: 'video',
-    navKey: 'nav.trim_video',
-    shortKey: 'nav.short.trim_video',
-    titleKey: 'trimvid.title',
-    descKey: 'trimvid.subtitle',
-    suffix: 'cortado',
-    tone: 'violet',
-    keywordsPt: [
-      'cortar video', 'cortar video online', 'aparar video', 'tirar pedaco do video',
-      'encurtar video', 'cortar inicio do video', 'cortar final do video',
-      'editar video online', 'cortar trecho', 'recortar tempo do video', 'trim video'
-    ],
-    keywordsEn: [
-      'trim video', 'cut video online', 'shorten video', 'clip video',
-      'trim start of video', 'trim end of video', 'cut a section from video',
-      'video trimmer', 'online video cutter', 'edit video length'
-    ],
-  },
-  {
-    id: 'crop-video',
-    pathPt: 'video/recortar',
-    pathEn: 'video/crop',
-    icon: 'crop',
-    category: 'video',
-    accepts: ['video'],
-    produces: 'video',
-    navKey: 'nav.crop_video',
-    shortKey: 'nav.short.crop_video',
-    titleKey: 'cropvid.title',
-    descKey: 'cropvid.subtitle',
-    suffix: 'recortado',
-    tone: 'amber',
-    keywordsPt: [
-      'cortar video', 'recortar video', 'video quadrado', 'video para instagram',
-      'video vertical', 'video 9x16', 'mudar proporcao do video', 'cortar bordas do video',
-      'video para tiktok', 'video para reels', 'crop video', 'tirar barras pretas'
-    ],
-    keywordsEn: [
-      'crop video', 'square video', 'video for instagram', 'vertical video',
-      '9:16 video', 'change video aspect ratio', 'trim video edges', 'video for tiktok',
-      'video for reels', 'remove black bars', 'resize video frame'
-    ],
-  },
-  {
-    id: 'convert-video',
-    pathPt: 'video/converter',
-    pathEn: 'video/convert',
-    icon: 'convert',
-    category: 'video',
-    accepts: ['video'],
-    produces: 'video',
-    navKey: 'nav.convert_video',
-    shortKey: 'nav.short.convert_video',
-    titleKey: 'convvid.title',
-    descKey: 'convvid.subtitle',
-    suffix: 'convertido',
-    tone: 'sky',
-    keywordsPt: [
-      'converter video', 'mov para mp4', 'mkv para mp4', 'webm para mp4',
-      'mp4 para webm', 'converter video online', 'mudar formato de video',
-      'conversor de video', 'video para mp4', 'transformar video', 'trocar extensao de video'
-    ],
-    keywordsEn: [
-      'convert video', 'mov to mp4', 'mkv to mp4', 'webm to mp4', 'mp4 to webm',
-      'video converter', 'change video format', 'online video converter',
-      'video to mp4', 'convert video online'
-    ],
-  },
-  {
-    id: 'compress-video',
-    pathPt: 'video/comprimir',
-    pathEn: 'video/compress',
-    icon: 'compress',
-    category: 'video',
-    accepts: ['video'],
-    produces: 'video',
-    navKey: 'nav.compress_video',
-    shortKey: 'nav.short.compress_video',
-    titleKey: 'compvid.title',
-    descKey: 'compvid.subtitle',
-    suffix: 'comprimido',
-    tone: 'emerald',
-    keywordsPt: [
-      'comprimir video', 'reduzir tamanho do video', 'diminuir video',
-      'comprimir video online', 'video menor', 'reduzir mb do video',
-      'compactar video', 'video para whatsapp', 'video para email',
-      'diminuir resolucao do video', 'video 720p', 'video mais leve'
-    ],
-    keywordsEn: [
-      'compress video', 'reduce video size', 'make video smaller',
-      'compress video online', 'shrink video', 'video compressor',
-      'reduce video file size', 'video for whatsapp', 'video for email',
-      'lower video resolution', '720p video', 'lighter video'
-    ],
-  },
-  {
-    id: 'rotate-pdf',
-    pathPt: 'pdf/girar',
-    pathEn: 'pdf/rotate',
-    icon: 'rotate',
-    category: 'pdf',
-    accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.rotate_pdf',
-    shortKey: 'nav.short.rotate_pdf',
-    titleKey: 'rotpdf.title',
-    descKey: 'rotpdf.subtitle',
-    suffix: 'girado',
-    tone: 'indigo',
-    keywordsPt: [
-      'girar pdf', 'rotacionar pdf', 'virar pdf', 'pdf de lado', 'pdf de cabeca para baixo',
-      'corrigir orientacao do pdf', 'girar pagina do pdf', 'girar pdf online',
-      'pdf deitado', 'endireitar pdf', 'girar 90 graus', 'salvar pdf girado'
-    ],
-    keywordsEn: [
-      'rotate pdf', 'turn pdf', 'pdf sideways', 'pdf upside down',
-      'fix pdf orientation', 'rotate pdf pages', 'rotate pdf online',
-      'straighten pdf', 'rotate 90 degrees', 'save rotated pdf'
-    ],
-  },
-  {
-    id: 'unlock-pdf',
-    pathPt: 'pdf/desbloquear',
-    pathEn: 'pdf/unlock',
-    icon: 'unlock',
-    category: 'pdf',
-    accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.unlock_pdf',
-    shortKey: 'nav.short.unlock_pdf',
-    titleKey: 'unlockpdf.title',
-    descKey: 'unlockpdf.subtitle',
-    suffix: 'desbloqueado',
-    tone: 'teal',
-    keywordsPt: [
-      'desbloquear pdf', 'remover senha do pdf', 'tirar senha do pdf', 'pdf sem senha',
-      'pdf protegido', 'liberar pdf', 'desproteger pdf', 'pdf nao deixa imprimir',
-      'pdf nao deixa copiar', 'remover protecao do pdf', 'desbloquear pdf online'
-    ],
-    keywordsEn: [
-      'unlock pdf', 'remove pdf password', 'pdf password remover', 'decrypt pdf',
-      'protected pdf', 'pdf will not print', 'pdf will not copy',
-      'remove pdf restrictions', 'unlock pdf online', 'open locked pdf'
-    ],
-  },
-  {
-    id: 'id-photo',
-    pathPt: 'imagem/foto-3x4',
-    pathEn: 'image/id-photo',
-    icon: 'images',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'image',
-    navKey: 'nav.id_photo',
-    shortKey: 'nav.short.id_photo',
-    titleKey: 'idphoto.title',
-    descKey: 'idphoto.subtitle',
-    suffix: 'foto',
-    tone: 'rose',
-    keywordsPt: [
-      'foto 3x4', 'foto 3x4 online', 'fazer foto 3x4', 'foto para documento',
-      'foto 5x7', 'foto de passaporte', 'foto 3x4 para imprimir', 'folha de foto 3x4',
-      'foto rg', 'foto cnh', 'foto carteira de trabalho', 'imprimir foto 3x4 em casa'
-    ],
-    keywordsEn: [
-      'passport photo', 'id photo', 'passport photo maker', 'photo for documents',
-      'passport photo online', '2x2 photo', '35x45 photo', 'visa photo',
-      'print passport photos', 'passport photo sheet', 'id photo generator'
-    ],
-  },
-  {
-    id: 'crop',
-    pathPt: 'imagem/cortar',
-    pathEn: 'image/crop',
-    icon: 'crop',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'image',
-    navKey: 'nav.crop',
-    shortKey: 'nav.short.crop',
-    titleKey: 'crop.title',
-    descKey: 'crop.subtitle',
-    suffix: 'crop',
-    tone: 'amber',
-    keywordsPt: [
-      'cortar', 'recortar', 'enquadrar', 'proporcao', 'aspect ratio', 'ajustar bordas',
-      'focar imagem', 'cortar foto', 'aparar', 'dimensoes', 'tamanho', 'quadrado',
-      'feed', 'story', 'instagram', 'moldura', 'corte livre'
-    ],
-    keywordsEn: [
-      'crop', 'trim', 'aspect ratio', 'frame', 'reframe', 'crop photo', 'photo cropper',
-      'square', 'story', 'banner', 'custom size', 'viewport', 'boundaries', 'snip'
-    ],
-  },
-  {
-    id: 'compress',
-    pathPt: 'imagem/comprimir',
-    pathEn: 'image/compress',
-    icon: 'compress',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'image',
-    navKey: 'nav.compress',
-    shortKey: 'nav.short.compress',
-    titleKey: 'compress.title',
-    descKey: 'compress.subtitle',
-    suffix: 'min',
-    tone: 'emerald',
-    keywordsPt: [
-      'comprimir', 'reduzir tamanho', 'diminuir kb', 'diminuir mb', 'otimizar imagem',
-      'compactar foto', 'imagem leve', 'qualidade', 'peso da imagem', 'economizar espaco',
-      'reduzir peso', 'diminuir foto', 'diminuir tamanho'
-    ],
-    keywordsEn: [
-      'compress image', 'reduce file size', 'shrink photo', 'optimize image', 'smaller kb',
-      'decrease mb', 'image optimizer', 'lossy', 'lossless', 'small image', 'downsize'
-    ],
-  },
-  {
-    id: 'resize',
-    pathPt: 'imagem/redimensionar',
-    pathEn: 'image/resize',
-    icon: 'resize',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'image',
-    navKey: 'nav.resize',
-    shortKey: 'nav.short.resize',
-    titleKey: 'resize.title',
-    descKey: 'resize.subtitle',
-    suffix: 'resized',
-    tone: 'rose',
-    keywordsPt: [
-      'redimensionar', 'mudar tamanho', 'alterar resolucao', 'largura', 'altura',
-      'pixels', 'rescale', 'escalar', 'aumentar imagem', 'diminuir imagem',
-      'porcentagem', 'redimensionamento', 'mudar dimensao', 'escala'
-    ],
-    keywordsEn: [
-      'resize image', 'change resolution', 'change dimensions', 'width', 'height',
-      'pixels', 'scale', 'rescale', 'stretch', 'enlarge', 'shrink size', 'resolution'
-    ],
-  },
-  {
-    id: 'convert',
-    pathPt: 'imagem/converter',
-    pathEn: 'image/convert',
-    icon: 'convert',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'image',
-    navKey: 'nav.convert',
-    shortKey: 'nav.short.convert',
-    titleKey: 'convert.title',
-    descKey: 'convert.subtitle',
-    suffix: 'converted',
-    tone: 'sky',
-    keywordsPt: [
-      'converter', 'mudar formato', 'png para jpg', 'jpg para webp', 'webp para png',
-      'transformar imagem', 'formato de foto', 'exportar', 'conversor de imagem',
-      'extensao', 'mudar tipo', 'jpg para png', 'salvar como'
-    ],
-    keywordsEn: [
-      'convert image', 'change format', 'png to jpg', 'jpg to webp', 'webp to png',
-      'image converter', 'file type', 'export format', 'transform photo', 'jpg to png', 'save as'
-    ],
-  },
-  {
-    id: 'img-to-pdf',
-    pathPt: 'imagem/para-pdf',
-    pathEn: 'image/to-pdf',
-    icon: 'images',
-    category: 'image',
-    accepts: ['image'],
-    produces: 'pdf',
-    navKey: 'nav.img_to_pdf',
-    shortKey: 'nav.short.img_to_pdf',
-    titleKey: 'imgpdf.title',
-    descKey: 'imgpdf.subtitle',
-    suffix: 'pdf',
-    tone: 'indigo',
-    keywordsPt: [
-      'imagem para pdf', 'fotos em pdf', 'jpg para pdf', 'png para pdf', 'juntar fotos em pdf',
-      'transformar fotos em pdf', 'criar pdf de imagens', 'escaneamento', 'album pdf',
-      'converter fotos em pdf', 'gerar pdf'
-    ],
-    keywordsEn: [
-      'image to pdf', 'photos to pdf', 'jpg to pdf', 'png to pdf', 'merge images into pdf',
-      'pictures to pdf', 'photo scanner pdf', 'convert photos to pdf', 'make pdf from image'
-    ],
-  },
-  {
     /**
      * `produces: null` porque um `.ico` é terminal: nenhuma ferramenta daqui
      * abre um ICO, e oferecer "comprimir imagem" a seguir seria pior do que não
@@ -832,7 +377,7 @@ export const TOOLS: readonly ToolDef[] = [
     id: 'favicon',
     pathPt: 'imagem/favicon',
     pathEn: 'image/favicon',
-    icon: 'square',
+    icon: 'favicon',
     category: 'image',
     accepts: ['image'],
     produces: null,
@@ -851,31 +396,6 @@ export const TOOLS: readonly ToolDef[] = [
       'favicon', 'ico', 'site icon', 'favicon generator', 'png to ico', 'image to ico',
       'browser icon', 'browser tab icon', 'multi resolution icon', '16x16', '32x32',
       'apple touch icon', 'shortcut icon'
-    ],
-  },
-  {
-    id: 'edit-pdf',
-    pathPt: 'pdf/editar',
-    pathEn: 'pdf/edit',
-    icon: 'pdf',
-    category: 'pdf',
-    accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.pdf',
-    shortKey: 'nav.short.pdf',
-    titleKey: 'pdf.title',
-    descKey: 'pdf.subtitle',
-    suffix: 'edited',
-    tone: 'orange',
-    keywordsPt: [
-      'editar pdf', 'alterar texto pdf', 'editor de texto', 'modificar pdf', 'corrigir pdf',
-      'escrever no pdf', 'formatar pdf', 'negrito', 'italico', 'ocr', 'ler texto escaneado',
-      'edicao', 'mudar palavra', 'substituir texto', 'editor de pdf'
-    ],
-    keywordsEn: [
-      'edit pdf', 'pdf editor', 'modify text', 'change pdf text', 'type on pdf',
-      'write on pdf', 'text formatting', 'bold', 'italic', 'ocr', 'text recognition',
-      'alter text', 'replace text'
     ],
   },
   {
@@ -951,27 +471,28 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    id: 'pdf-to-img',
-    pathPt: 'pdf/para-imagem',
-    pathEn: 'pdf/to-image',
-    icon: 'image',
+    id: 'edit-pdf',
+    pathPt: 'pdf/editar',
+    pathEn: 'pdf/edit',
+    icon: 'pdf',
     category: 'pdf',
     accepts: ['pdf'],
-    produces: 'image',
-    navKey: 'nav.pdf_to_img',
-    shortKey: 'nav.short.pdf_to_img',
-    titleKey: 'pdf2img.title',
-    descKey: 'pdf2img.subtitle',
-    suffix: 'img',
-    tone: 'amber',
+    produces: 'pdf',
+    navKey: 'nav.pdf',
+    shortKey: 'nav.short.pdf',
+    titleKey: 'pdf.title',
+    descKey: 'pdf.subtitle',
+    suffix: 'edited',
+    tone: 'orange',
     keywordsPt: [
-      'pdf para imagem', 'pdf para jpg', 'pdf para png', 'transformar pdf em foto',
-      'converter pagina em imagem', 'extrair imagens do pdf', 'pdf para foto',
-      'exportar pdf como imagem'
+      'editar pdf', 'alterar texto pdf', 'editor de texto', 'modificar pdf', 'corrigir pdf',
+      'escrever no pdf', 'formatar pdf', 'negrito', 'italico', 'ocr', 'ler texto escaneado',
+      'edicao', 'mudar palavra', 'substituir texto', 'editor de pdf'
     ],
     keywordsEn: [
-      'pdf to image', 'pdf to jpg', 'pdf to png', 'export pdf as photo',
-      'convert pdf pages to picture', 'rasterize pdf', 'pdf to photo'
+      'edit pdf', 'pdf editor', 'modify text', 'change pdf text', 'type on pdf',
+      'write on pdf', 'text formatting', 'bold', 'italic', 'ocr', 'text recognition',
+      'alter text', 'replace text'
     ],
   },
   {
@@ -998,6 +519,104 @@ export const TOOLS: readonly ToolDef[] = [
       'pdf to word', 'convert pdf to word', 'pdf to docx', 'pdf to doc',
       'editable pdf', 'pdf to document', 'pdf converter word', 'pdf to text',
       'scanned pdf to word', 'ocr pdf to word'
+    ],
+  },
+  {
+    id: 'pdf-to-img',
+    pathPt: 'pdf/para-imagem',
+    pathEn: 'pdf/to-image',
+    icon: 'image',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'image',
+    navKey: 'nav.pdf_to_img',
+    shortKey: 'nav.short.pdf_to_img',
+    titleKey: 'pdf2img.title',
+    descKey: 'pdf2img.subtitle',
+    suffix: 'img',
+    tone: 'amber',
+    keywordsPt: [
+      'pdf para imagem', 'pdf para jpg', 'pdf para png', 'transformar pdf em foto',
+      'converter pagina em imagem', 'extrair imagens do pdf', 'pdf para foto',
+      'exportar pdf como imagem'
+    ],
+    keywordsEn: [
+      'pdf to image', 'pdf to jpg', 'pdf to png', 'export pdf as photo',
+      'convert pdf pages to picture', 'rasterize pdf', 'pdf to photo'
+    ],
+  },
+  {
+    id: 'sign-pdf',
+    pathPt: 'pdf/assinar',
+    pathEn: 'pdf/sign',
+    icon: 'brush',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.sign_pdf',
+    shortKey: 'nav.short.sign_pdf',
+    titleKey: 'signpdf.title',
+    descKey: 'signpdf.subtitle',
+    suffix: 'signed',
+    tone: 'emerald',
+    keywordsPt: [
+      'assinar pdf', 'assinatura digital', 'colocar rubrica', 'desenhar assinatura',
+      'carimbar pdf', 'assinar documento', 'firma', 'nome em pdf', 'rubrica',
+      'visto', 'assinar contrato'
+    ],
+    keywordsEn: [
+      'sign pdf', 'digital signature', 'draw signature', 'electronic signature',
+      'e-sign', 'sign document', 'stamp pdf', 'autograph'
+    ],
+  },
+  {
+    id: 'rotate-pdf',
+    pathPt: 'pdf/girar',
+    pathEn: 'pdf/rotate',
+    icon: 'rotate',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.rotate_pdf',
+    shortKey: 'nav.short.rotate_pdf',
+    titleKey: 'rotpdf.title',
+    descKey: 'rotpdf.subtitle',
+    suffix: 'girado',
+    tone: 'indigo',
+    keywordsPt: [
+      'girar pdf', 'rotacionar pdf', 'virar pdf', 'pdf de lado', 'pdf de cabeca para baixo',
+      'corrigir orientacao do pdf', 'girar pagina do pdf', 'girar pdf online',
+      'pdf deitado', 'endireitar pdf', 'girar 90 graus', 'salvar pdf girado'
+    ],
+    keywordsEn: [
+      'rotate pdf', 'turn pdf', 'pdf sideways', 'pdf upside down',
+      'fix pdf orientation', 'rotate pdf pages', 'rotate pdf online',
+      'straighten pdf', 'rotate 90 degrees', 'save rotated pdf'
+    ],
+  },
+  {
+    id: 'unlock-pdf',
+    pathPt: 'pdf/desbloquear',
+    pathEn: 'pdf/unlock',
+    icon: 'unlock',
+    category: 'pdf',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.unlock_pdf',
+    shortKey: 'nav.short.unlock_pdf',
+    titleKey: 'unlockpdf.title',
+    descKey: 'unlockpdf.subtitle',
+    suffix: 'desbloqueado',
+    tone: 'teal',
+    keywordsPt: [
+      'desbloquear pdf', 'remover senha do pdf', 'tirar senha do pdf', 'pdf sem senha',
+      'pdf protegido', 'liberar pdf', 'desproteger pdf', 'pdf nao deixa imprimir',
+      'pdf nao deixa copiar', 'remover protecao do pdf', 'desbloquear pdf online'
+    ],
+    keywordsEn: [
+      'unlock pdf', 'remove pdf password', 'pdf password remover', 'decrypt pdf',
+      'protected pdf', 'pdf will not print', 'pdf will not copy',
+      'remove pdf restrictions', 'unlock pdf online', 'open locked pdf'
     ],
   },
   {
@@ -1049,30 +668,6 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    id: 'sign-pdf',
-    pathPt: 'pdf/assinar',
-    pathEn: 'pdf/sign',
-    icon: 'brush',
-    category: 'pdf',
-    accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.sign_pdf',
-    shortKey: 'nav.short.sign_pdf',
-    titleKey: 'signpdf.title',
-    descKey: 'signpdf.subtitle',
-    suffix: 'signed',
-    tone: 'emerald',
-    keywordsPt: [
-      'assinar pdf', 'assinatura digital', 'colocar rubrica', 'desenhar assinatura',
-      'carimbar pdf', 'assinar documento', 'firma', 'nome em pdf', 'rubrica',
-      'visto', 'assinar contrato'
-    ],
-    keywordsEn: [
-      'sign pdf', 'digital signature', 'draw signature', 'electronic signature',
-      'e-sign', 'sign document', 'stamp pdf', 'autograph'
-    ],
-  },
-  {
     id: 'watermark-pdf',
     pathPt: 'pdf/marca-dagua',
     pathEn: 'pdf/watermark',
@@ -1097,33 +692,27 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    /**
-     * `produces: null` — o resultado é uma LEITURA, não um arquivo que continua
-     * a cadeia. O que se baixa é o diff unificado, e nenhuma ferramenta daqui
-     * abre um .txt de diff.
-     */
-    id: 'compare-pdf',
-    pathPt: 'pdf/comparar',
-    pathEn: 'pdf/compare',
-    icon: 'diff',
+    id: 'page-numbers',
+    pathPt: 'pdf/numerar-paginas',
+    pathEn: 'pdf/page-numbers',
+    icon: 'hash',
     category: 'pdf',
     accepts: ['pdf'],
-    produces: null,
-    navKey: 'nav.compare_pdf',
-    shortKey: 'nav.short.compare_pdf',
-    titleKey: 'cmppdf.title',
-    descKey: 'cmppdf.subtitle',
-    suffix: 'diff',
-    tone: 'fuchsia',
+    produces: 'pdf',
+    navKey: 'nav.page_numbers',
+    shortKey: 'nav.short.page_numbers',
+    titleKey: 'pagenum.title',
+    descKey: 'pagenum.subtitle',
+    suffix: 'numerado',
+    tone: 'teal',
     keywordsPt: [
-      'comparar pdf', 'comparar dois pdf', 'diferenca entre pdf', 'comparar contratos',
-      'comparar versoes de documento', 'o que mudou no pdf', 'diff de pdf',
-      'comparar texto de pdf', 'revisao de contrato', 'conferir alteracoes'
+      'numerar paginas pdf', 'numero de pagina', 'paginacao pdf', 'inserir numero de pagina',
+      'numerar pdf', 'foliar', 'foliacao', 'paginar documento', 'numero no rodape',
+      'numerar contrato', 'numerar processo'
     ],
     keywordsEn: [
-      'compare pdf', 'compare two pdfs', 'pdf difference', 'compare contracts',
-      'compare document versions', 'what changed in pdf', 'pdf diff',
-      'compare pdf text', 'contract review', 'check changes'
+      'add page numbers to pdf', 'number pdf pages', 'pdf pagination', 'insert page numbers',
+      'page numbering', 'bates numbering', 'footer page number', 'paginate pdf'
     ],
   },
   {
@@ -1157,73 +746,438 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    id: 'page-numbers',
-    pathPt: 'pdf/numerar-paginas',
-    pathEn: 'pdf/page-numbers',
-    icon: 'hash',
+    /**
+     * `produces: null` — o resultado é uma LEITURA, não um arquivo que continua
+     * a cadeia. O que se baixa é o diff unificado, e nenhuma ferramenta daqui
+     * abre um .txt de diff.
+     */
+    id: 'compare-pdf',
+    pathPt: 'pdf/comparar',
+    pathEn: 'pdf/compare',
+    icon: 'diff',
     category: 'pdf',
     accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.page_numbers',
-    shortKey: 'nav.short.page_numbers',
-    titleKey: 'pagenum.title',
-    descKey: 'pagenum.subtitle',
-    suffix: 'numerado',
-    tone: 'teal',
+    produces: null,
+    navKey: 'nav.compare_pdf',
+    shortKey: 'nav.short.compare_pdf',
+    titleKey: 'cmppdf.title',
+    descKey: 'cmppdf.subtitle',
+    suffix: 'diff',
+    tone: 'fuchsia',
     keywordsPt: [
-      'numerar paginas pdf', 'numero de pagina', 'paginacao pdf', 'inserir numero de pagina',
-      'numerar pdf', 'foliar', 'foliacao', 'paginar documento', 'numero no rodape',
-      'numerar contrato', 'numerar processo'
+      'comparar pdf', 'comparar dois pdf', 'diferenca entre pdf', 'comparar contratos',
+      'comparar versoes de documento', 'o que mudou no pdf', 'diff de pdf',
+      'comparar texto de pdf', 'revisao de contrato', 'conferir alteracoes'
     ],
     keywordsEn: [
-      'add page numbers to pdf', 'number pdf pages', 'pdf pagination', 'insert page numbers',
-      'page numbering', 'bates numbering', 'footer page number', 'paginate pdf'
+      'compare pdf', 'compare two pdfs', 'pdf difference', 'compare contracts',
+      'compare document versions', 'what changed in pdf', 'pdf diff',
+      'compare pdf text', 'contract review', 'check changes'
     ],
   },
   {
-    id: 'encrypt-file',
-    pathPt: 'privacidade/criptografar-arquivo',
-    pathEn: 'privacy/encrypt-file',
-    icon: 'lock',
-    category: 'privacy',
-    accepts: ['any'],
-    produces: null,
-    navKey: 'nav.encrypt_file',
-    shortKey: 'nav.short.encrypt_file',
-    titleKey: 'encrypt.title',
-    descKey: 'encrypt.subtitle',
-    suffix: 'enc',
+    id: 'cut-audio',
+    pathPt: 'audio/cortar',
+    pathEn: 'audio/cut',
+    icon: 'scissors',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.cut_audio',
+    shortKey: 'nav.short.cut_audio',
+    titleKey: 'cut_audio.title',
+    descKey: 'cut_audio.subtitle',
+    suffix: 'cut',
+    tone: 'violet',
+    keywordsPt: [
+      'cortar audio', 'aparar mp3', 'cortar musica', 'cortar som', 'editor de audio',
+      'cortar faixa', 'cortar podcast', 'toque de celular', 'cortar ogg', 'cortar wav',
+      'cortar m4a', 'fatia de audio', 'remover trecho de audio', 'recortar som',
+      'tirar pedaco do audio', 'cortar audio do whatsapp'
+    ],
+    keywordsEn: [
+      'cut audio', 'trim mp3', 'audio cutter', 'mp3 trimmer', 'cut music', 'audio editor',
+      'make ringtone', 'crop audio', 'cut song', 'trim wav', 'sound cutter', 'audio slice',
+      'remove part of audio', 'split audio'
+    ],
+  },
+  {
+    id: 'convert-audio',
+    pathPt: 'audio/converter',
+    pathEn: 'audio/convert',
+    icon: 'convert',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.convert_audio',
+    shortKey: 'nav.short.convert_audio',
+    titleKey: 'convert_audio.title',
+    descKey: 'convert_audio.subtitle',
+    suffix: 'converted',
+    tone: 'sky',
+    keywordsPt: [
+      'converter audio', 'mudar formato audio', 'mp3 para wav', 'wav para mp3',
+      'ogg para mp3', 'm4a para mp3', 'flac para mp3', 'conversor de audio',
+      'transformar audio', 'converter musica', 'converter gravacao', 'aac para mp3'
+    ],
+    keywordsEn: [
+      'convert audio', 'audio format converter', 'mp3 to wav', 'wav to mp3',
+      'ogg to mp3', 'm4a to mp3', 'flac to mp3', 'audio converter', 'sound converter',
+      'change audio format', 'convert music file'
+    ],
+  },
+  {
+    id: 'compress-audio',
+    pathPt: 'audio/comprimir',
+    pathEn: 'audio/compress',
+    icon: 'compress',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.compress_audio',
+    shortKey: 'nav.short.compress_audio',
+    titleKey: 'compress_audio.title',
+    descKey: 'compress_audio.subtitle',
+    suffix: 'compressed',
     tone: 'emerald',
     keywordsPt: [
-      'criptografar arquivo', 'descriptografar arquivo', 'senha em arquivo', 'protecao aes-256',
-      'seguranca de arquivo', 'bloquear arquivo com senha', 'criptografia local', 'proteger documento'
+      'comprimir audio', 'reduzir tamanho mp3', 'comprimir mp3', 'diminuir audio',
+      'comprimir arquivo de som', 'mp3 menor', 'compactar audio', 'reduzir tamanho arquivo de audio',
+      'comprimir wav', 'comprimir ogg', 'comprimir m4a', 'audio menor', 'otimizar audio',
+      'bitrate menor', 'reduzir bitrate'
     ],
     keywordsEn: [
-      'encrypt file', 'decrypt file', 'password protect file', 'aes-256 encryption',
-      'file security', 'lock file', 'local encryption', 'protect file'
+      'compress audio', 'reduce audio file size', 'shrink mp3', 'audio compressor',
+      'lower bitrate', 'compress mp3', 'compress wav', 'reduce mp3 size', 'audio file reducer',
+      'make audio smaller', 'compress ogg', 'reduce audio bitrate'
     ],
   },
   {
-    id: 'file-hash',
-    pathPt: 'privacidade/hash-de-arquivo',
-    pathEn: 'privacy/file-hash',
-    icon: 'hash',
-    category: 'privacy',
-    accepts: ['any'],
-    produces: null,
-    navKey: 'nav.file_hash',
-    shortKey: 'nav.short.file_hash',
-    titleKey: 'hash.title',
-    descKey: 'hash.subtitle',
-    suffix: 'hash',
-    tone: 'teal',
+    id: 'merge-audio',
+    pathPt: 'audio/juntar',
+    pathEn: 'audio/merge',
+    icon: 'merge',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.merge_audio',
+    shortKey: 'nav.short.merge_audio',
+    titleKey: 'mergeaudio.title',
+    descKey: 'mergeaudio.subtitle',
+    suffix: 'merged',
+    tone: 'sky',
     keywordsPt: [
-      'hash de arquivo', 'sha256', 'md5', 'sha512', 'checksum', 'verificar integridade',
-      'integridade de arquivo', 'hash local', 'gerar hash'
+      'juntar audio', 'unir audios', 'mesclar mp3', 'combinar musicas', 'juntar mp3',
+      'colar audios', 'emendar audio', 'juntar varios audios', 'unir faixas',
+      'juntar audios do whatsapp', 'fazer mixtape', 'crossfade', 'juntar podcast',
+      'concatenar audio', 'juntar wav'
     ],
     keywordsEn: [
-      'file hash', 'sha256 generator', 'md5 hash', 'checksum verifier', 'file integrity',
-      'hash calculator', 'local hash'
+      'merge audio', 'join mp3', 'combine audio files', 'audio joiner', 'concatenate audio',
+      'merge songs', 'stitch audio', 'crossfade tracks', 'combine wav', 'append audio',
+      'make a mixtape', 'merge voice notes', 'join podcast segments'
+    ],
+  },
+  {
+    id: 'normalize-audio',
+    pathPt: 'audio/normalizar',
+    pathEn: 'audio/normalize',
+    icon: 'zap',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.normalize_audio',
+    shortKey: 'nav.short.normalize_audio',
+    titleKey: 'normalize_audio.title',
+    descKey: 'normalize_audio.subtitle',
+    suffix: 'normalized',
+    tone: 'amber',
+    keywordsPt: [
+      'normalizar audio', 'aumentar volume do audio', 'aumentar volume mp3', 'audio muito baixo',
+      'deixar audio mais alto', 'equalizar volume', 'nivelar volume', 'normalizar volume mp3',
+      'ajustar volume do audio', 'volume baixo', 'aumentar som de gravacao', 'normalizar podcast',
+      'lufs', 'normalizar wav', 'diminuir volume do audio'
+    ],
+    keywordsEn: [
+      'normalize audio', 'increase audio volume', 'make audio louder', 'audio volume booster',
+      'normalize mp3 volume', 'loudness normalization', 'lufs normalization', 'audio too quiet',
+      'level audio volume', 'boost mp3 volume', 'normalize podcast audio', 'peak normalization',
+      'adjust audio volume', 'audio gain'
+    ],
+  },
+  {
+    id: 'remove-silence',
+    pathPt: 'audio/remover-silencio',
+    pathEn: 'audio/remove-silence',
+    icon: 'scissors',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.remove_silence',
+    shortKey: 'nav.short.remove_silence',
+    titleKey: 'silence.title',
+    descKey: 'silence.subtitle',
+    suffix: 'sem-silencio',
+    tone: 'orange',
+    keywordsPt: [
+      'remover silencio audio', 'cortar silencio', 'tirar pausas', 'editar podcast',
+      'remover pausas gravacao', 'encurtar audio', 'cortar partes mudas', 'limpar gravacao',
+      'silencio automatico', 'editar entrevista', 'reduzir duracao audio'
+    ],
+    keywordsEn: [
+      'remove silence from audio', 'cut silence', 'trim pauses', 'podcast editing',
+      'remove dead air', 'shorten audio', 'auto silence remover', 'clean up recording',
+      'trim gaps', 'edit interview', 'strip silence'
+    ],
+  },
+  {
+    id: 'audio-channels',
+    pathPt: 'audio/separar-canais',
+    pathEn: 'audio/split-channels',
+    icon: 'split',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.audio_channels',
+    shortKey: 'nav.short.audio_channels',
+    titleKey: 'channels.title',
+    descKey: 'channels.subtitle',
+    suffix: 'canais',
+    tone: 'teal',
+    keywordsPt: [
+      'separar canais audio', 'estereo para mono', 'mono para estereo', 'extrair canal esquerdo',
+      'extrair canal direito', 'converter para mono', 'audio so de um lado', 'trocar canais',
+      'inverter canais', 'downmix', 'audio desbalanceado', 'canal mudo'
+    ],
+    keywordsEn: [
+      'split audio channels', 'stereo to mono', 'mono to stereo', 'extract left channel',
+      'extract right channel', 'convert to mono', 'audio only one side', 'swap channels',
+      'downmix stereo', 'channel splitter', 'fix one sided audio'
+    ],
+  },
+  {
+    id: 'compress-video',
+    pathPt: 'video/comprimir',
+    pathEn: 'video/compress',
+    icon: 'compress',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.compress_video',
+    shortKey: 'nav.short.compress_video',
+    titleKey: 'compvid.title',
+    descKey: 'compvid.subtitle',
+    suffix: 'comprimido',
+    tone: 'emerald',
+    keywordsPt: [
+      'comprimir video', 'reduzir tamanho do video', 'diminuir video',
+      'comprimir video online', 'video menor', 'reduzir mb do video',
+      'compactar video', 'video para whatsapp', 'video para email',
+      'diminuir resolucao do video', 'video 720p', 'video mais leve'
+    ],
+    keywordsEn: [
+      'compress video', 'reduce video size', 'make video smaller',
+      'compress video online', 'shrink video', 'video compressor',
+      'reduce video file size', 'video for whatsapp', 'video for email',
+      'lower video resolution', '720p video', 'lighter video'
+    ],
+  },
+  {
+    id: 'convert-video',
+    pathPt: 'video/converter',
+    pathEn: 'video/convert',
+    icon: 'convert',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.convert_video',
+    shortKey: 'nav.short.convert_video',
+    titleKey: 'convvid.title',
+    descKey: 'convvid.subtitle',
+    suffix: 'convertido',
+    tone: 'sky',
+    keywordsPt: [
+      'converter video', 'mov para mp4', 'mkv para mp4', 'webm para mp4',
+      'mp4 para webm', 'converter video online', 'mudar formato de video',
+      'conversor de video', 'video para mp4', 'transformar video', 'trocar extensao de video'
+    ],
+    keywordsEn: [
+      'convert video', 'mov to mp4', 'mkv to mp4', 'webm to mp4', 'mp4 to webm',
+      'video converter', 'change video format', 'online video converter',
+      'video to mp4', 'convert video online'
+    ],
+  },
+  {
+    id: 'video-to-audio',
+    // A URL fica onde está: `ActiveToolService` casa por caminho declarado e
+    // nunca por prefixo — é a mesma razão pela qual `img-to-pdf` mora em
+    // `imagem/para-pdf` e é do módulo de imagem. Mudar a categoria não custa
+    // redirect, sitemap nem hreflang.
+    pathPt: 'audio/extrair-de-video',
+    pathEn: 'audio/extract-from-video',
+    icon: 'video',
+    // O módulo é o tipo de ENTRADA, não o de saída. Esta ferramenta recebe um
+    // vídeo; que ela devolva áudio é o que ela faz, não onde ela mora.
+    category: 'video',
+    accepts: ['video'],
+    produces: 'audio',
+    navKey: 'nav.video_to_audio',
+    shortKey: 'nav.short.video_to_audio',
+    titleKey: 'video_audio.title',
+    descKey: 'video_audio.subtitle',
+    suffix: 'audio',
+    tone: 'indigo',
+    keywordsPt: [
+      'extrair audio de video', 'video para mp3', 'mp4 para mp3', 'tirar audio de video',
+      'converter video em audio', 'separar audio do video', 'mov para mp3', 'webm para mp3',
+      'mkv para mp3', 'extrair musica de video', 'audio de videoaula', 'video para wav',
+      'salvar audio de video', 'transformar video em audio', 'extrair som de video'
+    ],
+    keywordsEn: [
+      'extract audio from video', 'video to mp3', 'mp4 to mp3', 'video to audio',
+      'rip audio from video', 'mov to mp3', 'webm to mp3', 'mkv to mp3', 'video to wav',
+      'get audio from video', 'strip audio from video', 'convert video to mp3',
+      'save audio from video', 'video audio extractor'
+    ],
+  },
+  {
+    id: 'trim-video',
+    pathPt: 'video/cortar',
+    pathEn: 'video/trim',
+    icon: 'scissors',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.trim_video',
+    shortKey: 'nav.short.trim_video',
+    titleKey: 'trimvid.title',
+    descKey: 'trimvid.subtitle',
+    suffix: 'cortado',
+    tone: 'violet',
+    keywordsPt: [
+      'cortar video', 'cortar video online', 'aparar video', 'tirar pedaco do video',
+      'encurtar video', 'cortar inicio do video', 'cortar final do video',
+      'editar video online', 'cortar trecho', 'recortar tempo do video', 'trim video'
+    ],
+    keywordsEn: [
+      'trim video', 'cut video online', 'shorten video', 'clip video',
+      'trim start of video', 'trim end of video', 'cut a section from video',
+      'video trimmer', 'online video cutter', 'edit video length'
+    ],
+  },
+  {
+    id: 'screen-recorder',
+    pathPt: 'video/gravar-tela',
+    pathEn: 'video/screen-record',
+    icon: 'screenRecord',
+    category: 'video',
+    // A única do produto que não recebe arquivo nenhum: ela CRIA um.
+    accepts: [],
+    produces: 'video',
+    navKey: 'nav.screen_recorder',
+    shortKey: 'nav.short.screen_recorder',
+    titleKey: 'screenrec.title',
+    descKey: 'screenrec.subtitle',
+    suffix: 'gravacao',
+    tone: 'rose',
+    keywordsPt: [
+      'gravar tela', 'gravador de tela', 'gravar tela do pc', 'gravar tela online',
+      'capturar tela', 'gravar aula', 'gravar reuniao', 'gravar tutorial',
+      'gravar tela com audio', 'gravar tela com microfone', 'screencast',
+      'gravar navegador', 'gravar janela', 'filmar a tela', 'gravar video da tela',
+      'gravador de tela sem programa', 'gravar tela gratis'
+    ],
+    keywordsEn: [
+      'screen recorder', 'record screen', 'screen capture', 'record my screen',
+      'browser screen recorder', 'record tab', 'record window', 'screencast',
+      'record screen with audio', 'record screen with microphone', 'free screen recorder',
+      'online screen recorder', 'record meeting', 'record tutorial', 'no download screen recorder'
+    ],
+  },
+  {
+    id: 'video-to-gif',
+    pathPt: 'video/para-gif',
+    pathEn: 'video/to-gif',
+    icon: 'images',
+    category: 'video',
+    accepts: ['video'],
+    // GIF é `image` para o `kindOf`, e isso não é detalhe: o resultado cai
+    // inteiro na cadeia do módulo de imagem — comprimir, redimensionar,
+    // converter — sem nenhum código novo.
+    produces: 'image',
+    navKey: 'nav.video_to_gif',
+    shortKey: 'nav.short.video_to_gif',
+    titleKey: 'video_gif.title',
+    descKey: 'video_gif.subtitle',
+    suffix: 'gif',
+    tone: 'fuchsia',
+    keywordsPt: [
+      'video para gif', 'converter video em gif', 'mp4 para gif', 'transformar video em gif',
+      'criar gif', 'fazer gif de video', 'gif animado', 'webm para gif', 'mov para gif',
+      'gravacao de tela para gif', 'gif sem marca dagua', 'gerador de gif',
+      'video em gif online', 'cortar video e fazer gif', 'gif de tela'
+    ],
+    keywordsEn: [
+      'video to gif', 'convert video to gif', 'mp4 to gif', 'make a gif', 'gif maker',
+      'animated gif', 'webm to gif', 'mov to gif', 'screen recording to gif',
+      'gif without watermark', 'video gif converter', 'create gif from video',
+      'trim video to gif', 'screen capture to gif'
+    ],
+  },
+  {
+    id: 'crop-video',
+    pathPt: 'video/recortar',
+    pathEn: 'video/crop',
+    icon: 'crop',
+    category: 'video',
+    accepts: ['video'],
+    produces: 'video',
+    navKey: 'nav.crop_video',
+    shortKey: 'nav.short.crop_video',
+    titleKey: 'cropvid.title',
+    descKey: 'cropvid.subtitle',
+    suffix: 'recortado',
+    tone: 'amber',
+    keywordsPt: [
+      'cortar video', 'recortar video', 'video quadrado', 'video para instagram',
+      'video vertical', 'video 9x16', 'mudar proporcao do video', 'cortar bordas do video',
+      'video para tiktok', 'video para reels', 'crop video', 'tirar barras pretas'
+    ],
+    keywordsEn: [
+      'crop video', 'square video', 'video for instagram', 'vertical video',
+      '9:16 video', 'change video aspect ratio', 'trim video edges', 'video for tiktok',
+      'video for reels', 'remove black bars', 'resize video frame'
+    ],
+  },
+  {
+    id: 'video-to-frames',
+    pathPt: 'video/extrair-quadros',
+    pathEn: 'video/extract-frames',
+    icon: 'image',
+    category: 'video',
+    accepts: ['video'],
+    // Um quadro é uma imagem; vários viram zip, e é por isso que o componente
+    // passa `resultKind` para a barra de ações — oferecer "cortar imagem" para
+    // um zip é pior do que não oferecer nada.
+    produces: 'image',
+    navKey: 'nav.video_to_frames',
+    shortKey: 'nav.short.video_to_frames',
+    titleKey: 'video_frames.title',
+    descKey: 'video_frames.subtitle',
+    suffix: 'frame',
+    tone: 'teal',
+    keywordsPt: [
+      'extrair quadros de video', 'video para imagem', 'tirar print de video',
+      'capturar quadro de video', 'salvar frame de video', 'video para jpg',
+      'video para png', 'extrair frames', 'capa de video', 'thumbnail de video',
+      'pegar imagem de video', 'frame a frame', 'screenshot de video',
+      'imagem de gravacao de tela', 'foto de video'
+    ],
+    keywordsEn: [
+      'extract frames from video', 'video to image', 'video screenshot',
+      'capture video frame', 'save frame from video', 'video to jpg', 'video to png',
+      'frame extractor', 'video thumbnail', 'get image from video',
+      'frame by frame', 'video still', 'screenshot from video', 'video cover image'
     ],
   },
   {
@@ -1247,6 +1201,62 @@ export const TOOLS: readonly ToolDef[] = [
     keywordsEn: [
       'password generator', 'secure password', 'strong password', 'random password',
       'password strength', 'offline password generator'
+    ],
+  },
+  {
+    id: 'qr-code',
+    pathPt: 'privacidade/qr-code',
+    pathEn: 'privacy/qr-code',
+    icon: 'qrcode',
+    category: 'privacy',
+    // Fora da cadeia, e é o que o componente diz: ele não injeta
+    // `WorkspaceService` em lugar nenhum — lê a imagem a ser escaneada pelo
+    // seletor dele e salva o QR direto com `saveBlob`. Declarar `['image']`
+    // faria os chips oferecerem "QR Code" depois de cortar uma foto, e a
+    // ferramenta abriria com o dropzone vazio: a continuação prometida que
+    // `img-to-pdf` já custou uma vez. Ligar o QR à sessão é uma mudança de
+    // verdade — hidratar na entrada e registrar o resultado — e não uma
+    // resolução de conflito.
+    accepts: [],
+    produces: null,
+    navKey: 'nav.qr_code',
+    shortKey: 'nav.short.qr_code',
+    titleKey: 'qrcode.title',
+    descKey: 'qrcode.subtitle',
+    suffix: 'qrcode',
+    tone: 'emerald',
+    keywordsPt: [
+      'gerar qr code', 'ler qr code', 'criar qr code', 'qr code wifi', 'qr code pix',
+      'qr code offline', 'escanear qr code', 'leitor de qr code', 'gerador de qr code',
+      'qr code seguro', 'qr code sem servidor', 'qr code vcard', 'qr code whatsapp'
+    ],
+    keywordsEn: [
+      'qr code generator', 'qr code reader', 'create qr code', 'wifi qr code',
+      'offline qr code', 'scan qr code', 'qr code scanner', 'secure qr code',
+      'vcard qr code', 'whatsapp qr code', 'private qr code'
+    ],
+  },
+  {
+    id: 'diff-checker',
+    pathPt: 'privacidade/comparar-texto',
+    pathEn: 'privacy/diff-checker',
+    icon: 'diff',
+    category: 'privacy',
+    accepts: ['text'],
+    produces: null,
+    navKey: 'nav.diff_checker',
+    shortKey: 'nav.short.diff_checker',
+    titleKey: 'diff.title',
+    descKey: 'diff.subtitle',
+    suffix: 'diff',
+    tone: 'sky',
+    keywordsPt: [
+      'comparar texto', 'diff checker', 'diferenca entre textos', 'comparar arquivos',
+      'ver diferenca', 'comparador de codigo', 'comparar versoes'
+    ],
+    keywordsEn: [
+      'diff checker', 'compare text', 'text difference', 'file compare',
+      'code diff', 'side by side diff'
     ],
   },
   {
@@ -1296,29 +1306,6 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
-    id: 'diff-checker',
-    pathPt: 'privacidade/comparar-texto',
-    pathEn: 'privacy/diff-checker',
-    icon: 'diff',
-    category: 'privacy',
-    accepts: ['text'],
-    produces: null,
-    navKey: 'nav.diff_checker',
-    shortKey: 'nav.short.diff_checker',
-    titleKey: 'diff.title',
-    descKey: 'diff.subtitle',
-    suffix: 'diff',
-    tone: 'sky',
-    keywordsPt: [
-      'comparar texto', 'diff checker', 'diferenca entre textos', 'comparar arquivos',
-      'ver diferenca', 'comparador de codigo', 'comparar versoes'
-    ],
-    keywordsEn: [
-      'diff checker', 'compare text', 'text difference', 'file compare',
-      'code diff', 'side by side diff'
-    ],
-  },
-  {
     id: 'redact-pdf',
     pathPt: 'privacidade/censurar-pdf',
     pathEn: 'privacy/redact-pdf',
@@ -1341,6 +1328,101 @@ export const TOOLS: readonly ToolDef[] = [
       'redact pdf', 'black out pdf', 'hide text in pdf', 'censor pdf',
       'remove sensitive data pdf', 'anonymize pdf', 'pdf redaction',
       'permanently remove pdf text'
+    ],
+  },
+  {
+    id: 'file-hash',
+    pathPt: 'privacidade/hash-de-arquivo',
+    pathEn: 'privacy/file-hash',
+    icon: 'hash',
+    category: 'privacy',
+    accepts: ['any'],
+    produces: null,
+    navKey: 'nav.file_hash',
+    shortKey: 'nav.short.file_hash',
+    titleKey: 'hash.title',
+    descKey: 'hash.subtitle',
+    suffix: 'hash',
+    tone: 'teal',
+    keywordsPt: [
+      'hash de arquivo', 'sha256', 'md5', 'sha512', 'checksum', 'verificar integridade',
+      'integridade de arquivo', 'hash local', 'gerar hash'
+    ],
+    keywordsEn: [
+      'file hash', 'sha256 generator', 'md5 hash', 'checksum verifier', 'file integrity',
+      'hash calculator', 'local hash'
+    ],
+  },
+  {
+    id: 'encrypt-file',
+    pathPt: 'privacidade/criptografar-arquivo',
+    pathEn: 'privacy/encrypt-file',
+    icon: 'lock',
+    category: 'privacy',
+    accepts: ['any'],
+    produces: null,
+    navKey: 'nav.encrypt_file',
+    shortKey: 'nav.short.encrypt_file',
+    titleKey: 'encrypt.title',
+    descKey: 'encrypt.subtitle',
+    suffix: 'enc',
+    tone: 'emerald',
+    keywordsPt: [
+      'criptografar arquivo', 'descriptografar arquivo', 'senha em arquivo', 'protecao aes-256',
+      'seguranca de arquivo', 'bloquear arquivo com senha', 'criptografia local', 'proteger documento'
+    ],
+    keywordsEn: [
+      'encrypt file', 'decrypt file', 'password protect file', 'aes-256 encryption',
+      'file security', 'lock file', 'local encryption', 'protect file'
+    ],
+  },
+  {
+    id: 'encrypt-text',
+    pathPt: 'privacidade/criptografar-texto',
+    pathEn: 'privacy/encrypt-text',
+    icon: 'text',
+    category: 'privacy',
+    accepts: ['text'],
+    produces: 'text',
+    navKey: 'nav.encrypt_text',
+    shortKey: 'nav.short.encrypt_text',
+    titleKey: 'enctext.title',
+    descKey: 'enctext.subtitle',
+    suffix: 'encrypted',
+    tone: 'indigo',
+    keywordsPt: [
+      'criptografar texto', 'criptografar mensagem', 'descriptografar texto',
+      'mensagem secreta', 'texto cifrado', 'senha em texto', 'aes 256 texto',
+      'enviar mensagem segura', 'esconder mensagem'
+    ],
+    keywordsEn: [
+      'encrypt text', 'encrypt message', 'decrypt text', 'secret message',
+      'aes 256 text', 'password protect text', 'secure message', 'cipher text'
+    ],
+  },
+  {
+    id: 'clean-pdf-metadata',
+    pathPt: 'privacidade/limpar-metadados-pdf',
+    pathEn: 'privacy/clean-pdf-metadata',
+    icon: 'sparkles',
+    category: 'privacy',
+    accepts: ['pdf'],
+    produces: 'pdf',
+    navKey: 'nav.clean_pdf_metadata',
+    shortKey: 'nav.short.clean_pdf_metadata',
+    titleKey: 'cleanpdf.title',
+    descKey: 'cleanpdf.subtitle',
+    suffix: 'clean',
+    tone: 'fuchsia',
+    keywordsPt: [
+      'remover metadados pdf', 'limpar propriedades do pdf', 'apagar autor do pdf',
+      'metadados de pdf', 'remover xmp', 'limpar dados do pdf', 'anonimizar documento',
+      'tirar autor do pdf', 'propriedades do documento'
+    ],
+    keywordsEn: [
+      'remove pdf metadata', 'clean pdf properties', 'strip pdf author',
+      'pdf document properties', 'remove xmp', 'anonymize pdf metadata',
+      'clear pdf info'
     ],
   },
   {
@@ -1373,90 +1455,7 @@ export const TOOLS: readonly ToolDef[] = [
       'document properties', 'who created the file', 'last modified by',
       'anonymise docx', 'remove name from resume', 'powerpoint metadata', 'clean xlsx'
     ],
-  },
-  {
-    id: 'clean-pdf-metadata',
-    pathPt: 'privacidade/limpar-metadados-pdf',
-    pathEn: 'privacy/clean-pdf-metadata',
-    icon: 'sparkles',
-    category: 'privacy',
-    accepts: ['pdf'],
-    produces: 'pdf',
-    navKey: 'nav.clean_pdf_metadata',
-    shortKey: 'nav.short.clean_pdf_metadata',
-    titleKey: 'cleanpdf.title',
-    descKey: 'cleanpdf.subtitle',
-    suffix: 'clean',
-    tone: 'fuchsia',
-    keywordsPt: [
-      'remover metadados pdf', 'limpar propriedades do pdf', 'apagar autor do pdf',
-      'metadados de pdf', 'remover xmp', 'limpar dados do pdf', 'anonimizar documento',
-      'tirar autor do pdf', 'propriedades do documento'
-    ],
-    keywordsEn: [
-      'remove pdf metadata', 'clean pdf properties', 'strip pdf author',
-      'pdf document properties', 'remove xmp', 'anonymize pdf metadata',
-      'clear pdf info'
-    ],
-  },
-  {
-    id: 'encrypt-text',
-    pathPt: 'privacidade/criptografar-texto',
-    pathEn: 'privacy/encrypt-text',
-    icon: 'text',
-    category: 'privacy',
-    accepts: ['text'],
-    produces: 'text',
-    navKey: 'nav.encrypt_text',
-    shortKey: 'nav.short.encrypt_text',
-    titleKey: 'enctext.title',
-    descKey: 'enctext.subtitle',
-    suffix: 'encrypted',
-    tone: 'indigo',
-    keywordsPt: [
-      'criptografar texto', 'criptografar mensagem', 'descriptografar texto',
-      'mensagem secreta', 'texto cifrado', 'senha em texto', 'aes 256 texto',
-      'enviar mensagem segura', 'esconder mensagem'
-    ],
-    keywordsEn: [
-      'encrypt text', 'encrypt message', 'decrypt text', 'secret message',
-      'aes 256 text', 'password protect text', 'secure message', 'cipher text'
-    ],
-  },
-  {
-    id: 'qr-code',
-    pathPt: 'privacidade/qr-code',
-    pathEn: 'privacy/qr-code',
-    icon: 'qrcode',
-    category: 'privacy',
-    // Fora da cadeia, e é o que o componente diz: ele não injeta
-    // `WorkspaceService` em lugar nenhum — lê a imagem a ser escaneada pelo
-    // seletor dele e salva o QR direto com `saveBlob`. Declarar `['image']`
-    // faria os chips oferecerem "QR Code" depois de cortar uma foto, e a
-    // ferramenta abriria com o dropzone vazio: a continuação prometida que
-    // `img-to-pdf` já custou uma vez. Ligar o QR à sessão é uma mudança de
-    // verdade — hidratar na entrada e registrar o resultado — e não uma
-    // resolução de conflito.
-    accepts: [],
-    produces: null,
-    navKey: 'nav.qr_code',
-    shortKey: 'nav.short.qr_code',
-    titleKey: 'qrcode.title',
-    descKey: 'qrcode.subtitle',
-    suffix: 'qrcode',
-    tone: 'emerald',
-    keywordsPt: [
-      'gerar qr code', 'ler qr code', 'criar qr code', 'qr code wifi', 'qr code pix',
-      'qr code offline', 'escanear qr code', 'leitor de qr code', 'gerador de qr code',
-      'qr code seguro', 'qr code sem servidor', 'qr code vcard', 'qr code whatsapp'
-    ],
-    keywordsEn: [
-      'qr code generator', 'qr code reader', 'create qr code', 'wifi qr code',
-      'offline qr code', 'scan qr code', 'qr code scanner', 'secure qr code',
-      'vcard qr code', 'whatsapp qr code', 'private qr code'
-    ],
-  },
-];
+  },];
 
 export function toolById(id: ToolId): ToolDef {
   const tool = TOOLS.find((t) => t.id === id);

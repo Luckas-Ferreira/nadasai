@@ -121,7 +121,11 @@ describe('tools registry', () => {
     expect(ids('pdf', 'img-to-pdf')).toContain('merge-pdf');
     // Os destinos universais estão sempre lá.
     expect(ids('audio', 'normalize-audio')).toContain('encrypt-file');
-    expect(ids('zip', 'split-pdf')).toEqual(['encrypt-file', 'file-hash']);
+    // Ordenado antes de comparar: o assunto aqui é QUAIS destinos um zip tem —
+    // os dois universais e mais nenhum. A ordem entre eles é a de declaração no
+    // registro, que muda quando as ferramentas são reordenadas por relevância,
+    // e travá-la aqui transformava um ajuste de vitrine em teste vermelho.
+    expect(ids('zip', 'split-pdf').sort()).toEqual(['encrypt-file', 'file-hash']);
   });
 
   it('never offers a tool itself, and offers nothing for a null kind', () => {
@@ -169,7 +173,9 @@ describe('tools registry', () => {
    * coisa que a ferramenta faz. Só cifrar e resumir em hash não tocam num pixel.
    */
   it('sends a losslessly stripped image only where it stays lossless', () => {
-    expect(nextToolsFor('image', 'remove-exif').map((t) => t.id)).toEqual([
+    // Ordenado: o que se afirma é a LISTA de destinos permitidos, não em que
+    // ordem eles aparecem — essa é a de declaração, e ela muda com a vitrine.
+    expect(nextToolsFor('image', 'remove-exif').map((t) => t.id).sort()).toEqual([
       'encrypt-file',
       'file-hash',
     ]);
