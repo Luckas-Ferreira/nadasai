@@ -12,9 +12,14 @@ import { FaqComponent } from '../../shared/ui/faq.component';
 /**
  * The modules the zero-upload engine expands to. Inert on purpose — no links, no
  * routes: a roadmap that looks shippable is a promise.
+ *
+ * E uma entrada SAI daqui no dia em que o módulo entra na grade acima. Já
+ * saíram PDF, áudio e vídeo. Um roteiro que anuncia o que a grade da mesma tela
+ * já oferece é o produto dizendo que não reparou em si mesmo — e a descrição
+ * conta tanto quanto o título: "leitor de QR Code" ao lado de um gerador de QR
+ * que existe lê como a mesma desatenção.
  */
 const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: TranslationKey }> = [
-  { icon: 'video', nameKey: 'hero.soon.video', descKey: 'hero.soon.video_desc' },
   { icon: 'palette', nameKey: 'hero.soon.design', descKey: 'hero.soon.design_desc' },
   { icon: 'zap', nameKey: 'hero.soon.productivity', descKey: 'hero.soon.productivity_desc' },
   { icon: 'doc', nameKey: 'hero.soon.doc', descKey: 'hero.soon.doc_desc' },
