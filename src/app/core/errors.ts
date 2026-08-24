@@ -34,6 +34,11 @@ export type ErrorCode =
   // site, então o remédio não é tentar de novo — é abrir as permissões da
   // página. Um código próprio existe para a tela poder dizer isso.
   | 'mic_denied'
+  // O tipo `docx` cobre .docx, .xlsx e .pptx, e até aqui ele caía no
+  // `unsupported_file`, que é o texto de IMAGEM — soltar um .txt no metadados
+  // de Office respondia "use PNG, JPEG". A recusa fala pelo módulo que
+  // recusou, e o de Office precisava do seu.
+  | 'office_unsupported'
   // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
   // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
   // código existe para que o `catch` distinga isso do resto e não mostre nada.
@@ -115,6 +120,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   capture_denied: 'error.capture_denied',
   capture_no_video: 'error.capture_no_video',
   mic_denied: 'error.mic_denied',
+  office_unsupported: 'error.office_unsupported',
   cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',

@@ -1773,6 +1773,120 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'compress-office': {
+    pt: [
+      {
+        h: 'Um arquivo do Office é um zip, e o peso está nas imagens',
+        p: [
+          'Um .docx, .xlsx ou .pptx é um pacote compactado com XML dentro. O texto de um relatório de trinta páginas ocupa alguns quilobytes; a foto que alguém colou numa apresentação saiu de uma câmera de 12 MP e é exibida num retângulo de cinco centímetros. Numa apresentação real, as imagens são quase todo o arquivo.',
+          'Então comprimir um arquivo do Office é, na prática, recomprimir essas imagens. O painel mostra antes quantas existem e que fração do arquivo elas são — esse número é o teto do que qualquer compressão pode ganhar aqui, e vê-lo antes de esperar é o ponto.',
+        ],
+      },
+      {
+        h: 'Como comprimir',
+        p: [
+          'Abrir o pacote e medir é barato: nada é decodificado nessa etapa, então os números do painel aparecem no instante em que o arquivo cai na tela.',
+        ],
+        steps: [
+          'Solte o .docx, .xlsx ou .pptx. Ele é aberto na hora, sem decodificar nada, só para medir.',
+          'Confira quantas imagens existem e quanto elas pesam.',
+          'Escolha o nível. O padrão limita o lado maior a 1600 px, que é mais do que um slide em tela cheia usa.',
+          'Comprima e baixe. O painel diz quantas imagens de fato foram trocadas.',
+        ],
+      },
+      {
+        h: 'O que NÃO é tocado, e por que isso importa mais',
+        p: [
+          'Tudo o que não é imagem sai daqui idêntico ao que entrou: o XML do texto, os estilos, a numeração, os cabeçalhos, as relações entre as partes, as fontes embutidas. Nada é decodificado e regravado.',
+          'Isso não é economia de esforço, é a garantia do produto. Reescrever OOXML significa reescrever uma especificação que só o Word implementa por inteiro, e a diferença entre um arquivo menor e um arquivo que o Word recusa a abrir está exatamente em não mexer no que não se entende. É a mesma decisão que o limpador de metadados de Office daqui já tomava, e o mesmo princípio do removedor de EXIF, que copia o bloco de imagem verbatim.',
+        ],
+      },
+      {
+        h: 'Reduzir o TAMANHO vem antes de baixar a qualidade',
+        p: [
+          'Baixar só a qualidade de uma foto de 4000 px exibida num slide de 1024 entrega uma foto de 4000 px borrada: os pixels que ninguém vê continuam ocupando o arquivo, e ainda roubam bits dos que importam. Por isso cada nível primeiro limita o lado maior e só depois recomprime.',
+          'É a mesma lição que o compressor de vídeo registra, e vale igual aqui.',
+        ],
+      },
+      {
+        h: 'Os dois casos em que ele não ajuda, e diz isso',
+        p: [
+          'O primeiro é o documento sem imagem recomprimível. Acontece com o que é só texto e — muito mais comum — com o que tem gráficos: o Word grava gráfico colado como EMF ou WMF, formatos vetoriais da Microsoft que nenhum navegador decodifica. Eles são copiados intactos, e o painel avisa antes que não há o que ganhar.',
+          'O segundo é o arquivo que já veio otimizado. Recomprimir imagem já comprimida pode render um arquivo MAIOR, e um compressor que devolve arquivo maior é a falha que ninguém perdoa. Quando isso acontece, o que fica para baixar é o original, com o motivo escrito na tela — a mesma regra que o compressor de PDF aplica.',
+        ],
+      },
+      {
+        h: 'Transparência continua PNG',
+        p: [
+          'Imagem que pode ter canal alfa não é convertida para JPEG, mesmo que rendesse mais. Um logo com fundo transparente recodificado como JPEG ganha um fundo preto, e num slide isso é um retângulo preto onde havia um logo — um ganho de bytes que estraga a página.',
+          'Então PNG e WebP continuam no formato que estavam, reduzidos de tamanho; só o que não tem alfa vira JPEG.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é um arquivo do Office e entra na cadeia: dá para seguir direto para limpar os metadados, que tira autor, empresa e histórico de revisão do mesmo pacote.',
+          'Tudo roda no seu navegador. O documento não é enviado a lugar nenhum, e num compressor de Office online — onde o arquivo costuma ser um contrato ou uma proposta — essa é a diferença que importa.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'An Office file is a zip, and the weight is in the pictures',
+        p: [
+          'A .docx, .xlsx or .pptx is a compressed package with XML inside. The text of a thirty-page report takes a few kilobytes; the photo someone pasted into a presentation came off a 12 MP camera and is displayed in a five-centimetre rectangle. In a real presentation, the pictures are almost the whole file.',
+          'So compressing an Office file means, in practice, recompressing those pictures. The panel shows up front how many there are and what fraction of the file they are — that number is the ceiling on what any compression can gain here, and seeing it before waiting is the point.',
+        ],
+      },
+      {
+        h: 'How to compress',
+        p: [
+          'Opening the package and measuring is cheap: nothing is decoded at that stage, so the panel numbers appear the moment the file lands.',
+        ],
+        steps: [
+          'Drop the .docx, .xlsx or .pptx. It is opened immediately, decoding nothing, just to measure.',
+          'Check how many pictures there are and how much they weigh.',
+          'Pick the level. The default caps the long side at 1600 px, which is more than a full-screen slide uses.',
+          'Compress and download. The panel says how many pictures were actually replaced.',
+        ],
+      },
+      {
+        h: 'What is NOT touched, and why that matters more',
+        p: [
+          'Everything that is not a picture leaves here identical to what came in: the text XML, the styles, the numbering, the headers, the relationships between parts, the embedded fonts. Nothing is decoded and rewritten.',
+          'That is not saved effort, it is the product’s guarantee. Rewriting OOXML means rewriting a specification only Word implements in full, and the difference between a smaller file and one Word refuses to open lies exactly in not touching what you do not understand. Same decision the Office metadata cleaner here already made, and the same principle as the EXIF stripper, which copies the image block verbatim.',
+        ],
+      },
+      {
+        h: 'Cutting the SIZE comes before cutting the quality',
+        p: [
+          'Lowering only the quality of a 4000 px photo displayed on a 1024 px slide gives you a blurry 4000 px photo: the pixels nobody sees still occupy the file, and they steal bits from the ones that matter. That is why each level first caps the long side and only then recompresses.',
+          'It is the same lesson the video compressor records, and it holds here.',
+        ],
+      },
+      {
+        h: 'The two cases where it does not help, and says so',
+        p: [
+          'The first is the document with no recompressible picture. That happens with text-only files and — far more often — with files full of charts: Word stores a pasted chart as EMF or WMF, Microsoft vector formats no browser decodes. They are copied intact, and the panel warns up front that there is nothing to gain.',
+          'The second is the file that arrived already optimised. Recompressing an already-compressed picture can yield a BIGGER file, and a compressor that hands back a bigger file is the failure nobody forgives. When that happens, what is left to download is the original, with the reason on screen — the same rule the PDF compressor applies.',
+        ],
+      },
+      {
+        h: 'Transparency stays PNG',
+        p: [
+          'A picture that can carry an alpha channel is not converted to JPEG, even where that would save more. A logo with a transparent background re-encoded as JPEG gains a black background, and on a slide that is a black rectangle where a logo used to be — a saving in bytes that ruins the page.',
+          'So PNG and WebP stay in the format they were, reduced in size; only what has no alpha becomes JPEG.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is an Office file and joins the chain: you can go straight on to clean the metadata, which strips author, company and revision history from the same package.',
+          'Everything runs in your browser. The document is not sent anywhere, and in an online Office compressor — where the file is usually a contract or a proposal — that is the difference that matters.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

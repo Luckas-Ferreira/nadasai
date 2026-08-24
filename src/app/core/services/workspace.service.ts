@@ -296,6 +296,7 @@ function rejectionFor(accepts: readonly FileKind[]): ErrorCode {
   if (accepts.includes('pdf')) return 'pdf_unsupported';
   if (accepts.includes('audio')) return 'audio_unsupported';
   if (accepts.includes('video')) return 'video_unsupported';
+  if (accepts.includes('docx')) return 'office_unsupported';
   return 'unsupported_file';
 }
 
