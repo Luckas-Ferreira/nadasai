@@ -134,6 +134,19 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'office/excel-para-csv',
+        loadComponent: () =>
+          import('./features/excel-to-csv/excel-to-csv.component').then(
+            (m) => m.ExcelToCsvComponent,
+          ),
+        title: 'Excel para CSV e JSON online grátis — com ponto e vírgula | Nada Sai',
+        data: {
+          metaDescription:
+            'Converta uma aba de .xlsx em CSV ou JSON, escolhendo o separador. As datas saem como datas e os números com a precisão do arquivo. Nada é enviado a lugar nenhum.',
+          metaKeywords: 'excel para csv, xlsx para csv, excel para json, planilha para csv, csv com ponto e virgula',
+        },
+      },
+      {
         path: 'audio/cortar',
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
@@ -713,6 +726,19 @@ export const routes: Routes = [
           metaDescription:
             'Pull the text out of a .docx with headings, lists and tables preserved as Markdown — or plain, with no markup. The file never leaves your browser.',
           metaKeywords: 'word to text, docx to txt, word to markdown, extract text from word, docx to md',
+        },
+      },
+      {
+        path: 'office/excel-to-csv',
+        loadComponent: () =>
+          import('./features/excel-to-csv/excel-to-csv.component').then(
+            (m) => m.ExcelToCsvComponent,
+          ),
+        title: 'Excel to CSV and JSON online free — pick the separator | Nada Sai',
+        data: {
+          metaDescription:
+            'Turn a sheet of an .xlsx into CSV or JSON, choosing the separator. Dates come out as dates and numbers keep the file’s precision. Nothing is uploaded.',
+          metaKeywords: 'excel to csv, xlsx to csv, excel to json, spreadsheet to csv, semicolon csv',
         },
       },
       {

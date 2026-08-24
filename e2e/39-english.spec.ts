@@ -131,9 +131,9 @@ test.describe('A metade inglesa', () => {
    */
   test('sobre, privacidade e termos existem em inglês e falam do produto atual', async ({ page }) => {
     await openEnglish(page, '/en/about');
-    // `.first()`: "56 tools" aparece no parágrafo de abertura E no cabeçalho da
+    // `.first()`: "57 tools" aparece no parágrafo de abertura E no cabeçalho da
     // lista de módulos, e no modo estrito duas correspondências são erro.
-    await expect(page.getByText('56 tools').first()).toBeVisible();
+    await expect(page.getByText('57 tools').first()).toBeVisible();
     await expectNoPortuguese(page);
 
     await openEnglish(page, '/en/privacy');

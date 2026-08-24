@@ -1741,6 +1741,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'excel-to-csv': {
+    pt: {
+      features: [
+        'CSV com vírgula, ponto e vírgula ou tabulação',
+        'Ou JSON, com a primeira linha virando chaves',
+        'Datas saem como datas, números com a precisão do arquivo',
+        'A planilha não sai do navegador',
+      ],
+      faq: [
+        {
+          q: 'Por que o padrão é ponto e vírgula?',
+          a: 'Porque no Brasil e em boa parte da Europa a vírgula é o separador DECIMAL, e o Excel dessas regiões lê e escreve CSV com ponto e vírgula. Um arquivo com vírgula abre lá com tudo numa coluna só. Se o destino é um sistema em inglês ou um script, troque para vírgula — as três opções estão no painel.',
+        },
+        {
+          q: 'As datas saem certas?',
+          a: 'Saem, e isso exige mais do que parece: no arquivo uma data é só um número. O que a torna data é o formato ligado à célula pelo estilo, que é lido junto — sem isso toda data sairia como 45000. E a base é 30 de dezembro de 1899, porque o Excel trata 1900 como bissexto, um erro herdado do Lotus 1-2-3 e mantido de propósito por compatibilidade.',
+        },
+        {
+          q: 'E os números? Perco casas decimais?',
+          a: 'Não. O número sai com a precisão exata que estava no arquivo, sem arredondar e sem separador de milhar — porque é isso que o arquivo guarda. O que você vê na tela do Excel é uma formatação por cima do valor; o valor é o que sai daqui.',
+        },
+        {
+          q: 'Ele converte todas as abas de uma vez?',
+          a: 'Uma por vez, e a escolha fica no painel com o número de linhas e colunas de cada uma. É deliberado: um CSV é uma tabela, e juntar três abas num arquivo só produziria algo que nenhum programa lê como tabela. Para várias, converta e baixe uma de cada vez.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'CSV with comma, semicolon or tab',
+        'Or JSON, with the first row becoming keys',
+        'Dates come out as dates, numbers keep the file precision',
+        'The spreadsheet never leaves your browser',
+      ],
+      faq: [
+        {
+          q: 'Why is the semicolon the default?',
+          a: 'Because in Brazil and much of Europe the comma is the DECIMAL separator, and Excel in those regions reads and writes CSV with semicolons. A comma file opens there with everything in one column. If the destination is an English-locale system or a script, switch to comma — all three options are in the panel.',
+        },
+        {
+          q: 'Do dates come out right?',
+          a: 'They do, and that takes more than it seems: in the file a date is only a number. What makes it a date is the format attached to the cell by its style, which is read alongside it — without that every date would come out as 45000. And the epoch is 30 December 1899, because Excel treats 1900 as a leap year, an error inherited from Lotus 1-2-3 and kept deliberately for compatibility.',
+        },
+        {
+          q: 'What about numbers? Do I lose decimals?',
+          a: 'No. A number comes out with the exact precision it had in the file, with no rounding and no thousands separator — because that is what the file stores. What you see on Excel’s screen is formatting on top of the value; the value is what leaves here.',
+        },
+        {
+          q: 'Does it convert every sheet at once?',
+          a: 'One at a time, and the choice is in the panel with each sheet’s row and column count. That is deliberate: a CSV is one table, and stacking three sheets into one file would produce something no program reads as a table. For several, convert and download them one by one.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

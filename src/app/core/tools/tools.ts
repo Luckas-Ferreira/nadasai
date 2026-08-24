@@ -29,6 +29,7 @@ export type ToolId =
   | 'audio-speed'
   | 'compress-office'
   | 'word-to-text'
+  | 'excel-to-csv'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -828,6 +829,31 @@ export const TOOLS: readonly ToolDef[] = [
       'word to text', 'docx to txt', 'word to markdown', 'extract text from word',
       'convert docx to text', 'copy text from word', 'docx to md',
       'strip word formatting', 'read docx online', 'word text extractor'
+    ],
+  },
+  {
+    id: 'excel-to-csv',
+    pathPt: 'office/excel-para-csv',
+    pathEn: 'office/excel-to-csv',
+    icon: 'convert',
+    category: 'office',
+    accepts: ['docx'],
+    produces: 'text',
+    navKey: 'nav.excel_to_csv',
+    shortKey: 'nav.short.excel_to_csv',
+    titleKey: 'xlsxcsv.title',
+    descKey: 'xlsxcsv.subtitle',
+    suffix: 'planilha',
+    tone: 'emerald',
+    keywordsPt: [
+      'excel para csv', 'xlsx para csv', 'excel para json', 'converter planilha em csv',
+      'xlsx para json', 'exportar excel para csv', 'planilha para csv online',
+      'csv com ponto e virgula', 'ler xlsx online', 'extrair dados do excel'
+    ],
+    keywordsEn: [
+      'excel to csv', 'xlsx to csv', 'excel to json', 'convert spreadsheet to csv',
+      'xlsx to json', 'export excel to csv', 'spreadsheet to csv online',
+      'semicolon csv', 'read xlsx online', 'extract data from excel'
     ],
   },
   {

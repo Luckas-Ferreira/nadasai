@@ -662,6 +662,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- excel-to-csv -->
+  <url>
+    <loc>https://nadasai.com/pt/office/excel-para-csv</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/office/excel-para-csv" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/office/excel-to-csv" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/office/excel-para-csv" />
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/office/excel-to-csv</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/office/excel-para-csv" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/office/excel-to-csv" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/office/excel-para-csv" />
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- cut-audio -->
   <url>
     <loc>https://nadasai.com/pt/audio/cortar</loc>

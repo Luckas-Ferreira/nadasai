@@ -1,0 +1,141 @@
+<app-tool-page [toolId]="'excel-to-csv'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || empty()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    @if (empty()) {
+      <app-alert [message]="i18n.t()['xlsxcsv.empty']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'.xlsx'"
+        [titleKey]="'xlsxcsv.drag'"
+        [hintKey]="'xlsxcsv.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+
+      @if (reading()) {
+        <p class="mt-3 text-center text-sm text-muted" aria-live="polite">
+          {{ i18n.t()['xlsxcsv.working'] }}
+        </p>
+      }
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage">
+        @if (text(); as rendered) {
+          <div class="flex items-center justify-between gap-3 border-b border-doc-stage-line bg-surface px-4 py-2.5">
+            <span class="text-xs text-muted">{{ i18n.t()['xlsxcsv.preview'] }}</span>
+
+            <button appButton variant="ghost" size="sm" (click)="copy()">
+              {{ copied() ? i18n.t()['xlsxcsv.copied'] : i18n.t()['xlsxcsv.copy'] }}
+            </button>
+          </div>
+
+          <pre
+            class="max-h-[52vh] overflow-auto whitespace-pre bg-surface px-4 py-4 font-mono text-xs leading-relaxed text-text"
+          >{{ rendered }}</pre>
+        } @else {
+          <div class="flex min-h-[360px] flex-col items-center justify-center gap-4 p-8">
+            <dl class="flex w-full max-w-sm flex-col gap-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-muted">{{ i18n.t()['xlsxcsv.rows'] }}</dt>
+                <dd class="font-mono text-text tabular">{{ rowCount() }}</dd>
+              </div>
+
+              <div class="flex justify-between">
+                <dt class="text-muted">{{ i18n.t()['xlsxcsv.columns'] }}</dt>
+                <dd class="font-mono text-text tabular">{{ columnCount() }}</dd>
+              </div>
+            </dl>
+
+            <p class="max-w-md text-center text-xs leading-relaxed text-muted">
+              {{ i18n.t()['xlsxcsv.values_note'] }}
+            </p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      @if (sheetOptions().length > 1) {
+        <app-panel [heading]="i18n.t()['xlsxcsv.panel_sheet']">
+          <app-segmented
+            [options]="sheetOptions()"
+            [value]="sheetIndex()"
+            (valueChange)="setSheet($event)"
+            [columns]="2"
+          />
+        </app-panel>
+      }
+
+      <app-panel [heading]="i18n.t()['xlsxcsv.panel_output']">
+        <app-segmented
+          [options]="outputOptions()"
+          [value]="output()"
+          (valueChange)="setOutput($event)"
+          [columns]="2"
+        />
+
+        @if (output() === 'csv') {
+          <p class="mb-1.5 mt-4 text-xs text-muted">{{ i18n.t()['xlsxcsv.delimiter'] }}</p>
+
+          <app-segmented
+            [options]="delimiterOptions()"
+            [value]="delimiter()"
+            (valueChange)="setDelimiter($event)"
+            [columns]="3"
+          />
+
+          <!-- O separador não é gosto: no Brasil a vírgula é o decimal, e o
+               Excel daqui escreve CSV com ponto e vírgula. -->
+          <p class="mt-3 text-xs leading-relaxed text-muted">
+            {{ i18n.t()['xlsxcsv.separator_note'] }}
+          </p>
+        } @else {
+          <label class="mt-4 flex cursor-pointer items-center gap-2.5 text-sm text-text">
+            <input
+              type="checkbox"
+              [checked]="header()"
+              (change)="toggleHeader()"
+              class="h-4 w-4 rounded border-line accent-accent"
+            />
+            {{ i18n.t()['xlsxcsv.header'] }}
+          </label>
+
+          <p class="mt-3 text-xs leading-relaxed text-muted">{{ i18n.t()['xlsxcsv.header_note'] }}</p>
+        }
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['xlsxcsv.panel_info']">
+        <dl class="flex flex-col gap-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['xlsxcsv.rows'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ rowCount() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['xlsxcsv.columns'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ columnCount() }}</dd>
+          </div>
+        </dl>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'excel-to-csv'"
+        [primaryLabel]="stale() ? i18n.t()['xlsxcsv.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!text()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
