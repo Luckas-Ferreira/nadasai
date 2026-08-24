@@ -48,9 +48,11 @@ test.describe('Shell: home, nav, i18n', () => {
 
     await expect(page.getByRole('heading', { name: 'Em breve' })).toBeVisible();
 
-    // PDF and Áudio shipped and are real modules now, so they left this list —
-    // a roadmap that still advertises what the grid above already links to is
-    // the product telling you it has not noticed itself.
+    // PDF, Áudio and Vídeo shipped and are real modules now, so they left this
+    // list — a roadmap that still advertises what the grid above already links
+    // to is the product telling you it has not noticed itself.
+    await expect(page.getByRole('heading', { name: 'Vídeo', exact: true })).toHaveCount(0);
+
     for (const name of ['Documentos']) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
