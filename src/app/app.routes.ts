@@ -121,6 +121,19 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'office/word-para-texto',
+        loadComponent: () =>
+          import('./features/word-to-text/word-to-text.component').then(
+            (m) => m.WordToTextComponent,
+          ),
+        title: 'Word para texto e Markdown online grátis | Nada Sai',
+        data: {
+          metaDescription:
+            'Extraia o texto de um .docx com os títulos, as listas e as tabelas preservados em Markdown — ou limpo, sem marcação. O arquivo não sai do navegador.',
+          metaKeywords: 'word para texto, docx para txt, word para markdown, extrair texto do word, docx para md',
+        },
+      },
+      {
         path: 'audio/cortar',
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
@@ -687,6 +700,19 @@ export const routes: Routes = [
           metaDescription:
             'Shrink a .docx, .xlsx or .pptx by recompressing the pictures inside it. The text and formatting are copied byte for byte, and the file never leaves your browser.',
           metaKeywords: 'compress word, compress powerpoint, compress excel, compress docx, shrink pptx',
+        },
+      },
+      {
+        path: 'office/word-to-text',
+        loadComponent: () =>
+          import('./features/word-to-text/word-to-text.component').then(
+            (m) => m.WordToTextComponent,
+          ),
+        title: 'Word to text and Markdown online free | Nada Sai',
+        data: {
+          metaDescription:
+            'Pull the text out of a .docx with headings, lists and tables preserved as Markdown — or plain, with no markup. The file never leaves your browser.',
+          metaKeywords: 'word to text, docx to txt, word to markdown, extract text from word, docx to md',
         },
       },
       {

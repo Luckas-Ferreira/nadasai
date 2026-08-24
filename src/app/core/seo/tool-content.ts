@@ -1687,6 +1687,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'word-to-text': {
+    pt: {
+      features: [
+        'Títulos, listas e tabelas preservados em Markdown',
+        'Ou texto limpo, sem marcação nenhuma',
+        'Prévia na tela antes de baixar',
+        'O documento não sai do navegador',
+      ],
+      faq: [
+        {
+          q: 'Qual a diferença entre Markdown e texto limpo?',
+          a: 'O Markdown guarda a ESTRUTURA: título vira cabeçalho com sustenidos, lista vira lista, tabela vira tabela e negrito continua negrito. É o que serve para colar num editor, num README ou num campo de IA. O texto limpo são só as palavras — o que serve para contar, buscar ou colar onde formatação atrapalha.',
+        },
+        {
+          q: 'A formatação do documento vem junto?',
+          a: 'A estrutura vem; o layout não. Fonte, tamanho, cor, margem, onde a página quebra e o que o cabeçalho e o rodapé fazem não estão no corpo do documento — e nada disso tem representação em texto. É a mesma razão pela qual este produto não oferece Word para PDF: sem o motor de layout do Word, o resultado seria só aproximado.',
+        },
+        {
+          q: 'Serve para .xlsx e .pptx?',
+          a: 'Não. Os três são zips de OOXML, mas o corpo de cada um mora em outro lugar do pacote e tem outra gramática — uma planilha são células, uma apresentação são slides. Aceitar os três aqui devolveria vazio em silêncio, então a página recusa e diz por quê. Para planilha existe a conversão para CSV, ao lado.',
+        },
+        {
+          q: 'Meu documento voltou vazio. Por quê?',
+          a: 'Porque o conteúdo dele não está no corpo. Acontece com documento montado em caixas de texto, com o que é imagem de ponta a ponta, e com o digitalizado. Esta ferramenta LÊ o corpo do arquivo; ela não faz reconhecimento de caracteres. Para um documento digitalizado, o caminho é o OCR do módulo de PDF.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Headings, lists and tables preserved as Markdown',
+        'Or plain text, with no markup at all',
+        'Preview on screen before you download',
+        'The document never leaves your browser',
+      ],
+      faq: [
+        {
+          q: 'What is the difference between Markdown and plain text?',
+          a: 'Markdown keeps the STRUCTURE: a heading becomes a hash heading, a list a list, a table a table, and bold stays bold. It is what you paste into an editor, a README or an AI prompt. Plain text is just the words — what you use to count, to search, or to paste where formatting gets in the way.',
+        },
+        {
+          q: 'Does the formatting come along?',
+          a: 'The structure does; the layout does not. Font, size, colour, margins, where the page breaks and what the header and footer do are not in the document body — and none of it has a representation in text. It is the same reason this product does not offer Word to PDF: without Word’s layout engine the result would only be approximate.',
+        },
+        {
+          q: 'Does it work for .xlsx and .pptx?',
+          a: 'No. All three are OOXML zips, but each keeps its body somewhere else in the package with a different grammar — a spreadsheet is cells, a presentation is slides. Accepting all three here would return empty silently, so the page refuses and says why. For a spreadsheet there is the CSV conversion next door.',
+        },
+        {
+          q: 'My document came back empty. Why?',
+          a: 'Because its content is not in the body. That happens with documents built out of text boxes, with files that are pictures end to end, and with scans. This tool READS the file body; it does not do character recognition. For a scan, the route is the OCR in the PDF module.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

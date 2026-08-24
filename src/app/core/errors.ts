@@ -39,6 +39,10 @@ export type ErrorCode =
   // de Office respondia "use PNG, JPEG". A recusa fala pelo módulo que
   // recusou, e o de Office precisava do seu.
   | 'office_unsupported'
+  // Um .xlsx e um .pptx são zips de OOXML como o .docx, e mesmo assim o corpo
+  // de cada um mora em outro lugar e tem outra gramática. Aceitar os três na
+  // leitura de Word devolveria vazio em silêncio.
+  | 'office_not_word'
   // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
   // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
   // código existe para que o `catch` distinga isso do resto e não mostre nada.
@@ -121,6 +125,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   capture_no_video: 'error.capture_no_video',
   mic_denied: 'error.mic_denied',
   office_unsupported: 'error.office_unsupported',
+  office_not_word: 'error.office_not_word',
   cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',

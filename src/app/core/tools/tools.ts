@@ -28,6 +28,7 @@ export type ToolId =
   | 'voice-recorder'
   | 'audio-speed'
   | 'compress-office'
+  | 'word-to-text'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -802,6 +803,31 @@ export const TOOLS: readonly ToolDef[] = [
       'compress word', 'compress powerpoint', 'compress excel', 'reduce word file size',
       'shrink pptx', 'compress docx', 'compress pptx', 'word file too large',
       'heavy powerpoint', 'reduce presentation size', 'compress office document'
+    ],
+  },
+  {
+    id: 'word-to-text',
+    pathPt: 'office/word-para-texto',
+    pathEn: 'office/word-to-text',
+    icon: 'text',
+    category: 'office',
+    accepts: ['docx'],
+    produces: 'text',
+    navKey: 'nav.word_to_text',
+    shortKey: 'nav.short.word_to_text',
+    titleKey: 'wordtext.title',
+    descKey: 'wordtext.subtitle',
+    suffix: 'texto',
+    tone: 'sky',
+    keywordsPt: [
+      'word para texto', 'docx para txt', 'word para markdown', 'extrair texto do word',
+      'converter docx em texto', 'copiar texto do word', 'word para md',
+      'tirar formatacao do word', 'docx para markdown', 'ler docx online'
+    ],
+    keywordsEn: [
+      'word to text', 'docx to txt', 'word to markdown', 'extract text from word',
+      'convert docx to text', 'copy text from word', 'docx to md',
+      'strip word formatting', 'read docx online', 'word text extractor'
     ],
   },
   {
