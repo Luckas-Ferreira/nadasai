@@ -2260,7 +2260,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       {
         h: 'Como converter uma imagem',
         p: [
-          'A conversão decodifica a imagem para uma tela em memória e a escreve de novo no formato escolhido. Saem WebP, JPEG, PNG, PDF e ICO. O AVIF entra mas não sai, e isso é uma limitação honesta do navegador: não existe codificador AVIF nativo, e pedir um a uma tela faz o navegador devolver PNG em silêncio, com o nome errado.',
+          'A conversão decodifica a imagem para uma tela em memória e a escreve de novo no formato escolhido. Saem WebP, JPEG, PNG e PDF. O AVIF entra mas não sai, e isso é uma limitação honesta do navegador: não existe codificador AVIF nativo, e pedir um a uma tela faz o navegador devolver PNG em silêncio, com o nome errado.',
         ],
         steps: [
           'Solte a imagem na área de upload.',
@@ -2273,7 +2273,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
         h: 'Qual formato escolher',
         p: [
           'WebP é o padrão porque entrega o menor arquivo com a mesma qualidade visível, e hoje é aceito por todos os navegadores em uso. JPEG é a escolha quando o destino é antigo ou rígido: um sistema de RH, um formulário de concurso público, a impressora velha da copiadora. PNG é para quando a transparência ou a ausência total de perda importam mais que o tamanho.',
-          'PDF e ICO são terminais — o resultado deixa de ser uma imagem que a cadeia consegue continuar editando. O PDF serve para enviar uma foto onde só se aceita documento; o ICO existe para favicon e atalho de aplicativo, e escreve os tamanhos que um ícone precisa em vez de um PNG renomeado.',
+          'O PDF é terminal — o resultado deixa de ser uma imagem que a cadeia consegue continuar editando, e serve para enviar uma foto onde só se aceita documento. Ícone .ico não está nesta lista de propósito: um favicon não é um formato de saída, é um arquivo com várias resoluções dentro, e escolher quais entram é a metade que importa. Isso tem ferramenta própria aqui, o gerador de favicon, e é ela que faz esse trabalho em vez de um botão mudo com tamanhos fixos.',
           'Uma regra que evita retrabalho: converter não muda dimensão nem qualidade percebida por conta própria. Se o arquivo continua grande depois da conversão, o que falta é redimensionar ou comprimir, e as duas ficam a um clique daqui.',
         ],
       },
@@ -2296,7 +2296,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       {
         h: 'How to convert an image',
         p: [
-          'Conversion decodes the image onto an in-memory canvas and writes it back out in the format you pick. WebP, JPEG, PNG, PDF and ICO come out. AVIF goes in but does not come out, and that is an honest browser limitation: there is no native AVIF encoder, and asking a canvas for one makes the browser silently return PNG under the wrong name.',
+          'Conversion decodes the image onto an in-memory canvas and writes it back out in the format you pick. WebP, JPEG, PNG and PDF come out. AVIF goes in but does not come out, and that is an honest browser limitation: there is no native AVIF encoder, and asking a canvas for one makes the browser silently return PNG under the wrong name.',
         ],
         steps: [
           'Drop the image on the upload area.',
@@ -2309,7 +2309,7 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
         h: 'Which format to choose',
         p: [
           'WebP is the default because it gives the smallest file at the same visible quality, and every browser in use today accepts it. JPEG is the choice when the destination is old or rigid: an HR system, a government form, the ageing printer at a copy shop. PNG is for when transparency or the complete absence of loss matters more than size.',
-          'PDF and ICO are terminal — the result stops being an image the chain can keep editing. PDF is for sending a photo where only a document is accepted; ICO exists for favicons and app shortcuts, and writes the sizes an icon actually needs instead of a renamed PNG.',
+          'PDF is terminal — the result stops being an image the chain can keep editing, and it is for sending a photo where only a document is accepted. An .ico icon is deliberately not on this list: a favicon is not an output format, it is one file with several resolutions inside, and choosing which ones go in is the half that matters. That has its own tool here, the favicon generator, and it does that work instead of a mute button with fixed sizes.',
           'One rule that saves rework: conversion changes neither dimensions nor perceived quality on its own. If the file is still large afterwards, what you need is resize or compress, and both are one click from here.',
         ],
       },

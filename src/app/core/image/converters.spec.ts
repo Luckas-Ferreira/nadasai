@@ -69,9 +69,16 @@ describe('converters', () => {
     expect(TARGET_FORMATS).not.toContain('AVIF' as never);
   });
 
-  it('marks PDF and ICO as terminal so they cannot re-enter the editing chain', () => {
+  it('marks PDF as terminal so it cannot re-enter the editing chain', () => {
     expect(TERMINAL_FORMATS).toContain('PDF');
-    expect(TERMINAL_FORMATS).toContain('ICO');
+  });
+
+  // O encoder continua aqui e continua testado logo abaixo; o que saiu foi a
+  // OPÇÃO, que era `encodeIco(file)` sem argumento — os seis tamanhos fixos,
+  // sem nada na tela dizendo o que ia sair. A ferramenta `favicon` chama o mesmo
+  // encoder com os tamanhos à escolha, então a opção era ela com controle pior.
+  it('does not offer ICO, which belongs to the favicon tool', () => {
+    expect(TARGET_FORMATS).not.toContain('ICO' as never);
   });
 
   describe('encodeImage', () => {

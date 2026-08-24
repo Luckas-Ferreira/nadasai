@@ -27,12 +27,12 @@ test.describe('Converter', () => {
     }
   });
 
-  test('PDF and ICO are terminal: downloadable but not chainable', async ({ page }) => {
+  test('PDF is terminal: downloadable but not chainable', async ({ page }) => {
     await openApp(page, '/convert');
     await upload(page);
 
     await format(page, 'PDF').click();
-    await expect(page.getByText('PDF e ICO são formatos finais')).toBeVisible();
+    await expect(page.getByText('PDF é um formato final')).toBeVisible();
     await expect(page.getByRole('radiogroup', { name: 'Fundo atrás da transparência' })).toBeVisible();
     await page
       .getByRole('radiogroup', { name: 'Fundo atrás da transparência' })
@@ -52,18 +52,20 @@ test.describe('Converter', () => {
       .getByRole('radio', { name: '#FFF' })
       .click();
     await expect(primary(page, 'Converter')).toBeVisible();
-
-    await format(page, 'ICO').click();
-    await primary(page, 'Converter').click();
-    await expect(page.getByRole('button', { name: 'Baixar' })).toBeVisible({ timeout: 30_000 });
-    await expectDownload(page, /^photo-converted\.ico$/);
   });
 
-  test('AVIF is not offered as an output format', async ({ page }) => {
+  /**
+   * A lista inteira, e aqui ela é o ASSUNTO do teste — não a vitrine cuja ordem
+   * um teste não deve travar. Duas ausências são deliberadas e caras de
+   * reintroduzir: AVIF, que `canvas.toBlob` aceita e devolve PNG em silêncio; e
+   * ICO, que saiu para a ferramenta `favicon` — mesmo encoder, com os tamanhos
+   * à escolha em vez dos seis fixos e mudos.
+   */
+  test('offers only the formats it can really write: no AVIF, no ICO', async ({ page }) => {
     await openApp(page, '/convert');
     await upload(page);
 
     const options = page.getByRole('radiogroup', { name: 'Formato de destino' }).getByRole('radio');
-    await expect(options).toHaveText(['WEBP', 'JPEG', 'PNG', 'PDF', 'ICO']);
+    await expect(options).toHaveText(['WEBP', 'JPEG', 'PNG', 'PDF']);
   });
 });

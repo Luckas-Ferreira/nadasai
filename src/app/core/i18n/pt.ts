@@ -762,7 +762,7 @@ export const PT: Record<TranslationKey, string> = {
   'convert.btn': 'Converter',
   'convert.select_format': 'Formato de destino',
   'convert.pdf_bg': 'Fundo atrás da transparência',
-  'convert.terminal_note': 'PDF e ICO são formatos finais — podem ser baixados, mas não editados adiante.',
+  'convert.terminal_note': 'PDF é um formato final — pode ser baixado, mas não editado adiante.',
 
   'imgpdf.title': 'Imagens para PDF',
   'imgpdf.subtitle': 'Junte várias imagens em um PDF, na ordem que você escolher.',

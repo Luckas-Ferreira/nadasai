@@ -6,19 +6,31 @@ import { canvasToBlob, drawToCanvas, loadImage } from './image-file.util';
 
 /** Formats we can actually produce. AVIF is absent on purpose — see encodeImage. */
 export type ImageFormat = 'webp' | 'jpeg' | 'png';
-export type TargetFormat = 'WEBP' | 'JPEG' | 'PNG' | 'PDF' | 'ICO';
+export type TargetFormat = 'WEBP' | 'JPEG' | 'PNG' | 'PDF';
 
-export const TARGET_FORMATS: readonly TargetFormat[] = ['WEBP', 'JPEG', 'PNG', 'PDF', 'ICO'];
+export const TARGET_FORMATS: readonly TargetFormat[] = ['WEBP', 'JPEG', 'PNG', 'PDF'];
 
-/** Formats that cannot be fed back into the editing chain. */
-export const TERMINAL_FORMATS: readonly TargetFormat[] = ['PDF', 'ICO'];
+/**
+ * Formats that cannot be fed back into the editing chain.
+ *
+ * ICO saiu daqui junto com a opção que o conversor oferecia. Ela era
+ * `encodeIco(file)` sem argumento nenhum — os seis tamanhos padrão, fixos, e
+ * nada na tela dizendo o que ia sair. A ferramenta `favicon` chama o MESMO
+ * encoder com os tamanhos escolhidos, então a opção daqui era a mesma coisa com
+ * controle pior. `encodeIco` e `ICO_SIZES` continuam neste arquivo: quem os usa
+ * agora é só ela.
+ *
+ * O PDF fica, e não é o mesmo caso: o `img-to-pdf` é multipágina e limita o
+ * raster por `maxLongSide`, enquanto aqui a imagem entra em resolução plena —
+ * são comportamentos diferentes, não duas portas para a mesma coisa.
+ */
+export const TERMINAL_FORMATS: readonly TargetFormat[] = ['PDF'];
 
 export const MIME_FOR_TARGET: Record<TargetFormat, string> = {
   WEBP: 'image/webp',
   JPEG: 'image/jpeg',
   PNG: 'image/png',
   PDF: 'application/pdf',
-  ICO: 'image/vnd.microsoft.icon',
 };
 
 /**
@@ -207,6 +219,12 @@ function containBox(sourceW: number, sourceH: number, width: number, height: num
 export const ICO_SIZES = [16, 32, 48, 64, 128, 256] as const;
 
 /**
+ * Fora de `MIME_FOR_TARGET` porque ICO deixou de ser destino do conversor: ele
+ * é o formato de UMA ferramenta (`favicon`), não uma das saídas da conversão.
+ */
+const ICO_MIME = 'image/vnd.microsoft.icon';
+
+/**
  * Builds a real multi-resolution ICO with PNG-compressed entries.
  *
  * The old version stretched any aspect ratio into a single square (a 1600x900
@@ -261,7 +279,7 @@ export async function encodeIco(
     offset += png.buffer.byteLength;
   });
 
-  return new Blob([out], { type: MIME_FOR_TARGET.ICO });
+  return new Blob([out], { type: ICO_MIME });
 }
 
 /**

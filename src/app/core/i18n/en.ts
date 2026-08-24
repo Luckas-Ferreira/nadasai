@@ -775,7 +775,7 @@ export const EN = {
   'convert.btn': 'Convert',
   'convert.select_format': 'Target format',
   'convert.pdf_bg': 'Background behind transparency',
-  'convert.terminal_note': 'PDF and ICO are final formats — they can be downloaded but not edited further.',
+  'convert.terminal_note': 'PDF is a final format — it can be downloaded but not edited further.',
 
   'imgpdf.title': 'Images to PDF',
   'imgpdf.subtitle': 'Turn several images into one PDF, in the order you choose.',
