@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/preload-entry-chunks.mjs && node scripts/preload-fonts.mjs && node scripts/preload-dictionary.mjs && node scripts/generate-ngsw.mjs",
+    "postbuild": "node scripts/flatten-prerender.mjs && node scripts/spa-fallback.mjs && node scripts/absolutize-assets.mjs && node scripts/preload-entry-chunks.mjs && node scripts/preload-fonts.mjs && node scripts/preload-dictionary.mjs && node scripts/generate-packs.mjs && node scripts/generate-ngsw.mjs",
     "og": "node scripts/generate-og-cards.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

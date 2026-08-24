@@ -66,6 +66,15 @@ export const ICONS = {
   /** Monitor com o ponto de gravação: a tela é o que entra, não uma câmera. */
   screenRecord: 'M4 5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Zm5 15h6m-3-5v5m0-11.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
   stop: 'M8 8h8v8H8z',
+  /**
+   * Três controles deslizantes, não uma engrenagem: a engrenagem que cabe em
+   * 24x24 com traço 1.5 vira um borrão de dentes, e este ícone lê como "ajustes"
+   * no mesmo tamanho sem depender de detalhe que some.
+   */
+  settings:
+    'M4 6h9m4 0h3M4 12h3m4 0h10M4 18h9m4 0h3M17 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-6 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm6 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',
+  /** Caixa: um pacote de runtime, que é o que a tela de configuração gerencia. */
+  box: 'M12 3 4 7v10l8 4 8-4V7l-8-4ZM4 7l8 4 8-4M12 11v10',
   qrcode: 'M3 3h7v7H3V3Zm2 2v3h3V5H5Zm8-2h7v7h-7V3Zm2 2v3h3V5h-3ZM3 13h7v7H3v-7Zm2 2v3h3v-3H5Zm8 0h3v3h-3v-3Zm4 0h3v7h-3v-3h-3v-4h3Zm-4 4h3v3h-3v-3Z',
   // Janela de navegador com o ícone do site dentro: é o que um favicon É.
   favicon:
