@@ -233,8 +233,8 @@ export const EN = {
   'hero.soon.design_desc': 'Color palettes, gradients, color picker and SVG tools.',
   'hero.soon.productivity': 'Productivity',
   'hero.soon.productivity_desc': 'Code formatter, JSON, Base64 and quick utilities.',
-  'hero.soon.doc': 'Documents',
-  'hero.soon.doc_desc': 'Word, Excel and PowerPoint to PDF, without uploading.',
+  'hero.soon.office': 'Office',
+  'hero.soon.office_desc': 'Compress Word, Excel and PowerPoint, and extract text and sheets.',
   'hero.next_step': 'What do you want to do now?',
 
   'proof.title': 'Network, monitored live',
