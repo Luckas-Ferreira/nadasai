@@ -43,6 +43,7 @@ export type ErrorCode =
   // de cada um mora em outro lugar e tem outra gramática. Aceitar os três na
   // leitura de Word devolveria vazio em silêncio.
   | 'office_not_word'
+  | 'office_not_excel'
   // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
   // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
   // código existe para que o `catch` distinga isso do resto e não mostre nada.
@@ -126,6 +127,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   mic_denied: 'error.mic_denied',
   office_unsupported: 'error.office_unsupported',
   office_not_word: 'error.office_not_word',
+  office_not_excel: 'error.office_not_excel',
   cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',

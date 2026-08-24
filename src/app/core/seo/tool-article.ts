@@ -1989,6 +1989,126 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'excel-to-csv': {
+    pt: [
+      {
+        h: 'Célula é DADO, e é por isso que esta conversão é exata',
+        p: [
+          'Uma planilha guarda células com referência e tipo: C5 vale 42, ponto. Não há layout a imitar, não há motor de exibição a reproduzir — o que sai daqui é o que está lá dentro.',
+          'É a diferença entre esta ferramenta e uma conversão de Word para PDF, que este produto não oferece justamente porque ali o conteúdo depende de um motor de layout que só o Word tem. Aqui não existe esse problema, e por isso a extração de planilha entrou no módulo enquanto a conversão de documento ficou de fora.',
+        ],
+      },
+      {
+        h: 'Como converter',
+        p: [
+          'A contagem de linhas e colunas de cada aba aparece antes de qualquer conversão, porque ler é barato: o zip já está aberto e o que se percorre é o XML de uma aba só.',
+        ],
+        steps: [
+          'Solte o .xlsx.',
+          'Escolha a aba, se houver mais de uma. O número de linhas mostra qual tem conteúdo.',
+          'Escolha CSV com o separador que o seu destino usa, ou JSON.',
+          'Converta, confira a prévia na tela, e copie ou baixe.',
+        ],
+      },
+      {
+        h: 'O separador não é preferência',
+        p: [
+          'No Brasil e em boa parte da Europa a vírgula é o separador DECIMAL, e o Excel dessas regiões lê e escreve CSV com ponto e vírgula. Um arquivo separado por vírgula aberto ali chega com todas as colunas grudadas numa só — e o problema não é o arquivo, é a suposição de que existe um CSV universal.',
+          'Por isso o padrão aqui é ponto e vírgula, e as três opções estão no painel: vírgula para um sistema em inglês ou um script, tabulação para colar direto numa planilha.',
+          'A citação também segue a regra: um campo só ganha aspas quando contém o separador, uma aspa ou uma quebra de linha — e aspas dentro do texto são duplicadas, que é o escape do formato.',
+        ],
+      },
+      {
+        h: 'As três indireções que o formato cobra',
+        p: [
+          'A primeira é a POSIÇÃO. Uma linha omite as células vazias inteiras, e a coluna está na referência da célula. Empilhar as células na ordem em que aparecem desloca tudo para a esquerda a partir do primeiro buraco — a planilha sai com as colunas trocadas, e o resultado continua parecendo plausível.',
+          'A segunda é o TEXTO. Ele quase nunca está na célula: ela guarda um índice para uma tabela de textos compartilhados noutro arquivo do pacote. Sem resolver esse índice, a planilha inteira sai como números.',
+          'A terceira é a DATA, que não existe como tipo. É um número, e o que a torna data é o formato apontado pelo estilo — mais dois saltos até os estilos do arquivo. Sem eles, toda data vira 45000.',
+        ],
+      },
+      {
+        h: 'O ano bissexto que nunca existiu',
+        p: [
+          'A base do número de série do Excel é 30 de dezembro de 1899, e não 31. O motivo é um erro: o Excel trata 1900 como ano bissexto, o que é falso, e o fez para ser compatível com o Lotus 1-2-3, que errava primeiro. O erro foi mantido de propósito por décadas.',
+          'Deslocar a base em um dia é o que faz as datas baterem sem um caso especial para cada faixa. É o tipo de detalhe que só aparece quando alguém compara uma planilha antiga com a conversão — e por isso está fixado em teste.',
+          'Planilhas antigas do Excel para Mac usam outra base, a de 1904, declarada no próprio arquivo. Ela é lida e respeitada.',
+        ],
+      },
+      {
+        h: 'JSON com cabeçalho, e quando ele recusa',
+        p: [
+          'Marcando a primeira linha como cabeçalho, o JSON vira uma lista de objetos com as chaves vindas dela — que é a forma que um script espera.',
+          'A conversão recusa fazer isso quando a primeira linha tem célula vazia ou nome repetido, e devolve listas. Uma planilha cujo topo é um título mesclado produziria um objeto com uma chave só e o resto perdido, e perder coluna em silêncio é pior do que entregar uma forma menos conveniente.',
+        ],
+      },
+      {
+        h: 'Onde ela continua',
+        p: [
+          'O resultado é texto e entra na cadeia: dá para seguir para o comparador de texto, para o gerador de hash, ou para cifrar o arquivo antes de mandá-lo a alguém.',
+          'Tudo roda no seu navegador. A planilha não é enviada a lugar nenhum — e num conversor de Excel online, onde o arquivo costuma ser uma base de clientes ou uma folha de pagamento, essa é a diferença que importa.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'A cell is DATA, and that is why this conversion is exact',
+        p: [
+          'A spreadsheet keeps cells with a reference and a type: C5 is 42, full stop. There is no layout to imitate, no display engine to reproduce — what comes out is what is inside.',
+          'That is the difference between this tool and a Word-to-PDF conversion, which this product does not offer precisely because there the content depends on a layout engine only Word has. Here that problem does not exist, which is why spreadsheet extraction made it into the module while document conversion stayed out.',
+        ],
+      },
+      {
+        h: 'How to convert',
+        p: [
+          'Each sheet’s row and column count appears before any conversion, because reading is cheap: the zip is already open and what gets walked is one sheet’s XML.',
+        ],
+        steps: [
+          'Drop the .xlsx.',
+          'Pick the sheet, if there is more than one. The row count shows which has content.',
+          'Pick CSV with the separator your destination uses, or JSON.',
+          'Convert, check the preview on screen, and copy or download.',
+        ],
+      },
+      {
+        h: 'The separator is not a preference',
+        p: [
+          'In Brazil and much of Europe the comma is the DECIMAL separator, and Excel in those regions reads and writes CSV with semicolons. A comma-separated file opened there arrives with every column stuck into one — and the problem is not the file, it is the assumption that a universal CSV exists.',
+          'So the default here is the semicolon, and all three options are in the panel: comma for an English-locale system or a script, tab for pasting straight into a spreadsheet.',
+          'Quoting follows the same rule: a field is quoted only when it contains the separator, a quote or a line break — and quotes inside the text are doubled, which is the format’s escape.',
+        ],
+      },
+      {
+        h: 'The three indirections the format charges you',
+        p: [
+          'The first is POSITION. A row omits empty cells entirely, and the column lives in the cell reference. Stacking cells in the order they appear shifts everything left from the first gap — the sheet comes out with its columns swapped, and the result still looks plausible.',
+          'The second is TEXT. It is almost never in the cell: the cell holds an index into a shared-strings table in another part of the package. Without resolving that index, the whole sheet comes out as numbers.',
+          'The third is the DATE, which does not exist as a type. It is a number, and what makes it a date is the format pointed at by the style — two more hops, into the file’s styles. Without them, every date becomes 45000.',
+        ],
+      },
+      {
+        h: 'The leap year that never was',
+        p: [
+          'Excel’s serial epoch is 30 December 1899, not the 31st. The reason is a bug: Excel treats 1900 as a leap year, which is false, and did so to stay compatible with Lotus 1-2-3, which got it wrong first. The error has been kept deliberately for decades.',
+          'Shifting the epoch by a day is what makes the dates line up without a special case per range. It is the kind of detail that only surfaces when someone compares an old spreadsheet against the conversion — which is why it is pinned in a test.',
+          'Old Excel-for-Mac workbooks use a different epoch, 1904, declared in the file itself. It is read and respected.',
+        ],
+      },
+      {
+        h: 'JSON with a header, and when it refuses',
+        p: [
+          'Mark the first row as a header and the JSON becomes a list of objects keyed by it — the shape a script expects.',
+          'The conversion refuses to do that when the first row has an empty cell or a repeated name, and returns lists instead. A spreadsheet whose top row is a merged title would produce an object with a single key and the rest lost, and losing a column silently is worse than handing back a less convenient shape.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is text and joins the chain: it can go on to the text comparer, the hash generator, or file encryption before you send it to someone.',
+          'Everything runs in your browser. The spreadsheet is not sent anywhere — and in an online Excel converter, where the file is usually a customer list or a payroll sheet, that is the difference that matters.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

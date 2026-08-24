@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 56 tools across 6 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 57 tools across 6 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -42,6 +42,7 @@ Nada Sai provides 56 tools across 6 modules, all of which run entirely offline i
 
 - [Comprimir Office / Compress Office](https://nadasai.com/pt/office/comprimir): Only the contents of word/media, ppt/media and xl/media — the pictures.
 - [Word para texto / Word to text](https://nadasai.com/pt/office/word-para-texto): Markdown keeps the STRUCTURE: a heading becomes a hash heading, a list a list, a table a table, and bold stays bold.
+- [Excel para CSV / Excel to CSV](https://nadasai.com/pt/office/excel-para-csv): Because in Brazil and much of Europe the comma is the DECIMAL separator, and Excel in those regions reads and writes CSV with semicolons.
 
 ## Audio Tools
 
