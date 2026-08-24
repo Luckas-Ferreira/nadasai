@@ -30,6 +30,10 @@ export type ErrorCode =
   | 'capture_unsupported'
   | 'capture_denied'
   | 'capture_no_video'
+  // O microfone é uma quarta ponta: a permissão é do NAVEGADOR e não deste
+  // site, então o remédio não é tentar de novo — é abrir as permissões da
+  // página. Um código próprio existe para a tela poder dizer isso.
+  | 'mic_denied'
   // Desistir não é falhar: quem cancela uma captura de 20 minutos já sabe o que
   // aconteceu, e um alerta vermelho ali só acusa a pessoa da própria escolha. O
   // código existe para que o `catch` distinga isso do resto e não mostre nada.
@@ -110,6 +114,7 @@ const MESSAGE_KEYS: Record<ErrorCode, TranslationKey> = {
   capture_unsupported: 'error.capture_unsupported',
   capture_denied: 'error.capture_denied',
   capture_no_video: 'error.capture_no_video',
+  mic_denied: 'error.mic_denied',
   cancelled: 'error.cancelled',
   crypto_unsupported: 'error.crypto_unsupported',
   crypto_too_large: 'error.crypto_too_large',

@@ -1565,6 +1565,214 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'voice-recorder': {
+    pt: [
+      {
+        h: 'A porta de entrada que faltava no módulo',
+        p: [
+          'Todas as outras ferramentas de áudio daqui pedem um arquivo que já existe. Esta CRIA um — é a única do módulo que começa a cadeia em vez de continuá-la, do mesmo jeito que o gravador de tela faz no módulo de vídeo.',
+          'Na prática isso significa que gravar, cortar, tirar os silêncios, normalizar o volume e converter para MP3 viraram um caminho só, sem um único upload no meio. Não porque o upload seja rápido: porque ele não existe.',
+        ],
+      },
+      {
+        h: 'Como gravar',
+        p: [
+          'O navegador vai pedir permissão do microfone na primeira vez. Ela é dele, não deste site — nós não temos como conceder nem contornar, e se você recusar uma vez ele guarda a recusa até você mudar nas permissões da página.',
+        ],
+        steps: [
+          'Confira o formato de saída, se o seu navegador oferecer mais de um.',
+          'Clique em começar a gravar e autorize o microfone.',
+          'Fale. O cronômetro mostra onde você está e o teto é de sessenta minutos.',
+          'Pare, ouça a prévia, e então baixe ou mande para a próxima ferramenta.',
+        ],
+      },
+      {
+        h: 'O formato é o que o navegador escreve, e nada além',
+        p: [
+          'Não há recodificação aqui: o formato é o tipo com que o gravador do navegador é CONSTRUÍDO, então o que a lista oferece é exatamente o que ele sabe escrever. Na prática isso é WebM com Opus em todo lugar, e M4A com AAC em alguns.',
+          'MP3 não aparece, e a ausência é decisão: nenhum navegador grava MP3 nativamente, e listar um formato que não sai seria prometer um arquivo que nunca aparece. É a mesma regra que tirou o FLAC da saída do conversor de áudio e o AVIF da do conversor de imagem.',
+          'Quem precisa de MP3 grava aqui e manda para o conversor pela barra de arquivo. São dois cliques, e o arquivo continua sem sair da máquina.',
+        ],
+      },
+      {
+        h: 'O teto de uma hora é de arquivo, não de memória',
+        p: [
+          'O gravador entrega pedaços de um segundo, e o navegador os guarda em disco enquanto você fala. Uma hora de voz não vive na memória da aba, então o limite não é a aba travar: é o arquivo ficar grande demais para ser útil. Sessenta minutos dão algo em torno de 60 MB.',
+          'O cronômetro está na tela desde o primeiro segundo justamente para que o limite não seja uma surpresa no fim.',
+        ],
+      },
+      {
+        h: 'O microfone é solto quando você sai',
+        p: [
+          'O gravador é um objeto que pertence à tela, e morre com ela. Isso não é detalhe de implementação: um microfone aberto dentro de um serviço global continuaria ouvindo depois que você trocasse de ferramenta, e num produto chamado Nada Sai esse seria o pior defeito possível.',
+          'A mesma regra vale para o gravador de tela do módulo de vídeo, e está escrita no código dos dois.',
+        ],
+      },
+      {
+        h: 'Para que as pessoas usam',
+        p: [
+          'Recado de voz para mandar por mensagem, entrevista, aula, memorando, teste de microfone antes de uma reunião, narração para um vídeo. E o caso que só faz sentido aqui: gravar algo sensível — uma consulta, uma reunião interna — sabendo que o arquivo não passou por servidor nenhum.',
+          'O medidor no topo da página mostra os bytes que saíram enquanto você grava. Ele fica em zero, e essa é a diferença que importa num gravador de voz online.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'The entrance the module was missing',
+        p: [
+          'Every other audio tool here asks for a file that already exists. This one CREATES one — it is the only tool in the module that starts the chain rather than continuing it, the same way the screen recorder does in the video module.',
+          'In practice that means record, cut, strip the silences, normalise the level and convert to MP3 became a single path with no upload in the middle. Not because the upload is fast: because there is none.',
+        ],
+      },
+      {
+        h: 'How to record',
+        p: [
+          'The browser will ask for microphone permission the first time. It belongs to the browser rather than to this site — we can neither grant it nor work around it, and if you refuse once it remembers until you change the page permissions.',
+        ],
+        steps: [
+          'Check the output format, if your browser offers more than one.',
+          'Click start recording and allow the microphone.',
+          'Speak. The timer shows where you are and the ceiling is sixty minutes.',
+          'Stop, listen to the preview, then download or pass it to the next tool.',
+        ],
+      },
+      {
+        h: 'The format is what the browser writes, and nothing more',
+        p: [
+          'There is no re-encoding here: the format is the type the browser recorder is CONSTRUCTED with, so what the list offers is exactly what it can write. In practice that is WebM with Opus everywhere, and M4A with AAC on some.',
+          'MP3 is absent, and the absence is a decision: no browser records MP3 natively, and listing a format that never comes out would be promising a file that never appears. Same rule that took FLAC out of the audio converter and AVIF out of the image converter.',
+          'If you need MP3, record here and send it to the converter from the file bar. Two clicks, and the file still never leaves the machine.',
+        ],
+      },
+      {
+        h: 'The one-hour ceiling is about the file, not memory',
+        p: [
+          'The recorder hands over one-second chunks, and the browser keeps them on disk while you talk. An hour of speech does not live in the tab, so the limit is not the tab freezing: it is the file becoming too large to be useful. Sixty minutes lands around 60 MB.',
+          'The timer is on screen from the first second precisely so the limit is not a surprise at the end.',
+        ],
+      },
+      {
+        h: 'The microphone is released when you leave',
+        p: [
+          'The recorder is an object that belongs to the screen, and dies with it. That is not an implementation detail: a microphone left open inside a global service would keep listening after you switched tools, and in a product called Nada Sai that would be the worst possible defect.',
+          'The same rule governs the screen recorder in the video module, and it is written into the code of both.',
+        ],
+      },
+      {
+        h: 'What people use it for',
+        p: [
+          'A voice note to send in a message, an interview, a lecture, a memo, a microphone test before a meeting, narration for a video. And the case that only makes sense here: recording something sensitive — a consultation, an internal meeting — knowing the file went through no server at all.',
+          'The meter at the top of the page shows the bytes that left while you record. It stays at zero, and for an online voice recorder that is the difference that matters.',
+        ],
+      },
+    ],
+  },
+  'audio-speed': {
+    pt: [
+      {
+        h: 'Duas coisas com o mesmo nome',
+        p: [
+          'Mudar a velocidade de um áudio são duas operações diferentes que as pessoas chamam igual, e escolher errado é o que faz o resultado decepcionar.',
+          'A primeira é ler as mesmas amostras num passo diferente, que é o que um disco faz quando se troca a rotação: fica mais rápido E mais agudo. A mudança de tom não é defeito — é o efeito, e é exatamente o que quem procura "nightcore" ou "slowed" quer.',
+          'A segunda mantém o tom e muda só a duração. É o que se quer numa aula gravada ou num podcast, e não existe de graça: a onda precisa ser recortada e sobreposta em pedaços, sem que a emenda apareça.',
+          'Por isso o painel pergunta antes de aplicar, com uma frase explicando o que cada escolha faz. As duas saem da mesma máquina, com um número diferente.',
+        ],
+      },
+      {
+        h: 'Como usar',
+        p: [
+          'A régua vai de 0,25x a 4x, e os atalhos cobrem as velocidades que aparecem de verdade — 1,5x para uma aula, 2x para um podcast, 0,75x para transcrever, 0,5x para estudar um trecho de música.',
+        ],
+        steps: [
+          'Solte o áudio, ou traga um da cadeia — uma gravação feita no gravador de voz daqui, por exemplo.',
+          'Escolha se o tom acompanha ou fica.',
+          'Mova a régua. A nova duração aparece ao lado, antes de qualquer processamento.',
+          'Aplique, ouça a prévia na própria página, e baixe em WAV ou MP3.',
+        ],
+      },
+      {
+        h: 'Como o tom é mantido, e onde isso falha',
+        p: [
+          'O método recorta a onda em quadros de 60 milissegundos e os sobrepõe na saída com um passo diferente do da entrada — mais apertado para acelerar, mais espaçado para desacelerar. O que separa isso de um corta-e-cola é a busca: antes de escrever cada quadro, o algoritmo desliza a origem por uma janela de dez milissegundos procurando o trecho que melhor CONTINUA o que já foi escrito.',
+          'Sem essa busca a emenda cai em fase arbitrária e toda voz sustentada ganha um ronco metálico. Com ela, fala acelerada fica praticamente indistinguível do original em velocidade.',
+          'Onde falha: música densa, e velocidades extremas. Um coral ou um prato de bateria esticado a 0,3x deixa ouvir a repetição dos quadros como um eco curto. É aproximação, não mágica, e a prévia toca antes de você baixar justamente para isso.',
+        ],
+      },
+      {
+        h: 'Por que o limite existe',
+        p: [
+          'A régua para em 0,25x e em 4x porque fora disso o áudio deixa de ser reconhecível. A quatro vezes a fala já é um chiado agudo; a um quarto ela vira um arrasto em que as palavras se desmancham.',
+          'Um controle que aceita qualquer número e devolve ruído não é liberdade: é uma armadilha, principalmente numa ferramenta onde processar leva tempo. A página prefere dizer o limite antes a deixar você descobri-lo depois de esperar.',
+        ],
+      },
+      {
+        h: 'A saída, e por que WAV é o padrão',
+        p: [
+          'WAV é sem perda, e o áudio que entrou aqui já carrega a compressão que trouxe de casa. Recodificar para MP3 acrescenta uma segunda geração de perda sobre a primeira, e essa é uma decisão que só quem sabe o destino do arquivo pode tomar.',
+          'Então o padrão é WAV e o MP3 está a um clique, com a mesma regra que o resto do módulo de áudio segue.',
+        ],
+      },
+      {
+        h: 'Onde ele continua',
+        p: [
+          'O resultado é áudio e entra na cadeia. Acelerar e depois comprimir é o caminho de quem quer mandar uma aula longa por mensagem; desacelerar e depois cortar é o de quem vai transcrever um trecho difícil.',
+          'Tudo roda no seu navegador. O arquivo não é enviado a lugar nenhum, e o medidor no topo da página mostra isso enquanto você trabalha.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'Two things with the same name',
+        p: [
+          'Changing the speed of audio is two different operations that people call the same thing, and picking the wrong one is what makes the result disappoint.',
+          'The first is reading the same samples at a different step, which is what a record does when you change its rotation: faster AND higher. The pitch change is not a defect — it is the effect, and it is exactly what people searching for "nightcore" or "slowed" want.',
+          'The second holds the pitch and changes only the duration. That is what you want for a recorded lecture or a podcast, and it is not free: the wave has to be cut and overlapped in pieces without the seam showing.',
+          'So the panel asks before applying, with a sentence explaining what each choice does. Both come out of the same machine, with a different number.',
+        ],
+      },
+      {
+        h: 'How to use it',
+        p: [
+          'The slider runs from 0.25x to 4x, and the shortcuts cover the speeds that actually come up — 1.5x for a lecture, 2x for a podcast, 0.75x for transcribing, 0.5x for studying a passage of music.',
+        ],
+        steps: [
+          'Drop the audio, or bring one in through the chain — a take from the voice recorder here, for instance.',
+          'Choose whether the pitch follows or holds.',
+          'Move the slider. The new duration appears beside it, before any processing.',
+          'Apply, listen to the preview on the page, and download as WAV or MP3.',
+        ],
+      },
+      {
+        h: 'How the pitch is held, and where that fails',
+        p: [
+          'The method cuts the wave into 60-millisecond frames and overlaps them on output at a different step from the input — tighter to speed up, wider to slow down. What separates that from a cut-and-paste is the search: before writing each frame, the algorithm slides the source across a ten-millisecond window looking for the piece that best CONTINUES what has already been written.',
+          'Without that search the seam lands at an arbitrary phase and every sustained voice picks up a metallic buzz. With it, sped-up speech is practically indistinguishable from the original at speed.',
+          'Where it fails: dense music, and extreme speeds. A choir or a cymbal stretched to 0.3x lets you hear the frames repeating as a short echo. It is an approximation, not magic, and the preview plays before you download precisely for that.',
+        ],
+      },
+      {
+        h: 'Why the limit exists',
+        p: [
+          'The slider stops at 0.25x and 4x because outside that the audio stops being recognisable. At four times, speech is already a high hiss; at a quarter it becomes a drag in which words dissolve.',
+          'A control that accepts any number and returns noise is not freedom: it is a trap, especially in a tool where processing takes time. The page would rather state the limit up front than let you find it after waiting.',
+        ],
+      },
+      {
+        h: 'The output, and why WAV is the default',
+        p: [
+          'WAV is lossless, and the audio that came in here already carries whatever compression it arrived with. Re-encoding to MP3 adds a second generation of loss on top of the first, and that is a decision only someone who knows where the file is going can make.',
+          'So the default is WAV and MP3 is one click away, on the same rule the rest of the audio module follows.',
+        ],
+      },
+      {
+        h: 'Where it goes next',
+        p: [
+          'The result is audio and joins the chain. Speeding up and then compressing is the route for sending a long lecture in a message; slowing down and then cutting is the route for transcribing a difficult passage.',
+          'Everything runs in your browser. The file is not sent anywhere, and the meter at the top of the page shows that while you work.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

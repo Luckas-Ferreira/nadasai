@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 52 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 54 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -43,6 +43,8 @@ Nada Sai provides 52 tools across 5 modules, all of which run entirely offline i
 - [Cortar áudio (Aparar MP3) / Cut audio (Trim MP3)](https://nadasai.com/pt/audio/cortar): Drop your audio file to render the interactive waveform.
 - [Converter áudio / Convert audio](https://nadasai.com/pt/audio/converter): Upload your audio track, choose your target format (MP3, WAV, OGG, or M4A), and select your desired bitrate and channel configuration.
 - [Comprimir Áudio / Compress Audio](https://nadasai.com/pt/audio/comprimir): Select your target bitrate and optionally enable mono downmixing for spoken word.
+- [Velocidade do áudio / Audio speed](https://nadasai.com/pt/audio/velocidade): Letting it follow is what a record does off its rotation: faster AND higher.
+- [Gravador de voz / Voice recorder](https://nadasai.com/pt/audio/gravar): No, and there is nowhere to send it: this product has no backend.
 - [Juntar áudio / Merge audio](https://nadasai.com/pt/audio/juntar): Drop all your audio files, arrange track order in the visual playlist, adjust the optional crossfade duration for smooth transitions, and download the combined audio track.
 - [Normalizar Áudio / Normalize Audio](https://nadasai.com/pt/audio/normalizar): Drop your file into Loudness (LUFS) mode: the tool scans perceived loudness across the track, calculates required decibel gain, and applies a transparent look-ahead limiter to prevent distortion and clipping on sudden peaks.
 - [Remover silêncio / Remove silence](https://nadasai.com/pt/audio/remover-silencio): By RMS over a 20-millisecond window, not sample by sample.

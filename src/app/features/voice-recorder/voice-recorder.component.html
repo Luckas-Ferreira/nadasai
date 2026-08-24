@@ -1,0 +1,99 @@
+<app-tool-page [toolId]="'voice-recorder'" [forceLoaded]="true">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || unsupported()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" />
+    }
+
+    @if (unsupported()) {
+      <app-alert [message]="i18n.t()['voicerec.unsupported']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    <div
+      class="flex min-h-[420px] flex-col items-center justify-center gap-6 rounded-xl border border-doc-stage-line bg-doc-stage p-8"
+    >
+      <p class="font-mono text-5xl tabular text-text" aria-live="off">{{ clock() }}</p>
+
+      @if (recording()) {
+        <p class="flex items-center gap-2 text-sm text-muted" aria-live="polite">
+          <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-danger"></span>
+          {{ i18n.t()['voicerec.recording'] }}
+        </p>
+
+        <button appButton variant="primary" (click)="stop()">
+          {{ i18n.t()['voicerec.stop'] }}
+        </button>
+      } @else {
+        @if (resultUrl(); as url) {
+          <audio [src]="url" controls class="w-full max-w-md"></audio>
+
+          <button appButton variant="secondary" [disabled]="unsupported()" (click)="start()">
+            {{ i18n.t()['voicerec.again'] }}
+          </button>
+        } @else {
+          <p class="max-w-md text-center text-sm leading-relaxed text-muted">
+            {{ i18n.t()['voicerec.idle'] }}
+          </p>
+
+          <button appButton variant="primary" [disabled]="unsupported()" (click)="start()">
+            {{ i18n.t()['voicerec.start'] }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    <app-panel [heading]="i18n.t()['voicerec.panel_output']">
+      @if (onlyOneFormat()) {
+        <p class="text-sm text-muted">
+          {{ i18n.t()['voicerec.only_format'] }}
+          <span class="font-mono text-text">{{ format()?.label }}</span>
+        </p>
+      } @else if (formats().length > 1) {
+        <app-segmented
+          [options]="formatOptions()"
+          [value]="format()?.ext ?? ''"
+          (valueChange)="setFormat($event)"
+          [columns]="2"
+        />
+      }
+
+      <!-- Nenhum navegador grava MP3. Prometer o que ele não escreve seria o
+           mesmo defeito que tirou o FLAC da saída do conversor de áudio. -->
+      <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-faint">
+        {{ i18n.t()['voicerec.limit_note'] }}
+      </p>
+    </app-panel>
+
+    @if (resultBlob()) {
+      <app-panel [heading]="i18n.t()['voicerec.panel_info']">
+        <dl class="flex flex-col gap-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['voicerec.duration'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ clock() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['voicerec.size'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ resultSize() }}</dd>
+          </div>
+        </dl>
+
+        <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
+          {{ i18n.t()['voicerec.chain_note'] }}
+        </p>
+      </app-panel>
+    }
+
+    <app-action-bar
+      [toolId]="'voice-recorder'"
+      [primaryLabel]="null"
+      [busy]="recording()"
+      [canDownload]="!!resultBlob()"
+      (download)="download()"
+      (reset)="reset()"
+    />
+  </div>
+</app-tool-page>

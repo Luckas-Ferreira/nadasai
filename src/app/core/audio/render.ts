@@ -37,3 +37,29 @@ export async function renderAudio(
 
   return ctx.startRendering();
 }
+
+/**
+ * Monta um AudioBuffer a partir de canais crus.
+ *
+ * Existe porque o encoder de MP3 recebe AudioBuffer e o processamento daqui
+ * trabalha em Float32Array: toda ferramenta que mexe nas amostras precisa
+ * atravessar essa fronteira na saída. Vivia dentro do remover-silêncio, e o
+ * terceiro consumidor — a velocidade — ia nascer com uma cópia.
+ *
+ * O OfflineAudioContext é só a fábrica: nada é renderizado aqui.
+ */
+export function toAudioBuffer(channels: readonly Float32Array[], sampleRate: number): AudioBuffer {
+  const length = Math.max(1, channels[0]?.length ?? 0);
+  const ctx = new OfflineAudioContext(Math.max(1, channels.length), length, sampleRate);
+  const buffer = ctx.createBuffer(Math.max(1, channels.length), length, sampleRate);
+
+  for (let c = 0; c < channels.length; c++) buffer.copyToChannel(channels[c], c);
+  return buffer;
+}
+
+/** Os canais de um AudioBuffer como lista, que é como o processamento os quer. */
+export function channelsOf(buffer: AudioBuffer): Float32Array[] {
+  const out: Float32Array[] = [];
+  for (let c = 0; c < buffer.numberOfChannels; c++) out.push(buffer.getChannelData(c));
+  return out;
+}
