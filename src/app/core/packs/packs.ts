@@ -1,3 +1,5 @@
+import type { IconName } from '../../shared/ui/icon/icons';
+import type { ToolTone } from '../tools/tools';
 import type { TranslationKey } from '../services/translation.service';
 
 /**
@@ -48,6 +50,15 @@ export interface PackDef {
   readonly usedByKey: TranslationKey;
   /** O que o pacote contém, em prosa, para a linha de detalhe da tela. */
   readonly contentsKey: TranslationKey;
+  /**
+   * O ícone e o tom são os DA FERRAMENTA que o pacote alimenta, não escolhas
+   * novas: violeta e a tesoura do remover fundo, o verde-azulado e o scanner do
+   * extrair texto, o rosa e o ícone do módulo de PDF. É o que faz a tela de
+   * configuração parecer parte do produto em vez de um painel de sistema — a
+   * pessoa reconhece a ferramenta antes de ler o nome do pacote.
+   */
+  readonly icon: IconName;
+  readonly tone: ToolTone;
 }
 
 /** O cache que o `public/nadasai-sw.js` serve. Mudar o nome descarta tudo. */
@@ -68,6 +79,8 @@ export const PACKS: readonly PackDef[] = [
     descKey: 'packs.remove_bg.desc',
     usedByKey: 'packs.remove_bg.used_by',
     contentsKey: 'packs.remove_bg.contents',
+    icon: 'remove-bg',
+    tone: 'violet',
   },
   {
     id: 'ocr',
@@ -86,6 +99,8 @@ export const PACKS: readonly PackDef[] = [
     descKey: 'packs.ocr.desc',
     usedByKey: 'packs.ocr.used_by',
     contentsKey: 'packs.ocr.contents',
+    icon: 'scan',
+    tone: 'teal',
   },
   {
     id: 'pdf-engine',
@@ -94,6 +109,8 @@ export const PACKS: readonly PackDef[] = [
     descKey: 'packs.pdf.desc',
     usedByKey: 'packs.pdf.used_by',
     contentsKey: 'packs.pdf.contents',
+    icon: 'pdf',
+    tone: 'rose',
   },
 ];
 

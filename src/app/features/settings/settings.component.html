@@ -1,15 +1,21 @@
 <article class="mx-auto max-w-2xl py-4">
-  <header class="mb-8">
-    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-accent-soft text-accent">
-      <app-icon name="settings" [size]="26" />
+  <header class="mb-8 flex items-start gap-4">
+    <span
+      class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent"
+    >
+      <app-icon name="settings" [size]="22" />
+    </span>
+    <div class="min-w-0">
+      <h1 class="text-2xl font-semibold text-text">{{ i18n.t()['settings.title'] }}</h1>
+      <p class="mt-1 text-base text-muted">{{ i18n.t()['settings.subtitle'] }}</p>
     </div>
-    <h1 class="text-2xl font-semibold text-text">{{ i18n.t()['settings.title'] }}</h1>
-    <p class="mt-2 text-base text-muted">{{ i18n.t()['settings.subtitle'] }}</p>
   </header>
 
   <section class="mb-8">
-    <h2 class="mb-3 text-lg font-semibold text-text">{{ i18n.t()['settings.packs_h'] }}</h2>
-    <p class="mb-5 text-base leading-relaxed text-muted">{{ i18n.t()['settings.packs_lead'] }}</p>
+    <h2 class="text-lg font-semibold text-text">{{ i18n.t()['settings.packs_h'] }}</h2>
+    <p class="mt-1.5 mb-4 text-sm leading-relaxed text-muted">
+      {{ i18n.t()['settings.packs_lead'] }}
+    </p>
 
     <!-- ANTES DA PRIMEIRA LEITURA esta seção não afirma nada, e é isso que o
          `ready()` compra. A rota é prerenderizada: sem esta guarda o HTML
@@ -17,58 +23,88 @@
          três pacotes zerados — uma afirmação sobre o disco de alguém, escrita
          antes de o disco ter sido lido, e errada para todo mundo que já usou o
          produto. É a mesma regra do medidor de rede: o número é leitura, e nunca
-         texto. -->
+         texto. A altura reservada evita que a página salte quando a leitura
+         chega, o que num piscar seria pior do que a espera. -->
     @if (!packs.ready()) {
-      <div class="h-24" aria-hidden="true"></div>
+      <div class="h-64 rounded-lg border border-line bg-surface" aria-hidden="true"></div>
     } @else if (!packs.supported()) {
       <!-- Sem service worker no controle os bytes até entram no cache, mas
            ninguém os lê: quem busca o tessdata é o worker do Tesseract, o ort é o
            onnxruntime e o pdfjs é o worker do pdf.js. Oferecer botões aqui seria
            oferecer uma ação que não faz nada. -->
-      <div class="rounded-panel border border-line bg-raised p-4">
-        <p class="text-sm font-medium text-text">{{ i18n.t()['settings.unavailable_h'] }}</p>
-        <p class="mt-1.5 text-sm leading-relaxed text-muted">
-          {{ i18n.t()['settings.unavailable_p'] }}
-        </p>
+      <div class="flex items-start gap-3 rounded-lg border border-line bg-surface p-4 shadow-panel">
+        <span class="mt-0.5 shrink-0 text-faint"><app-icon name="alert" [size]="17" /></span>
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-text">{{ i18n.t()['settings.unavailable_h'] }}</p>
+          <p class="mt-1 text-sm leading-relaxed text-muted">
+            {{ i18n.t()['settings.unavailable_p'] }}
+          </p>
+        </div>
       </div>
     } @else {
-      <ul class="flex flex-col gap-3">
+      <!-- UM container com linhas divididas, e não três cartões soltos: é a
+           diferença entre uma tela de ajustes e uma grade de produtos. A regra do
+           sistema é a mesma do resto — separar por linha de 1px, nunca por
+           sombra. -->
+      <!-- `overflow-hidden` para o rodapé elevado respeitar o canto arredondado;
+           e a lista é um <ul> de verdade, e não divs, porque para quem usa leitor
+           de tela "lista de 3 itens" é a informação que diz de quantos pacotes se
+           está falando. O rodapé fica FORA do <ul> — um <ul> só pode conter <li>,
+           e o total não é um pacote. -->
+      <div class="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
+        <ul class="divide-y divide-line">
         @for (row of packs.rows(); track row.pack.id) {
-          <li class="rounded-panel border border-line bg-surface p-4">
-            <div class="flex items-start gap-3">
+          <!-- Texto à esquerda, controle à DIREITA: é a forma de uma linha de
+               ajuste, e é o que separa esta tela de uma lista de cartões. Abaixo
+               de `sm` os botões descem para uma linha própria, porque empilhar
+               dois botões num celular estreito espreme o texto que explica o que
+               eles fazem. -->
+          <li class="flex flex-col gap-3 p-4 sm:flex-row sm:gap-4">
+            <div class="flex min-w-0 flex-1 items-start gap-3">
+              <!-- O tom e o ícone são os da ferramenta que este pacote alimenta,
+                   como no seletor de módulos e na grade da home. -->
               <span
-                class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-raised text-muted"
+                [style.--tone-fg]="'var(--tone-' + row.pack.tone + '-fg)'"
+                [style.--tone-bg]="'var(--tone-' + row.pack.tone + '-bg)'"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[var(--tone-bg)] text-[color:var(--tone-fg)]"
               >
-                <app-icon name="box" [size]="18" />
+                <app-icon [name]="row.pack.icon" [size]="19" />
               </span>
 
               <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <h3 class="text-base font-semibold text-text">
                     {{ i18n.t()[row.pack.nameKey] }}
                   </h3>
-                  <!-- O tamanho instalado quando há um, o tamanho a baixar quando
-                       não há. São perguntas diferentes, e a resposta certa é a do
-                       estado em que a linha está. -->
-                  <span class="font-mono tabular text-sm text-muted">
-                    {{ size(row.state === 'absent' ? row.bytesTotal : row.bytesOnDisk) }}
+
+                  <span class="flex items-center gap-2">
+                    <!-- O tamanho instalado quando há um, o tamanho a baixar
+                         quando não há. São perguntas diferentes, e a resposta
+                         certa é a do estado em que a linha está. -->
+                    <span class="font-mono tabular text-sm text-muted">
+                      {{ size(row.state === 'absent' ? row.bytesTotal : row.bytesOnDisk) }}
+                    </span>
+                    <span
+                      class="rounded-full border px-2 py-0.5 text-2xs font-medium"
+                      [class]="stateChip(row)"
+                      >{{ stateLabel(row) }}</span
+                    >
                   </span>
-                  <span class="text-xs text-faint">{{ stateLabel(row) }}</span>
                 </div>
 
                 <p class="mt-1 text-sm leading-relaxed text-muted">
                   {{ i18n.t()[row.pack.descKey] }}
                 </p>
 
-                <dl class="mt-2 flex flex-col gap-0.5 text-xs text-faint">
-                  <div class="flex gap-1.5">
-                    <dt class="shrink-0 font-medium">{{ i18n.t()['packs.used_by'] }}:</dt>
-                    <dd>{{ i18n.t()[row.pack.usedByKey] }}</dd>
-                  </div>
-                  <div class="flex gap-1.5">
-                    <dt class="shrink-0 font-medium">{{ i18n.t()['packs.contents'] }}:</dt>
-                    <dd>{{ i18n.t()[row.pack.contentsKey] }}</dd>
-                  </div>
+                <dl class="mt-2.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-2xs text-faint">
+                  <dt class="font-medium uppercase tracking-wide">
+                    {{ i18n.t()['packs.used_by'] }}
+                  </dt>
+                  <dd class="text-muted">{{ i18n.t()[row.pack.usedByKey] }}</dd>
+                  <dt class="font-medium uppercase tracking-wide">
+                    {{ i18n.t()['packs.contents'] }}
+                  </dt>
+                  <dd>{{ i18n.t()[row.pack.contentsKey] }}</dd>
                 </dl>
 
                 @if (row.state === 'installing') {
@@ -76,10 +112,15 @@
                        decoração, como na faixa de download do modelo. -->
                   <div class="mt-3" role="status" aria-live="polite">
                     <div class="flex items-baseline justify-between gap-2">
-                      <span class="text-xs text-muted">{{ i18n.t()['packs.state.installing'] }}</span>
+                      <span class="text-xs text-muted">{{
+                        i18n.t()['packs.state.installing']
+                      }}</span>
                       <span class="font-mono tabular text-xs text-muted">{{ row.percent }}%</span>
                     </div>
-                    <div class="mt-1.5 h-1 overflow-hidden rounded-full bg-raised" aria-hidden="true">
+                    <div
+                      class="mt-1.5 h-1 overflow-hidden rounded-full bg-raised"
+                      aria-hidden="true"
+                    >
                       <div
                         class="h-full rounded-full bg-accent-fill transition-[width] duration-300"
                         [style.width.%]="row.percent"
@@ -94,89 +135,113 @@
                   </p>
                 }
 
-                <!-- `bytesTotal === 0` só acontece com o `packs.json` ausente, ou
-                     seja, um deploy pela metade. O botão fica desativado em vez de
-                     engolir o clique: um "Baixar" que não baixa nada lê como produto
-                     quebrado, que é pior do que um botão visivelmente inerte. -->
-                <div class="mt-3 flex flex-wrap gap-2">
-                  @if (row.state === 'installing') {
-                    <button appButton variant="secondary" size="sm" type="button" (click)="cancel(row)">
-                      {{ i18n.t()['packs.action_cancel'] }}
-                    </button>
-                  } @else {
-                    @if (row.state !== 'installed') {
-                      <button
-                        appButton
-                        variant="primary"
-                        size="sm"
-                        type="button"
-                        [disabled]="row.state === 'removing' || row.bytesTotal === 0"
-                        (click)="install(row)"
-                      >
-                        <app-icon name="download" [size]="15" />
-                        {{ primaryLabel(row) }}
-                      </button>
-                    }
-
-                    @if (row.state !== 'absent') {
-                      <button
-                        appButton
-                        variant="danger"
-                        size="sm"
-                        type="button"
-                        [disabled]="row.state === 'removing'"
-                        (click)="remove(row)"
-                      >
-                        {{ i18n.t()['packs.action_remove'] }}
-                      </button>
-                    }
-                  }
-                </div>
               </div>
+            </div>
+
+            <!-- `bytesTotal === 0` só acontece com o `packs.json` ausente, ou
+                 seja, um deploy pela metade. O botão fica desativado em vez de
+                 engolir o clique: um "Baixar" que não baixa nada lê como produto
+                 quebrado, que é pior do que um botão inerte. -->
+            <!-- Largura FIXA, e não `w-auto`: deixando a coluna medir o próprio
+                 conteúdo, cada linha ficava com uma largura diferente e os botões
+                 não alinhavam entre si — três colunas raggedas que leem como
+                 descuido. É também por isso que "Continuar" é curto: o rótulo
+                 longo que estava aqui ("Concluir download") não cabia em coluna
+                 nenhuma que não roubasse metade do texto. A pastilha de estado já
+                 diz "Incompleto"; o botão só precisa dizer o que faz. -->
+            <div class="flex shrink-0 flex-wrap gap-2 sm:w-32 sm:flex-col sm:items-stretch">
+              @if (row.state === 'installing') {
+                <button appButton variant="secondary" size="sm" type="button" (click)="cancel(row)">
+                  {{ i18n.t()['packs.action_cancel'] }}
+                </button>
+              } @else {
+                @if (row.state !== 'installed') {
+                  <button
+                    appButton
+                    variant="primary"
+                    size="sm"
+                    type="button"
+                    [disabled]="row.state === 'removing' || row.bytesTotal === 0"
+                    (click)="install(row)"
+                  >
+                    <app-icon name="download" [size]="15" />
+                    {{ primaryLabel(row) }}
+                  </button>
+                }
+
+                @if (row.state !== 'absent') {
+                  <!-- `secondary` e não `ghost`: sozinho numa coluna à direita, um
+                       ghost lê como texto solto e não como botão. O vermelho fica
+                       reservado para o "Remover tudo" do rodapé, que é a ação que
+                       merece o alarme. -->
+                  <button
+                    appButton
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    [disabled]="row.state === 'removing'"
+                    (click)="remove(row)"
+                  >
+                    {{ i18n.t()['packs.action_remove'] }}
+                  </button>
+                }
+              }
             </div>
           </li>
         }
-      </ul>
+        </ul>
 
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-        <p class="text-sm text-muted">
-          {{ i18n.t()['settings.total'] }}:
-          <span class="font-mono tabular font-medium text-text">{{ total() }}</span>
-        </p>
+        <!-- O rodapé mora DENTRO do mesmo container, sobre a superfície elevada:
+             é o total das linhas acima, não uma seção nova. -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-raised px-4 py-3">
+          <p class="text-sm text-muted">
+            {{ i18n.t()['settings.total'] }}
+            <span class="ml-1 font-mono tabular font-semibold text-text">{{ total() }}</span>
+          </p>
 
-        <button
-          appButton
-          variant="ghost"
-          size="sm"
-          type="button"
-          [disabled]="packs.anyBusy() || packs.totalOnDisk() === 0"
-          (click)="removeAll()"
-        >
-          {{ i18n.t()['settings.remove_all'] }}
-        </button>
+          <button
+            appButton
+            variant="danger"
+            size="sm"
+            type="button"
+            [disabled]="packs.anyBusy() || packs.totalOnDisk() === 0"
+            (click)="removeAll()"
+          >
+            {{ i18n.t()['settings.remove_all'] }}
+          </button>
+        </div>
       </div>
     }
   </section>
 
   <section class="mb-8">
-    <h2 class="mb-3 text-lg font-semibold text-text">{{ i18n.t()['settings.auto_h'] }}</h2>
+    <h2 class="mb-4 text-lg font-semibold text-text">{{ i18n.t()['settings.auto_h'] }}</h2>
 
-    <!-- O <label> ENVOLVE o input em vez de ficar ao lado dele: um label irmão
-         sem `for` é rotulado na tela e anônimo na árvore de acessibilidade, que
-         é exatamente o que o `npm run check:templates` reprova. -->
-    <label class="flex cursor-pointer items-start gap-3 rounded-panel border border-line bg-surface p-4">
-      <input
-        type="checkbox"
-        class="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--accent-fill)]"
-        [checked]="autoDownload()"
-        (change)="onAutoDownloadChange($event)"
-      />
-      <span class="min-w-0">
-        <span class="block text-sm font-medium text-text">{{ i18n.t()['settings.auto_label'] }}</span>
-        <span class="mt-1 block text-xs leading-relaxed text-muted">
-          {{ i18n.t()['settings.auto_hint'] }}
+    <div class="rounded-lg border border-line bg-surface shadow-panel">
+      <!-- O <label> ENVOLVE o input em vez de ficar ao lado dele: um label irmão
+           sem `for` é rotulado na tela e anônimo na árvore de acessibilidade, que
+           é exatamente o que o `npm run check:templates` reprova.
+
+           E a classe é `accent-accent`, que é como TODA caixa de seleção do
+           produto é pintada (remover EXIF, gravador de tela, dividir PDF). Esta
+           tela tinha inventado uma terceira grafia com valor arbitrário, e era
+           por isso que o controle parecia de outro app. -->
+      <label class="flex cursor-pointer items-start gap-3 p-4">
+        <input
+          type="checkbox"
+          class="mt-0.5 h-4 w-4 shrink-0 rounded accent-accent"
+          [checked]="autoDownload()"
+          (change)="onAutoDownloadChange($event)"
+        />
+        <span class="min-w-0">
+          <span class="block text-sm font-medium text-text">{{
+            i18n.t()['settings.auto_label']
+          }}</span>
+          <span class="mt-1 block text-xs leading-relaxed text-muted">
+            {{ i18n.t()['settings.auto_hint'] }}
+          </span>
         </span>
-      </span>
-    </label>
+      </label>
+    </div>
   </section>
 </article>
