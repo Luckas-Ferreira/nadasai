@@ -1,0 +1,182 @@
+<article class="mx-auto max-w-2xl py-4">
+  <header class="mb-8">
+    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-accent-soft text-accent">
+      <app-icon name="settings" [size]="26" />
+    </div>
+    <h1 class="text-2xl font-semibold text-text">{{ i18n.t()['settings.title'] }}</h1>
+    <p class="mt-2 text-base text-muted">{{ i18n.t()['settings.subtitle'] }}</p>
+  </header>
+
+  <section class="mb-8">
+    <h2 class="mb-3 text-lg font-semibold text-text">{{ i18n.t()['settings.packs_h'] }}</h2>
+    <p class="mb-5 text-base leading-relaxed text-muted">{{ i18n.t()['settings.packs_lead'] }}</p>
+
+    <!-- ANTES DA PRIMEIRA LEITURA esta seção não afirma nada, e é isso que o
+         `ready()` compra. A rota é prerenderizada: sem esta guarda o HTML
+         estático saía do build dizendo "Total neste dispositivo: 0 B" e listando
+         três pacotes zerados — uma afirmação sobre o disco de alguém, escrita
+         antes de o disco ter sido lido, e errada para todo mundo que já usou o
+         produto. É a mesma regra do medidor de rede: o número é leitura, e nunca
+         texto. -->
+    @if (!packs.ready()) {
+      <div class="h-24" aria-hidden="true"></div>
+    } @else if (!packs.supported()) {
+      <!-- Sem service worker no controle os bytes até entram no cache, mas
+           ninguém os lê: quem busca o tessdata é o worker do Tesseract, o ort é o
+           onnxruntime e o pdfjs é o worker do pdf.js. Oferecer botões aqui seria
+           oferecer uma ação que não faz nada. -->
+      <div class="rounded-panel border border-line bg-raised p-4">
+        <p class="text-sm font-medium text-text">{{ i18n.t()['settings.unavailable_h'] }}</p>
+        <p class="mt-1.5 text-sm leading-relaxed text-muted">
+          {{ i18n.t()['settings.unavailable_p'] }}
+        </p>
+      </div>
+    } @else {
+      <ul class="flex flex-col gap-3">
+        @for (row of packs.rows(); track row.pack.id) {
+          <li class="rounded-panel border border-line bg-surface p-4">
+            <div class="flex items-start gap-3">
+              <span
+                class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-raised text-muted"
+              >
+                <app-icon name="box" [size]="18" />
+              </span>
+
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <h3 class="text-base font-semibold text-text">
+                    {{ i18n.t()[row.pack.nameKey] }}
+                  </h3>
+                  <!-- O tamanho instalado quando há um, o tamanho a baixar quando
+                       não há. São perguntas diferentes, e a resposta certa é a do
+                       estado em que a linha está. -->
+                  <span class="font-mono tabular text-sm text-muted">
+                    {{ size(row.state === 'absent' ? row.bytesTotal : row.bytesOnDisk) }}
+                  </span>
+                  <span class="text-xs text-faint">{{ stateLabel(row) }}</span>
+                </div>
+
+                <p class="mt-1 text-sm leading-relaxed text-muted">
+                  {{ i18n.t()[row.pack.descKey] }}
+                </p>
+
+                <dl class="mt-2 flex flex-col gap-0.5 text-xs text-faint">
+                  <div class="flex gap-1.5">
+                    <dt class="shrink-0 font-medium">{{ i18n.t()['packs.used_by'] }}:</dt>
+                    <dd>{{ i18n.t()[row.pack.usedByKey] }}</dd>
+                  </div>
+                  <div class="flex gap-1.5">
+                    <dt class="shrink-0 font-medium">{{ i18n.t()['packs.contents'] }}:</dt>
+                    <dd>{{ i18n.t()[row.pack.contentsKey] }}</dd>
+                  </div>
+                </dl>
+
+                @if (row.state === 'installing') {
+                  <!-- O número acima da trilha é o valor acessível; a barra é
+                       decoração, como na faixa de download do modelo. -->
+                  <div class="mt-3" role="status" aria-live="polite">
+                    <div class="flex items-baseline justify-between gap-2">
+                      <span class="text-xs text-muted">{{ i18n.t()['packs.state.installing'] }}</span>
+                      <span class="font-mono tabular text-xs text-muted">{{ row.percent }}%</span>
+                    </div>
+                    <div class="mt-1.5 h-1 overflow-hidden rounded-full bg-raised" aria-hidden="true">
+                      <div
+                        class="h-full rounded-full bg-accent-fill transition-[width] duration-300"
+                        [style.width.%]="row.percent"
+                      ></div>
+                    </div>
+                  </div>
+                }
+
+                @if (row.failed) {
+                  <p class="mt-3 text-xs leading-relaxed text-danger">
+                    {{ i18n.t()['packs.error'] }}
+                  </p>
+                }
+
+                <!-- `bytesTotal === 0` só acontece com o `packs.json` ausente, ou
+                     seja, um deploy pela metade. O botão fica desativado em vez de
+                     engolir o clique: um "Baixar" que não baixa nada lê como produto
+                     quebrado, que é pior do que um botão visivelmente inerte. -->
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @if (row.state === 'installing') {
+                    <button appButton variant="secondary" size="sm" type="button" (click)="cancel(row)">
+                      {{ i18n.t()['packs.action_cancel'] }}
+                    </button>
+                  } @else {
+                    @if (row.state !== 'installed') {
+                      <button
+                        appButton
+                        variant="primary"
+                        size="sm"
+                        type="button"
+                        [disabled]="row.state === 'removing' || row.bytesTotal === 0"
+                        (click)="install(row)"
+                      >
+                        <app-icon name="download" [size]="15" />
+                        {{ primaryLabel(row) }}
+                      </button>
+                    }
+
+                    @if (row.state !== 'absent') {
+                      <button
+                        appButton
+                        variant="danger"
+                        size="sm"
+                        type="button"
+                        [disabled]="row.state === 'removing'"
+                        (click)="remove(row)"
+                      >
+                        {{ i18n.t()['packs.action_remove'] }}
+                      </button>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+        <p class="text-sm text-muted">
+          {{ i18n.t()['settings.total'] }}:
+          <span class="font-mono tabular font-medium text-text">{{ total() }}</span>
+        </p>
+
+        <button
+          appButton
+          variant="ghost"
+          size="sm"
+          type="button"
+          [disabled]="packs.anyBusy() || packs.totalOnDisk() === 0"
+          (click)="removeAll()"
+        >
+          {{ i18n.t()['settings.remove_all'] }}
+        </button>
+      </div>
+    }
+  </section>
+
+  <section class="mb-8">
+    <h2 class="mb-3 text-lg font-semibold text-text">{{ i18n.t()['settings.auto_h'] }}</h2>
+
+    <!-- O <label> ENVOLVE o input em vez de ficar ao lado dele: um label irmão
+         sem `for` é rotulado na tela e anônimo na árvore de acessibilidade, que
+         é exatamente o que o `npm run check:templates` reprova. -->
+    <label class="flex cursor-pointer items-start gap-3 rounded-panel border border-line bg-surface p-4">
+      <input
+        type="checkbox"
+        class="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--accent-fill)]"
+        [checked]="autoDownload()"
+        (change)="onAutoDownloadChange($event)"
+      />
+      <span class="min-w-0">
+        <span class="block text-sm font-medium text-text">{{ i18n.t()['settings.auto_label'] }}</span>
+        <span class="mt-1 block text-xs leading-relaxed text-muted">
+          {{ i18n.t()['settings.auto_hint'] }}
+        </span>
+      </span>
+    </label>
+  </section>
+</article>

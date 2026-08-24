@@ -1,17 +1,17 @@
 /**
  * QUEM PRECISA DO BUILD DE PRODUÇÃO, e por que isso é uma lista e não um "sempre".
  *
- * Três specs apontam para o artefato real na porta de preview: o `ng serve` não
- * emite `ngsw-worker.js`, então sem ele não há service worker, não há prerender
- * e não há os cabeçalhos do `_headers` — que é justamente o que esses três
- * existem para provar.
+ * Quatro specs apontam para o artefato real na porta de preview: o `ng serve`
+ * não emite `ngsw-worker.js`, então sem ele não há service worker, não há
+ * prerender, não há os cabeçalhos do `_headers` e não há o `packs.json` (escrito
+ * no postbuild) — que é justamente o que esses quatro existem para provar.
  *
  * Os outros quarenta e tantos rodam contra o servidor de desenvolvimento e não
  * têm nada a ver com o artefato. Subir o servidor de preview para eles custa um
  * segundo processo e, antes desta mudança, um build inteiro — e foi de lá que
  * saíram três diagnósticos falsos seguidos.
  */
-export const PREVIEW_SPECS = ['09-offline', '21-prerender', '36-csp'] as const;
+export const PREVIEW_SPECS = ['09-offline', '21-prerender', '36-csp', '57-packs'] as const;
 
 const PREVIEW_PATHS = PREVIEW_SPECS.map((spec) => `e2e/${spec}.spec.ts`);
 

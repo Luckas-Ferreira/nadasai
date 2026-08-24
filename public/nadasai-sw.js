@@ -64,4 +64,73 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+/**
+ * OS PACOTES DE RUNTIME: pesos, wasm e dados de idioma, num cache NOSSO.
+ *
+ * Estes cinco diretórios já foram do ngsw (grupos lazy `ai` e `pdf`). Saíram de
+ * lá por uma razão só: DESINSTALAR. O nome e o formato do cache do ngsw são
+ * detalhe interno do Angular — apagar entrada por entrada de lá funciona hoje e
+ * quebra em silêncio num upgrade, que é o pior modo de falha possível num botão
+ * cuja única promessa é liberar espaço. Com o cache sendo nosso, a página de
+ * configuração instala, mede e apaga com `caches.open('nadasai-packs-v1')` e
+ * nada mais.
+ *
+ * Isto é um cache-first simples, e o ngsw continua servindo TODO o resto: o
+ * `return` sem `respondWith` devolve o evento a ele, exatamente como o listener
+ * do Share Target acima.
+ *
+ * Na primeira publicação depois desta mudança, o ngsw descarta os caches dos
+ * grupos que sumiram do manifesto dele. Quem já tinha os pesos baixa uma vez
+ * mais, agora para cá. É uma migração de uma visita.
+ */
+const PACK_CACHE = 'nadasai-packs-v1';
+
+/** Precisa bater com DIRS em scripts/generate-packs.mjs e com core/packs/packs.ts. */
+const PACK_PREFIXES = ['/model/', '/ort/', '/tesseract/', '/tessdata/', '/pdfjs/'];
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // Só GET: um POST aqui seria o Share Target, e ele já foi atendido acima.
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+  if (!PACK_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
+
+  event.respondWith(
+    (async () => {
+      const cache = await caches.open(PACK_CACHE);
+
+      // `ignoreVary` porque a CHAVE foi escrita pela página, e não por este
+      // fetch: a tela de configuração guarda com `cache.put(url, ...)`, cuja
+      // Request nasce sem headers. Se o host mandar `Vary: Accept-Encoding` — o
+      // Cloudflare Pages manda —, esse cabeçalho viaja na resposta guardada e um
+      // match padrão passaria a comparar algo que só um dos lados tem. Falharia
+      // exatamente onde não dá para testar: passa no servidor de preview local,
+      // e o pacote instalado deixa de ser servido em produção.
+      const hit = await cache.match(request, { ignoreVary: true });
+      if (hit) return hit;
+
+      const response = await fetch(request);
+
+      // A tela de configuração busca com este cabeçalho quando ela mesma está
+      // instalando: ela lê o corpo para ter barra de progresso e faz o `put`
+      // dela, com os headers da resposta original. Sem esta saída os mesmos
+      // 55 MB seriam escritos duas vezes no mesmo cache — e o `put` dela é o que
+      // deixa um QuotaExceededError chegar à tela em vez de sumir aqui dentro.
+      if (request.headers.get('X-Nadasai-Install')) return response;
+
+      // `cache.put` LANÇA em 206 (requisição com Range) e em resposta opaca — e
+      // um throw aqui dentro vira "falha de rede" para quem pediu, sem dizer por
+      // quê. Guardar só o 200 comum deixa o resto passar direto.
+      if (response.status === 200 && response.type === 'basic') {
+        await cache.put(request, response.clone());
+      }
+
+      return response;
+    })(),
+  );
+});
+
 importScripts('/ngsw-worker.js');

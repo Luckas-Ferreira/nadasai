@@ -26,6 +26,17 @@
 // `angular.json` mantém `"serviceWorker": "ngsw-config.json"` de propósito: é
 // dali que vêm o `ngsw-worker.js` e o `safety-worker.js` copiados para o dist.
 // Só o manifesto é reescrito aqui.
+//
+// ONDE FORAM PARAR OS 75 MB. JSON não aceita comentário, então a explicação de
+// por que o `ngsw-config.json` não lista mais `model/`, `ort/`, `pdfjs/`,
+// `tesseract/` nem `tessdata/` mora aqui, no código que o lê. Aqueles grupos
+// lazy podiam ser PREENCHIDOS e nunca ESVAZIADOS: apagar entrada por entrada do
+// cache do ngsw depende do nome e do formato internos dele, que são detalhe do
+// Angular e mudam sem aviso. Os cinco diretórios passaram para um handler
+// cache-first no `public/nadasai-sw.js`, sobre um cache nosso, e é isso que faz
+// a tela de configuração conseguir desinstalar de verdade. O que ficou aqui do
+// assunto é `/packs.json`, no grupo `app`: é o inventário que aquela tela lê, e
+// sem ele em cache ela fica cega justamente offline.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';

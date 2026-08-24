@@ -180,6 +180,21 @@ import { NetworkBadgeComponent } from './network-badge.component';
            arquivo nenhum em jogo e sumia quando a pessoa abria um documento de
            verdade, que é quando "saiu alguma coisa daqui?" importa. -->
       <app-network-badge class="ml-1 sm:ml-2 shrink-0" />
+
+      <!-- As configurações são o ÚNICO lugar onde se vê e se apaga o que o
+           produto guardou no dispositivo — mais de 60 MB de motores, se todos
+           estiverem baixados. Vive aqui pela mesma razão que o medidor: é a única
+           superfície presente em toda rota. É um link e nada mais: esta barra
+           está no bundle inicial, então injetar o PackService aqui faria toda
+           visita pagar por uma tela que quase ninguém abre. -->
+      <a
+        [routerLink]="'/' + i18n.currentLang() + (i18n.currentLang() === 'en' ? '/settings' : '/configuracoes')"
+        [attr.aria-label]="i18n.t()['nav.settings']"
+        [attr.title]="i18n.t()['nav.settings']"
+        class="ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-raised hover:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        <app-icon name="settings" [size]="18" />
+      </a>
     </header>
   `,
 })

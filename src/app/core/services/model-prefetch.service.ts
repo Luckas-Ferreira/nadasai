@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { BackgroundRemovalService } from './background-removal.service';
+import { PackService } from './pack.service';
 
 /**
  * Pulls the 42 MB of model weights down while the user is doing something else,
@@ -40,6 +41,7 @@ const SW_WAIT_MS = 40_000;
 @Injectable({ providedIn: 'root' })
 export class ModelPrefetchService {
   private readonly removal = inject(BackgroundRemovalService);
+  private readonly packs = inject(PackService);
 
   private readonly state = signal<PrefetchState>('idle');
   private readonly percent = signal(0);
@@ -107,12 +109,27 @@ export class ModelPrefetchService {
   /**
    * Someone is paying for these bytes, and it is not us.
    *
-   * 42 MB pushed onto a metered phone that only came to crop a photo is a real
-   * cost to a real person. When the browser says the user asked for data saving,
-   * or that the link is 2g/3g, we do not spend it — the model still downloads on
-   * demand, which is exactly the behaviour that existed before this service.
+   * Three reasons to not spend them, and only the first was here originally:
+   *
+   *   1. THE LINK. 42 MB pushed onto a metered phone that only came to crop a
+   *      photo is a real cost to a real person. When the browser says the user
+   *      asked for data saving, or that the link is 2g/3g, we do not spend it.
+   *   2. THE SETTING. `/pt/configuracoes` now has a switch, on by default — this
+   *      prefetch is what makes the first cutout inference-only instead of a
+   *      42 MB wait, so the old behaviour stayed the default. Turning it off has
+   *      to be obeyed, or the switch is decoration.
+   *   3. THE HAND. Removing the AI package on that page writes a marker, and this
+   *      reads it. Without that check the 42 MB came straight back on the next
+   *      idle visit, and the remove button looked broken — the user did exactly
+   *      what the screen offered and the screen undid it.
+   *
+   * In all three cases the model still downloads ON DEMAND, which is exactly the
+   * behaviour that existed before this service.
    */
   private shouldSkip(): boolean {
+    if (!this.packs.autoDownloadEnabled()) return true;
+    if (this.packs.wasRemovedByHand('remove-bg')) return true;
+
     const conn = (navigator as Navigator & { connection?: NetworkInformation }).connection;
     if (!conn) return false;
     if (conn.saveData) return true;
@@ -152,7 +169,12 @@ export class ModelPrefetchService {
     if (!('caches' in window)) return false;
     try {
       const url = new URL('model/isnet-q8.manifest.json', document.baseURI).href;
-      return !!(await caches.match(url));
+      // `ignoreVary` porque desde a tela de configuração esta entrada pode ter
+      // sido escrita pela PÁGINA (`cache.put(url, …)`, Request sem headers) e
+      // carregar o `Vary` da resposta original. Um match padrão então erraria e a
+      // barra voltaria a dizer "baixando 42 MB" sobre bytes que já estão em
+      // disco — que é exatamente o defeito que este método existe para não ter.
+      return !!(await caches.match(url, { ignoreVary: true }));
     } catch {
       return false;
     }
