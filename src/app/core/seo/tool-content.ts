@@ -1525,6 +1525,114 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'voice-recorder': {
+    pt: {
+      features: [
+        'Grava pelo microfone, sem instalar nada',
+        'O áudio não sai do navegador',
+        'Segue direto para cortar, normalizar ou converter',
+        'Até 60 minutos, sem marca d’água e sem cadastro',
+      ],
+      faq: [
+        {
+          q: 'A gravação é enviada para algum servidor?',
+          a: 'Não, e não há para onde enviar: este produto não tem backend. O áudio é montado pelo próprio navegador e fica na aba até você baixar ou mandar para outra ferramenta daqui. O medidor no topo da página mostra os bytes que saíram enquanto você grava, e ele fica em zero.',
+        },
+        {
+          q: 'Em que formato ele grava? Dá para gravar em MP3?',
+          a: 'Ele grava no que o SEU navegador sabe escrever, que na prática é WebM com Opus, e M4A com AAC em alguns. MP3 não: nenhum navegador grava MP3 nativamente, e listar um formato que não sai seria prometer um arquivo que nunca aparece. Se você precisa de MP3, grave e mande para o conversor de áudio daqui — são dois cliques e nenhum upload.',
+        },
+        {
+          q: 'Qual é o limite de duração?',
+          a: 'Sessenta minutos. É limite de TAMANHO de arquivo, não de memória: os pedaços vão para o disco pelo próprio navegador enquanto você grava, então uma hora de voz não vive na memória da aba. Uma hora dá algo em torno de 60 MB, e o cronômetro na tela mostra onde você está.',
+        },
+        {
+          q: 'O navegador não pede permissão do microfone?',
+          a: 'Pede, e a permissão é dele, não deste site — nós não temos como conceder nem contornar. Se você recusou uma vez, o navegador guarda a recusa: é preciso abrir as permissões da página e autorizar. A gravação só começa depois disso, e o microfone é solto assim que você sai da ferramenta.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Records through the microphone, nothing to install',
+        'The audio never leaves the browser',
+        'Goes straight on to cut, normalise or convert',
+        'Up to 60 minutes, no watermark, no signup',
+      ],
+      faq: [
+        {
+          q: 'Is the recording sent to a server?',
+          a: 'No, and there is nowhere to send it: this product has no backend. The audio is assembled by the browser itself and stays in the tab until you download it or pass it to another tool here. The meter at the top of the page shows the bytes that left while you record, and it stays at zero.',
+        },
+        {
+          q: 'What format does it record? Can it record MP3?',
+          a: 'It records whatever YOUR browser can write, which in practice is WebM with Opus, and M4A with AAC on some. Not MP3: no browser records MP3 natively, and listing a format that never comes out would be promising a file that never appears. If you need MP3, record and send it to the audio converter here — two clicks and no upload.',
+        },
+        {
+          q: 'What is the length limit?',
+          a: 'Sixty minutes. It is a FILE SIZE limit rather than a memory one: the chunks go to disk through the browser while you record, so an hour of speech does not live in the tab. An hour lands around 60 MB, and the on-screen timer shows where you are.',
+        },
+        {
+          q: 'Does the browser ask for microphone permission?',
+          a: 'It does, and the permission belongs to the browser rather than to this site — we can neither grant nor work around it. If you refused once, the browser remembers: you have to open the page permissions and allow it. Recording only starts after that, and the microphone is released the moment you leave the tool.',
+        },
+      ],
+    },
+  },
+  'audio-speed': {
+    pt: {
+      features: [
+        'De 0,25x a 4x, com prévia antes de baixar',
+        'Com o tom acompanhando ou mantido',
+        'Mostra a nova duração antes de aplicar',
+        'Sem enviar o arquivo e sem cadastro',
+      ],
+      faq: [
+        {
+          q: 'Qual a diferença entre manter o tom e deixar acompanhar?',
+          a: 'Deixar acompanhar é o que um disco faz fora da rotação: fica mais rápido E mais agudo. É o efeito que se procura em "nightcore" ou "slowed", e sai de graça, porque é só ler as amostras num passo diferente. Manter o tom muda só a duração, que é o que se quer numa aula ou num podcast — e esse custa: a onda é recortada e sobreposta pedaço a pedaço para a emenda não aparecer.',
+        },
+        {
+          q: 'Manter o tom estraga o som?',
+          a: 'Um pouco, e depende do material. O método recorta e sobrepõe trechos de 60 milissegundos procurando onde a onda melhor continua — em fala isso é quase invisível, e é onde ele funciona melhor. Em música densa ou em velocidades extremas aparece um leve eco metálico nos sustentados. Por isso a prévia toca antes de você baixar.',
+        },
+        {
+          q: 'Por que o limite é 0,25x a 4x?',
+          a: 'Porque fora disso o áudio deixa de ser reconhecível. A quatro vezes a fala já é um chiado agudo, e a um quarto ela vira um arrasto. Um controle que aceita qualquer número e entrega ruído não é liberdade — é uma armadilha, e a página prefere dizer o limite a deixar você descobrir depois de esperar.',
+        },
+        {
+          q: 'Posso mudar só o tom, sem mudar a velocidade?',
+          a: 'Pelo painel, não: as duas opções são "o tom acompanha" e "o tom fica". A máquina por baixo faz as duas coisas de forma independente — mudar o tom sem mexer na duração é a mesma conta com outros números —, mas oferecer três controles que interagem tornaria mais fácil errar do que acertar. Se essa for uma necessidade comum, vira uma ferramenta própria.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'From 0.25x to 4x, with a preview before you download',
+        'Pitch following or held',
+        'Shows the new duration before applying',
+        'No upload, no signup',
+      ],
+      faq: [
+        {
+          q: 'What is the difference between holding the pitch and letting it follow?',
+          a: 'Letting it follow is what a record does off its rotation: faster AND higher. That is the effect people look for in "nightcore" or "slowed", and it is free, because it is just reading the samples at a different step. Holding the pitch changes only the duration, which is what you want for a lecture or a podcast — and that one costs: the wave is cut and overlapped piece by piece so the seam does not show.',
+        },
+        {
+          q: 'Does holding the pitch damage the sound?',
+          a: 'A little, and it depends on the material. The method cuts and overlaps 60-millisecond pieces, searching for where the wave best continues — on speech that is almost invisible, and speech is where it works best. On dense music or at extreme speeds a faint metallic echo appears on sustained notes. That is why the preview plays before you download.',
+        },
+        {
+          q: 'Why is the range 0.25x to 4x?',
+          a: 'Because outside it the audio stops being recognisable. At four times, speech is already a high hiss; at a quarter it becomes a drag. A control that accepts any number and delivers noise is not freedom — it is a trap, and the page would rather state the limit than let you find it after waiting.',
+        },
+        {
+          q: 'Can I change only the pitch, without changing the speed?',
+          a: 'Not from the panel: the two options are pitch follows and pitch holds. The machine underneath does both independently — moving the pitch without touching the duration is the same arithmetic with different numbers — but offering three interacting controls would make it easier to get wrong than right. If that turns out to be a common need, it becomes its own tool.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

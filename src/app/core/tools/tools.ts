@@ -25,6 +25,8 @@ export type ToolId =
   | 'rotate-pdf'
   | 'unlock-pdf'
   | 'id-photo'
+  | 'voice-recorder'
+  | 'audio-speed'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -853,6 +855,57 @@ export const TOOLS: readonly ToolDef[] = [
     ],
   },
   {
+    id: 'audio-speed',
+    pathPt: 'audio/velocidade',
+    pathEn: 'audio/speed',
+    icon: 'zap',
+    category: 'audio',
+    accepts: ['audio'],
+    produces: 'audio',
+    navKey: 'nav.audio_speed',
+    shortKey: 'nav.short.audio_speed',
+    titleKey: 'speedaudio.title',
+    descKey: 'speedaudio.subtitle',
+    suffix: 'velocidade',
+    tone: 'teal',
+    keywordsPt: [
+      'acelerar audio', 'deixar audio mais lento', 'mudar velocidade do audio',
+      'acelerar musica', 'slowed', 'nightcore', 'mudar o tom da musica',
+      'audio mais rapido', 'diminuir velocidade', 'aumentar velocidade do audio',
+      'mudar pitch', 'audio 1.5x'
+    ],
+    keywordsEn: [
+      'speed up audio', 'slow down audio', 'change audio speed', 'speed up music',
+      'slowed audio', 'nightcore', 'change pitch', 'faster audio',
+      'audio speed changer', 'pitch shifter', 'audio 1.5x'
+    ],
+  },
+  {
+    id: 'voice-recorder',
+    pathPt: 'audio/gravar',
+    pathEn: 'audio/record',
+    icon: 'audio',
+    category: 'audio',
+    accepts: [],
+    produces: 'audio',
+    navKey: 'nav.voice_recorder',
+    shortKey: 'nav.short.voice_recorder',
+    titleKey: 'voicerec.title',
+    descKey: 'voicerec.subtitle',
+    suffix: 'gravacao',
+    tone: 'rose',
+    keywordsPt: [
+      'gravador de voz', 'gravar audio online', 'gravador de voz online', 'gravar voz',
+      'gravar audio no navegador', 'gravador de som', 'gravar recado', 'gravar entrevista',
+      'gravador mp3', 'testar microfone', 'gravar audio sem instalar'
+    ],
+    keywordsEn: [
+      'voice recorder', 'record audio online', 'online voice recorder', 'record voice',
+      'browser audio recorder', 'sound recorder', 'record a memo', 'record an interview',
+      'mp3 recorder', 'microphone test', 'record audio without installing'
+    ],
+  },
+  {
     id: 'merge-audio',
     pathPt: 'audio/juntar',
     pathEn: 'audio/merge',
@@ -1455,7 +1508,8 @@ export const TOOLS: readonly ToolDef[] = [
       'document properties', 'who created the file', 'last modified by',
       'anonymise docx', 'remove name from resume', 'powerpoint metadata', 'clean xlsx'
     ],
-  },];
+  },
+];
 
 export function toolById(id: ToolId): ToolDef {
   const tool = TOOLS.find((t) => t.id === id);

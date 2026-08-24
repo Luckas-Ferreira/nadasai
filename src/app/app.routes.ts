@@ -84,6 +84,30 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'audio/gravar',
+        loadComponent: () =>
+          import('./features/voice-recorder/voice-recorder.component').then(
+            (m) => m.VoiceRecorderComponent,
+          ),
+        title: 'Gravador de voz online grátis — sem instalar e sem enviar nada | Nada Sai',
+        data: {
+          metaDescription:
+            'Grave voz pelo microfone direto no navegador e baixe o arquivo. Nada é enviado a lugar nenhum, e a gravação segue direto para cortar, normalizar ou converter.',
+          metaKeywords: 'gravador de voz, gravar audio online, gravador de voz online, gravar voz, gravador de som',
+        },
+      },
+      {
+        path: 'audio/velocidade',
+        loadComponent: () =>
+          import('./features/audio-speed/audio-speed.component').then((m) => m.AudioSpeedComponent),
+        title: 'Acelerar ou desacelerar áudio online — com ou sem mudar o tom | Nada Sai',
+        data: {
+          metaDescription:
+            'Mude a velocidade de um áudio no navegador, mantendo o tom ou deixando ele acompanhar. Sem enviar o arquivo e sem instalar nada.',
+          metaKeywords: 'acelerar audio, deixar audio mais lento, mudar velocidade do audio, slowed, mudar o tom',
+        },
+      },
+      {
         path: 'audio/cortar',
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
@@ -550,6 +574,22 @@ export const routes: Routes = [
           metaDescription: 'Escolha o que fazer com um arquivo aberto pelo sistema ou compartilhado com o Nada Sai. Tudo continua no seu dispositivo.',
         }
       },
+      /**
+       * As configurações: o que está guardado neste dispositivo e o que pode ser
+       * baixado. Fora do sitemap e do `static-pages.ts` pela mesma razão do
+       * `/abrir` acima — é uma tela de ajuste, não conteúdo que alguém procure — e
+       * portanto sem par no `route-map`, o que faz o `SeoService` REMOVER as tags
+       * de hreflang em vez de inventar um.
+       */
+      {
+        path: 'configuracoes',
+        title: 'Configurações — Nada Sai',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+        data: {
+          metaDescription: 'Veja e gerencie os pacotes que o Nada Sai guarda neste dispositivo: modelo de remoção de fundo, reconhecimento de texto e motor de PDF.',
+        }
+      },
       ...formatPairRoutes('pt'),
     ]
   },
@@ -598,6 +638,30 @@ export const routes: Routes = [
         data: {
           metaDescription: 'Copy text out of photos, screenshots, receipts and scanned documents with OCR. No image is ever uploaded, because it runs 100% offline in your browser.'
         }
+      },
+      {
+        path: 'audio/record',
+        loadComponent: () =>
+          import('./features/voice-recorder/voice-recorder.component').then(
+            (m) => m.VoiceRecorderComponent,
+          ),
+        title: 'Voice recorder online free — nothing to install, nothing uploaded | Nada Sai',
+        data: {
+          metaDescription:
+            'Record your voice through the microphone right in the browser and download the file. Nothing is uploaded, and the recording goes straight on to cut, normalise or convert.',
+          metaKeywords: 'voice recorder, record audio online, online voice recorder, record voice, sound recorder',
+        },
+      },
+      {
+        path: 'audio/speed',
+        loadComponent: () =>
+          import('./features/audio-speed/audio-speed.component').then((m) => m.AudioSpeedComponent),
+        title: 'Speed up or slow down audio online — with or without the pitch | Nada Sai',
+        data: {
+          metaDescription:
+            'Change the speed of an audio file in your browser, holding the pitch or letting it follow. No upload, nothing to install.',
+          metaKeywords: 'speed up audio, slow down audio, change audio speed, slowed, change pitch',
+        },
       },
       {
         path: 'audio/cut',
@@ -1055,6 +1119,16 @@ export const routes: Routes = [
           import('./features/open-with/open-with.component').then((m) => m.OpenWithComponent),
         data: {
           metaDescription: 'Choose what to do with a file opened by your system or shared into Nada Sai. Everything stays on your device.',
+        }
+      },
+      /** O par em inglês de `pt/configuracoes`; ver o comentário lá. */
+      {
+        path: 'settings',
+        title: 'Settings — Nada Sai',
+        loadComponent: () =>
+          import('./features/settings/settings.component').then((m) => m.SettingsComponent),
+        data: {
+          metaDescription: 'See and manage the packages Nada Sai keeps on this device: the background-removal model, text recognition and the PDF engine.',
         }
       },
       ...formatPairRoutes('en'),

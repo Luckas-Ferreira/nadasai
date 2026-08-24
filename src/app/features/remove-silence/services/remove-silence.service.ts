@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AppError } from '../../../core/errors';
 import { findSilence, type KeepRange, type SilenceOptions } from '../../../core/audio/silence';
+import { channelsOf, toAudioBuffer } from '../../../core/audio/render';
 import { encodeWav } from '../../../core/audio/wav';
 import { AudioConverterService } from '../../convert-audio/services/audio-converter.service';
 
@@ -90,12 +91,6 @@ export class RemoveSilenceService {
   }
 }
 
-function channelsOf(buffer: AudioBuffer): Float32Array[] {
-  const out: Float32Array[] = [];
-  for (let c = 0; c < buffer.numberOfChannels; c++) out.push(buffer.getChannelData(c));
-  return out;
-}
-
 /** Copia os trechos mantidos e devolve os deslocamentos onde eles se encontram. */
 function copyRanges(
   source: Float32Array,
@@ -123,15 +118,6 @@ function applySpliceDip(target: Float32Array, at: number, sampleRate: number): v
 
   const to = Math.min(target.length, at + fade);
   for (let i = at; i < to; i++) target[i] *= (i - at) / fade;
-}
-
-function toAudioBuffer(channels: readonly Float32Array[], sampleRate: number): AudioBuffer {
-  const length = Math.max(1, channels[0]?.length ?? 0);
-  const ctx = new OfflineAudioContext(channels.length, length, sampleRate);
-  const buffer = ctx.createBuffer(channels.length, length, sampleRate);
-
-  for (let c = 0; c < channels.length; c++) buffer.copyToChannel(channels[c], c);
-  return buffer;
 }
 
 function nextFrame(): Promise<void> {
