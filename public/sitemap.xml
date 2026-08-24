@@ -642,6 +642,26 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- word-to-text -->
+  <url>
+    <loc>https://nadasai.com/pt/office/word-para-texto</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/office/word-para-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/office/word-to-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/office/word-para-texto" />
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nadasai.com/en/office/word-to-text</loc>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://nadasai.com/pt/office/word-para-texto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://nadasai.com/en/office/word-to-text" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://nadasai.com/pt/office/word-para-texto" />
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- cut-audio -->
   <url>
     <loc>https://nadasai.com/pt/audio/cortar</loc>

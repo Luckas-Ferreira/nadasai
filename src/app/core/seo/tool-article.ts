@@ -1887,6 +1887,108 @@ export const TOOL_ARTICLE: Partial<Record<ToolId, ToolArticle>> = {
       },
     ],
   },
+  'word-to-text': {
+    pt: [
+      {
+        h: 'O que está no corpo, e o que nunca esteve',
+        p: [
+          'Um .docx guarda o texto em word/document.xml, e a estrutura que interessa está toda lá: parágrafo, estilo de título, item de lista, tabela, negrito e itálico. Essa metade sai daqui inteira.',
+          'A outra metade — o layout — não está no corpo. Onde a página quebra, como a coluna flui, o que o cabeçalho e o rodapé fazem, qual fonte o leitor vai substituir: nada disso é conteúdo, é o Word calculando na hora de exibir. É exatamente por isso que este produto não oferece Word para PDF, e é a mesma fronteira que separa uma extração honesta de uma conversão aproximada.',
+        ],
+      },
+      {
+        h: 'Como extrair',
+        p: [
+          'A prévia aparece na própria página antes de qualquer download, porque quem extrai texto quer conferir se veio tudo — e porque na maioria das vezes o destino é a área de transferência, não um arquivo.',
+        ],
+        steps: [
+          'Solte o .docx.',
+          'Escolha Markdown, se o destino guarda estrutura, ou texto limpo, se não guarda.',
+          'Extraia. A contagem de palavras, títulos e tabelas aparece ao lado.',
+          'Copie tudo, ou baixe como .md ou .txt.',
+        ],
+      },
+      {
+        h: 'Markdown ou texto limpo',
+        p: [
+          'Markdown é o formato certo quando o destino entende estrutura: um editor, um README, um campo de instrução de IA, um gerador de site. Título vira cabeçalho, lista vira lista, tabela vira tabela com a linha de separação que os leitores exigem, e negrito e itálico sobrevivem.',
+          'Texto limpo é o certo quando estrutura atrapalha: contar palavras, buscar um trecho, alimentar um campo que não aceita marcação. Ali os sustenidos e os asteriscos seriam ruído.',
+          'A diferença não é cosmética, e por isso a escolha vem antes de extrair e refaz a leitura quando muda.',
+        ],
+      },
+      {
+        h: 'As duas coisas que a leitura resolve e quase ninguém nota',
+        p: [
+          'A primeira é a lista NUMERADA. O parágrafo não diz se a lista tem números ou marcadores — ele traz um identificador, e o formato mora em outro arquivo do pacote, atrás de mais um salto. Sem seguir esses dois saltos, toda lista viraria marcador e uma sequência de passos perderia a ordem que é a razão de ela existir.',
+          'A segunda é o título em português. O Word grava o identificador do estilo sem acento em algumas versões, e uma leitura que só reconhece a forma em inglês devolve um documento inteiro sem título nenhum — tudo vira parágrafo. As duas formas são aceitas.',
+        ],
+      },
+      {
+        h: 'O que ela recusa, e por quê',
+        p: [
+          'Planilha e apresentação. Os três formatos são zips de OOXML, mas o corpo de cada um mora em outro lugar do pacote e tem outra gramática: uma planilha são células com referência e tipo, uma apresentação são slides com caixas posicionadas. Aceitar os três aqui devolveria um arquivo vazio sem dizer nada, que é a pior forma de falhar.',
+          'E os formatos antigos .doc, .xls e .ppt, que são binários proprietários e não zip. Salve como .docx no próprio Word e traga de volta.',
+        ],
+      },
+      {
+        h: 'Documento vazio não é erro',
+        p: [
+          'Um .docx pode voltar sem texto, e a página diz isso em vez de entregar um arquivo em branco. Acontece com documento montado em caixas de texto, com o que é imagem de ponta a ponta e com o digitalizado.',
+          'Esta ferramenta LÊ o corpo do arquivo — ela não faz reconhecimento de caracteres. Para um documento digitalizado o caminho é o OCR do módulo de PDF, que roda o Tesseract no seu navegador.',
+        ],
+      },
+    ],
+    en: [
+      {
+        h: 'What is in the body, and what never was',
+        p: [
+          'A .docx keeps its text in word/document.xml, and the structure that matters is all there: paragraph, heading style, list item, table, bold and italic. That half comes out of here whole.',
+          'The other half — the layout — is not in the body. Where the page breaks, how the column flows, what the header and footer do, which font the reader will substitute: none of that is content, it is Word computing at display time. That is exactly why this product does not offer Word to PDF, and it is the same boundary that separates an honest extraction from an approximate conversion.',
+        ],
+      },
+      {
+        h: 'How to extract',
+        p: [
+          'The preview appears on the page before any download, because anyone extracting text wants to check that it all came through — and because most of the time the destination is the clipboard rather than a file.',
+        ],
+        steps: [
+          'Drop the .docx.',
+          'Pick Markdown if the destination understands structure, or plain text if it does not.',
+          'Extract. The word, heading and table counts appear beside it.',
+          'Copy everything, or download as .md or .txt.',
+        ],
+      },
+      {
+        h: 'Markdown or plain text',
+        p: [
+          'Markdown is right when the destination understands structure: an editor, a README, an AI instruction field, a site generator. A heading becomes a heading, a list a list, a table a table with the separator row readers require, and bold and italic survive.',
+          'Plain text is right when structure gets in the way: counting words, searching for a passage, feeding a field that takes no markup. There the hashes and asterisks would be noise.',
+          'The difference is not cosmetic, which is why the choice comes before extracting and redoes the read when it changes.',
+        ],
+      },
+      {
+        h: 'The two things the reader solves that almost nobody notices',
+        p: [
+          'The first is the NUMBERED list. The paragraph does not say whether a list has numbers or bullets — it carries an identifier, and the format lives in another part of the package, behind one more hop. Without following those two hops every list would become a bullet, and a sequence of steps would lose the order that is its whole reason to exist.',
+          'The second is the Portuguese heading. Word writes the style identifier without its accent in some versions, and a reader that only recognises the English form hands back a whole document with no headings at all — everything becomes a paragraph. Both forms are accepted.',
+        ],
+      },
+      {
+        h: 'What it refuses, and why',
+        p: [
+          'Spreadsheets and presentations. All three formats are OOXML zips, but each keeps its body somewhere else in the package with a different grammar: a spreadsheet is cells with references and types, a presentation is slides with positioned boxes. Accepting all three here would hand back an empty file without saying anything, which is the worst way to fail.',
+          'And the older .doc, .xls and .ppt, which are proprietary binaries rather than zips. Save as .docx in Word itself and bring it back.',
+        ],
+      },
+      {
+        h: 'An empty document is not an error',
+        p: [
+          'A .docx can come back with no text, and the page says so rather than handing you a blank file. That happens with documents built out of text boxes, with files that are pictures end to end, and with scans.',
+          'This tool READS the file body — it does not do character recognition. For a scan the route is the OCR in the PDF module, which runs Tesseract in your browser.',
+        ],
+      },
+    ],
+  },
   resize: {
     pt: [
       {

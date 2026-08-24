@@ -1,0 +1,109 @@
+<app-tool-page [toolId]="'word-to-text'" [forceLoaded]="!!file()">
+  <div banner class="flex flex-col gap-2" [class.mb-5]="!!errorKey() || empty()">
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- Um .docx sem texto no corpo é caso real, não erro: caixa de texto,
+         imagem, documento digitalizado. E a frase diz o que a ferramenta NÃO
+         é — ela lê o corpo, não faz OCR. -->
+    @if (empty()) {
+      <app-alert [message]="i18n.t()['wordtext.empty']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'.docx'"
+        [titleKey]="'wordtext.drag'"
+        [hintKey]="'wordtext.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+    } @else {
+      <div class="overflow-hidden rounded-xl border border-doc-stage-line bg-doc-stage">
+        @if (result(); as extracted) {
+          <div class="flex items-center justify-between gap-3 border-b border-doc-stage-line bg-surface px-4 py-2.5">
+            <span class="text-xs text-muted">{{ i18n.t()['wordtext.preview'] }}</span>
+
+            <button appButton variant="ghost" size="sm" (click)="copy()">
+              {{ copied() ? i18n.t()['wordtext.copied'] : i18n.t()['wordtext.copy'] }}
+            </button>
+          </div>
+
+          <!-- A sobreposição da PRÉVIA é o produto: quem extrai texto quer ver
+               antes de baixar. `whitespace-pre-wrap` porque a quebra de linha
+               é conteúdo aqui, não formatação. -->
+          <pre
+            class="max-h-[52vh] overflow-auto whitespace-pre-wrap break-words bg-surface px-4 py-4 font-mono text-xs leading-relaxed text-text"
+          >{{ extracted.text }}</pre>
+        } @else {
+          <div class="flex min-h-[360px] flex-col items-center justify-center gap-4 p-8">
+            @if (busy()) {
+              <div class="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-accent"></div>
+              <p class="text-sm text-muted" aria-live="polite">{{ i18n.t()['wordtext.working'] }}</p>
+            } @else {
+              <p class="max-w-md text-center text-sm leading-relaxed text-muted">
+                {{ outputHint() }}
+              </p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['wordtext.panel_output']">
+        <app-segmented
+          [options]="formatOptions()"
+          [value]="output()"
+          (valueChange)="setOutput($event)"
+          [columns]="2"
+        />
+
+        <p class="mt-3 text-xs leading-relaxed text-muted">{{ outputHint() }}</p>
+      </app-panel>
+
+      @if (result(); as extracted) {
+        <app-panel [heading]="i18n.t()['wordtext.panel_info']">
+          <dl class="flex flex-col gap-2 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-muted">{{ i18n.t()['wordtext.words'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ extracted.words }}</dd>
+            </div>
+
+            <div class="flex justify-between">
+              <dt class="text-muted">{{ i18n.t()['wordtext.headings'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ extracted.headings }}</dd>
+            </div>
+
+            <div class="flex justify-between">
+              <dt class="text-muted">{{ i18n.t()['wordtext.tables'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ extracted.tables }}</dd>
+            </div>
+          </dl>
+        </app-panel>
+      }
+
+      <app-panel [heading]="i18n.t()['wordtext.panel_info']">
+        <!-- O limite dito na tela, e o motivo de não existir Word para PDF
+             neste produto. -->
+        <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['wordtext.layout_note'] }}</p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'word-to-text'"
+        [primaryLabel]="stale() ? i18n.t()['wordtext.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!result()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>
