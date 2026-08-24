@@ -75,7 +75,26 @@ export const ICONS = {
     'M4 6h9m4 0h3M4 12h3m4 0h10M4 18h9m4 0h3M17 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm-6 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm6 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',
   /** Caixa: um pacote de runtime, que é o que a tela de configuração gerencia. */
   box: 'M12 3 4 7v10l8 4 8-4V7l-8-4ZM4 7l8 4 8-4M12 11v10',
-  qrcode: 'M3 3h7v7H3V3Zm2 2v3h3V5H5Zm8-2h7v7h-7V3Zm2 2v3h3V5h-3ZM3 13h7v7H3v-7Zm2 2v3h3v-3H5Zm8 0h3v3h-3v-3Zm4 0h3v7h-3v-3h-3v-4h3Zm-4 4h3v3h-3v-3Z',
+  /**
+   * Três marcadores de canto e dois módulos de dado — e nada mais.
+   *
+   * O desenho anterior era um QR literal: cada marcador tinha ANEL e miolo (um
+   * quadrado de 7 dentro de outro de 3), mais um aglomerado de seis peças no
+   * canto inferior. Só que aqui o `<path>` é traçado e não preenchido, então o
+   * anel virava dois contornos concêntricos separados por 1 px de vão — e nos
+   * tamanhos em que este ícone realmente aparece (14 na própria ferramenta, 16 a
+   * 20 na grade e no rail) o vão fechava e o ícone virava um borrão preto,
+   * visivelmente mais pesado que qualquer vizinho. Comparado lado a lado com
+   * `modules`, `favicon` e `scan`, era o único que destoava.
+   *
+   * A geometria agora é a do `modules`: quadrados de 6 em 4,5 e 13,5, dentro dos
+   * mesmos limites 4,5–19,5 do resto do conjunto. Os dois pontos de 2,5 na
+   * diagonal do quadrante livre são o que o distingue do `modules` e o que ainda
+   * lê como QR — foram medidos contra versões de 3 (que se fundem num bloco) e
+   * contra um traço (que parece sublinhado solto).
+   */
+  qrcode:
+    'M4.5 4.5h6v6h-6v-6Zm9 0h6v6h-6v-6Zm-9 9h6v6h-6v-6Zm9 0h2.5v2.5h-2.5v-2.5Zm3.5 3.5h2.5v2.5h-2.5v-2.5Z',
   // Janela de navegador com o ícone do site dentro: é o que um favicon É.
   favicon:
     'M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm-1 4.6h16M6.6 6.3h.01M8.9 6.3h.01M9.6 12.2h4.8v4.8H9.6z',
