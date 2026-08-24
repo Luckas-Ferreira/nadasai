@@ -108,6 +108,19 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'office/comprimir',
+        loadComponent: () =>
+          import('./features/compress-office/compress-office.component').then(
+            (m) => m.CompressOfficeComponent,
+          ),
+        title: 'Comprimir Word, Excel e PowerPoint online grátis | Nada Sai',
+        data: {
+          metaDescription:
+            'Reduza o tamanho de um .docx, .xlsx ou .pptx recomprimindo as imagens de dentro dele. O texto e a formatação são copiados byte a byte, e o arquivo não sai do navegador.',
+          metaKeywords: 'comprimir word, comprimir powerpoint, comprimir excel, comprimir docx, reduzir tamanho do pptx',
+        },
+      },
+      {
         path: 'audio/cortar',
         title: 'Cortar Áudio e MP3 — Nada Sai',
         loadComponent: () => import('./features/cut-audio/cut-audio.component').then((m) => m.CutAudioComponent),
@@ -661,6 +674,19 @@ export const routes: Routes = [
           metaDescription:
             'Change the speed of an audio file in your browser, holding the pitch or letting it follow. No upload, nothing to install.',
           metaKeywords: 'speed up audio, slow down audio, change audio speed, slowed, change pitch',
+        },
+      },
+      {
+        path: 'office/compress',
+        loadComponent: () =>
+          import('./features/compress-office/compress-office.component').then(
+            (m) => m.CompressOfficeComponent,
+          ),
+        title: 'Compress Word, Excel and PowerPoint online free | Nada Sai',
+        data: {
+          metaDescription:
+            'Shrink a .docx, .xlsx or .pptx by recompressing the pictures inside it. The text and formatting are copied byte for byte, and the file never leaves your browser.',
+          metaKeywords: 'compress word, compress powerpoint, compress excel, compress docx, shrink pptx',
         },
       },
       {

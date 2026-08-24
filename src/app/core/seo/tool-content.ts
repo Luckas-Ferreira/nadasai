@@ -1633,6 +1633,60 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
       ],
     },
   },
+  'compress-office': {
+    pt: {
+      features: [
+        'Recomprime as imagens dentro do .docx, .xlsx ou .pptx',
+        'Texto, estilos e fontes copiados byte a byte',
+        'Devolve o original se o resultado ficar maior',
+        'O arquivo não sai do navegador',
+      ],
+      faq: [
+        {
+          q: 'O que exatamente é alterado no arquivo?',
+          a: 'Só o conteúdo de word/media, ppt/media e xl/media — as imagens. Um arquivo do Office é um zip, e tudo o mais que está lá dentro (o XML do texto, os estilos, as relações, as fontes embutidas) é copiado byte a byte. É a mesma decisão do limpador de metadados daqui, e é o que garante que o arquivo continue abrindo no Word: reescrever OOXML é reescrever uma especificação que só o Word implementa por inteiro.',
+        },
+        {
+          q: 'Comprimiu pouco, ou nada. Por quê?',
+          a: 'Provavelmente as figuras não são fotos. O Word grava gráfico colado como EMF ou WMF, que são vetoriais, e nenhum navegador os decodifica — então eles ficam intactos, e num documento feito só deles não há o que ganhar. O painel mostra antes quantas imagens recomprimíveis existem e quanto do arquivo elas pesam, para você saber disso sem esperar.',
+        },
+        {
+          q: 'A qualidade cai?',
+          a: 'Das imagens, sim, e é isso que faz o arquivo encolher. Cada nível reduz o tamanho em pixels e recomprime: o padrão limita o lado maior a 1600 px, que é mais do que um slide em tela cheia usa. O texto não é tocado. E cada imagem só é substituída se a versão nova for menor — uma foto que já veio otimizada volta intacta.',
+        },
+        {
+          q: 'Ele abre .doc, .xls e .ppt antigos?',
+          a: 'Não. Os formatos anteriores a 2007 são binários proprietários, não zip, e o que esta ferramenta faz — abrir o pacote, trocar as imagens e fechar — não existe neles. Salve como .docx, .xlsx ou .pptx no próprio Office e traga de volta.',
+        },
+      ],
+    },
+    en: {
+      features: [
+        'Recompresses the pictures inside a .docx, .xlsx or .pptx',
+        'Text, styles and fonts copied byte for byte',
+        'Hands back the original if the result grows',
+        'The file never leaves your browser',
+      ],
+      faq: [
+        {
+          q: 'What exactly is changed in the file?',
+          a: 'Only the contents of word/media, ppt/media and xl/media — the pictures. An Office file is a zip, and everything else inside it (the text XML, the styles, the relationships, the embedded fonts) is copied byte for byte. Same decision as the metadata cleaner here, and it is what keeps the file opening in Word: rewriting OOXML means rewriting a specification only Word implements in full.',
+        },
+        {
+          q: 'It barely shrank, or not at all. Why?',
+          a: 'The figures are probably not photographs. Word stores a pasted chart as EMF or WMF, which are vector formats no browser decodes — so they are left intact, and a document made only of them has nothing to gain. The panel shows up front how many recompressible pictures exist and how much of the file they weigh, so you know that without waiting.',
+        },
+        {
+          q: 'Does the quality drop?',
+          a: 'The pictures’ quality does, and that is what makes the file shrink. Each level caps the pixel size and recompresses: the default limits the long side to 1600 px, which is more than a full-screen slide uses. The text is untouched. And each picture is only replaced if the new version is smaller — a photo that arrived already optimised comes back intact.',
+        },
+        {
+          q: 'Does it open the old .doc, .xls and .ppt?',
+          a: 'No. The pre-2007 formats are proprietary binaries rather than zips, and what this tool does — open the package, swap the pictures, close it — does not exist in them. Save as .docx, .xlsx or .pptx in Office itself and bring it back.',
+        },
+      ],
+    },
+  },
   resize: {
     pt: {
       features: ['Redimensionamento por pixels exatos ou porcentagem', 'Bloqueio de proporção para evitar distorção', 'Presets prontos para redes sociais', 'Redução limpa de resolução'],

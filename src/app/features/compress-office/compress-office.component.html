@@ -1,0 +1,120 @@
+<app-tool-page [toolId]="'compress-office'" [forceLoaded]="!!file()">
+  <div
+    banner
+    class="flex flex-col gap-2"
+    [class.mb-5]="!!errorKey() || nothingToDo() || keptOriginal()"
+  >
+    @if (errorKey(); as key) {
+      <app-alert [message]="i18n.t()[key]" [actionLabel]="i18n.t()['common.retry']" (action)="run()" />
+    }
+
+    <!-- Sem imagem recomprimível não há o que fazer, e o motivo quase sempre é
+         EMF ou WMF — o que o Word grava quando se cola um gráfico. -->
+    @if (nothingToDo()) {
+      <app-alert [message]="i18n.t()['compoffice.no_media']" tone="info" />
+    }
+
+    @if (keptOriginal()) {
+      <app-alert [message]="i18n.t()['compoffice.kept_original']" tone="info" />
+    }
+  </div>
+
+  <div stage>
+    @if (!file()) {
+      <app-dropzone
+        [accept]="'.docx,.xlsx,.pptx'"
+        [titleKey]="'compoffice.drag'"
+        [hintKey]="'compoffice.drag_hint'"
+        [buttonKey]="'common.upload_btn'"
+        (fileSelected)="onFile($event)"
+      />
+
+      @if (reading()) {
+        <p class="mt-3 text-center text-sm text-muted" aria-live="polite">
+          {{ i18n.t()['compoffice.reading'] }}
+        </p>
+      }
+    } @else {
+      <div
+        class="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-xl border border-doc-stage-line bg-doc-stage p-8"
+      >
+        <dl class="flex w-full max-w-sm flex-col gap-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['compoffice.images'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ imageCount() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['compoffice.images_weight'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ imageWeight() }}</dd>
+          </div>
+
+          <div class="flex justify-between border-t border-line pt-2">
+            <dt class="text-muted">{{ i18n.t()['compoffice.original'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ originalSize() }}</dd>
+          </div>
+
+          <div class="flex justify-between">
+            <dt class="text-muted">{{ i18n.t()['compoffice.result'] }}</dt>
+            <dd class="font-mono text-text tabular">{{ resultSize() }}</dd>
+          </div>
+
+          @if (resultBlob() && !keptOriginal()) {
+            <div class="flex justify-between">
+              <dt class="text-muted">{{ i18n.t()['compoffice.rewritten'] }}</dt>
+              <dd class="font-mono text-text tabular">{{ rewritten() }}</dd>
+            </div>
+          }
+        </dl>
+
+        @if (busy()) {
+          <div class="flex w-full max-w-sm items-center gap-3">
+            <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
+              <div
+                class="h-full rounded-full bg-accent transition-[width] duration-200"
+                [style.width.%]="progress()"
+              ></div>
+            </div>
+            <span class="shrink-0 font-mono text-xs tabular text-text">{{ progress() }}%</span>
+          </div>
+
+          <p class="text-xs text-muted" aria-live="polite">{{ i18n.t()['compoffice.working'] }}</p>
+        }
+      </div>
+    }
+  </div>
+
+  <div panel class="flex flex-col gap-4">
+    @if (file()) {
+      <app-panel [heading]="i18n.t()['compoffice.panel_level']">
+        <app-segmented
+          [options]="levelOptions()"
+          [value]="level()"
+          (valueChange)="setLevel($event)"
+          [columns]="3"
+        />
+
+        <!-- O que muda e o que NÃO muda: é o que separa esta ferramenta de uma
+             que reescreve OOXML e devolve um arquivo que o Word recusa. -->
+        <p class="mt-4 border-t border-line pt-3 text-xs leading-relaxed text-muted">
+          {{ i18n.t()['compoffice.how_note'] }}
+        </p>
+      </app-panel>
+
+      <app-panel [heading]="i18n.t()['compoffice.panel_info']">
+        <p class="text-xs leading-relaxed text-faint">{{ i18n.t()['compoffice.alpha_note'] }}</p>
+      </app-panel>
+
+      <app-action-bar
+        [toolId]="'compress-office'"
+        [primaryLabel]="stale() ? i18n.t()['compoffice.btn'] : null"
+        [primaryDisabled]="!canRun()"
+        [busy]="busy()"
+        [canDownload]="!!resultBlob()"
+        (primary)="run()"
+        (download)="download()"
+        (reset)="reset()"
+      />
+    }
+  </div>
+</app-tool-page>

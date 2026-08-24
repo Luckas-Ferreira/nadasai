@@ -4,7 +4,7 @@
 
 ## Overview
 
-Nada Sai provides 54 tools across 5 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
+Nada Sai provides 55 tools across 6 modules, all of which run entirely offline in the browser. Every tool exists at a Portuguese and an English URL; the pairs are listed in sitemap.xml.
 
 ## Image Tools
 
@@ -37,6 +37,10 @@ Nada Sai provides 54 tools across 5 modules, all of which run entirely offline i
 - [Numerar páginas / Page numbers](https://nadasai.com/pt/pdf/numerar-paginas): Number the pages of a PDF, without rasterising it.
 - [PDF para texto / PDF to text](https://nadasai.com/pt/pdf/para-texto): It is the main case, which is why TXT is the default and the page marker is off.
 - [Comparar PDFs / Compare PDFs](https://nadasai.com/pt/pdf/comparar): Just text, and the page says so before you run it.
+
+## office
+
+- [Comprimir Office / Compress Office](https://nadasai.com/pt/office/comprimir): Only the contents of word/media, ppt/media and xl/media — the pictures.
 
 ## Audio Tools
 

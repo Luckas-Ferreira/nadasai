@@ -27,6 +27,7 @@ export type ToolId =
   | 'id-photo'
   | 'voice-recorder'
   | 'audio-speed'
+  | 'compress-office'
   | 'crop'
   | 'compress'
   | 'convert'
@@ -69,7 +70,7 @@ export type ToolTone =
   | 'teal'
   | 'fuchsia';
 
-export type ToolCategory = 'image' | 'pdf' | 'audio' | 'video' | 'privacy';
+export type ToolCategory = 'image' | 'pdf' | 'office' | 'audio' | 'video' | 'privacy';
 
 export type ModuleId = ToolCategory;
 
@@ -84,6 +85,7 @@ export interface ModuleDef {
 export const MODULES: readonly ModuleDef[] = [
   { id: 'image', icon: 'image', nameKey: 'module.image', descKey: 'module.image_desc', tone: 'sky' },
   { id: 'pdf', icon: 'pdf', nameKey: 'module.pdf', descKey: 'module.pdf_desc', tone: 'rose' },
+  { id: 'office', icon: 'doc', nameKey: 'module.office', descKey: 'module.office_desc', tone: 'orange' },
   { id: 'audio', icon: 'audio', nameKey: 'module.audio', descKey: 'module.audio_desc', tone: 'violet' },
   { id: 'video', icon: 'video', nameKey: 'module.video', descKey: 'module.video_desc', tone: 'indigo' },
   { id: 'privacy', icon: 'shield', nameKey: 'module.privacy', descKey: 'module.privacy_desc', tone: 'emerald' },
@@ -775,6 +777,31 @@ export const TOOLS: readonly ToolDef[] = [
       'compare pdf', 'compare two pdfs', 'pdf difference', 'compare contracts',
       'compare document versions', 'what changed in pdf', 'pdf diff',
       'compare pdf text', 'contract review', 'check changes'
+    ],
+  },
+  {
+    id: 'compress-office',
+    pathPt: 'office/comprimir',
+    pathEn: 'office/compress',
+    icon: 'compress',
+    category: 'office',
+    accepts: ['docx'],
+    produces: 'docx',
+    navKey: 'nav.compress_office',
+    shortKey: 'nav.short.compress_office',
+    titleKey: 'compoffice.title',
+    descKey: 'compoffice.subtitle',
+    suffix: 'comprimido',
+    tone: 'orange',
+    keywordsPt: [
+      'comprimir word', 'comprimir powerpoint', 'comprimir excel', 'reduzir tamanho do word',
+      'diminuir tamanho do pptx', 'comprimir docx', 'comprimir pptx', 'word muito grande',
+      'powerpoint pesado', 'reduzir apresentacao', 'comprimir documento do office'
+    ],
+    keywordsEn: [
+      'compress word', 'compress powerpoint', 'compress excel', 'reduce word file size',
+      'shrink pptx', 'compress docx', 'compress pptx', 'word file too large',
+      'heavy powerpoint', 'reduce presentation size', 'compress office document'
     ],
   },
   {
