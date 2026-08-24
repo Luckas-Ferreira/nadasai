@@ -53,7 +53,7 @@ test.describe('Shell: home, nav, i18n', () => {
     // to is the product telling you it has not noticed itself.
     await expect(page.getByRole('heading', { name: 'Vídeo', exact: true })).toHaveCount(0);
 
-    for (const name of ['Documentos']) {
+    for (const name of ['Office']) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
     }

@@ -226,8 +226,8 @@ export const PT: Record<TranslationKey, string> = {
   'hero.soon.design_desc': 'Paletas de cores, gradientes, extrator de cores e ferramentas SVG.',
   'hero.soon.productivity': 'Produtividade',
   'hero.soon.productivity_desc': 'Formatador de código, JSON, Base64 e utilitários rápidos.',
-  'hero.soon.doc': 'Documentos',
-  'hero.soon.doc_desc': 'Word, Excel e PowerPoint para PDF, sem enviar nada.',
+  'hero.soon.office': 'Office',
+  'hero.soon.office_desc': 'Comprimir Word, Excel e PowerPoint, e extrair texto e planilhas.',
   'hero.next_step': 'O que você quer fazer agora?',
 
   'proof.title': 'Rede monitorada ao vivo',
