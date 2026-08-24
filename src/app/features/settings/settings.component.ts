@@ -86,6 +86,28 @@ export class SettingsComponent {
       : this.i18n.t()['packs.action_install'];
   }
 
+  /**
+   * A pastilha de estado usa os tokens semânticos, e não o azul para tudo:
+   * verde é "está aqui", âmbar é "está pela metade", azul é "está acontecendo
+   * agora". Sem essa distinção a linha instalada e a linha ausente ficam com o
+   * mesmo peso visual e a tela deixa de responder à única pergunta que ela
+   * existe para responder de relance.
+   */
+  protected stateChip(row: PackRow): string {
+    switch (row.state) {
+      case 'installed':
+        return 'border-success-line bg-success-soft text-success';
+      case 'partial':
+        return 'border-warning-line bg-warning-soft text-warning';
+      case 'installing':
+        return 'border-accent-line bg-accent-soft text-accent';
+      case 'removing':
+        return 'border-line bg-raised text-muted';
+      default:
+        return 'border-line bg-raised text-faint';
+    }
+  }
+
   protected stateLabel(row: PackRow): string {
     const dict = this.i18n.t();
     switch (row.state) {
