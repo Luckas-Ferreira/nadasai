@@ -10,7 +10,7 @@ Nada Sai provides 57 tools across 6 modules, all of which run entirely offline i
 
 - [Remover fundo / Remove background](https://nadasai.com/pt/imagem/remover-fundo): Simply drop your image into the dropzone: the app automatically loads the neural IS-Net model compiled in WebAssembly/WebGPU, segments the primary foreground subject, and generates a transparent PNG with real alpha channel in seconds, all within your browser tab.
 - [Comprimir / Compress](https://nadasai.com/pt/imagem/comprimir): Drop your image and adjust the quality slider.
-- [Converter / Convert](https://nadasai.com/pt/imagem/converter): You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, PDF, or ICO icons.
+- [Converter / Convert](https://nadasai.com/pt/imagem/converter): You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, or PDF.
 - [Redimensionar / Resize](https://nadasai.com/pt/imagem/redimensionar): Enter your desired width or height in pixels, or choose a percentage reduction.
 - [Cortar / Crop](https://nadasai.com/pt/imagem/cortar): Drop your image into the canvas and drag the framing handles.
 - [Foto 3x4 / Passport photo](https://nadasai.com/pt/imagem/foto-3x4): At the real size, with the sheet ready to print.

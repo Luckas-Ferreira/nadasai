@@ -8,7 +8,6 @@ import {
   TARGET_FORMATS,
   TERMINAL_FORMATS,
   type TargetFormat,
-  encodeIco,
   encodeImage,
   encodePdf,
 } from '../../core/image/converters';
@@ -97,7 +96,15 @@ export class ConvertComponent {
    */
   protected readonly sourceFile = computed(() => this.state.fileFor('convert'));
 
-  /** PDF and ICO are not images, so they cannot re-enter the editing chain. */
+  /**
+   * PDF is not an image, so it cannot re-enter the editing chain.
+   *
+   * ICO estava nesta lista e saiu com a opção: era `encodeIco(file)` cru, os
+   * seis tamanhos padrão e nenhuma tela dizendo o que ia sair — a ferramenta
+   * `favicon` é o mesmo encoder com os tamanhos à escolha. Sobrou uma condição
+   * de um item só, e ela fica porque a pergunta ("este destino continua a
+   * cadeia?") é do formato, não do PDF.
+   */
   protected readonly isTerminal = computed(() => TERMINAL_FORMATS.includes(this.format()));
 
   /** PDF has no <img> preview, so the stage keeps showing the source. */
@@ -174,7 +181,7 @@ export class ConvertComponent {
       this.resultUrl.set(this.urls.replace(this.resultUrl(), blob));
       this.ranSettings.set(settings);
 
-      // Only register a commit when the output is a raster image, not PDF/ICO.
+      // Only register a commit when the output is a raster image, not PDF.
       if (!this.isTerminal()) {
         const ext = extForMime(MIME_FOR_TARGET[this.format()]);
         this.pendingTransition.registerResult('convert', blob, this.tool.suffix, ext);
@@ -193,8 +200,6 @@ export class ConvertComponent {
     switch (this.format()) {
       case 'PDF':
         return encodePdf(file, this.pdfBackground());
-      case 'ICO':
-        return encodeIco(file);
       case 'PNG':
         return encodeImage(file, 'png');
       case 'JPEG':

@@ -726,11 +726,11 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
 
   convert: {
     pt: {
-      features: ['Conversão entre JPEG, PNG, WebP, AVIF, ICO e PDF', 'Tratamento automático de fundo transparente', 'Compatibilidade universal sem distorção', 'Processamento local sem perda de privacidade'],
+      features: ['Conversão entre JPEG, PNG e WebP, com saída também em PDF', 'Tratamento automático de fundo transparente', 'Compatibilidade universal sem distorção', 'Processamento local sem perda de privacidade'],
       faq: [
         {
           q: 'Quais formatos de imagem são suportados para conversão de entrada e saída?',
-          a: 'Você pode importar arquivos JPEG, PNG, WebP, AVIF, GIF e BMP e exportá-los instantaneamente para WebP, JPEG, PNG, PDF ou ícone ICO. A lista de entrada é abrangente porque os navegadores modernos decodificam mais formatos do que gravam nativamente.',
+          a: 'Você pode importar arquivos JPEG, PNG, WebP, AVIF, GIF e BMP e exportá-los instantaneamente para WebP, JPEG, PNG ou PDF. A lista de entrada é bem maior que a de saída porque os navegadores modernos decodificam muito mais formatos do que gravam nativamente. Ícone .ico não sai daqui: ele tem ferramenta própria, o gerador de favicon, onde você escolhe quais resoluções vão dentro do arquivo.',
         },
         {
           q: 'Por que a ferramenta não oferece a opção de exportar imagens em AVIF?',
@@ -742,16 +742,16 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         },
         {
           q: 'Posso continuar editando a imagem em outras ferramentas após a conversão?',
-          a: 'Sim para formatos de imagem (PNG, JPEG, WebP). Os formatos de destino final como PDF e ICO encerram o pipeline por serem contêineres finais de distribuição.',
+          a: 'Sim para formatos de imagem (PNG, JPEG, WebP): o resultado entra na sessão e segue para redimensionar, cortar ou comprimir sem novo upload. O PDF encerra o caminho por ser um contêiner final de distribuição, e não uma imagem que as ferramentas seguintes saibam abrir.',
         },
       ],
     },
     en: {
-      features: ['Converts JPEG, PNG, WebP, AVIF, ICO & PDF', 'Automatic alpha transparency handling', 'Universal cross-platform output', 'Local processing with full privacy'],
+      features: ['Converts JPEG, PNG and WebP, with PDF output too', 'Automatic alpha transparency handling', 'Universal cross-platform output', 'Local processing with full privacy'],
       faq: [
         {
           q: 'Which image formats are supported for input import and export output?',
-          a: 'You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, PDF, or ICO icons. Modern browser decoders support a wide variety of inputs while outputting universally compatible formats.',
+          a: 'You can import JPEG, PNG, WebP, AVIF, GIF, and BMP files and export them to WebP, JPEG, PNG, or PDF. The input list is far longer than the output one because modern browsers decode many more formats than they can natively write. An .ico icon does not come out of here: it has its own tool, the favicon generator, where you choose which resolutions go inside the file.',
         },
         {
           q: 'Why does the converter not offer export to the AVIF format?',
@@ -763,7 +763,7 @@ export const TOOL_CONTENT: Partial<Record<ToolId, ToolContent>> = {
         },
         {
           q: 'Can I continue editing the image in other tools after conversion?',
-          a: 'Yes for standard image formats (PNG, JPEG, WebP). Destination formats like PDF and ICO conclude the editing pipeline as final distribution files.',
+          a: 'Yes for standard image formats (PNG, JPEG, WebP): the result stays in the session and carries on to resize, crop or compress with no second upload. PDF ends that path, because it is a final distribution container rather than an image the next tools know how to open.',
         },
       ],
     },

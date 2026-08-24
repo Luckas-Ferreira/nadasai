@@ -159,7 +159,7 @@ export class ActionBarComponent {
    * É exatamente `hasPending()`, e a tentação de aceitar também "a sessão já é
    * do tipo que eu produzo" foi testada e está errada: o conversor produz
    * `image` e trabalha sobre uma sessão `image`, então com aquela regra ele
-   * oferecia continuar mesmo tendo acabado de gerar um PDF ou um ICO, que ele
+   * oferecia continuar mesmo tendo acabado de gerar um PDF, que ele
    * deliberadamente NÃO registra. A pergunta certa é "há o que levar", e só o
    * registro responde isso.
    */

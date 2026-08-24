@@ -315,7 +315,7 @@ export const routes: Routes = [
         title: 'Converter Imagem Online (PNG, JPG, WebP) — Nada Sai',
         loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
         data: {
-          metaDescription: 'Converta entre PNG, JPEG, WebP, GIF e ICO em um clique, com controle de qualidade. AVIF entra como entrada. Grátis e 100% offline no navegador.'
+          metaDescription: 'Converta entre PNG, JPEG e WebP em um clique, ou gere um PDF a partir da imagem. GIF e AVIF entram como entrada. Grátis e 100% offline no navegador.'
         }
       },
       {
@@ -910,7 +910,7 @@ export const routes: Routes = [
         title: 'Convert Image Online (PNG, JPG, WebP) — Nada Sai',
         loadComponent: () => import('./features/convert/convert.component').then((m) => m.ConvertComponent),
         data: {
-          metaDescription: 'Convert between PNG, JPEG, WebP, GIF and ICO in one click with quality control. AVIF is accepted as input. Free and 100% offline in your browser.'
+          metaDescription: 'Convert between PNG, JPEG and WebP in one click, or turn the image into a PDF. GIF and AVIF are accepted as input. Free and 100% offline in your browser.'
         }
       },
       {

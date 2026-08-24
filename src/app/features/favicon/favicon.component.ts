@@ -27,7 +27,8 @@ const DEFAULT_SIZES: readonly number[] = [16, 32, 48, 256];
  * coberto por `converters.spec.ts`. Ele só era alcançável escondido dentro do
  * conversor, com os seis tamanhos fixos e sem nada na tela dizendo o que ia sair.
  * Esta ferramenta é a UI que faltava, e é por isso que ela quase não tem lógica:
- * escolher os tamanhos e chamar o encoder.
+ * escolher os tamanhos e chamar o encoder. A opção do conversor saiu depois
+ * disto: com os tamanhos à escolha aqui, ela era esta tela com controle pior.
  *
  * O `contain` do encoder é o detalhe que vale saber ao olhar a prévia: um
  * retângulo entra numa caixa quadrada com borda transparente em vez de ser
