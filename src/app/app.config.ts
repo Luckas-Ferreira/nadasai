@@ -15,6 +15,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 
 import { routes } from './app.routes';
 import { AppErrorHandler } from './core/errors/global-error-handler';
+import { PACKAGED } from './core/platform/platform';
 import { AppUpdateService } from './core/services/app-update.service';
 import { ModelPrefetchService } from './core/services/model-prefetch.service';
 import { NetworkProbeService } from './core/services/network-probe.service';
@@ -168,7 +169,12 @@ export const appConfig: ApplicationConfig = {
      * o mais (precache, atualização, offline) continua sendo o ngsw.
      */
     provideServiceWorker('nadasai-sw.js', {
-      enabled: !isDevMode(),
+      // E NUNCA no app empacotado. Ali os arquivos vêm do APK, não da rede:
+      // não há nada para pré-cachear, não há deploy novo para detectar, e o
+      // registro simplesmente FALHA no WebView — NG05604
+      // (SERVICE_WORKER_REGISTRATION_FAILED), medido no emulador. Um erro por
+      // inicialização que não informa nada e não conserta nada.
+      enabled: !isDevMode() && !PACKAGED,
       registrationStrategy: 'registerWhenStable:30000',
     }),
 
