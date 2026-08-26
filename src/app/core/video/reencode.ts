@@ -1,4 +1,5 @@
 import { AppError } from '../errors';
+import { tryNativeVideo } from './native-video';
 import { pickRecorderMime, type RecordingFormat } from './screen-recorder';
 import { probeVideo, readAudioHint } from './video-file.util';
 
@@ -105,6 +106,26 @@ export async function reencodeVideo(options: ReencodeOptions): Promise<Reencoded
 
   const range = clampRange(options.range, probe.duration);
   if (range.end - range.start < 0.05) throw new AppError('audio_empty_selection');
+
+  // O ATALHO NATIVO, e ele fica AQUI por dois motivos. Este é a PORTA ÚNICA:
+  // as quatro ferramentas que recodificam vídeo passam por esta função, então
+  // nenhuma delas precisa saber que Android existe. E fica depois do probe de
+  // propósito — assim o nativo recebe um intervalo já validado e clampado,
+  // em vez de reimplementar essas regras do outro lado da ponte.
+  //
+  // Devolve null sempre que não tem certeza, e o caminho web abaixo continua
+  // sendo a implementação de referência: o pior caso é o comportamento de
+  // hoje, nunca um resultado diferente do que a tela prometeu.
+  const native = await tryNativeVideo({
+    file,
+    range,
+    rect: options.rect,
+    maxHeight: options.maxHeight,
+    bitrate: options.videoBitsPerSecond,
+    wantsMp4: target.format === 'mp4',
+    onProgress,
+  });
+  if (native) return native;
 
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
