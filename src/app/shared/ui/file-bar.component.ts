@@ -17,6 +17,7 @@ import { ObjectUrlScope } from '../../core/image/object-url';
 import { ActiveToolService } from '../../core/services/active-tool.service';
 import { PendingTransitionService } from '../../core/services/pending-transition.service';
 import { TranslationService } from '../../core/services/translation.service';
+import { FileViewerService } from '../../core/services/file-viewer.service';
 import { WorkspaceService } from '../../core/services/workspace.service';
 import { type ToolDef, nextToolsFor, toolById, toolPath } from '../../core/tools/tools';
 import { ButtonDirective } from './button.directive';
@@ -156,13 +157,40 @@ const AUDIO_TONE: Record<string, string> = {
         ></span>
 
         <!-- A cara do arquivo: miniatura quando é imagem, equalizador quando é
-             áudio, distintivo do tipo no resto. -->
-        @if (thumb(); as src) {
-          <img
-            [src]="src"
-            alt=""
-            class="checkerboard ml-1 h-8 w-8 shrink-0 rounded-sm border border-line object-cover"
-          />
+             áudio, distintivo do tipo no resto.
+
+             E onde há o que mostrar ela é o GATILHO do visualizador em tela
+             cheia. É o único gatilho que serve para as 57 ferramentas: esta
+             barra é a única faixa presente em toda rota e nos cinco módulos, e
+             tocá-la não disputa gesto com ferramenta nenhuma — o palco de seis
+             delas é uma caixa que se arrasta (cropper.js no recortar, no 3x4 e
+             no recorte de vídeo; app-region-overlay nas três de censura), e ali
+             um toque que abrisse visualizador quebraria a ferramenta para
+             consertar a navegação. -->
+        @if (viewable()) {
+          <button
+            type="button"
+            class="ml-1 shrink-0 rounded-sm transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            [attr.aria-label]="i18n.t()['viewer.expand']"
+            [title]="i18n.t()['viewer.expand']"
+            (click)="expand()"
+          >
+            @if (thumb(); as src) {
+              <img
+                [src]="src"
+                alt=""
+                class="checkerboard h-8 w-8 rounded-sm border border-line object-cover"
+              />
+            } @else {
+              <span
+                class="flex h-8 w-8 items-center justify-center rounded-md"
+                [style.background-color]="toneBg()"
+                [style.color]="toneFg()"
+              >
+                <app-icon [name]="face().icon" [size]="16" />
+              </span>
+            }
+          </button>
         } @else if (session.kind === 'audio') {
           <div class="eq-wrap ml-1.5" aria-hidden="true">
             <span class="eq-bar" [style.background-color]="toneFg()"></span>
@@ -306,6 +334,7 @@ export class FileBarComponent {
   private readonly pendingTransition = inject(PendingTransitionService);
 
   protected readonly workspace = inject(WorkspaceService);
+  private readonly viewer = inject(FileViewerService);
   protected readonly i18n = inject(TranslationService);
 
   protected readonly menuOpen = signal(false);
@@ -315,6 +344,20 @@ export class FileBarComponent {
   protected readonly hasPending = this.pendingTransition.hasPending;
 
   protected readonly face = computed(() => KIND_FACE[this.workspace.kind() ?? 'any']);
+
+  /**
+   * Tem o que mostrar em tela cheia?
+   *
+   * Imagem e vetor têm pixels prontos; PDF é rasterizado dentro do visualizador,
+   * e é por isso que ele entra aqui sem contradizer a regra desta barra de não
+   * carregar o pdf.js — quem paga por ele é quem toca, não toda rota com um
+   * documento na sessão. Áudio, vídeo e binário ficam de fora: não há o que ver,
+   * e um botão que abre uma tela vazia é pior do que nenhum botão.
+   */
+  protected readonly viewable = computed(() => {
+    const kind = this.workspace.kind();
+    return kind === 'image' || kind === 'svg' || kind === 'pdf';
+  });
 
   private readonly tone = computed(() => {
     const kind = this.workspace.kind();
@@ -384,7 +427,10 @@ export class FileBarComponent {
   constructor() {
     effect(() => {
       const file = this.workspace.currentFile();
-      const isImage = this.workspace.kind() === 'image';
+      const kind = this.workspace.kind();
+      // SVG entra junto: é uma imagem, o <img> a desenha, e sem isto o vetor
+      // cairia no distintivo genérico e o visualizador abriria sem nada dentro.
+      const isImage = kind === 'image' || kind === 'svg';
       // `thumb` é lido untracked de propósito: rastreá-lo faria o efeito depender
       // do signal que ele mesmo escreve, e cada passada cunharia outra object URL
       // — um laço infinito que travava a aba assim que um arquivo entrava.
@@ -414,6 +460,19 @@ export class FileBarComponent {
     this.menuOpen.set(false);
     const lang = this.i18n.currentLang();
     void this.router.navigateByUrl(`/${lang}/${toolPath(tool, lang)}`);
+  }
+
+  /** Abre o arquivo da SESSÃO em tela cheia — nunca um resultado ainda não commitado. */
+  protected expand(): void {
+    const session = this.workspace.session();
+    if (!session) return;
+
+    this.viewer.show({
+      name: session.file.name,
+      kind: session.kind,
+      src: this.thumb(),
+      file: session.file,
+    });
   }
 
   /** Limpa sem navegar: a ferramenta aberta reage à sessão e volta para o dropzone. */

@@ -207,6 +207,13 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
 
+  /* A altura da barra de ferramentas do celular, e ela É medida por isto — não
+     o contrário. Existe porque DOIS elementos precisam concordar sobre ela: a
+     própria barra e a folha de controles do `app-tool-page`, que se apoia logo
+     acima. Como número solto nos dois lugares, o dia em que um rótulo crescesse
+     deixaria a folha cobrindo a barra sem ninguém perceber no desktop. */
+  --mobile-bar-h: 4.25rem;
+
   --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
