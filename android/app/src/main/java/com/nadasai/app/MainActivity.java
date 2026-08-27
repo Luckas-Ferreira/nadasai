@@ -22,7 +22,10 @@ import com.getcapacitor.BridgeActivity;
  * isolamento de origem; o Chrome faz. Medido em WebView 145 / Android 17.
  *
  * A saida para isso e trabalho NATIVO, e nao mais cabecalho. O {@link TrimEngine}
- * e o {@link TranscodeEngine} sao o primeiro passo dela, para o video.
+ * e o {@link TranscodeEngine} foram o primeiro passo dela, para o video; o
+ * {@link MatteEngine} e o segundo, e responde a este paragrafo direto — o IS-Net
+ * roda no ONNX Runtime nativo, com todos os nucleos, em vez da unica thread a
+ * que o WebView condena o WASM.
  */
 public class MainActivity extends BridgeActivity {
 
@@ -32,6 +35,7 @@ public class MainActivity extends BridgeActivity {
         // e quem constroi a ponte. Registrado depois, o plugin existe e o
         // JavaScript nunca o encontra.
         registerPlugin(VideoPlugin.class);
+        registerPlugin(MattePlugin.class);
 
         super.onCreate(savedInstanceState);
 

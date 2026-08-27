@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AppError } from '../errors';
 import { canvasToBlob, loadImage } from '../image/image-file.util';
+import { tryNativeMatte, warmNativeMatte } from '../image/native-matte';
 
 /**
  * Background removal, run entirely on this machine.
@@ -74,8 +75,19 @@ export class BackgroundRemovalService {
    * Errors are swallowed on purpose — a prefetch is opportunistic, and a failed
    * one must not surface as an error the user did not ask for. The real run
    * retries and reports through the normal path.
+   *
+   * No app empacotado o aquecimento é OUTRO: `warmNativeMatte()` monta a sessão
+   * nativa e, quando ela sobe, a do WASM não é montada NENHUMA vez. Isso não é
+   * economia de tempo, é de memória: um `InferenceSession` do onnxruntime-web
+   * segura os 44 MB de pesos pelo resto do processo, e deixá-lo de pé ao lado do
+   * nativo colocaria duas cópias do mesmo modelo na mesma aba, uma delas para
+   * nunca rodar — pressão de memória durante a única conta pesada do produto.
    */
   prefetch(onDownload?: (fraction: number) => void): Promise<void> {
+    return warmNativeMatte().then((warm) => (warm ? undefined : this.loadWasm(onDownload)));
+  }
+
+  private loadWasm(onDownload?: (fraction: number) => void): Promise<void> {
     return this.load(onDownload).then(
       () => undefined,
       () => {
@@ -118,16 +130,32 @@ export class BackgroundRemovalService {
   }
 
   private async removeWithModel(image: HTMLImageElement, onProgress?: (percent: number) => void): Promise<Blob> {
+    onProgress?.(5);
+
+    // O quadrado é desenhado UMA vez e serve aos dois caminhos: o nativo o
+    // recebe como PNG, o WASM o lê como tensor. Desenhá-lo antes de escolher é o
+    // que garante que os dois vejam exatamente os mesmos pixels de entrada.
+    const square = rasterise(image, SIZE, SIZE);
+
+    // O ATALHO NATIVO, e ele é a razão de existir do `native-matte.ts`: dentro do
+    // app o WebView não tem SharedArrayBuffer, então o WASM abaixo rodaria numa
+    // thread só. Devolve `null` em qualquer dúvida, e aí o caminho de sempre
+    // assume inteiro. Na web é constante de build e o esbuild apaga a chamada.
+    const native = await tryNativeMatte(square.canvas, SIZE, onProgress);
+    if (native) {
+      onProgress?.(92);
+      return applyMask(image, native);
+    }
+
     // The 42 MB model download is the longest wait on the first run, and the only
     // opaque phase we can actually measure — so it gets real, byte-accurate
     // progress (5→60). On every later run the model is cached and this jumps
     // straight through. The inference that follows is a single unsplittable WASM
     // call; the component trickles the bar across it so it never looks frozen.
-    onProgress?.(5);
     const { ort, session } = await this.load((fraction) => onProgress?.(5 + Math.round(fraction * 55)));
 
     onProgress?.(65);
-    const input = toTensor(ort, image);
+    const input = toTensor(ort, square.imageData);
 
     onProgress?.(70);
     const output = await session.run({ [session.inputNames[0]]: input });
@@ -229,17 +257,17 @@ async function fetchModel(onProgress?: (fraction: number) => void): Promise<Uint
   return bytes;
 }
 
-/** Letterbox-free square resize to 1024², normalised, in NCHW — what IS-Net expects. */
-function toTensor(ort: OrtModule, image: HTMLImageElement): InstanceType<OrtModule['Tensor']> {
-  const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('2D context unavailable');
-
-  ctx.drawImage(image, 0, 0, SIZE, SIZE);
-  const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
+/**
+ * Normalised NCHW out of the square the caller already rasterised — what IS-Net
+ * expects.
+ *
+ * It takes the ImageData rather than the image because the SQUARE is now shared:
+ * the native path sends that same canvas across the bridge, and the two paths
+ * having their own `drawImage` would be two chances to feed the model different
+ * pixels for the same file.
+ */
+function toTensor(ort: OrtModule, square: ImageData): InstanceType<OrtModule['Tensor']> {
+  const { data } = square;
 
   const pixels = SIZE * SIZE;
   const chw = new Float32Array(3 * pixels);
