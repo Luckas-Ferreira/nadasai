@@ -370,6 +370,16 @@ export const EN = {
   /** Suffixed with the tool name, e.g. "Undo Crop". */
   'common.undo_tool': 'Undo',
   'common.clear': 'Clear',
+  'common.close': 'Close',
+  /** The full-screen viewer, reached from the file bar thumbnail. */
+  'viewer.title': 'File viewer',
+  'viewer.open_with': 'Open with',
+  'viewer.no_preview': 'This file cannot be previewed here.',
+  'viewer.expand': 'View full screen',
+  /** The phone sheet that holds a tool controls. */
+  'viewer.controls': 'Controls',
+  'viewer.show_controls': 'Show controls',
+  'viewer.hide_controls': 'Hide controls',
   'common.cancel': 'Cancel',
   /** Icon-only pager buttons: the icon is aria-hidden, so this is their whole name. */
   'common.prev_page': 'Previous page',

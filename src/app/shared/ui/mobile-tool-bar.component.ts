@@ -47,7 +47,7 @@ import { IconComponent } from './icon/icon.component';
       >
         <nav
           #strip
-          class="flex snap-x snap-mandatory gap-1 overflow-x-auto px-2 py-1.5"
+          class="flex h-[var(--mobile-bar-h)] snap-x snap-mandatory items-center gap-1 overflow-x-auto px-2"
           [attr.aria-label]="i18n.t()['nav.module_tools']"
         >
           @for (tool of tools(); track tool.id) {
