@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- A tela de abertura no Android 12+ (API 31), que e outro mecanismo e nao
+         uma variacao do de baixo.
+
+         Ate o Android 11 quem desenha a abertura e o `android:background` do
+         tema de lancamento, e por isso `res/drawable*/splash.png` existe em
+         onze tamanhos. Do 12 em diante o SISTEMA desenha: ele IGNORA aquele
+         drawable e compoe o icone do app sobre `windowSplashScreenBackground`.
+
+         Sem esta declaracao o fundo cai em `?android:attr/colorBackground`, que
+         herda o DayNight do `Theme.AppCompat` — ou seja, num aparelho em tema
+         escuro a abertura saia quase preta, e so nele. O app tem um tema so e
+         ele e claro (veja `styles.css`), entao a cor e fixada aqui para bater
+         com a primeira tela que o WebView pinta. Sem isso o lancamento pisca de
+         escuro para branco.
+
+         `windowSplashScreenAnimatedIcon` aponta para o mesmo ic_launcher
+         adaptativo da gaveta, de proposito: e o desenho que a pessoa acabou de
+         tocar. `postSplashScreenTheme` e o que o core-splashscreen troca quando
+         a abertura sai; sem ele a Activity ficaria com o tema de lancamento e o
+         fundo do splash apareceria por tras do WebView enquanto ele carrega. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+</resources>

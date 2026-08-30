@@ -1,0 +1,107 @@
+================================================================================
+STORE LISTING — en-US
+Paste each block into the matching Play Console field.
+Play's limits are in parentheses; `scripts/check-listing.mjs` enforces them.
+================================================================================
+
+
+--- APP TITLE (30) ------------------------------------------------------------
+
+Nada Sai: Offline PDF & Photo
+
+
+--- SHORT DESCRIPTION (80) ----------------------------------------------------
+
+57 PDF, image, audio and video tools. All on your device, nothing uploaded.
+
+
+--- FULL DESCRIPTION (4000) ---------------------------------------------------
+
+Nada Sai is a file toolbox that runs entirely inside your device. No file is ever uploaded anywhere — because there is nowhere to upload it to.
+
+The app does not request the INTERNET permission. You can check that on the permission list before installing: without it, Android itself refuses any connection the app might try to open. This is not a promise buried in a privacy policy, it is an operating-system lock.
+
+What that buys you: it works on a plane, on the subway, anywhere with no signal. And the contract with your ID number, the photo of your passport or the recording of your meeting simply have no way out of the device.
+
+No account. No sign-up. No ads. No trackers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+57 TOOLS, IN 6 MODULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMAGE
+• AI background removal (runs on your device's own chip)
+• Compress, convert (PNG, JPG, WebP), resize and crop
+• ID photos (3x4, 2x2 passport), laid out on a print-ready sheet at 300 DPI
+• Images to PDF, extract text (OCR), upscale, vectorize, favicon
+
+PDF
+• Merge, split, compress, organize and rotate pages
+• PDF EDITOR: change the text on the page, scanned documents included
+• PDF to Word (.docx), to image and to text
+• Sign, password-protect, unlock, watermark, add page numbers
+• Compare two PDFs
+
+OFFICE
+• Compress Word, Excel and PowerPoint
+• Word to text, Excel to CSV
+
+AUDIO
+• Cut, merge, convert and compress
+• Voice recorder
+• Normalize loudness (LUFS measurement, broadcast standard)
+• Change speed without changing pitch, remove silence, edit channels
+
+VIDEO
+• Screen recorder
+• Compress, convert, trim and crop
+• Video to audio, to GIF and to frames
+
+PRIVACY
+• Strip EXIF from photos (removes location and date without re-encoding the image)
+• Redact images and redact PDFs (a real black bar: the text leaves the file)
+• Clean PDF and Office metadata
+• Encrypt files and text (AES-256-GCM)
+• File hash, password generator, QR code, text diff
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY THIS MATTERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every "free compress PDF" website does the same thing: it uploads your file to somebody's server. The terms usually say the file is deleted after a few hours — and you have no way to verify that. Payslips, medical reports, contracts, tax documents: they go through those tools every day.
+
+Here the file is opened, processed and saved by your own device. Whatever lands in your gallery or Downloads folder was made right there.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECHNICAL DETAIL, IF YOU CARE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Background removal runs an IS-Net neural network on the native ONNX Runtime, four threads on your device's CPU. The 42 MB model ships inside the app — it is not downloaded.
+• Video crop, trim and re-encode go through the device's own hardware encoder.
+• Tools chain together: remove a photo's background, send it to crop, turn it into a PDF and sign it — with no saving and reopening in between.
+• The only permission the app asks for is the MICROPHONE, and only the voice recorder uses it. There is no internet permission — you can check the permission list before installing.
+• English and Portuguese.
+
+Nada Sai also runs in the browser at nadasai.com. Same product; the app is the version that does not even need a tab open.
+
+
+--- CATEGORY ------------------------------------------------------------------
+
+Tools
+
+
+--- KEYWORDS (Play derives these from the text; keep these terms in the body) --
+
+offline pdf, compress pdf, merge pdf, edit pdf, pdf to word, background remover,
+passport photo, compress image, screen recorder, cut audio, remove metadata,
+encrypt file, no internet, no upload
+
+
+--- PRIVACY POLICY (required URL) ---------------------------------------------
+
+https://nadasai.com/en/privacy
+
+
+--- CONTACT EMAIL -------------------------------------------------------------
+
+leandro.ademars@gmail.com
