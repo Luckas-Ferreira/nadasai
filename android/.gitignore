@@ -99,3 +99,12 @@ app/src/main/assets/public
 app/src/main/assets/capacitor.config.json
 app/src/main/assets/capacitor.plugins.json
 app/src/main/res/xml/config.xml
+
+# A chave de upload e o arquivo que aponta para ela.
+#
+# Perder a chave nao e um contratempo: sem ela nao ha como publicar atualizacao
+# do app que ja esta na loja. Ela fica FORA do repositorio (e com backup fora
+# desta maquina), e `app/build.gradle` so a le por este .properties.
+keystore.properties
+*.jks
+*.keystore

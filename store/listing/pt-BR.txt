@@ -1,0 +1,107 @@
+================================================================================
+FICHA DA LOJA — pt-BR (idioma padrão)
+Cole cada bloco no campo correspondente do Play Console.
+Os limites do Play estão entre parênteses; `scripts/check-listing.mjs` os confere.
+================================================================================
+
+
+--- TÍTULO DO APP (30) --------------------------------------------------------
+
+Nada Sai: PDF e Foto Offline
+
+
+--- DESCRIÇÃO CURTA (80) ------------------------------------------------------
+
+57 ferramentas de PDF, imagem, áudio e vídeo. Tudo no aparelho, sem enviar nada.
+
+
+--- DESCRIÇÃO COMPLETA (4000) -------------------------------------------------
+
+Nada Sai é uma caixa de ferramentas de arquivos que roda inteira dentro do seu aparelho. Nenhum arquivo é enviado para lugar nenhum — porque não há para onde enviar.
+
+O app não pede permissão de INTERNET. Você pode conferir isso na lista de permissões antes de instalar: sem essa permissão o próprio Android recusa qualquer conexão que o app tentasse abrir. Não é uma promessa na política de privacidade, é uma trava do sistema operacional.
+
+Consequência prática: funciona no avião, no metrô, no sítio sem sinal. E o documento com o seu CPF, a foto do seu RG ou a gravação da sua reunião simplesmente não têm como vazar por aqui.
+
+Sem conta. Sem cadastro. Sem anúncio. Sem rastreador.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+57 FERRAMENTAS, EM 6 MÓDULOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMAGEM
+• Remover fundo com IA (roda no chip do seu aparelho)
+• Comprimir, converter (PNG, JPG, WebP), redimensionar e cortar
+• Foto 3x4 e 2x2, em folha pronta para a gráfica, a 300 DPI
+• Imagens para PDF, extrair texto (OCR), ampliar, vetorizar, favicon
+
+PDF
+• Juntar, dividir, comprimir, organizar e girar páginas
+• EDITOR de PDF: mexa no texto da página, inclusive de documento escaneado
+• PDF para Word (.docx), para imagem e para texto
+• Assinar, proteger com senha, desbloquear, marca d'água, numerar páginas
+• Comparar dois PDFs
+
+OFFICE
+• Comprimir Word, Excel e PowerPoint
+• Word para texto, Excel para CSV
+
+ÁUDIO
+• Cortar, juntar, converter e comprimir
+• Gravador de voz
+• Normalizar volume (medição LUFS, padrão de broadcast)
+• Mudar velocidade sem alterar o tom, remover silêncio, mexer nos canais
+
+VÍDEO
+• Gravador de tela
+• Comprimir, converter, cortar e recortar
+• Vídeo para áudio, para GIF e para quadros (frames)
+
+PRIVACIDADE
+• Remover EXIF de foto (apaga o local e a data, sem recomprimir a imagem)
+• Censurar imagem e censurar PDF (tarja preta de verdade: o texto some do arquivo)
+• Limpar metadados de PDF e de Office
+• Criptografar arquivo e texto (AES-256-GCM)
+• Hash de arquivo, gerador de senha, QR Code, comparador de texto
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+POR QUE ISSO IMPORTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Todo site de "comprimir PDF grátis" faz a mesma coisa: sobe o seu arquivo para um servidor de alguém. O contrato de uso costuma dizer que o arquivo é apagado em algumas horas — e você não tem como verificar. Contracheque, laudo médico, contrato, documento do carro: tudo isso passa por essas ferramentas todo dia.
+
+Aqui o arquivo é aberto, processado e salvo pelo seu próprio aparelho. O que entra na galeria ou na pasta Downloads foi feito ali mesmo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETALHES TÉCNICOS, PARA QUEM LIGA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• A remoção de fundo usa uma rede neural IS-Net rodando no ONNX Runtime nativo, com quatro threads no processador do aparelho. O modelo de 42 MB vem dentro do app — não é baixado.
+• Recorte, corte e recodificação de vídeo passam pelo codificador de hardware do próprio aparelho.
+• As ferramentas se encadeiam: remova o fundo de uma foto, mande para o recorte, transforme em PDF e assine — sem salvar e reabrir a cada passo.
+• A única permissão que o app pede é o MICROFONE, e só o gravador de voz a usa. Não há permissão de internet — dá para conferir na lista de permissões antes de instalar.
+• Português e inglês.
+
+Nada Sai também funciona no navegador, em nadasai.com. É o mesmo produto; o app é a versão que não precisa nem de aba aberta.
+
+
+--- CATEGORIA -----------------------------------------------------------------
+
+Ferramentas
+
+
+--- TAGS / PALAVRAS-CHAVE (o Play deriva do texto; use estes termos no corpo) --
+
+pdf offline, comprimir pdf, juntar pdf, editar pdf, pdf para word, remover fundo,
+foto 3x4, comprimir imagem, gravador de tela, cortar áudio, remover metadados,
+criptografar arquivo, sem internet, sem upload
+
+
+--- POLÍTICA DE PRIVACIDADE (URL obrigatória) ---------------------------------
+
+https://nadasai.com/pt/privacidade
+
+
+--- E-MAIL DE CONTATO ---------------------------------------------------------
+
+leandro.ademars@gmail.com
