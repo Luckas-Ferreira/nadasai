@@ -30,19 +30,31 @@ import { IconComponent } from './icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent, FaqComponent, ToolArticleComponent, RelatedToolsComponent],
   template: `
-    <section [class]="pageClass()">
-      <header class="mb-5 flex items-start gap-3">
+    <section [class]="pageClass()" [style.--sheet-h]="sheetHeight()">
+      <!-- O CABEÇALHO ENCOLHE NO CELULAR ASSIM QUE HÁ ARQUIVO.
+
+           Ícone de 40px, h1 de 22px e subtítulo: isso é a abertura de um ARTIGO,
+           e é o que fazia a pessoa sair da tela cheia do visualizador e sentir
+           que tinha caído num site. Com arquivo na mão o assunto já não é qual
+           ferramenta é esta — é o arquivo.
+
+           O h1 CONTINUA renderizado, menor. Escondê-lo com display:none seria de
+           graça em pixels e caro em SEO: é o único h1 da página, e a indexação é
+           mobile-first, então o que o celular não mostra é o que o Google não vê.
+           O subtítulo, esse pode sair — ele repete o descKey que a grade da
+           home e o rail já disseram para chegar aqui. -->
+      <header [class]="headerClass()">
         <span
           [style.--tone-fg]="'var(--tone-' + tool().tone + '-fg)'"
           [style.--tone-bg]="'var(--tone-' + tool().tone + '-bg)'"
-          class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--tone-bg)] text-[color:var(--tone-fg)]"
+          [class]="toneClass()"
         >
           <app-icon [name]="tool().icon" [size]="19" />
         </span>
 
-        <div>
-          <h1 class="text-2xl">{{ headline() }}</h1>
-          <p class="mt-0.5 text-md text-muted">{{ subtitle() }}</p>
+        <div class="min-w-0">
+          <h1 [class]="headlineClass()">{{ headline() }}</h1>
+          <p [class]="subtitleClass()">{{ subtitle() }}</p>
         </div>
       </header>
 
@@ -84,7 +96,7 @@ import { IconComponent } from './icon/icon.component';
           </div>
         </aside>
 
-        <div class="min-w-0 order-2 lg:order-1">
+        <div [class]="stageClass()">
           <ng-content select="[stage]" />
         </div>
       </div>
@@ -184,6 +196,53 @@ export class ToolPageComponent {
   protected readonly emptyLayout = 'mx-auto w-full max-w-[680px]';
 
   /**
+   * A ALTURA DA FOLHA, publicada como token para o palco poder subtrair.
+   *
+   * Ela existia duas vezes — no `max-h` do aside e, implicitamente, no `pb` da
+   * página — e agora existe UMA, porque o palco também precisa dela: o que sobra
+   * de tela para o arquivo é exatamente o que a folha não ocupa. Sem token, o dia
+   * em que alguém trocar 46dvh por 50dvh deixaria um vão ou uma sobreposição, e
+   * nada apontaria para a linha que causou. É a mesma decisão do `--mobile-bar-h`
+   * no `styles.css`, pelo mesmo motivo.
+   *
+   * Só o celular lê: no `md:` o aside volta a ser coluna e o palco perde a altura.
+   */
+  protected readonly sheetHeight = computed(() => (this.sheetOpen() ? '46dvh' : '2.9rem'));
+
+  /**
+   * O QUE NÃO É PALCO, no celular.
+   *
+   * A soma, termo a termo, do que já está ocupado quando o arquivo aparece:
+   *
+   *   3.5rem            a barra do topo, que é sticky e fica sempre visível
+   *   3rem              a barra de arquivo (py-2 em volta de uma miniatura de 32px)
+   *   3.25rem           o cabeçalho encolhido, mais a margem dele
+   *   1.5rem            o `py-6` do <main>
+   *   --safe-top/bottom os recuos do sistema no app empacotado
+   *   --mobile-bar-h    a barra de ferramentas do celular
+   *   --sheet-h         a folha de controles
+   *
+   * O resto é do arquivo. Os quatro primeiros são medidas de outros componentes
+   * copiadas para cá, e isso é dívida conhecida: um cabeçalho que cresça deixa o
+   * palco alto demais e a página rola um pouco. Degrada em rolagem, nunca em
+   * conteúdo escondido — que é o motivo de ser `min-height` e não `height`.
+   *
+   * ── E ELA É UM LITERAL INTEIRO, NUNCA MONTADA POR INTERPOLAÇÃO ────────────
+   *
+   * O Tailwind não interpreta este arquivo: ele o VARRE atrás de nomes de classe.
+   * Escrita como `min-h-[calc(100dvh-` + uma constante, a classe existe em tempo
+   * de execução e o CSS dela nunca é gerado — o varredor só viu um fragmento
+   * quebrado. O atributo sai no HTML, não casa com regra nenhuma, e o palco
+   * simplesmente não tem altura: sem erro, sem aviso, e parecendo que a conta
+   * está errada em vez de ausente. Aconteceu ao escrever isto, e só apareceu ao
+   * procurar a regra no CSS do build.
+   */
+  private readonly STAGE_FILL =
+    'min-h-[calc(100dvh-3.5rem-3rem-3.25rem-1.5rem-var(--safe-top)-var(--safe-bottom)-var(--mobile-bar-h)-var(--sheet-h))]';
+
+
+
+  /**
    * A folha está aberta? Só o celular lê isto.
    *
    * Começa ABERTA, e a escolha é deliberada. Na maioria das 57 ferramentas os
@@ -220,12 +279,60 @@ export class ToolPageComponent {
     const base = 'min-w-0 order-1 lg:order-2';
     if (!this.loaded()) return base;
 
-    const height = this.sheetOpen() ? 'max-h-[46dvh]' : 'max-h-[2.9rem]';
-    return `${base} ${height} ${this.SHEET}`;
+    // A altura sai do MESMO token que o palco subtrai, e não de um segundo par
+    // de números — ver `sheetHeight`.
+    return `${base} max-h-[var(--sheet-h)] ${this.SHEET}`;
   });
 
   /** Recolhida, o conteúdo é escondido de verdade: um painel só clipado ainda recebe Tab. */
   protected readonly panelContentClass = computed(() =>
     this.loaded() && !this.sheetOpen() ? 'hidden md:block' : '',
+  );
+
+  /**
+   * O PALCO OCUPA O QUE SOBRA DA TELA, no celular e só com arquivo.
+   *
+   * Antes ele era o que o componente de dentro pedisse — 420px no
+   * `app-preview-surface` —, um número escolhido sem saber o tamanho da tela: num
+   * aparelho alto sobrava vão morto entre o palco e a folha, e num baixo o
+   * arquivo espremia. Agora a altura é derivada, e o vão deixa de existir nos
+   * dois.
+   *
+   * `min-height`, nunca `height`: se a conta de `STAGE_FILL` errar para mais, o
+   * pior caso é a página rolar um pouco — com `height` seria conteúdo cortado.
+   *
+   * `md:min-h-0` desfaz no desktop, onde o palco volta a ser uma célula da grade
+   * e quem manda na altura é a ferramenta.
+   */
+  protected readonly stageClass = computed(() => {
+    const base = 'min-w-0 order-2 lg:order-1';
+    if (!this.loaded()) return base;
+    return `${base} flex flex-col justify-center ${this.STAGE_FILL} md:block md:min-h-0`;
+  });
+
+  /**
+   * O cabeçalho, nas duas formas.
+   *
+   * Com arquivo no celular ele vira uma linha; no desktop e sem arquivo continua
+   * o de sempre. Ver o comentário no template para por que o h1 encolhe em vez
+   * de sumir.
+   */
+  protected readonly headerClass = computed(() =>
+    this.loaded() ? 'mb-2 flex items-center gap-2 md:mb-5 md:items-start md:gap-3' : 'mb-5 flex items-start gap-3',
+  );
+
+  protected readonly toneClass = computed(() => {
+    const base = 'flex shrink-0 items-center justify-center rounded-lg bg-[var(--tone-bg)] text-[color:var(--tone-fg)]';
+    return this.loaded()
+      ? `${base} h-7 w-7 md:mt-0.5 md:h-10 md:w-10`
+      : `${base} mt-0.5 h-10 w-10`;
+  });
+
+  protected readonly headlineClass = computed(() =>
+    this.loaded() ? 'truncate text-base md:text-2xl' : 'text-2xl',
+  );
+
+  protected readonly subtitleClass = computed(() =>
+    this.loaded() ? 'mt-0.5 hidden text-md text-muted md:block' : 'mt-0.5 text-md text-muted',
   );
 }
