@@ -306,6 +306,14 @@ O que só aparece no APK instalado, e não no `ng serve`:
 - **Gravador de tela** — o WebView **não** implementa `getDisplayMedia`, então a
   ferramenta mostra o aviso de "não suportado". É o comportamento correto e
   esperado, não uma regressão.
+- **"Abrir com" e "Compartilhar com"** — abra um PDF ou uma foto por outro app
+  (gerenciador de arquivos, galeria, WhatsApp) e escolha o Nada Sai. Tem de cair
+  na tela de destinos **com o nome do arquivo certo no topo**. É o item desta
+  lista que mais depende do aparelho: o caminho é `content://` → cópia no cache →
+  servidor local do Capacitor, e a permissão de leitura vem grudada na intent.
+  Teste as duas portas e, na segunda vez, **com o app já aberto** — esse é o caso
+  que o `onNewIntent` atende, e o defeito seria voltar mostrando o arquivo
+  anterior.
 - **Gravador de voz** — veja a nota abaixo.
 
 ### Nota: microfone
