@@ -132,6 +132,26 @@
      A canvas takes no Tailwind class, so the component reads these off the root
      element at paint time — still the rule (no hex in a component), resolved at
      runtime instead of by the class generator. */
+  /* A CROMAGEM DO VISUALIZADOR EM TELA CHEIA.
+
+     Ela é a ÚNICA do produto que flutua sobre conteúdo arbitrário: um título e
+     três botões por cima da foto de outra pessoa, que pode ser branca, preta ou
+     um degradê. Nenhum token de primeiro plano serve ali — todos são afinados
+     para AAA sobre BRANCO (ver o cabeçalho da paleta), e sobre uma foto clara
+     eles somem. É a mesma razão pela qual o rail tem os dele.
+
+     Por isso a cromagem carrega o próprio fundo: um véu escuro translúcido com
+     texto branco por cima. O véu é o que garante o contraste, e não a cor do
+     texto — sem ele, qualquer escolha estaria errada em metade das fotos.
+
+     Um `text-white/70` solto continua proibido em todo o resto do produto; aqui a
+     alternativa não é um token existente, é um novo, que é o que estas quatro
+     linhas são. */
+  --color-viewer-scrim: #0b0c0ee6;
+  --color-viewer-text: #ffffff;
+  --color-viewer-muted: #cbd5e1;
+  --color-viewer-hover: #ffffff26;
+
   --color-wave-idle: #94a3b8;
   --color-wave-keep: var(--accent);
   --color-wave-drop: var(--danger);
@@ -252,6 +272,24 @@
 /* shadow.                                                                       */
 /* -------------------------------------------------------------------------- */
 :root {
+  /* AS BORDAS DA TELA — zero em toda parte, menos no aparelho.
+   *
+   * O padrão é o `env()`, que resolve isto sozinho no iOS e em todo navegador
+   * com recorte de tela. No Android empacotado ele NÃO resolve, e o motivo está
+   * escrito em `SystemBars.java`: com targetSdk 35+ a janela é borda a borda e o
+   * `env()` da WebView responde pelo RECORTE DE TELA, não pelas barras do
+   * sistema — então o lado nativo MEDE e sobrescreve estas quatro variáveis no
+   * `documentElement`, onde o estilo inline ganha desta regra.
+   *
+   * São tokens, e não `env()` espalhado pelos templates, justamente por causa
+   * disso: existe uma segunda fonte para a mesma medida, e um template que
+   * chamasse `env()` direto ficaria certo na web e errado no app, sem erro
+   * nenhum em lugar nenhum. Quem precisa de borda usa `var(--safe-*)`. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   --base: #e9edf3;          /* cool off-white — a touch below the cards so they lift */
   --surface: #ffffff;       /* cards, panels, the rail */
   --raised: #f1f5f9;        /* inputs, hover, inset controls */

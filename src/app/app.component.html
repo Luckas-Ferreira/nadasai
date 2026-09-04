@@ -24,12 +24,14 @@
 
   <div class="flex min-w-0 flex-1">
     <!-- The rail. Scoped to the current module, so it renders nothing on the home
-         page and on the institutional routes. `top-14` because the top bar above
-         it is sticky and 56px tall; the scroll is the floor for a module that one
-         day carries twenty tools. -->
+         page and on the institutional routes. O topo é 56px MAIS `--safe-top`:
+         a barra do topo é sticky e, no app empacotado, ela cresce o tanto da
+         barra de status (ver `SystemBars.java`) — medi-la em 3.5rem fixos
+         deixava o primeiro item do rail por baixo dela. O scroll é o piso para
+         um módulo que um dia carregue vinte ferramentas. -->
     @if (activeTool.module()) {
       <aside
-        class="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[228px] shrink-0 overflow-y-auto border-r border-rail-line bg-rail px-3 py-3 md:block"
+        class="sticky top-[calc(3.5rem+var(--safe-top))] hidden h-[calc(100dvh-3.5rem-var(--safe-top))] w-[228px] shrink-0 overflow-y-auto border-r border-rail-line bg-rail px-3 py-3 md:block"
       >
         <app-tool-nav />
       </aside>
@@ -38,11 +40,19 @@
     <div class="flex min-w-0 flex-1 flex-col">
       <app-file-bar />
 
-      <!-- Extra bottom padding on mobile so the last controls clear the tool bar. -->
+      <!-- A folga de baixo é MEDIDA pela barra de ferramentas do celular, e não
+           um 6rem chutado: a barra tem `--mobile-bar-h` mais o recuo do sistema,
+           e no aparelho esse recuo é o risco da navegação por gestos. Com número
+           solto, o último controle da página ficava por baixo dela. -->
       <!-- `tabindex="-1"` para o salto do skip link mover mesmo o foco: sem ele
            o navegador rola até a âncora e deixa o foco onde estava, então o
            próximo Tab volta para a navegação que a pessoa acabou de pular. -->
-      <main id="main" tabindex="-1" class="flex-1 px-5 py-6 pb-24 md:px-8 md:py-8 md:pb-8">
+      <main
+        id="main"
+        tabindex="-1"
+        class="flex-1 px-[max(1.25rem,var(--safe-left))] py-6 pb-[calc(var(--mobile-bar-h)+var(--safe-bottom)+1.5rem)]
+               md:px-8 md:py-8 md:pb-8"
+      >
         <!-- O que escapou de todo try/catch de ferramenta. Fica AQUI, e não
              dentro da ferramenta, porque a exceção pode vir de onde não há
              ferramenta nenhuma — um effect da casca, uma promise rejeitada, uma
@@ -56,7 +66,9 @@
         <router-outlet />
       </main>
 
-      <footer class="border-t border-line px-5 py-4 md:px-8">
+      <footer
+        class="border-t border-line px-[max(1.25rem,var(--safe-left))] py-4 md:px-8"
+      >
         <div
           class="flex flex-col gap-3 text-xs text-faint sm:flex-row sm:items-center sm:justify-between"
         >

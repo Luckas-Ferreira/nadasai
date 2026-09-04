@@ -330,6 +330,8 @@ export const EN = {
   'open.title': 'Open a file',
   'open.subtitle': 'Pick what to do with it. Nothing is uploaded, here or anywhere else.',
   'open.pick_tool': 'What do you want to do with this file?',
+  'open.view': 'Just view it',
+  'open.view_hint': 'Opens full screen. The tools stay one tap away.',
   'open.no_tool': 'No tool here takes a file of this type yet.',
   'open.drag': 'Drop any file here',
   'open.drag_hint': 'Image, PDF, audio or video — the tools that fit appear next',

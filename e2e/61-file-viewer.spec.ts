@@ -29,8 +29,22 @@ const PHONE = { width: 411, height: 866 };
 
 const READY = { timeout: 30_000 };
 
+/**
+ * O gatilho da BARRA DE ARQUIVO — a miniatura, presente em toda rota e nos cinco
+ * módulos.
+ *
+ * Escopado à barra de propósito: as nove ferramentas que usam `app-preview-surface`
+ * têm um SEGUNDO gatilho com o mesmo rótulo, no canto do palco (`stageExpand`
+ * abaixo). Um `getByRole` solto casaria com os dois e o modo estrito reprovaria
+ * — e o teste falharia dizendo 'strict mode violation', que não nomeia nada do
+ * que está sendo testado.
+ */
 const expand = (page: import('@playwright/test').Page) =>
-  page.getByRole('button', { name: 'Ver em tela cheia' });
+  page.locator('app-file-bar').getByRole('button', { name: 'Ver em tela cheia' });
+
+/** O gatilho do PALCO, que é o que se alcança sem procurar. */
+const stageExpand = (page: import('@playwright/test').Page) =>
+  page.locator('app-preview-surface').getByRole('button', { name: 'Ver em tela cheia' });
 
 const dialog = (page: import('@playwright/test').Page) => page.getByRole('dialog');
 
@@ -81,6 +95,63 @@ test.describe('Visualizador em tela cheia', () => {
         READY,
       )
       .toBeGreaterThan(100);
+  });
+
+  test('o palco também abre, e é esse o gatilho que se acha', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page, PHOTO);
+
+    // A miniatura de 32px da barra é o gatilho universal e o que quase ninguém
+    // reconhece como botão. O do palco existe por isso, e é a razão de o
+    // visualizador ter deixado de ser um recurso escondido.
+    await expect(stageExpand(page)).toBeVisible(READY);
+    await stageExpand(page).click();
+
+    await expect(dialog(page)).toBeVisible();
+    await expect(dialog(page).getByRole('img')).toBeVisible();
+  });
+
+  test('a cromagem flutua sobre a imagem em vez de espremê-la', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page, PHOTO);
+    await expect(expand(page)).toBeVisible(READY);
+    await expand(page).click();
+
+    const view = dialog(page);
+    await expect(view).toBeVisible();
+
+    // Esta é a asserção que separa a mudança do que havia antes: a área da
+    // IMAGEM é a janela inteira. No desenho anterior o cabeçalho e o rodapé eram
+    // irmãos dela num flex column, então ela ficava com o que sobrasse — num
+    // retrato de celular, pouco mais da metade da tela. Agora eles flutuam por
+    // cima, e é por isso que a conta bate exatamente.
+    const height = await view
+      .getByRole('img')
+      .evaluate((img) => img.parentElement?.getBoundingClientRect().height ?? 0);
+
+    expect(height).toBe(page.viewportSize()?.height);
+  });
+
+  test('a rota /abrir oferece VER antes de escolher ferramenta', async ({ page }) => {
+    await openApp(page, '/pt/abrir');
+    await upload(page, PHOTO);
+
+    // VER vem ANTES da lista de ferramentas nesta rota, e é essa a ordem certa da
+    // pergunta: quem entrega um arquivo ao app pelo "Abrir com" do sistema quase
+    // sempre quer só olhar para ele.
+    await page.getByRole('button', { name: 'Só visualizar' }).click();
+
+    const view = dialog(page);
+    await expect(view).toBeVisible();
+    await expect(view.getByRole('img')).toBeVisible();
+
+    // A fileira de destinos é o que prova que o arquivo entrou na SESSÃO: ela é
+    // derivada do TIPO da sessão, e não do que está na tela. É também o que pina a
+    // chamada SEM id de ferramenta — a guarda pergunta se o tool que vai ABRIR o
+    // arquivo aceita aquele tipo, e aqui não há tool nenhum, então passar um id
+    // faria a sessão recusar a própria imagem e o rodapé sairia vazio. Mesma
+    // armadilha que o gravador de voz já pagou.
+    await expect(view.getByRole('button', { name: 'Remover fundo' })).toBeVisible();
   });
 
   test('áudio não ganha gatilho: não há o que ver', async ({ page }) => {

@@ -43,7 +43,7 @@ import { IconComponent } from './icon/icon.component';
   template: `
     @if (tools().length) {
       <div
-        class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)] md:hidden"
       >
         <nav
           #strip

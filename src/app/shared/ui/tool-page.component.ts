@@ -206,12 +206,12 @@ export class ToolPageComponent {
    * defeito apareceria como "a folha não virou folha" sem nenhum erro em lugar
    * nenhum. `md:` é usado em todo o repositório, então é conhecido bom.
    *
-   * `bottom-[var(--mobile-bar-h)]` é o que impede a folha de cobrir a barra de
+   * O `bottom` é o que impede a folha de cobrir a barra de
    * ferramentas do celular; o token mora no `styles.css` e a própria barra é
    * medida por ele, para as duas não divergirem no dia em que um rótulo crescer.
    */
   private readonly SHEET =
-    'fixed inset-x-0 bottom-[var(--mobile-bar-h)] z-30 overflow-y-auto overscroll-contain rounded-t-xl ' +
+    'fixed inset-x-0 bottom-[calc(var(--mobile-bar-h)+var(--safe-bottom))] z-30 overflow-y-auto overscroll-contain rounded-t-xl ' +
     'border-t border-line bg-surface px-5 pb-4 shadow-pop ' +
     'md:static md:inset-x-auto md:bottom-auto md:z-auto md:max-h-none md:overflow-visible ' +
     'md:rounded-none md:border-t-0 md:bg-transparent md:px-0 md:pb-0 md:shadow-none';

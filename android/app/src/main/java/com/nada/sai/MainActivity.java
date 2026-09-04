@@ -2,6 +2,8 @@ package com.nada.sai;
 
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
+
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 
@@ -36,6 +38,7 @@ public class MainActivity extends BridgeActivity {
         // JavaScript nunca o encontra.
         registerPlugin(VideoPlugin.class);
         registerPlugin(MattePlugin.class);
+        registerPlugin(ShellPlugin.class);
 
         super.onCreate(savedInstanceState);
 
@@ -45,5 +48,48 @@ public class MainActivity extends BridgeActivity {
         // durante a construcao da ponte.)
         Bridge bridge = getBridge();
         bridge.getWebView().setWebChromeClient(new NadaSaiWebChromeClient(bridge));
+
+        // As bordas da tela, e tambem depois do super pelo mesmo motivo: e a
+        // WebView da ponte que recebe os recuos. Sem isto o app desenha por
+        // baixo da barra de status e da de navegacao — veja SystemBars.
+        SystemBars.attach(this, bridge.getWebView());
+
+        // O botao VOLTAR, desviado enquanto a tela cheia esta aberta. Ver o
+        // metodo abaixo.
+        SystemBars.onBack(this, backToViewer(bridge));
+    }
+
+    /**
+     * O BOTAO VOLTAR, DESVIADO ENQUANTO A TELA CHEIA ESTA ABERTA.
+     *
+     * Sem isto, voltar dentro do visualizador navegava a ROTA por baixo dele — o
+     * visualizador continuava na tela, agora sobre uma ferramenta diferente da
+     * que estava embaixo quando ele abriu. Num app de Android o botao voltar
+     * fecha o que esta por cima, e e isso que ele passa a fazer.
+     *
+     * Quem liga e desliga o callback e {@link SystemBars#immersive}, pelo MESMO
+     * sinal que esconde as barras: so o visualizador liga o imersivo, entao "as
+     * barras estao escondidas" e "ha uma tela cheia aberta" sao a mesma frase, e
+     * nao duas que podem discordar. Ele nasce DESLIGADO, e nesse estado o
+     * dispatcher segue para o callback do Capacitor: em toda tela normal o botao
+     * voltar continua fazendo exatamente o que sempre fez.
+     *
+     * `OnBackPressedDispatcher` e nao `onBackPressed()`: o segundo esta obsoleto
+     * desde a API 33 e deixa de ser chamado no dia em que alguem ligar o
+     * `enableOnBackInvokedCallback` no manifesto — um callback que simplesmente
+     * para de rodar, sem erro nenhum.
+     */
+    private OnBackPressedCallback backToViewer(final Bridge bridge) {
+        return new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                bridge
+                    .getWebView()
+                    .evaluateJavascript(
+                        "window.dispatchEvent(new CustomEvent('nadasai:back'))",
+                        null
+                    );
+            }
+        };
     }
 }

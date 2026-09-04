@@ -322,6 +322,8 @@ export const PT: Record<TranslationKey, string> = {
   'open.title': 'Abrir um arquivo',
   'open.subtitle': 'Escolha o que fazer com ele. Nada é enviado, aqui nem em lugar nenhum.',
   'open.pick_tool': 'O que você quer fazer com este arquivo?',
+  'open.view': 'Só visualizar',
+  'open.view_hint': 'Abre em tela cheia. As ferramentas continuam a um toque.',
   'open.no_tool': 'Nenhuma ferramenta daqui recebe um arquivo deste tipo ainda.',
   'open.drag': 'Solte qualquer arquivo aqui',
   'open.drag_hint': 'Imagem, PDF, áudio ou vídeo — as ferramentas que servem aparecem em seguida',

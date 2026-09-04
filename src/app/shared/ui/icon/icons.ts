@@ -15,6 +15,10 @@ export const ICONS = {
   arrowRight: 'M4 12h15m0 0-5.5-5.5M19 12l-5.5 5.5',
   check: 'M4.5 12.5 9 17l10.5-10.5',
   close: 'M6 6l12 12M18 6 6 18',
+  // As quatro setas para fora, na mesma grade 24x24 e com o mesmo traco 1.5:
+  // e o gesto de ampliar, e nao uma lupa — o visualizador nao aproxima, ele
+  // ocupa a tela.
+  expand: 'M9 4H4v5M4 4l6 6m5-6h5v5m0-5-6 6M9 20H4v-5m0 5 6-6m5 6h5v-5m0 5-6-6',
   alert: 'M12 8v5m0 3h.01M12 3.5 2.8 19.5h18.4L12 3.5Z',
   refresh: 'M20 5v5h-5M4 19v-5h5m10.5-1a7.5 7.5 0 0 1-13.6 3.4M4.5 11a7.5 7.5 0 0 1 13.6-3.4',
   undo: 'M4 9h11a5 5 0 0 1 0 10h-6M4 9l4.5-4.5M4 9l4.5 4.5',

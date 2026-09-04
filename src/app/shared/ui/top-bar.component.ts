@@ -52,8 +52,18 @@ import { NetworkBadgeComponent } from './network-badge.component';
    * É a mesma armadilha que `app-region-overlay` já documenta por outro
    * motivo: a caixa do elemento host não é a que se imagina lendo só o
    * template. O `top-14` do rail depende desta barra ficar mesmo no topo.
+   *
+   * ── E O RECUO DA BARRA DE STATUS TAMBÉM MORA AQUI ──────────────────────
+   *
+   * `pt-[var(--safe-top)]` com `bg-surface` NO HOST, e não no <header>: o
+   * branco precisa continuar POR BAIXO da barra de status, senão o app mostra
+   * uma tira transparente com o relógio boiando sobre o conteúdo que rola.
+   * Empurrar o <header> para baixo com padding dentro dele deixaria essa tira;
+   * pintar o host e recuá-lo resolve as duas coisas de uma vez.
+   *
+   * Na web o token é zero e nada muda. Ver `styles.css` e `SystemBars.java`.
    */
-  host: { class: 'sticky top-0 z-40 shrink-0' },
+  host: { class: 'sticky top-0 z-40 shrink-0 bg-surface pt-[var(--safe-top)]' },
   template: `
     <header
       class="flex h-14 items-center gap-1.5 sm:gap-2 border-b border-line bg-surface px-3 sm:px-4 md:px-6"

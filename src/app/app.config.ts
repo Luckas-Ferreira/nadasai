@@ -16,6 +16,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { AppErrorHandler } from './core/errors/global-error-handler';
 import { PACKAGED } from './core/platform/platform';
+import { syncSafeArea } from './core/platform/native-shell';
 import { AppUpdateService } from './core/services/app-update.service';
 import { ModelPrefetchService } from './core/services/model-prefetch.service';
 import { NetworkProbeService } from './core/services/network-probe.service';
@@ -206,6 +207,24 @@ export const appConfig: ApplicationConfig = {
       const injector = inject(Injector);
       const prefetch = inject(ModelPrefetchService);
       afterNextRender(() => void prefetch.start(), { injector });
+    }),
+
+    /**
+     * AS BORDAS DA TELA, pedidas uma vez no arranque.
+     *
+     * No app empacotado o Android desenha de borda a borda e é o lado nativo que
+     * mede os recuos (`SystemBars.java`). Ele os EMPURRA a cada mudança, mas a
+     * primeira acontece antes de existir documento carregado — e é justamente ela
+     * que decide se o app abre com o cabeçalho por baixo do relógio. Por isso o
+     * arranque pede.
+     *
+     * `afterNextRender` pelo mesmo motivo dos dois de cima, e mais um: no
+     * prerender não há Capacitor nenhum, e ali a função é código morto que o
+     * esbuild remove pela constante de build. No bundle da web, nada disto existe.
+     */
+    provideAppInitializer(() => {
+      const injector = inject(Injector);
+      afterNextRender(() => void syncSafeArea(), { injector });
     }),
   ],
 };
