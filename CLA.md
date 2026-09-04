@@ -100,13 +100,19 @@ without regard to its conflict of law provisions.
 
 ## How to sign
 
-Add the following line to the description of your first pull request, replacing
-the placeholders with your own name and the date:
+When you open your first pull request, a bot will comment asking you to sign.
+Post a **new comment** on that pull request containing exactly this sentence,
+and nothing else:
 
 ```
-I have read the CLA document and I hereby sign the CLA.
-Signed-off-by: Your Name <your@email> — YYYY-MM-DD
+I have read the CLA Document and I hereby sign the CLA
 ```
 
-Your signature is recorded in the pull request history and covers that
-Contribution and every later one you submit.
+The wording is matched literally by `.github/workflows/cla.yml`. Do not
+reword it, do not translate it, and do not add a trailing period — a sentence
+that does not match is not recorded, and the check stays red.
+
+Your signature is stored in `.github/cla-signatures.json` in this repository,
+together with your GitHub username and the date. It is recorded once and covers
+that Contribution and every later one you submit, so you are only asked on your
+first pull request.

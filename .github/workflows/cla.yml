@@ -1,0 +1,47 @@
+# Cobra o CLA (CLA.md) em todo pull request de terceiro.
+#
+# Existe como Action, e nao pelo cla-assistant.io hospedado, pela mesma razao
+# que o produto auto-hospeda cada asset de runtime: o servico hospedado e bom,
+# mas pede acesso de escrita ao repositorio para um terceiro, e aqui isso roda
+# no proprio CI com o GITHUB_TOKEN da execucao. As assinaturas ficam num arquivo
+# versionado deste repositorio, nao no banco de outra empresa.
+#
+# `pull_request_target` (e nao `pull_request`) e obrigatorio: PR vindo de fork
+# roda com token somente-leitura, e o bot precisa ESCREVER -- o comentario, o
+# status do check e o arquivo de assinaturas. O par com `issue_comment` e o que
+# fecha o ciclo: a pessoa assina respondendo no proprio PR, e esse comentario e
+# o gatilho que revalida o check.
+#
+# Nao adicione `pull_request_target` com checkout do codigo do PR neste arquivo.
+# Essa combinacao roda codigo de terceiro com token de escrita, e e a forma
+# classica de entregar o repositorio. Esta Action nao faz checkout, e por isso
+# e segura aqui.
+
+name: CLA
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  cla:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Conferir a assinatura do CLA"
+        uses: contributor-assistant/github-action@v2.6.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          path-to-signatures: '.github/cla-signatures.json'
+          path-to-document: 'https://github.com/Luckas-Ferreira/nadasai/blob/main/CLA.md'
+          branch: 'main'
+          # O dono nao assina o proprio CLA, e o dependabot nao tem como assinar.
+          allowlist: 'Luckas-Ferreira,dependabot[bot]'
