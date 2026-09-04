@@ -33,9 +33,22 @@ import { IconComponent } from './icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [IconComponent],
   template: `
+    <!-- A ALTURA VEM DA VIEWPORT NO CELULAR, e do que a ferramenta pediu no
+         desktop.
+
+         O minHeight continua sendo a medida do desktop, onde o palco é uma
+         célula de grade e quem manda é a ferramenta. No celular ele deixa de
+         valer: 420px fixos escolhidos sem saber o tamanho da tela deixavam vão
+         morto num aparelho alto e espremiam num baixo. --stage-h é o mesmo
+         token que o palco do app-tool-page usa, então os dois nunca discordam.
+
+         O --surface-min é variável e não min-height inline porque estilo
+         inline vence classe: com o binding direto, o md: não teria como
+         devolver o número da ferramenta no desktop. -->
     <div
-      class="relative flex items-center justify-center overflow-hidden rounded-xl border border-stage-line bg-stage p-6"
-      [style.min-height.px]="minHeight()"
+      class="relative flex items-center justify-center overflow-hidden rounded-xl border border-stage-line bg-stage p-6
+             min-h-[var(--stage-h)] md:min-h-[var(--surface-min)]"
+      [style.--surface-min]="minHeight() + 'px'"
     >
       @if (src(); as source) {
         <div

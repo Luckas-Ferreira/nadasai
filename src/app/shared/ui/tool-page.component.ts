@@ -187,7 +187,7 @@ export class ToolPageComponent {
    * atrás dela, sem nada indicando que existe conteúdo ali embaixo.
    */
   protected readonly pageClass = computed(() => {
-    const base = 'mx-auto w-full max-w-[1240px]';
+    const base = 'stage-scope mx-auto w-full max-w-[1240px]';
     if (!this.loaded()) return base;
     return `${base} ${this.sheetOpen() ? 'pb-[48dvh]' : 'pb-14'} md:pb-0`;
   });
@@ -238,24 +238,34 @@ export class ToolPageComponent {
    * procurar a regra no CSS do build.
    */
   private readonly STAGE_FILL =
-    'min-h-[calc(100dvh-3.5rem-3rem-3.25rem-1.5rem-var(--safe-top)-var(--safe-bottom)-var(--mobile-bar-h)-var(--sheet-h))]';
+    'min-h-[var(--stage-h)]';
 
 
 
   /**
    * A folha está aberta? Só o celular lê isto.
    *
-   * Começa ABERTA, e a escolha é deliberada. Na maioria das 57 ferramentas os
-   * controles SÃO a ferramenta — o seletor de formato, a régua de qualidade, as
-   * páginas marcadas —, e escondê-los atrás de um toque tornaria cada uso um
-   * passo mais longo para ganhar uma tela cheia que o visualizador já entrega
-   * melhor (`app-file-viewer`, alcançado pela miniatura da barra de arquivo, sem
-   * cromagem nenhuma). Quem quer o arquivo grande enquanto mexe recolhe a folha,
-   * e ela fica recolhida enquanto durar a sessão.
+   * COMEÇA RECOLHIDA, e isto foi INVERTIDO depois de um teste no aparelho.
    *
-   * Inverter o padrão é trocar `true` por `false` aqui, e nada mais.
+   * O argumento anterior era que na maioria das 57 ferramentas os controles SÃO
+   * a ferramenta, então escondê-los atrás de um toque tornaria cada uso um passo
+   * mais longo. Ele não estava errado — só media a coisa errada. Aberta, a folha
+   * ocupa 46dvh, e o que sobra para o arquivo é MENOS que os 420px que a
+   * superfície já pedia: o palco alto não mordia nunca, e o celular continuava
+   * lendo como um site com uma imagem pequena no meio.
+   *
+   * Recolhida, o arquivo fica com a tela e os controles ficam a um toque — que é
+   * o que se espera depois de vir da tela cheia do visualizador, e o que todo app
+   * de foto faz. O preço é real e está aqui escrito: o botão primário de cada
+   * ferramenta passou a estar atrás desse toque.
+   *
+   * Só o celular lê. No desktop o aside é coluna (`md:max-h-none`) e o conteúdo
+   * dela nunca é escondido (`panelContentClass` só esconde antes do `md:`),
+   * então este `false` não muda um pixel lá.
+   *
+   * Desfazer é trocar `false` por `true` aqui, e nada mais.
    */
-  protected readonly sheetOpen = signal(true);
+  protected readonly sheetOpen = signal(false);
 
   /**
    * O `aside`, em três formas com um conjunto de classes só.

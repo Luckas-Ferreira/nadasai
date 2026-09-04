@@ -189,16 +189,41 @@ test.describe('A folha de controles do celular', () => {
     // `--mobile-bar-h` é lido pelas duas, para não divergirem.
     await expect.poll(() => sheet.evaluate((el) => getComputedStyle(el).bottom)).toBe('68px');
 
-    const open = await sheet.evaluate((el) => el.getBoundingClientRect().height);
-
-    await page.getByRole('button', { name: 'Esconder ajustes' }).click();
+    // ELA COMEÇA RECOLHIDA, e isso é a metade da mudança que fez o celular
+    // deixar de ler como um site: aberta, ela ocupa 46dvh e o que sobra para o
+    // arquivo é menos do que a superfície de imagem já pedia — o palco alto nunca
+    // mordia. O arquivo é o assunto; os controles ficam a um toque.
     const closed = await sheet.evaluate((el) => el.getBoundingClientRect().height);
-    expect(closed).toBeLessThan(open / 2);
 
     await page.getByRole('button', { name: 'Mostrar ajustes' }).click();
+    const open = await sheet.evaluate((el) => el.getBoundingClientRect().height);
+    expect(open).toBeGreaterThan(closed * 2);
+
+    await page.getByRole('button', { name: 'Esconder ajustes' }).click();
     await expect
       .poll(() => sheet.evaluate((el) => el.getBoundingClientRect().height))
-      .toBeGreaterThan(closed * 2);
+      .toBeLessThan(open / 2);
+  });
+
+  test('e o arquivo fica com a tela: a superfície acompanha o palco', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page, PHOTO);
+    await expect(page.locator('app-preview-surface')).toBeVisible(READY);
+
+    // O DEFEITO QUE ESTE TESTE PINA: o palco crescia e a superfície ficava nos
+    // 420px do padrão dela, porque altura não desce de avô para neto — as
+    // ferramentas embrulham a superfície num <div stage> próprio. Os dois leem o
+    // MESMO token (--stage-h) justamente para não divergirem de novo.
+    const [stage, surface] = await Promise.all([
+      page.locator('main .order-2').evaluate((el) => el.getBoundingClientRect().height),
+      page
+        .locator('app-preview-surface > div')
+        .evaluate((el) => el.getBoundingClientRect().height),
+    ]);
+
+    expect(surface).toBeGreaterThan(420);
+    // Sem vão morto: a superfície ocupa o palco, não uma fração dele.
+    expect(surface).toBeGreaterThan(stage * 0.9);
   });
 
   test('no desktop a mesma coluna não é folha nenhuma', async ({ page }) => {

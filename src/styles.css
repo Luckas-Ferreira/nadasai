@@ -234,6 +234,41 @@
      deixaria a folha cobrindo a barra sem ninguém perceber no desktop. */
   --mobile-bar-h: 4.25rem;
 
+  /* A ALTURA QUE SOBRA PARA O ARQUIVO, no celular.
+
+     Três coisas precisam concordar sobre ela: o palco do `app-tool-page`, a
+     superfície de imagem que vive dentro dele, e a folha que a limita. Como
+     número solto, a superfície ficava nos 420px do padrão dela enquanto o palco
+     ia a 572px — 152px de vão morto, medidos num aparelho de 866px.
+
+     A SUPERFÍCIE NÃO HERDA ALTURA DO PALCO, e é por isso que isto é um token e
+     não um encadeamento de `flex`: as 45 ferramentas embrulham o conteúdo num
+     `<div stage>` próprio, então a superfície é NETA do palco, e fazer altura
+     descer por aí exigiria impor `flex` a 45 templates com marcações diferentes.
+     Com o token, cada uma calcula da VIEWPORT, sem depender de quem está no meio.
+
+     Os termos: barra do topo, barra de arquivo, cabeçalho encolhido, o `py-6` do
+     <main>, os recuos do sistema e a barra do celular. A FOLHA fica de fora
+     desta conta de propósito — veja `.stage-scope` logo abaixo.
+
+     PROPRIEDADE CUSTOMIZADA RESOLVE ONDE É DECLARADA, NÃO ONDE É USADA, e essa
+     é a armadilha que custou uma medição aqui. A primeira versão punha o
+     `var(--sheet-h)` dentro desta declaração, no `:root`: o navegador substitui
+     ali mesmo, com o valor que `:root` tem (zero), e o que desce por herança já
+     é o número pronto. O `app-tool-page` sobrescrevia `--sheet-h` no seu
+     `<section>` e não adiantava nada — o palco media os mesmos 618px com a folha
+     aberta e recolhida. Por isso a parte fixa mora aqui e a subtração da folha
+     mora numa classe aplicada ao MESMO elemento que declara `--sheet-h`. */
+  --stage-fixed: calc(
+    100dvh - 3.5rem - 3rem - 3.25rem - 1.5rem - var(--safe-top) - var(--safe-bottom) -
+      var(--mobile-bar-h)
+  );
+
+  /* Fora de uma página de ferramenta não há folha, então a altura é a parte
+     fixa. É o que faz a superfície de imagem ter um número válido em qualquer
+     contexto, em vez de uma regra quebrada. */
+  --stage-h: var(--stage-fixed);
+
   --radius-xs: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -426,6 +461,21 @@
 /* File sizes, dimensions, percentages. Stops digits jittering as they update. */
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* A ALTURA DO ARQUIVO, subtraindo a folha — e ela PRECISA ser declarada no mesmo
+   elemento que declara `--sheet-h`.
+
+   Uma propriedade customizada é substituída onde é DECLARADA e desce por herança
+   já resolvida. Deixar esta conta no `:root` (onde a folha vale zero) fazia o
+   palco medir o mesmo com a folha aberta e recolhida — ver o comentário do
+   `--stage-fixed`. Aplicada ao `<section>` do `app-tool-page`, que é quem
+   escreve `--sheet-h`, ela recalcula a cada abrir e fechar.
+
+   É `@utility` e não classe solta porque o Tailwind precisa gerá-la a partir do
+   nome que aparece no `pageClass()` do componente. */
+@utility stage-scope {
+  --stage-h: calc(var(--stage-fixed) - var(--sheet-h));
 }
 
 /* Per-tool colour is wired at the element via inline `--tone-fg`/`--tone-bg`
