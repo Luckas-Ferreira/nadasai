@@ -1,14 +1,33 @@
-# Nada Sai
+<p align="center">
+  <img src="public/og/default-pt.png" alt="Nada Sai — seus arquivos não saem do seu dispositivo" width="820">
+</p>
+
+<h1 align="center">Nada Sai</h1>
+
+<p align="center">
+  <a href="https://github.com/Luckas-Ferreira/nadasai/actions/workflows/ci.yml"><img src="https://github.com/Luckas-Ferreira/nadasai/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-AGPL--3.0-1d4ed8" alt="Licença AGPL-3.0"></a>
+  <img src="https://img.shields.io/badge/uploads-0-16a34a" alt="Zero uploads">
+  <img src="https://img.shields.io/badge/backend-nenhum-0f766e" alt="Sem backend">
+</p>
+
+<p align="center">
+  <a href="https://nadasai.com"><b>nadasai.com</b></a> ·
+  <a href="https://nadasai.com/pt/sobre">sobre</a> ·
+  <a href="https://nadasai.com/pt/privacidade">privacidade</a> ·
+  <a href="https://nadasai.com/en">English</a>
+</p>
+
+---
 
 Caixa de ferramentas de arquivo que roda inteira no navegador. **Não há backend.**
 57 ferramentas em seis módulos — imagem, PDF, áudio, vídeo e privacidade —, todas
 executando em WebAssembly, Web Workers e Canvas na máquina de quem usa. Nenhum
 arquivo sai do dispositivo, e essa é a tese do produto, não um detalhe de rodapé.
 
-**nadasai.com** · [sobre](https://nadasai.com/pt/sobre) · [privacidade](https://nadasai.com/pt/privacidade)
-
-> O diretório de trabalho local ainda se chama `imgwork`, último traço do nome
-> antigo. O repositório, o pacote npm e o `dist/` são `nadasai`.
+O site é bilíngue: cada ferramenta existe sob `/pt` e sob `/en`, com URL própria
+em cada idioma. Este repositório é documentado em português porque os comentários
+do código são — mas issue e pull request em inglês são bem-vindos.
 
 ## O que garante a promessa
 
@@ -69,18 +88,23 @@ resultado de uma ferramenta entra na próxima sem passar pelo disco, e `accepts`
 
 ## Contribuir
 
-Leia o [`CLAUDE.md`](CLAUDE.md) antes. Ele não é um resumo da arquitetura — é o
-registro de por que cada decisão está de pé, quase sempre nomeando o defeito que
-a linha existe para impedir. Registrar uma ferramenta nova toca sete lugares, e
-pular qualquer um deles é bug silencioso, não erro de compilação: a lista está
-lá.
+O guia é o [`CONTRIBUTING.md`](CONTRIBUTING.md): como rodar, o que reprova um PR
+(não há linter — o portão é `tsc` estrito, os testes e o `check:templates`) e o
+que precisa de conversa antes, como dependência nova ou qualquer coisa que peça
+servidor.
 
-Contribuições passam por um **CLA** ([`CLA.md`](CLA.md)): você continua dono do
-seu código e pode reusá-lo onde quiser, e concede ao projeto uma licença **não
-exclusiva** para redistribuí-lo também sob outros termos. Sem isso, cada PR
-aceito torna quem contribuiu cotitular do trecho, e a licença atual fica
-congelada para sempre — mudar exigiria caçar a autorização de todo mundo que já
-passou por aqui. Como assinar está no fim daquele arquivo.
+A documentação de verdade é o [`CLAUDE.md`](CLAUDE.md). Ele não é um resumo da
+arquitetura — é o registro de por que cada decisão está de pé, quase sempre
+nomeando o defeito que a linha existe para impedir. Registrar uma ferramenta nova
+toca sete lugares, e pular qualquer um deles é bug silencioso, não erro de
+compilação: a lista está lá.
+
+Todo pull request passa por um [CLA](CLA.md), conferido por um bot. Você continua
+dono do seu código; a concessão é não exclusiva, e existe para que a licença possa
+mudar no futuro sem precisar caçar a autorização de cada pessoa que já contribuiu.
+
+**Falha de segurança não vai em issue.** O canal é o relato privado da aba
+Security — veja [`SECURITY.md`](SECURITY.md).
 
 ## Licença
 
