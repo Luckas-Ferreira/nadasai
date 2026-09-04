@@ -32,9 +32,19 @@ import { PACKAGED } from './platform';
  * web, nunca uma tela com a cromagem no lugar errado.
  */
 
+interface IncomingFile {
+  present: boolean;
+  path?: string;
+  name?: string;
+  mimeType?: string;
+  size?: number;
+}
+
 interface NadaSaiShellPlugin {
   insets(): Promise<{ top: number; right: number; bottom: number; left: number }>;
   immersive(options: { on: boolean }): Promise<void>;
+  incomingFile(): Promise<IncomingFile>;
+  releaseIncomingFile(): Promise<void>;
 }
 
 /**
@@ -51,16 +61,28 @@ interface NadaSaiShellPlugin {
  * Memoizado porque registrar o mesmo nome duas vezes avisa no console e devolve
  * o proxy que já existia.
  */
-let bridge: Promise<{ readonly api: NadaSaiShellPlugin } | null> | undefined;
+interface Shell {
+  readonly api: NadaSaiShellPlugin;
+  /**
+   * Traduz um caminho de arquivo do aparelho numa URL que a WebView consegue
+   * buscar. É o servidor local do Capacitor que atende, por
+   * `shouldInterceptRequest`, sem abrir socket nenhum — que é a mesma via dos
+   * assets e a razão de o app funcionar sem permissão de rede.
+   */
+  readonly convertFileSrc: (path: string) => string;
+}
 
-function shell(): Promise<{ readonly api: NadaSaiShellPlugin } | null> {
+let bridge: Promise<Shell | null> | undefined;
+
+function shell(): Promise<Shell | null> {
   // Constante de build: no bundle da web o resto é código morto e o esbuild o
   // elimina, junto com o import dinâmico do Capacitor.
   if (!PACKAGED) return Promise.resolve(null);
 
   bridge ??= import('@capacitor/core')
-    .then(({ registerPlugin }) => ({
+    .then(({ registerPlugin, Capacitor }) => ({
       api: registerPlugin<NadaSaiShellPlugin>('NadaSaiShell'),
+      convertFileSrc: (path: string) => Capacitor.convertFileSrc(path),
     }))
     .catch(() => null);
 
@@ -108,5 +130,47 @@ export async function setImmersive(on: boolean): Promise<void> {
   } catch {
     // Uma barra que não escondeu é uma tela cheia menos bonita. Uma exceção
     // aqui derrubaria a abertura do visualizador, que é muito pior.
+  }
+}
+
+/**
+ * O arquivo que o sistema entregou pelo "Abrir com" ou pela folha de
+ * compartilhar, ou `null` — que é a resposta em quase todo lançamento.
+ *
+ * ── OS BYTES NÃO ATRAVESSAM A PONTE ────────────────────────────────────────
+ *
+ * O nativo devolve METADADO e um caminho; quem lê o conteúdo é a própria
+ * WebView, buscando a URL do servidor local. É deliberado: a ponte serializa em
+ * JSON, então um vídeo de centenas de MB viraria base64 — um terço maior, em
+ * memória, duas vezes. Aqui o `fetch` entrega um `Blob` que o navegador respalda
+ * em disco enquanto pode.
+ *
+ * `takeSharedFile` faz a mesma coisa do lado web, pelo mesmo motivo, e é por
+ * isso que as duas se parecem: as duas RETIRAM. A leitura apaga a cópia do
+ * cache do aparelho — num produto cujo argumento é que nada fica guardado, o
+ * arquivo de outra pessoa esquecido ali seria vazamento local, mas real.
+ *
+ * O `release` roda mesmo se o `fetch` falhar: o que não dá para fazer é deixar
+ * o arquivo para trás porque a leitura deu errado.
+ */
+export async function takeNativeFile(): Promise<File | null> {
+  const native = await shell();
+  if (!native) return null;
+
+  try {
+    const incoming = await native.api.incomingFile();
+    if (!incoming.present || !incoming.path) return null;
+
+    try {
+      const response = await fetch(native.convertFileSrc(incoming.path));
+      const blob = await response.blob();
+      return new File([blob], incoming.name ?? 'arquivo', { type: incoming.mimeType ?? '' });
+    } finally {
+      await native.api.releaseIncomingFile();
+    }
+  } catch {
+    // Sem arquivo, o app abre normalmente. Uma tela de erro sobre uma intent que
+    // a pessoa não sabe que existe é pior do que a tela inicial.
+    return null;
   }
 }

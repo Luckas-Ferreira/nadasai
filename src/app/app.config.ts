@@ -16,6 +16,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { routes } from './app.routes';
 import { AppErrorHandler } from './core/errors/global-error-handler';
 import { PACKAGED } from './core/platform/platform';
+import { NativeFileIntakeService } from './core/platform/native-file-intake.service';
 import { syncSafeArea } from './core/platform/native-shell';
 import { AppUpdateService } from './core/services/app-update.service';
 import { ModelPrefetchService } from './core/services/model-prefetch.service';
@@ -225,6 +226,24 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const injector = inject(Injector);
       afterNextRender(() => void syncSafeArea(), { injector });
+    }),
+
+    /**
+     * O ARQUIVO QUE O SISTEMA ENTREGA, pelo "Abrir com" ou pelo compartilhar.
+     *
+     * Fica aqui, e não na tela de abrir, porque a intent LANÇA o app em `/` — a
+     * tela que responde por ela é justamente a que ainda não existe quando o
+     * arquivo chega. Quem pergunta tem de ser o arranque; quem leva até a tela é
+     * o serviço.
+     *
+     * Mesmo `afterNextRender` dos três de cima, e mais uma razão: no prerender
+     * não há Capacitor, e a constante de build já apaga o ramo inteiro do bundle
+     * da web.
+     */
+    provideAppInitializer(() => {
+      const injector = inject(Injector);
+      const intake = inject(NativeFileIntakeService);
+      afterNextRender(() => intake.start(), { injector });
     }),
   ],
 };

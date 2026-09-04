@@ -98,6 +98,15 @@ for (const rule of FORBIDDEN) {
 const REQUIRED = [
   { find: 'android.permission.RECORD_AUDIO', why: 'sem ela o getUserMedia do WebView é recusado e o voice-recorder nunca grava' },
   { find: 'android.permission.MODIFY_AUDIO_SETTINGS', why: 'o BridgeWebChromeClient do Capacitor pede as duas juntas; faltando uma, o launch() volta negado' },
+
+  // As duas portas do sistema. Falham como a permissão do microfone falha — o
+  // app compila, instala e abre; só deixa de aparecer na lista de "Abrir com" e
+  // na folha de compartilhar, que é a primeira coisa que se tenta depois de
+  // instalar. E não vêm do manifesto web: o Capacitor empacota os assets e não
+  // traduz `file_handlers`/`share_target` em intent-filter.
+  { find: 'android.intent.action.VIEW', why: 'é o "Abrir com" do sistema; sem o intent-filter o app some da lista de aplicativos capazes de abrir o arquivo' },
+  { find: 'android.intent.action.SEND', why: 'é a folha de compartilhar; sem o intent-filter o app some de "Compartilhar com"' },
+  { find: 'application/pdf', why: 'os mimeTypes dos dois filtros; sem eles as ações existem e não casam com arquivo nenhum' },
 ];
 for (const rule of REQUIRED) {
   if (xml.includes(rule.find)) console.log(`  ✓ presente: ${rule.find}`);

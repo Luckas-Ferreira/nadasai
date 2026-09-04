@@ -48,4 +48,53 @@ public class ShellPlugin extends Plugin {
         SystemBars.immersive(getActivity(), getBridge().getWebView(), on);
         call.resolve();
     }
+
+    /**
+     * O arquivo que o sistema entregou, se houver um esperando.
+     *
+     * Devolve METADADO, nunca os bytes: um video de centenas de MB atravessando
+     * a ponte como base64 e memoria que a aba nao tem, e a ponte serializa em
+     * JSON. O `path` aponta para a copia no cache, e quem a le e a propria
+     * WebView, pelo servidor local do Capacitor — o mesmo caminho que ja serve
+     * todos os assets, sem socket nenhum (ver o comentario das permissoes no
+     * AndroidManifest).
+     *
+     * `present: false` e a resposta normal: quase todo lancamento do app nao tem
+     * arquivo nenhum, e a web pergunta em TODO arranque porque a intent que
+     * LANCA o app chega antes de existir documento para avisar. E a mesma
+     * corrida que o `insets` acima resolve do mesmo jeito.
+     */
+    @PluginMethod
+    public void incomingFile(PluginCall call) {
+        final FileIntake.Pending pending = FileIntake.peek();
+
+        JSObject json = new JSObject();
+        if (pending == null) {
+            json.put("present", false);
+            call.resolve(json);
+            return;
+        }
+
+        json.put("present", true);
+        json.put("path", pending.path);
+        json.put("name", pending.name);
+        json.put("mimeType", pending.mimeType);
+        json.put("size", pending.size);
+        call.resolve(json);
+    }
+
+    /**
+     * Apaga a copia, e a web chama isto DEPOIS de ter os bytes na mao.
+     *
+     * Separado do `incomingFile` de proposito: apagar na leitura do metadado
+     * derrubaria o arquivo antes de a WebView o buscar. E ele PRECISA ser
+     * apagado — num produto cujo argumento e que nada fica guardado, o arquivo
+     * de outra pessoa esquecido no cache seria vazamento local, mas real. Mesma
+     * regra que faz `share-target.ts` apagar a entrada do Cache Storage ao ler.
+     */
+    @PluginMethod
+    public void releaseIncomingFile(PluginCall call) {
+        FileIntake.release();
+        call.resolve();
+    }
 }

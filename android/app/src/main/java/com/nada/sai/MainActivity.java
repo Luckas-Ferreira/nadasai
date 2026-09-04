@@ -57,6 +57,40 @@ public class MainActivity extends BridgeActivity {
         // O botao VOLTAR, desviado enquanto a tela cheia esta aberta. Ver o
         // metodo abaixo.
         SystemBars.onBack(this, backToViewer(bridge));
+
+        // O arquivo que veio do "Abrir com" ou da folha de compartilhar, quando
+        // foi ELE que lancou o app. Copiado agora, mas NAO anunciado: nao ha
+        // documento carregado a que dizer nada — quem pergunta e o arranque da
+        // web, e a resposta e o `incomingFile` do ShellPlugin. Mesma corrida dos
+        // recuos, mesma solucao.
+        FileIntake.stash(this, getIntent());
+    }
+
+    /**
+     * A INTENT QUE CHEGA COM O APP JA ABERTO.
+     *
+     * `launchMode="singleTask"` no manifesto e o que faz o segundo "Abrir com"
+     * cair aqui em vez de criar uma segunda Activity — sem ele haveria duas
+     * copias do app, cada uma com a propria sessao, e a de tras continuaria
+     * segurando o arquivo anterior.
+     *
+     * O `setIntent` nao e enfeite: sem ele `getIntent()` continua devolvendo a
+     * intent do LANCAMENTO pelo resto da vida da Activity, e qualquer codigo que
+     * a consulte depois le o arquivo errado.
+     *
+     * Aqui, ao contrario do `onCreate`, ha documento carregado — entao o
+     * empurrao funciona, e e o mesmo mecanismo do `nadasai:back`.
+     */
+    @Override
+    protected void onNewIntent(android.content.Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        if (!FileIntake.stash(this, intent)) return;
+
+        getBridge()
+            .getWebView()
+            .evaluateJavascript("window.dispatchEvent(new CustomEvent('nadasai:file'))", null);
     }
 
     /**

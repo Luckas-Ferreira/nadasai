@@ -3,11 +3,13 @@ import {
   Component,
   PLATFORM_ID,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { NativeFileIntakeService } from '../../core/platform/native-file-intake.service';
 import { ObjectUrlScope } from '../../core/image/object-url';
 import { FileViewerService } from '../../core/services/file-viewer.service';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
@@ -21,7 +23,7 @@ import { takeSharedFile } from '../../core/services/share-target';
 /**
  * Onde o SISTEMA OPERACIONAL entrega um arquivo.
  *
- * Duas portas levam a esta rota, e nenhuma delas existia:
+ * TRÊS portas levam a esta rota, e nenhuma delas existia:
  *
  *   * `file_handlers` no manifesto — "Abrir com > Nada Sai" no Explorer, no
  *     Finder e na lista de apps do Android. O arquivo chega pela `launchQueue`,
@@ -29,6 +31,15 @@ import { takeSharedFile } from '../../core/services/share-target';
  *   * `share_target` — a folha de compartilhamento do Android. O arquivo chega
  *     por um POST que o service worker intercepta e guarda; ver
  *     `core/services/share-target.ts`.
+ *   * as INTENTS do app empacotado (ACTION_VIEW e ACTION_SEND), que são as duas
+ *     de cima outra vez — e precisam existir em separado porque o Capacitor
+ *     empacota os assets e não traduz o manifesto web em intent-filter. O
+ *     arquivo chega por `NativeFileIntakeService`, e é a única das três em que
+ *     alguém teve de NAVEGAR até aqui: a intent lança o app em `/`.
+ *
+ * As três desembocam no mesmo `receive()` de propósito. Uma tela por porta seria
+ * a mesma pergunta respondida em três lugares, e os três divergiriam na primeira
+ * ferramenta nova.
  *
  * A página NÃO é uma ferramenta: ela não transforma nada. Ela descobre o TIPO do
  * arquivo e mostra o que o produto sabe fazer com aquele tipo — a mesma lista que
@@ -174,6 +185,25 @@ export class OpenWithComponent {
 
     void takeSharedFile().then((shared) => {
       if (shared) this.receive(shared);
+    });
+
+    /**
+     * A TERCEIRA ORIGEM: o "Abrir com" do app empacotado.
+     *
+     * É um EFFECT e não uma leitura no construtor porque esta rota pode já estar
+     * aberta quando o segundo arquivo chega — navegar para a mesma URL não
+     * reconstrói o componente, e o sintoma seria o pior tipo: tocar "Abrir com"
+     * de novo traz o app para a frente mostrando o arquivo ANTERIOR. É a mesma
+     * razão pela qual a hidratação da cadeia é effect, e não leitura única.
+     *
+     * `consume()` é o que impede o laço: o effect relê com `null` e não faz nada.
+     */
+    const intake = inject(NativeFileIntakeService);
+    effect(() => {
+      const native = intake.pending();
+      if (!native) return;
+      this.receive(native);
+      intake.consume();
     });
 
     const queue = (window as unknown as { launchQueue?: LaunchQueue }).launchQueue;

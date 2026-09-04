@@ -23,6 +23,51 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- "ABRIR COM", e a folha de COMPARTILHAR.
+
+                 O `public/manifest.webmanifest` ja declarava as duas — pelo
+                 `file_handlers` e pelo `share_target` —, mas isso vale para o
+                 PWA instalado pelo navegador e NAO chega aqui: o Capacitor
+                 empacota os assets, nao traduz o manifesto web em
+                 intent-filter. Ate esta declaracao existir, o app instalado
+                 simplesmente nao aparecia na lista do sistema, o que e a
+                 primeira coisa que se tenta depois de instalar.
+
+                 SO `content:`. Um `file:` vindo de outro app quebra desde o
+                 Android 7 (FileUriExposedException, do lado de quem envia),
+                 entao aceitar o esquema so criaria um caminho que falha na mao
+                 de quem usa. O SEND nao declara esquema nenhum de proposito: o
+                 Uri dele vem no EXTRA_STREAM, e nao nos dados da intent.
+
+                 Os tipos sao os MESMOS quatro do manifesto web, e isso e
+                 deliberado: as duas portas tem de oferecer o mesmo produto, ou
+                 o app aceita um arquivo que o site recusa (ou o contrario) sem
+                 nada explicando a diferenca.
+
+                 SEND_MULTIPLE fica de fora, e nao por esquecimento: a sessao do
+                 `WorkspaceService` guarda UM arquivo, e a rota `/abrir`
+                 pergunta o que fazer com ELE. Declarar o multiplo e usar so o
+                 primeiro seria o app aparecendo numa lista para entregar menos
+                 do que prometeu. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+
         </activity>
 
         <provider
@@ -79,7 +124,7 @@
          Efeito colateral que ja pagou por si: um build apontado por engano
          para um endereco remoto (`server.url`) simplesmente nao carrega, aqui
          ou em producao, em vez de virar uma tela de "sem internet" na mao de
-         quem instalou. -->
+         quem instalou.
 
          E "nao ha" precisa ser ESCRITO, nao apenas omitido. O mesmo AAR do
          ONNX Runtime declara INTERNET e ACCESS_NETWORK_STATE, e o merger as
