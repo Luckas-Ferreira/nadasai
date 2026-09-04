@@ -7,6 +7,7 @@ import { SeoService } from './core/services/seo.service';
 import { TranslationService } from './core/services/translation.service';
 import { AlertComponent } from './shared/ui/alert.component';
 import { CommandPaletteComponent } from './shared/ui/command-palette.component';
+import { FileViewerComponent } from './shared/ui/file-viewer.component';
 import { FileBarComponent } from './shared/ui/file-bar.component';
 import { MobileToolBarComponent } from './shared/ui/mobile-tool-bar.component';
 import { ModelDownloadBarComponent } from './shared/ui/model-download-bar.component';
@@ -34,6 +35,7 @@ import { UpdateOverlayComponent } from './shared/ui/update-overlay.component';
     ToolNavComponent,
     MobileToolBarComponent,
     CommandPaletteComponent,
+    FileViewerComponent,
     FileBarComponent,
     UpdateOverlayComponent,
     ModelDownloadBarComponent,

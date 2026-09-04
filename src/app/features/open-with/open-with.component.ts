@@ -8,6 +8,8 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { ObjectUrlScope } from '../../core/image/object-url';
+import { FileViewerService } from '../../core/services/file-viewer.service';
 import { DropzoneComponent } from '../../shared/ui/dropzone.component';
 import { IconComponent } from '../../shared/ui/icon/icon.component';
 import { TranslationService } from '../../core/services/translation.service';
@@ -39,6 +41,10 @@ import { takeSharedFile } from '../../core/services/share-target';
  */
 @Component({
   selector: 'app-open-with',
+  // Escopado ao componente, como em toda ferramenta: a object URL da prévia
+  // morre com a rota. Provido em root, seria o vazamento que a classe existe
+  // para fechar.
+  providers: [ObjectUrlScope],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DropzoneComponent, IconComponent],
@@ -59,6 +65,29 @@ import { takeSharedFile } from '../../core/services/share-target';
             <span class="block font-mono tabular text-xs text-muted">{{ kindLabel() }}</span>
           </span>
         </div>
+
+        <!-- VER vem antes de EDITAR, e é essa a ordem certa da pergunta.
+             Quem entrega um arquivo ao app pelo "Abrir com" do sistema quase
+             sempre quer só olhá-lo; a lista de ferramentas abaixo continua
+             inteira para quem quer mudar alguma coisa. Só aparece para o que o
+             visualizador sabe desenhar — oferecer "visualizar" um MP3 seria
+             abrir uma tela vazia. -->
+        @if (previewable()) {
+          <button
+            type="button"
+            (click)="view()"
+            class="mb-6 flex w-full items-center gap-3 rounded-lg border border-line bg-surface p-4 text-left
+                   transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:bg-raised"
+          >
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-raised text-accent">
+              <app-icon name="expand" [size]="19" />
+            </span>
+            <span class="min-w-0">
+              <span class="block text-base font-semibold text-text">{{ i18n.t()['open.view'] }}</span>
+              <span class="mt-0.5 block text-xs text-muted">{{ i18n.t()['open.view_hint'] }}</span>
+            </span>
+          </button>
+        }
 
         @if (tools().length > 0) {
           <p class="mb-3 text-sm font-medium text-muted">{{ i18n.t()['open.pick_tool'] }}</p>
@@ -104,6 +133,8 @@ import { takeSharedFile } from '../../core/services/share-target';
 export class OpenWithComponent {
   protected readonly i18n = inject(TranslationService);
   private readonly workspace = inject(WorkspaceService);
+  private readonly viewer = inject(FileViewerService);
+  private readonly urls = inject(ObjectUrlScope);
   private readonly router = inject(Router);
 
   protected readonly file = signal<File | null>(null);
@@ -111,6 +142,21 @@ export class OpenWithComponent {
   protected readonly tools = computed<readonly ToolDef[]>(() => {
     const incoming = this.file();
     return incoming ? nextToolsFor(kindOf(incoming), null) : [];
+  });
+
+  /**
+   * O visualizador sabe desenhar isto?
+   *
+   * A MESMA lista da barra de arquivo, e não por acaso: imagem e vetor têm
+   * pixels prontos, o PDF é rasterizado lá dentro, e áudio, vídeo e binário
+   * não têm o que mostrar. Um botão que abre uma tela vazia é pior do que
+   * nenhum botão.
+   */
+  protected readonly previewable = computed(() => {
+    const incoming = this.file();
+    if (!incoming) return false;
+    const kind = kindOf(incoming);
+    return kind === 'image' || kind === 'svg' || kind === 'pdf';
   });
 
   protected readonly kindLabel = computed(() => {
@@ -139,6 +185,31 @@ export class OpenWithComponent {
 
   protected receive(file: File): void {
     this.file.set(file);
+  }
+
+  /**
+   * Abre o arquivo em tela cheia, sem escolher ferramenta nenhuma.
+   *
+   * Ele entra na SESSÃO antes, e sem id de ferramenta — a guarda de tipo do
+   * `WorkspaceService` pergunta se o tool que vai ABRIR o arquivo aceita aquele
+   * tipo, e aqui não há tool: é a mesma chamada que o gravador de voz faz, pelo
+   * mesmo motivo. Sem isso o visualizador abriria com a lista de destinos vazia,
+   * porque ela é derivada do tipo da sessão.
+   */
+  protected view(): void {
+    const incoming = this.file();
+    if (!incoming) return;
+
+    this.workspace.load(incoming);
+
+    this.viewer.show({
+      name: incoming.name,
+      kind: kindOf(incoming),
+      // Só o PDF é rasterizado dentro do visualizador; a imagem precisa de
+      // pixels prontos, e a object URL vive no escopo desta rota.
+      src: kindOf(incoming) === 'pdf' ? null : this.urls.replace(null, incoming),
+      file: incoming,
+    });
   }
 
   protected use(tool: ToolDef): void {

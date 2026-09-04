@@ -1,0 +1,143 @@
+apply plugin: 'com.android.application'
+
+// A assinatura de release, lida de um arquivo que NAO esta no git.
+//
+// O Play recusa um AAB nao assinado, e a chave de upload e a unica coisa neste
+// repositorio que, perdida, nao se refaz: sem ela nao ha como publicar
+// ATUALIZACAO do app ja publicado (da para pedir uma redefinicao ao Google, mas
+// e um processo manual de dias). Por isso ela mora fora do repositorio e este
+// arquivo so aponta para ela.
+//
+// `android/keystore.properties` (veja `store/RELEASE.md` para o comando que a
+// cria):
+//
+//   storeFile=C:/caminho/absoluto/nadasai-upload.jks
+//   storePassword=...
+//   keyAlias=nadasai
+//   keyPassword=...
+//
+// Sem o arquivo, `assembleDebug` continua funcionando normalmente e
+// `bundleRelease` sai NAO ASSINADO em vez de quebrar o build — o que e a
+// degradacao certa numa maquina de CI ou na de quem so quer compilar e olhar.
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+
+android {
+    namespace = "com.nada.sai"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.nada.sai"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // O Play recusa um envio cujo versionCode ja exista, e nunca aceita um
+        // menor. Ele SOBE a cada AAB enviado, inclusive para um teste interno
+        // que nunca chegou a producao — nao ha como reaproveitar um numero.
+        // O versionName e o que a pessoa le na ficha da loja.
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // As ABIs que existem em aparelho, mais a do emulador.
+            //
+            // Isto existe por causa do ONNX Runtime: a libonnxruntime.so vai
+            // no APK SEM COMPRESSAO e pesa 32 MB em arm64, 38 MB em cada x86 e
+            // 23 MB em armeabi-v7a. `x86` (32 bits) nao roda em telefone nenhum
+            // e nem no emulador desta maquina, entao sao 38 MB que nao serviriam
+            // a ninguem.
+            //
+            // Os outros tres FICAM, e o motivo e o AAB: o Play entrega uma ABI
+            // por aparelho, entao manter armeabi-v7a nao custa nada a quem tem
+            // arm64 — e TIRA-la custaria a instalacao inteira num aparelho de 32
+            // bits, porque sem fatia compativel o Play recusa o app em vez de
+            // entregar uma versao sem o atalho nativo.
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        }
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            // Vazio de proposito quando o arquivo nao existe: um signingConfig
+            // com storeFile nulo faz o Gradle falhar na CONFIGURACAO, ou seja,
+            // ate `assembleDebug` pararia de compilar numa maquina sem a chave.
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+
+            // O R8 fica DESLIGADO, e isso e decisao e nao esquecimento.
+            //
+            // O Capacitor resolve plugin por REFLEXAO — `registerPlugin` acha a
+            // classe pelo nome que o JavaScript passa —, entao o encolhedor
+            // remove `MattePlugin`, `TranscodeEngine` e `TrimEngine` por
+            // parecerem codigo morto. O sintoma nao e erro de compilacao: e o
+            // app instalado respondendo "not implemented on android" na primeira
+            // remocao de fundo, so no build de release, so no aparelho.
+            //
+            // O que o R8 economizaria aqui e ruido: o APK e dominado pelos 87 MB
+            // de motores WASM e pela libonnxruntime.so, e nenhum dos dois passa
+            // pelo encolhedor de Java. Ligar isto pede as regras de keep dos
+            // tres plugins e um teste de release em aparelho — mudanca propria,
+            // nao efeito colateral de publicar.
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    // O ONNX Runtime nativo (MIT), que existe por um motivo so: o WebView nao
+    // expoe SharedArrayBuffer, entao o onnxruntime-web roda a remocao de fundo em
+    // UMA thread aqui dentro. Veja MainActivity e MatteEngine.
+    //
+    // TAMANHO: o AAR traz as quatro ABIs e sao ~52 MB, ~14 MB cada. Nao ha
+    // abiFilters de proposito — o release tem que sair como AAB (bundleRelease),
+    // e ai o Play entrega so a ABI do aparelho e o custo real por instalacao e o
+    // de uma. Se um dia a distribuicao virar APK avulso, o lugar de cortar e
+    // aqui, com `ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }` — e o preco de
+    // cortar x86_64 e o emulador, que perde o caminho nativo e volta ao WASM.
+    implementation "com.microsoft.onnxruntime:onnxruntime-android:$onnxRuntimeVersion"
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -43,11 +43,11 @@ import { IconComponent } from './icon/icon.component';
   template: `
     @if (tools().length) {
       <div
-        class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)] md:hidden"
       >
         <nav
           #strip
-          class="flex snap-x snap-mandatory gap-1 overflow-x-auto px-2 py-1.5"
+          class="flex h-[var(--mobile-bar-h)] snap-x snap-mandatory items-center gap-1 overflow-x-auto px-2"
           [attr.aria-label]="i18n.t()['nav.module_tools']"
         >
           @for (tool of tools(); track tool.id) {

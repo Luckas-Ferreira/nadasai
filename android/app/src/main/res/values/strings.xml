@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nada Sai</string>
+    <string name="title_activity_main">Nada Sai</string>
+    <string name="package_name">com.nada.sai</string>
+    <string name="custom_url_scheme">com.nada.sai</string>
+</resources>

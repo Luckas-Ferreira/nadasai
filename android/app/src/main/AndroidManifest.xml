@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:launchMode="singleTask"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+        <!-- A TELEMETRIA DO ONNX RUNTIME, ARRANCADA.
+
+             O AAR `com.microsoft.onnxruntime:onnxruntime-android` declara este
+             ContentProvider no manifesto DELE, e o merger o traz para ca sem
+             dizer nada. Um provider e instanciado pelo sistema no LANCAMENTO do
+             app, antes de qualquer linha nossa rodar, e o `onCreate` dele monta
+             um `ai.onnxruntime.telemetry.HttpClient` sobre o contexto da
+             aplicacao — ha um pacote inteiro ali, com
+             `HttpClientRequest$Factory$AndroidUrlConnection`,
+             `ConnectivityCallback` e `PowerInfoReceiver`.
+
+             Num produto chamado "Nada Sai" isto e o pior defeito possivel: um
+             cliente HTTP de telemetria de terceiro, ligado sozinho, na versao
+             que se apresenta como a mais forte da promessa.
+
+             Remover e seguro e foi conferido no bytecode: o `onCreate` dele so
+             faz `System.loadLibrary("onnxruntime")` e criar o cliente, e quem
+             carrega a biblioteca de verdade e o `ai.onnxruntime.OnnxRuntime`,
+             sozinho, quando o `OrtEnvironment` sobe. O proprio provider ja
+             engole `LinkageError` e `RuntimeException` e devolve false — ou
+             seja, o AAR foi escrito para funcionar quando ele falha. -->
+        <provider
+            android:name="ai.onnxruntime.TelemetryInitializer"
+            tools:node="remove" />
+
+    </application>
+
+    <!-- Permissoes.
+
+         NAO HA `android.permission.INTERNET`, e a ausencia E o produto.
+
+         Na web, `NetworkProbeService` MEDE a saida de arquivo e a CSP do
+         `public/_headers` a IMPEDE. Aqui a garantia sobe um nivel: sem esta
+         permissao o SISTEMA OPERACIONAL recusa qualquer socket, entao nao ha
+         dependencia com telemetria, linha nova ou script injetado que consiga
+         mandar arquivo embora. E a versao mais forte da promessa que da nome
+         ao produto, e ela so existe no Android.
+
+         Nada dentro do app depende de rede: os 87 MB de motores vem do APK, e
+         o servidor local do Capacitor responde por `shouldInterceptRequest`,
+         que le os assets sem abrir socket nenhum. Atualizacao e pela loja.
+
+         Efeito colateral que ja pagou por si: um build apontado por engano
+         para um endereco remoto (`server.url`) simplesmente nao carrega, aqui
+         ou em producao, em vez de virar uma tela de "sem internet" na mao de
+         quem instalou. -->
+
+         E "nao ha" precisa ser ESCRITO, nao apenas omitido. O mesmo AAR do
+         ONNX Runtime declara INTERNET e ACCESS_NETWORK_STATE, e o merger as
+         soma a este arquivo em silencio: a permissao nao aparece aqui, aparece
+         no manifesto MESCLADO, que e o que vai dentro do pacote e o que a ficha
+         da loja mostra. Ou seja, ate esta linha existir o app era publicado
+         COM permissao de rede enquanto o comentario acima dizia o contrario.
+         O `tools:node="remove"` abaixo e o que faz o comentario voltar a ser
+         verdade, e `scripts/check-android-manifest.mjs` e quem impede isso de
+         voltar no proximo upgrade do ORT. -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+
+    <!-- O MICROFONE, que e a unica permissao que este app pede.
+
+         Ela existe pelo `voice-recorder`, e a alternativa nao era "menos uma
+         permissao": era a ferramenta aparecendo na lista e nunca gravando.
+         Dentro do WebView o `navigator.mediaDevices.getUserMedia` EXISTE
+         mesmo sem permissao nenhuma — entao a checagem de suporte do
+         componente passa, o aviso de "nao suportado" nao aparece, e a chamada e
+         recusada tres camadas abaixo. Falha silenciosa, disfarcada de defeito
+         do produto.
+
+         Sao DUAS declaracoes e nao uma porque quem pede e o Capacitor: o
+         `onPermissionRequest` do `BridgeWebChromeClient` monta a lista com
+         RECORD_AUDIO **e** MODIFY_AUDIO_SETTINGS quando o WebView pede
+         `AUDIO_CAPTURE`, e um `launch()` sobre permissao nao declarada volta
+         negado na hora, sem dialogo e sem log.
+
+         Ela nao arranha o argumento do produto, e a diferenca e visivel na
+         propria tela de permissoes: microfone e ENTRADA, com dialogo do
+         sistema e revogavel a qualquer momento; INTERNET seria SAIDA, sem
+         dialogo nenhum — e essa continua ausente. O audio gravado segue o
+         caminho de todos os outros arquivos: nao ha por onde sair. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- `required="false"`: o gravador de voz e uma das 57 ferramentas, e nao o
+         produto. Sem isto o Play esconderia o app de todo aparelho sem
+         microfone — televisao, boa parte dos tablets — por causa de 1/57. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+</manifest>

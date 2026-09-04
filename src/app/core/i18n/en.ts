@@ -305,8 +305,6 @@ export const EN = {
   'hero.soon.design_desc': 'Color palettes, gradients, color picker and SVG tools.',
   'hero.soon.productivity': 'Productivity',
   'hero.soon.productivity_desc': 'Code formatter, JSON, Base64 and quick utilities.',
-  'hero.soon.office': 'Office',
-  'hero.soon.office_desc': 'Compress Word, Excel and PowerPoint, and extract text and sheets.',
   'hero.next_step': 'What do you want to do now?',
 
   'proof.title': 'Network, monitored live',
@@ -330,6 +328,8 @@ export const EN = {
   'open.title': 'Open a file',
   'open.subtitle': 'Pick what to do with it. Nothing is uploaded, here or anywhere else.',
   'open.pick_tool': 'What do you want to do with this file?',
+  'open.view': 'Just view it',
+  'open.view_hint': 'Opens full screen. The tools stay one tap away.',
   'open.no_tool': 'No tool here takes a file of this type yet.',
   'open.drag': 'Drop any file here',
   'open.drag_hint': 'Image, PDF, audio or video — the tools that fit appear next',
@@ -370,6 +370,16 @@ export const EN = {
   /** Suffixed with the tool name, e.g. "Undo Crop". */
   'common.undo_tool': 'Undo',
   'common.clear': 'Clear',
+  'common.close': 'Close',
+  /** The full-screen viewer, reached from the file bar thumbnail. */
+  'viewer.title': 'File viewer',
+  'viewer.open_with': 'Open with',
+  'viewer.no_preview': 'This file cannot be previewed here.',
+  'viewer.expand': 'View full screen',
+  /** The phone sheet that holds a tool controls. */
+  'viewer.controls': 'Controls',
+  'viewer.show_controls': 'Show controls',
+  'viewer.hide_controls': 'Hide controls',
   'common.cancel': 'Cancel',
   /** Icon-only pager buttons: the icon is aria-hidden, so this is their whole name. */
   'common.prev_page': 'Previous page',
