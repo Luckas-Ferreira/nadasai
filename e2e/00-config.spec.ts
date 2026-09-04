@@ -16,11 +16,12 @@ import { previewNeeded } from './preview';
 const argv = (...args: string[]) => ['node', 'playwright', 'test', ...args];
 
 test.describe('Seleção do servidor de preview', () => {
-  test('sobe para a suíte inteira e para quem cita um dos três', () => {
+  test('sobe para a suíte inteira e para quem cita um dos quatro', () => {
     expect(previewNeeded(argv())).toBe(true);
     expect(previewNeeded(argv('09-offline'))).toBe(true);
     expect(previewNeeded(argv('21-prerender'))).toBe(true);
     expect(previewNeeded(argv('36-csp'))).toBe(true);
+    expect(previewNeeded(argv('57-packs'))).toBe(true);
     expect(previewNeeded(argv('e2e/09-offline.spec.ts'))).toBe(true);
     expect(previewNeeded(argv('e2e\\09-offline.spec.ts'))).toBe(true);
   });
@@ -30,12 +31,23 @@ test.describe('Seleção do servidor de preview', () => {
     expect(previewNeeded(argv('e2e/0'))).toBe(true);
     expect(previewNeeded(argv('e2e/2'))).toBe(true);
     expect(previewNeeded(argv('e2e/3'))).toBe(true);
+
+    // A DEZENA MUDA DE LADO QUANDO A LISTA CRESCE, e esta linha é a prova de que
+    // a tabela precisa ser relida a cada spec novo em `PREVIEW_SPECS`: `e2e/5`
+    // ficou aqui embaixo o dia em que o `57-packs` entrou na lista — ele testa
+    // pacote instalado com a rede cortada, o que exige service worker, o que
+    // exige o artefato. Enquanto foram três (09, 21, 36), a dezena 5 era a
+    // resposta NÃO, e o teste afirmava isso. Ninguém releu, e a suíte carregou
+    // um vermelho que não era do produto.
+    expect(previewNeeded(argv('e2e/5'))).toBe(true);
   });
 
   test('não sobe para um spec que não olha o artefato', () => {
     expect(previewNeeded(argv('54-id-photo'))).toBe(false);
     expect(previewNeeded(argv('e2e/1'))).toBe(false);
-    expect(previewNeeded(argv('e2e/5'))).toBe(false);
+    // A dezena 4 é a que hoje não tem nenhum spec de preview. Se um entrar ali,
+    // é esta linha que reprova — de propósito.
+    expect(previewNeeded(argv('e2e/4'))).toBe(false);
     expect(previewNeeded(argv('-g', 'algo', '48-crop-video'))).toBe(false);
   });
 

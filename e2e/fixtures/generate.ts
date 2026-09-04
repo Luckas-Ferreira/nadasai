@@ -1,6 +1,7 @@
 import { deflateSync } from 'node:zlib';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { DEV_URL } from '../ports';
 
 /**
  * The tools need a real decodable image and a real non-image to exercise the
@@ -334,7 +335,46 @@ function makeWav(seconds: number, sampleRate = 44100, channels = 2): Buffer {
   return buf;
 }
 
-export default function globalSetup(): void {
+/**
+ * DE QUEM É O SERVIDOR QUE JÁ ESTÁ NESTA PORTA?
+ *
+ * O `webServer` do Playwright reusa um servidor que já esteja de pé — e reusar o
+ * `ng serve` é certo, porque ele observa arquivo e nunca está desatualizado (ver
+ * `playwright.config.ts`). O que ele não faz é perguntar de QUEM ele é. Com a
+ * porta padrão do Angular, um segundo projeto aberto na mesma máquina fazia a
+ * suíte inteira rodar contra OUTRO PRODUTO — e o que ela reportava não era isso:
+ * eram dezenove testes falhando por não achar o link "Nada Sai", o que se lê como
+ * a casca ter quebrado. Aconteceu, e só a captura de tela contava a verdade.
+ *
+ * A porta mudou por causa disso (ver `e2e/ports.ts`), mas trocar de porta só
+ * adia; quem garante é esta pergunta, que custa uma requisição por execução.
+ *
+ * NINGUÉM ATENDER É O CASO NORMAL: o `globalSetup` pode correr antes de o
+ * `webServer` subir, e aí o Playwright sobe o nosso logo em seguida. O que se
+ * recusa é alguém atender NÃO SENDO nós.
+ */
+async function assertOurDevServer(): Promise<void> {
+  let html: string;
+  try {
+    html = await (await fetch(DEV_URL, { signal: AbortSignal.timeout(4000) })).text();
+  } catch {
+    return;
+  }
+
+  // A raiz responde 302 para `/pt` (o `''` é um `redirectTo`), e o `fetch` segue
+  // sozinho — o que se lê é a página de chegada. Basta o NOME: ele está no
+  // `<title>` de toda rota nossa e em nenhuma de mais ninguém.
+  if (html.includes('Nada Sai')) return;
+
+  throw new Error(
+    `${DEV_URL} já está ocupada por OUTRO aplicativo, e a suíte testaria ele em ` +
+      `vez do Nada Sai. Feche esse servidor, ou rode com NADASAI_DEV_PORT=<porta livre>.`,
+  );
+}
+
+export default async function globalSetup(): Promise<void> {
+  await assertOurDevServer();
+
   mkdirSync(DIR, { recursive: true });
   writeFileSync(PHOTO, makePng(800, 600));
   writeFileSync(PHOTO_TALL, makePng(400, 700));
