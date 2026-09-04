@@ -75,8 +75,37 @@ a linha existe para impedir. Registrar uma ferramenta nova toca sete lugares, e
 pular qualquer um deles é bug silencioso, não erro de compilação: a lista está
 lá.
 
+Contribuições passam por um **CLA** ([`CLA.md`](CLA.md)): você continua dono do
+seu código e pode reusá-lo onde quiser, e concede ao projeto uma licença **não
+exclusiva** para redistribuí-lo também sob outros termos. Sem isso, cada PR
+aceito torna quem contribuiu cotitular do trecho, e a licença atual fica
+congelada para sempre — mudar exigiria caçar a autorização de todo mundo que já
+passou por aqui. Como assinar está no fim daquele arquivo.
+
 ## Licença
 
-Todo direito reservado. O modelo IS-Net usado na remoção de fundo é Apache-2.0 e
-é baixado em tempo de instalação; não o troque por um checkpoint RMBG/BRIA — a
-licença deles é não comercial. Ver `scripts/fetch-model.mjs`.
+**AGPL-3.0** — veja [`LICENSE`](LICENSE). Você pode usar, estudar, modificar e
+redistribuir, inclusive **comercialmente**; o que a licença exige é que qualquer
+versão modificada que você distribua, ou sirva por rede, saia sob a mesma
+licença e com o código-fonte aberto.
+
+O que é redistribuído junto está em
+[`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md). Duas entradas valem
+menção aqui, porque as duas são armadilha de uso comercial:
+
+- **O modelo IS-Net** da remoção de fundo é Apache-2.0 e é baixado em tempo de
+  instalação. Não o troque por um checkpoint RMBG/BRIA — a licença deles é
+  **não comercial**. Ver `scripts/fetch-model.mjs`.
+- **`@breezystack/lamejs`**, o codificador de MP3, é **LGPL-3.0**, e é a única
+  dependência copyleft do produto. Sob a AGPL isso não custa nada, porque a
+  fonte aberta já satisfaz o direito de religar que a LGPL exige. Numa eventual
+  versão fechada, custaria.
+
+### A marca não está na licença
+
+**"Nada Sai", o logotipo e o domínio `nadasai.com` são marca, e não estão
+cobertos pela AGPL-3.0.** A licença entrega o código; ela não entrega o direito
+de publicar um app ou um site com este nome e esta identidade visual, nem de
+apresentar uma versão derivada como se fosse a oficial.
+
+Fork é bem-vindo — sob outro nome.

@@ -1,6 +1,14 @@
 {
   "name": "nadasai",
   "version": "1.0.0",
+  "description": "Caixa de ferramentas de arquivo que roda inteira no navegador — 57 ferramentas, sem backend.",
+  "license": "AGPL-3.0-only",
+  "author": "Luckas Ferreira",
+  "homepage": "https://nadasai.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luckas-Ferreira/nadasai.git"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
