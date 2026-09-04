@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The product is **Nada Sai** (`nadasai.com`; the repo, the npm package and the `dist/` folder are all `nadasai` — the local working directory is still named `imgwork`, which is the last trace of the old name and matters to nothing) — a client-side file toolbox built with Angular 19 + Tailwind 4. **There is no backend.** Every operation runs in the browser via WASM/Canvas, and no file ever leaves the user's machine — that claim is the product, not a footer detail, so keep any new feature client-side. `NetworkProbeService` instruments it at runtime (see _Offline, PWA and the proof_).
 
-Fifty-seven tools in six modules, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf' | 'audio' | 'video' | 'privacy'`):
+Fifty-seven tools in six modules, all declared in `core/tools/tools.ts` (`category: 'image' | 'pdf' | 'office' | 'audio' | 'video' | 'privacy'`):
 
 - **image** — remove-bg, compress, convert, resize, crop, id-photo, img-to-pdf, extract-text (OCR), upscale, vectorize, favicon
 - **pdf** — merge, compress, split, edit-pdf (the editor, with OCR), pdf-to-word, pdf-to-img, sign, rotate, unlock, organize, protect, watermark, page-numbers, pdf-to-text, compare-pdf

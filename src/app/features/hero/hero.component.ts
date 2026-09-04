@@ -19,23 +19,27 @@ import { FaqComponent } from '../../shared/ui/faq.component';
  * conta tanto quanto o título: "leitor de QR Code" ao lado de um gerador de QR
  * que existe lê como a mesma desatenção.
  *
- * O QUE UMA ENTRADA PROMETE TAMBÉM PRECISA SER ENTREGÁVEL AQUI. O item de
- * Office já dizia "Word, Excel e PowerPoint para PDF", e essa é justamente a
- * função que este produto não consegue fazer com honestidade: cada módulo daqui
- * existe porque o navegador traz um motor de verdade — pdf.js, Web Audio,
- * MediaRecorder, WebCrypto —, e para OOXML não há motor nenhum. Um .docx é um
- * zip de XML mais uma especificação de layout que só o Word implementa por
- * inteiro, então o caminho possível (mammoth → HTML → jspdf) entrega
- * APROXIMADAMENTE o documento: tabela escorrega, coluna quebra, cabeçalho some,
- * fonte é substituída. O que dá para fazer é comprimir (o peso está nas imagens
- * dentro do zip, e `core/office/metadata.ts` já abre e fecha esse zip copiando
- * o resto byte a byte) e extrair texto e planilha, onde a saída é dado e não
- * layout. A promessa foi reescrita para isso.
+ * OFFICE SAIU AGORA, e ele é o exemplo de que a regra acima não se aplica
+ * sozinha: o módulo entrou na grade — comprimir, Word para texto, Excel para CSV
+ * — e a entrada do roteiro continuou embaixo prometendo exatamente esses três,
+ * palavra por palavra. A tela dizia "em breve" sobre o que estava dois blocos
+ * acima, clicável. Quem pegou não foi ninguém lendo: foi o `01-shell`, e não pela
+ * asserção que ele tem sobre o roteiro — foi pela VIOLAÇÃO DE MODO ESTRITO, dois
+ * elementos com o texto "Office" na mesma página, um deles o `<h2>` do módulo.
+ *
+ * O QUE UMA ENTRADA PROMETE TAMBÉM PRECISA SER ENTREGÁVEL. Este mesmo item já
+ * dizia "Word, Excel e PowerPoint para PDF" antes, e essa é a função que o
+ * produto não consegue fazer com honestidade: cada módulo daqui existe porque o
+ * navegador traz um motor de verdade — pdf.js, Web Audio, MediaRecorder,
+ * WebCrypto —, e para OOXML não há motor nenhum. Um .docx é um zip de XML mais
+ * uma especificação de layout que só o Word implementa por inteiro, então o
+ * caminho possível (mammoth → HTML → jspdf) entrega APROXIMADAMENTE o documento.
+ * A promessa foi reescrita para o que dava — comprimir e extrair —, e foi
+ * exatamente isso que acabou embarcando.
  */
 const SOON: ReadonlyArray<{ icon: IconName; nameKey: TranslationKey; descKey: TranslationKey }> = [
   { icon: 'palette', nameKey: 'hero.soon.design', descKey: 'hero.soon.design_desc' },
   { icon: 'zap', nameKey: 'hero.soon.productivity', descKey: 'hero.soon.productivity_desc' },
-  { icon: 'doc', nameKey: 'hero.soon.office', descKey: 'hero.soon.office_desc' },
 ];
 
 /**

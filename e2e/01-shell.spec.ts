@@ -48,12 +48,20 @@ test.describe('Shell: home, nav, i18n', () => {
 
     await expect(page.getByRole('heading', { name: 'Em breve' })).toBeVisible();
 
-    // PDF, Áudio and Vídeo shipped and are real modules now, so they left this
-    // list — a roadmap that still advertises what the grid above already links
-    // to is the product telling you it has not noticed itself.
+    // PDF, Áudio, Vídeo e agora Office embarcaram e são módulos de verdade, então
+    // saíram desta lista — um roteiro que ainda anuncia o que a grade acima já
+    // liga é o produto dizendo que não reparou em si mesmo.
     await expect(page.getByRole('heading', { name: 'Vídeo', exact: true })).toHaveCount(0);
 
-    for (const name of ['Office']) {
+    // Office é o caso que prova a regra, e quem o pegou não foi a linha acima: foi
+    // o MODO ESTRITO, porque `module.office` é literalmente "Office" e a página
+    // passou a ter dois — o `<h2>` do módulo e o `<span>` do roteiro, prometendo
+    // "em breve" os mesmos três que estavam clicáveis dois blocos acima. Ou seja,
+    // um `getByText` ambíguo denunciou o produto antes de qualquer asserção sobre
+    // o roteiro. A entrada saiu; o cabeçalho do módulo fica.
+    await expect(page.getByRole('heading', { name: 'Office', exact: true })).toBeVisible();
+
+    for (const name of ['Produtividade']) {
       await expect(page.getByText(name, { exact: true })).toBeVisible();
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0);
     }
