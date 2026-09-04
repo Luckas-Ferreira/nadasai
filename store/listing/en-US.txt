@@ -85,6 +85,17 @@ TECHNICAL DETAIL, IF YOU CARE
 Nada Sai also runs in the browser at nadasai.com. Same product; the app is the version that does not even need a tab open.
 
 
+--- RELEASE NOTES — 1.0.0 (500) -------------------------------------------------
+
+First release.
+
+57 PDF, image, audio, video and privacy tools, all running inside your device. The app does not request the internet permission — you can check the permission list before installing.
+
+PDF editor with OCR, PDF to Word, AI background removal on your device's chip, print-ready ID photos, screen and voice recorder, metadata removal and AES-256 encryption.
+
+Works with no signal. No account, no ads, no trackers.
+
+
 --- CATEGORY ------------------------------------------------------------------
 
 Tools

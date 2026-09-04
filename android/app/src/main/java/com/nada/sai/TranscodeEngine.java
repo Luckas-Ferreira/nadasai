@@ -1,4 +1,4 @@
-package com.nadasai.app;
+package com.nada.sai;
 
 import android.content.Context;
 import android.media.MediaCodec;
@@ -10,8 +10,8 @@ import android.net.Uri;
 import android.util.Log;
 import android.view.Surface;
 
-import com.nadasai.app.gl.InputSurface;
-import com.nadasai.app.gl.OutputSurface;
+import com.nada.sai.gl.InputSurface;
+import com.nada.sai.gl.OutputSurface;
 
 import java.io.File;
 import java.nio.ByteBuffer;

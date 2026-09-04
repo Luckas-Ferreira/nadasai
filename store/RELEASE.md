@@ -184,7 +184,7 @@ lista de permissões da ficha da loja. Os três estão removidos com
 `tools:node="remove"`, e essa é exatamente a linha que some num upgrade de
 dependência sem quebrar nada.
 
-Conferido no aparelho: o `dumpsys package com.nadasai.app` lista apenas
+Conferido no aparelho: o `dumpsys package com.nada.sai` lista apenas
 `RECORD_AUDIO` e `MODIFY_AUDIO_SETTINGS`, e o ORT segue funcionando — ele
 mesmo registra `Android telemetry is unavailable because the 1DS Java HttpClient
 was not initialized` e continua, com a sessão nativa subindo em 4 threads.
@@ -294,7 +294,7 @@ para produção.
 O que só aparece no APK instalado, e não no `ng serve`:
 
 - **A lista de permissões** (Configurações → Apps → Nada Sai, ou
-  `adb shell dumpsys package com.nadasai.app | grep -A5 "requested permissions"`):
+  `adb shell dumpsys package com.nada.sai | grep -A5 "requested permissions"`):
   só microfone. **Se `INTERNET` aparecer aí, não envie o pacote** — veja a seção 2.
 - **Ícone e nome na gaveta** — a marca certa, e não o "X" do Capacitor.
 - **A tela de abertura** — branca com a marca, sem piscar escuro (Android 12+

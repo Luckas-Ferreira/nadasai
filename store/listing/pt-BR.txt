@@ -85,6 +85,17 @@ DETALHES TÉCNICOS, PARA QUEM LIGA
 Nada Sai também funciona no navegador, em nadasai.com. É o mesmo produto; o app é a versão que não precisa nem de aba aberta.
 
 
+--- NOTAS DA VERSÃO — 1.0.0 (500) ----------------------------------------------
+
+Primeira versão.
+
+57 ferramentas de PDF, imagem, áudio, vídeo e privacidade, todas rodando dentro do aparelho. O app não pede permissão de internet — dá para conferir na lista de permissões antes de instalar.
+
+Editor de PDF com OCR, PDF para Word, remoção de fundo por IA no chip do aparelho, foto 3x4 pronta para a gráfica, gravador de tela e de voz, remoção de metadados e criptografia AES-256.
+
+Funciona sem sinal. Sem conta, sem anúncio, sem rastreador.
+
+
 --- CATEGORIA -----------------------------------------------------------------
 
 Ferramentas

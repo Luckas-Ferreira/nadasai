@@ -27,10 +27,10 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
-    namespace = "com.nadasai.app"
+    namespace = "com.nada.sai"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.nadasai.app"
+        applicationId "com.nada.sai"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // O Play recusa um envio cujo versionCode ja exista, e nunca aceita um

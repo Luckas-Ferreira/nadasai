@@ -1,4 +1,4 @@
-package com.nadasai.app;
+package com.nada.sai;
 
 import android.net.Uri;
 import android.util.Log;

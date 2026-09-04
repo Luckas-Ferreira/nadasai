@@ -1,4 +1,4 @@
-package com.nadasai.app.gl;
+package com.nada.sai.gl;
 
 import android.opengl.EGL14;
 import android.opengl.EGLConfig;

@@ -1,4 +1,4 @@
-package com.nadasai.app.gl;
+package com.nada.sai.gl;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
