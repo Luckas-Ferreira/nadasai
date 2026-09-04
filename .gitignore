@@ -80,3 +80,35 @@ probe-*.png
 # Mesma história para imagem: o probe da vetorização (e2e/debug-vectorize-real)
 # lê o logotipo largado aqui, e um logotipo é material de marca de alguém.
 /*.png
+
+# Android: saída de build, saída do `cap sync`, e a chave de upload.
+#
+# Estas regras vivem AQUI, e não só no `android/.gitignore` que o `cap add`
+# escreve, porque aquele arquivo é rastreado pela branch do app: ao trocar para
+# uma branch sem `android/`, o git leva o .gitignore junto e os ~1.600 arquivos
+# gerados que ficaram no disco reaparecem todos como não rastreados. Nenhum
+# deles é fonte — Gradle e Capacitor os reescrevem do zero no build seguinte.
+#
+# Cuidado com duas colisões ao mexer aqui, as duas silenciosas:
+#   - `build/` PRECISA da barra final, senão casa com `android/build.gradle` e
+#     `android/app/build.gradle`, que são fonte de verdade;
+#   - o ignore de `res/xml` é do `config.xml` e SÓ dele — `file_paths.xml` mora
+#     no mesmo diretório e é rastreado (é o FileProvider do compartilhamento).
+/android/**/.gradle/
+/android/**/build/
+/android/capacitor-cordova-android-plugins/
+/android/local.properties
+/android/app/src/main/assets/public/
+/android/app/src/main/assets/capacitor.config.json
+/android/app/src/main/assets/capacitor.plugins.json
+/android/app/src/main/res/xml/config.xml
+
+# A chave de upload da Play Store e o arquivo que aponta para ela.
+#
+# Perder a chave não é contratempo: sem ela não existe atualização do app já
+# publicado, só um app novo — sem os instalados, sem as avaliações e sem a URL.
+# Ela fica fora do repositório e com backup fora desta máquina; o
+# `app/build.gradle` só a alcança por este .properties, que carrega as senhas.
+/android/keystore.properties
+*.jks
+*.keystore
