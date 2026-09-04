@@ -1,0 +1,37 @@
+name: Sugerir uma ferramenta ou melhoria
+description: Uma ferramenta nova, ou uma existente que poderia fazer mais.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de escrever, uma regra que economiza tempo dos dois lados:
+        **tudo roda no dispositivo, e não existe backend.** Qualquer coisa que
+        precise de servidor, conta ou chamada de API está fora — não por
+        preguiça, é a tese do produto.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Que problema resolve
+      description: O que você está tentando fazer hoje, e por que dá trabalho.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: O que a ferramenta faria
+      description: Entra o quê, sai o quê.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Confere
+      options:
+        - label: Dá para fazer inteiramente no navegador, sem servidor.
+          required: true
+        - label: Procurei nas 57 ferramentas existentes e não achei equivalente.
+          required: true

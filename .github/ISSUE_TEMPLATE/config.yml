@@ -1,0 +1,13 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Falha de segurança
+    url: https://github.com/Luckas-Ferreira/nadasai/security/advisories/new
+    about: >
+      Relato privado. Não abra issue pública para exfiltração de arquivo,
+      censura recuperável, metadado sobrevivente ou qualquer coisa em core/crypto.
+  - name: Usar o produto
+    url: https://nadasai.com
+    about: As 57 ferramentas, sem instalar nada.
+  - name: Como contribuir
+    url: https://github.com/Luckas-Ferreira/nadasai/blob/main/CONTRIBUTING.md
+    about: Rodar o projeto, o que reprova um PR, e o que exige conversa antes.

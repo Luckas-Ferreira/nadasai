@@ -1,0 +1,80 @@
+name: Relatar um defeito
+description: Alguma ferramenta não fez o que promete.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Falha de segurança não vai aqui.** Se o defeito é um arquivo saindo do
+        dispositivo, conteúdo censurado recuperável, metadado sobrevivendo ao
+        strip ou qualquer coisa em `core/crypto/`, use a aba **Security** →
+        *Report a vulnerability*. Veja o [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: input
+    id: tool
+    attributes:
+      label: Qual ferramenta
+      description: O nome na tela ou a URL da página.
+      placeholder: Comprimir PDF — nadasai.com/pt/pdf/comprimir
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Onde
+      options:
+        - Site (navegador)
+        - App Android
+        - PWA instalada
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Navegador e versão
+      description: >
+        Não é burocracia. Metade do produto depende de API que cada navegador
+        implementa diferente — o Firefox recusa `decodeAudioData` em vários
+        contêineres, o Safari não escreve MP4 pelo `MediaRecorder`, e o WebView
+        do Android não expõe `SharedArrayBuffer`. Sem a versão, o defeito não é
+        reproduzível.
+      placeholder: Chrome 141 no Windows 11 / Safari 18.2 no iPhone
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Abri …
+        2. Soltei um arquivo de …
+        3. Cliquei em …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que você esperava, e o que aconteceu
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Erro no console (F12 → Console)
+      description: Cole o texto. Se não houver nenhum, diga isso — a ausência também informa.
+      render: text
+
+  - type: textarea
+    id: file
+    attributes:
+      label: Sobre o arquivo
+      description: >
+        **Não anexe o arquivo se ele for de alguém.** Formato, tamanho, número de
+        páginas e origem (foto de celular, digitalização, exportado de qual
+        programa) costumam bastar. Se precisar mesmo anexar, gere um exemplo sem
+        dado nenhum.
