@@ -91,10 +91,14 @@ const DOUBLE_TAP_ZOOM = 2.5;
 /**
  * Quanto tempo a cromagem fica antes de sumir sozinha, numa imagem.
  *
- * Longo o bastante para ler o nome do arquivo e achar o botão de voltar; curto o
+ * Longo o bastante para LER A FILEIRA DE DESTINOS e escolher um; curto o
  * bastante para que quem abriu só para OLHAR não precise fazer nada.
+ *
+ * Eram 2600 ms, medidos contra o critério errado — "ler o nome do arquivo e
+ * achar o botão de voltar". O rodapé tem catorze destinos, e ninguém lê catorze
+ * rótulos em dois segundos e meio: a fileira sumia com a mão a caminho dela.
  */
-const CHROME_HIDE_MS = 2600;
+const CHROME_HIDE_MS = 4200;
 
 /**
  * Quanto o dedo precisa descer para fechar, e o quanto ele pode desviar.
@@ -303,6 +307,24 @@ export class FileViewerComponent {
   /** A cromagem está à mostra? */
   protected readonly chrome = signal(true);
 
+  /**
+   * A cromagem foi ACESA POR UM TOQUE — e a partir daí o relógio não a apaga.
+   *
+   * Sem isto a fileira de destinos era inalcançável na prática, e era esse o
+   * defeito relatado: "as ferramentas não abrem". Escondida, a cromagem fica
+   * `inert`, o toque a atravessa e cai na imagem — ou seja, o primeiro toque
+   * sobre um destino não o aciona, ele apenas ACENDE a cromagem de volta. Com o
+   * relógio correndo de novo, o segundo toque disputava com ele; quem hesitasse
+   * um instante para mirar acendia e apagava a fileira indefinidamente, sem
+   * nunca abrir ferramenta nenhuma.
+   *
+   * O sinal separa as duas intenções que o mesmo estado tinha: a cromagem que
+   * ABRIU junto com a tela é cortesia e some sozinha (quem veio olhar não
+   * precisa fazer nada), a que voltou POR UM TOQUE foi pedida, e some só quando
+   * for dispensada do mesmo jeito. É o que faz o segundo toque acertar sempre.
+   */
+  private readonly pinned = signal(false);
+
   protected readonly pages = signal<readonly PdfPage[]>([]);
   protected readonly loading = signal(false);
   protected readonly failed = signal(false);
@@ -381,6 +403,7 @@ export class FileViewerComponent {
       this.panY.set(0);
       this.dismissY.set(0);
       this.chrome.set(true);
+      this.pinned.set(false);
       // Um relógio de toque sobrevivente da sessão anterior apagaria a cromagem
       // que esta linha acabou de acender, um quarto de segundo depois de abrir.
       clearTimeout(this.tapTimer);
@@ -419,6 +442,8 @@ export class FileViewerComponent {
     effect((onCleanup) => {
       if (!this.viewer.open() || !this.browser) return;
       if (!this.isImage() || !this.chrome() || !this.coarse) return;
+      // Acesa por um toque, ela fica. Ver `pinned`.
+      if (this.pinned()) return;
 
       this.hideTimer = setTimeout(() => this.chrome.set(false), CHROME_HIDE_MS);
       onCleanup(() => clearTimeout(this.hideTimer));
@@ -576,7 +601,14 @@ export class FileViewerComponent {
    */
   private scheduleChromeToggle(): void {
     clearTimeout(this.tapTimer);
-    this.tapTimer = setTimeout(() => this.chrome.set(!this.chrome()), TAP_SETTLE_MS);
+    this.tapTimer = setTimeout(() => {
+      const next = !this.chrome();
+      // Acender é um PEDIDO pela cromagem, e prende o relógio; apagar devolve a
+      // tela ao arquivo e o solta, para que a próxima abertura volte a se
+      // esconder sozinha. Ver `pinned`.
+      this.pinned.set(next);
+      this.chrome.set(next);
+    }, TAP_SETTLE_MS);
   }
 
   private tapTimer: ReturnType<typeof setTimeout> | undefined;

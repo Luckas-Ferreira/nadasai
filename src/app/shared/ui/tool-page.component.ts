@@ -338,8 +338,27 @@ export class ToolPageComponent {
       : `${base} mt-0.5 h-10 w-10`;
   });
 
+  /**
+   * O h1, encolhido no celular — e NUNCA com `text-base`.
+   *
+   * `text-base` parece uma medida e neste sistema é uma COR. O `styles.css`
+   * zera as escalas do Tailwind e redeclara só o que o produto usa, e entre os
+   * tokens de cor está `--color-base`, o fundo da página; o Tailwind resolve a
+   * ambiguidade do prefixo `text-` a favor da cor, e a regra gerada é
+   * `.text-base{color:var(--color-base)}` — sem `font-size` nenhum. O título
+   * saía, então, na cor do papel em que estava escrito: presente na árvore,
+   * legível para o Google, invisível para quem abriu o app. O tamanho de 14px
+   * que ele aparentava vinha do `font-size` do `body`, que por coincidência é o
+   * mesmo `--text-base` — a coincidência é justamente o que escondeu metade do
+   * defeito.
+   *
+   * As outras vinte ocorrências de `text-base` no produto escapam por virem
+   * sempre acompanhadas de `text-muted` ou `text-text`, que ganham por ordem no
+   * arquivo (as duas são seletores de uma classe só, e `.text-base` sai antes
+   * por ordem alfabética). Este h1 era o único sem cor ao lado.
+   */
   protected readonly headlineClass = computed(() =>
-    this.loaded() ? 'truncate text-base md:text-2xl' : 'text-2xl',
+    this.loaded() ? 'truncate text-md md:text-2xl' : 'text-2xl',
   );
 
   protected readonly subtitleClass = computed(() =>

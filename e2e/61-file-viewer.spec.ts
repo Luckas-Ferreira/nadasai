@@ -226,6 +226,34 @@ test.describe('A folha de controles do celular', () => {
     expect(surface).toBeGreaterThan(stage * 0.9);
   });
 
+  test('o cabeçalho encolhe e o título continua LEGÍVEL', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page, PHOTO);
+
+    const h1 = page.locator('main h1');
+    await expect(h1).toBeVisible(READY);
+
+    // O DEFEITO QUE ESTE TESTE PINA: o h1 encolhido usava `text-base`, que
+    // parece uma medida e neste sistema é uma COR — `styles.css` zera as escalas
+    // do Tailwind e declara `--color-base`, o fundo da página, então a regra
+    // gerada é `.text-base{color:var(--color-base)}`. O título saía escrito na
+    // cor do papel: presente no HTML, contado pelo Google, invisível no aparelho.
+    // Nenhuma asserção de existência o pegaria, e nenhuma de tamanho também — os
+    // 14px que ele aparentava vinham do `font-size` do `body`.
+    const [cor, fundo] = await Promise.all([
+      h1.evaluate((el) => getComputedStyle(el).color),
+      h1.evaluate((el) => {
+        for (let n: HTMLElement | null = el.parentElement; n; n = n.parentElement) {
+          const bg = getComputedStyle(n).backgroundColor;
+          if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') return bg;
+        }
+        return '';
+      }),
+    ]);
+
+    expect(cor).not.toBe(fundo);
+  });
+
   test('no desktop a mesma coluna não é folha nenhuma', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await openApp(page, '/pt/imagem/comprimir');
@@ -235,5 +263,62 @@ test.describe('A folha de controles do celular', () => {
     await expect(panel).toBeVisible(READY);
     await expect.poll(() => panel.evaluate((el) => getComputedStyle(el).position)).toBe('static');
     await expect(page.getByRole('button', { name: 'Esconder ajustes' })).toBeHidden();
+  });
+});
+
+/**
+ * A CROMAGEM QUE SOME SOZINHA — e o toque que não abria nada.
+ *
+ * Esta suíte inteira rodava com PONTEIRO FINO, e por isso passava por cima do
+ * defeito que chegou como "as ferramentas não abrem no visualizador". O relógio
+ * que esconde o cabeçalho e a fileira de destinos só corre em `(pointer:
+ * coarse)`, então sem `hasTouch` ele nunca disparava e a fileira estava sempre
+ * lá para ser clicada. No aparelho a sequência era outra: a fileira sumia
+ * sozinha, ficava `inert` — o toque a atravessa e cai na imagem —, e o primeiro
+ * toque sobre um destino apenas a ACENDIA de volta. Com o relógio recomeçando,
+ * quem hesitasse para mirar o segundo toque acendia e apagava a fileira
+ * indefinidamente, sem nunca abrir ferramenta nenhuma.
+ *
+ * É por isso que o teste espera de verdade em vez de tocar duas vezes seguidas:
+ * o que estava quebrado era o TEMPO entre os dois toques, e um par de toques
+ * imediatos passava antes e passaria de novo.
+ */
+test.describe('A cromagem no dedo', () => {
+  test.use({ viewport: PHONE, hasTouch: true, isMobile: true });
+
+  test('acesa por um toque ela FICA, e o toque seguinte abre a ferramenta', async ({ page }) => {
+    await openApp(page, '/pt/imagem/comprimir');
+    await upload(page, PHOTO);
+
+    await expect(expand(page)).toBeVisible(READY);
+    await expand(page).tap();
+
+    const view = dialog(page);
+    await expect(view).toBeVisible();
+
+    // `inert` é o mecanismo, e por isso é ele que o teste lê: escondida, a
+    // cromagem sai da árvore de acessibilidade E do teste de acerto do toque.
+    const escondida = view.locator('div[inert]');
+    await expect(escondida).toHaveCount(0);
+
+    // 1. Ela some sozinha — quem abriu só para olhar não precisa fazer nada.
+    await expect(escondida).toHaveCount(1, { timeout: 15_000 });
+
+    // 2. O primeiro toque sobre a fileira não aciona destino nenhum: ele
+    //    atravessa até a imagem e ACENDE a cromagem de volta.
+    await view.getByRole('img').tap();
+    await expect(escondida).toHaveCount(0);
+
+    // 3. E A PARTIR DAÍ ELA FICA. Esta espera é o teste: com o relógio solto,
+    //    aqui a fileira já teria sumido outra vez e o toque abaixo cairia no
+    //    vazio, que era exatamente o que acontecia no aparelho.
+    await page.waitForTimeout(6_000);
+    await expect(escondida).toHaveCount(0);
+
+    // 4. O segundo toque abre a ferramenta, com o arquivo junto.
+    await view.getByRole('button', { name: 'Cortar' }).tap();
+    await expect(page).toHaveURL(/\/pt\/imagem\/cortar$/);
+    await expect(view).toBeHidden();
+    await expect(page.locator('app-file-bar')).toContainText('photo.png');
   });
 });
