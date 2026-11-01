@@ -22,7 +22,16 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Os limites do Play, em CARACTERES (não bytes) — o editor conta code units,
  *  então "ã" é um e um emoji fora do BMP é dois. */
-const LIMITS = { 'TÍTULO DO APP': 30, 'APP TITLE': 30, 'DESCRIÇÃO CURTA': 80, 'SHORT DESCRIPTION': 80, 'DESCRIÇÃO COMPLETA': 4000, 'FULL DESCRIPTION': 4000 };
+const LIMITS = {
+  'TÍTULO DO APP': 30,
+  'APP TITLE': 30,
+  'DESCRIÇÃO CURTA': 80,
+  'SHORT DESCRIPTION': 80,
+  'DESCRIÇÃO COMPLETA': 4000,
+  'FULL DESCRIPTION': 4000,
+  'NOTAS DESTA VERSÃO': 500,
+  'RELEASE NOTES': 500,
+};
 
 /** Recorta um bloco `--- NOME (limite) ---` até o próximo separador. */
 function blocks(text) {

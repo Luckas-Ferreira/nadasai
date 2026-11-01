@@ -5,6 +5,21 @@ Play's limits are in parentheses; `scripts/check-listing.mjs` enforces them.
 ================================================================================
 
 
+--- RELEASE NAME --------------------------------------------------------------
+
+1.0.0
+
+
+--- RELEASE NOTES (500) -------------------------------------------------------
+
+Initial release of Nada Sai:
+• 57 tools for PDF, image, audio, and video running 100% on your device.
+• Zero internet permission: total privacy, your files never leave your phone.
+• Direct native file saving to your Downloads folder with instant visual confirmation.
+• On-device AI background removal and hardware-accelerated video trimming.
+• Works completely offline with no account, no ads, and no trackers.
+
+
 --- APP TITLE (30) ------------------------------------------------------------
 
 Nada Sai: Offline PDF & Photo

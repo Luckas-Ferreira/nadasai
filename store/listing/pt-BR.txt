@@ -5,6 +5,21 @@ Os limites do Play estão entre parênteses; `scripts/check-listing.mjs` os conf
 ================================================================================
 
 
+--- NOME DA VERSÃO ------------------------------------------------------------
+
+1.0.0
+
+
+--- NOTAS DESTA VERSÃO (500) --------------------------------------------------
+
+Primeira versão oficial do Nada Sai:
+• 57 ferramentas para PDF, imagem, áudio e vídeo que rodam 100% no seu aparelho.
+• Sem permissão de internet: total privacidade, seus arquivos nunca saem do celular.
+• Salvamento nativo direto na pasta Downloads com confirmação instantânea.
+• Remoção de fundo por IA no processador e corte de vídeo por aceleração de hardware.
+• Funciona sem login, sem cadastro, sem anúncios e totalmente offline.
+
+
 --- TÍTULO DO APP (30) --------------------------------------------------------
 
 Nada Sai: PDF e Foto Offline
