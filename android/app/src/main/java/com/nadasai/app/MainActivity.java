@@ -36,6 +36,7 @@ public class MainActivity extends BridgeActivity {
         // JavaScript nunca o encontra.
         registerPlugin(VideoPlugin.class);
         registerPlugin(MattePlugin.class);
+        registerPlugin(SavePlugin.class);
 
         super.onCreate(savedInstanceState);
 

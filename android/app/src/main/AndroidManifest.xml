@@ -93,6 +93,12 @@
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
+    <!-- Permissão para salvar arquivos modificados na pasta Downloads em aparelhos com
+         Android 9 e anteriores. No Android 10+ (API 29+), o Scoped Storage / MediaStore
+         grava em Downloads sem necessidade de permissão em tempo de execução. O maxSdkVersion="28"
+         atende estritamente às diretrizes da Google Play para targetSdk moderno. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+
     <!-- O MICROFONE, que e a unica permissao que este app pede.
 
          Ela existe pelo `voice-recorder`, e a alternativa nao era "menos uma
